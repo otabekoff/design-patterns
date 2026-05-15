@@ -1,0 +1,250 @@
+---
+title: Паттерн Одиночка (Singleton)
+description: Гарантирует, что у класса есть только один экземпляр, и предоставляет к нему глобальную точку доступа.
+icon: CircleDot
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from 'fumadocs-ui/components/tabs';
+
+# Паттерн Одиночка (Singleton)
+
+## Обзор
+
+Одиночка (Singleton) — это порождающий паттерн проектирования, который гарантирует, что у класса есть только один экземпляр, и предоставляет к нему глобальную точку доступа.
+
+### Предназначение
+
+- Гарантировать наличие единственного экземпляра класса на протяжении всего жизненного цикла приложения.
+- Предоставить глобальную точку доступа к этому экземпляру.
+- Контролировать доступ к общим ресурсам (базы данных, файловые системы, логгеры и т. д.).
+
+## Проблема
+
+Иногда необходимо гарантировать, что у класса есть только один экземпляр. Например:
+- Пул соединений с базой данных
+- Логгер
+- Менеджер конфигурации
+- Пул потоков
+
+Без этого паттерна вы можете случайно создать несколько экземпляров, что приведет к противоречивому состоянию или напрасной трате ресурсов.
+
+## Решение
+
+Паттерн Одиночка решает эту проблему путем:
+1. Скрытия конструктора (сделать его `private`).
+2. Создания статического экземпляра класса.
+3. Предоставления статического метода для доступа к этому экземпляру.
+
+## Реализация
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    // Немедленная инициализация (Eager Initialization, потокобезопасно)
+    class Database {
+      private static instance: Database = new Database();
+
+      private constructor() {
+        console.log('Экземпляр базы данных создан');
+      }
+
+      public static getInstance(): Database {
+        return Database.instance;
+      }
+
+      public query(sql: string): void {
+        console.log(`Выполнение: ${sql}`);
+      }
+    }
+
+    // Использование
+    const db1 = Database.getInstance();
+    const db2 = Database.getInstance();
+
+    console.log(db1 === db2); // true
+    db1.query('SELECT * FROM users');
+    ```
+  </TabsContent>
+
+  <TabsContent value="python">
+    ```python
+    # Использование переменной класса (потокобезопасно с GIL)
+    class Database:
+        _instance = None
+
+        def __new__(cls):
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                print("Экземпляр базы данных создан")
+            return cls._instance
+
+        def query(self, sql):
+            print(f"Выполнение: {sql}")
+
+    # Использование
+    db1 = Database()
+    db2 = Database()
+
+    print(db1 is db2)  # True
+    db1.query("SELECT * FROM users")
+    ```
+  </TabsContent>
+
+  <TabsContent value="java">
+    ```java
+    // Немедленная инициализация
+    public class Database {
+        private static final Database INSTANCE = new Database();
+
+        private Database() {
+            System.out.println("Экземпляр базы данных создан");
+        }
+
+        public static Database getInstance() {
+            return INSTANCE;
+        }
+
+        public void query(String sql) {
+            System.out.println("Выполнение: " + sql);
+        }
+    }
+
+    // Использование
+    Database db1 = Database.getInstance();
+    Database db2 = Database.getInstance();
+
+    System.out.println(db1 == db2); // true
+    db1.query("SELECT * FROM users");
+    ```
+  </TabsContent>
+</Tabs>
+
+## Продвинутый уровень: Ленивая инициализация (Lazy Initialization, потокобезопасно)
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    class Database {
+      private static instance: Database;
+
+      private constructor() {
+        console.log('Экземпляр базы данных создан');
+      }
+
+      public static getInstance(): Database {
+        if (!Database.instance) {
+          Database.instance = new Database();
+        }
+        return Database.instance;
+      }
+
+      public query(sql: string): void {
+        console.log(`Выполнение: ${sql}`);
+      }
+    }
+    ```
+  </TabsContent>
+
+  <TabsContent value="java">
+    ```java
+    // Блокировка с двойной проверкой (Double-Checked Locking)
+    public class Database {
+        private static volatile Database instance;
+
+        private Database() {
+            System.out.println("Экземпляр базы данных создан");
+        }
+
+        public static Database getInstance() {
+            if (instance == null) {
+                synchronized (Database.class) {
+                    if (instance == null) {
+                        instance = new Database();
+                    }
+                }
+            }
+            return instance;
+        }
+    }
+    ```
+  </TabsContent>
+</Tabs>
+
+## Реальный пример: Логгер
+
+```typescript
+class Logger {
+  private static instance: Logger;
+  private logs: string[] = [];
+
+  private constructor() {}
+
+  public static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger();
+    }
+    return Logger.instance;
+  }
+
+  public log(message: string): void {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${message}`;
+    this.logs.push(logEntry);
+    console.log(logEntry);
+  }
+
+  public getLogs(): string[] {
+    return [...this.logs];
+  }
+}
+
+// Использование
+const logger1 = Logger.getInstance();
+const logger2 = Logger.getInstance();
+
+logger1.log('Приложение запущено');
+logger2.log('Пользователь вошел в систему');
+
+console.log(logger1 === logger2); // true
+console.log(logger1.getLogs());
+```
+
+## Преимущества
+
+- ✅ Контролируемый доступ к единственному общему ресурсу.
+- ✅ Возможна ленивая инициализация.
+- ✅ Потокобезопасность при правильной реализации.
+- ✅ Простота реализации.
+
+## Недостатки
+
+- ❌ Нарушает принцип единственной ответственности (Single Responsibility Principle).
+- ❌ Усложняет юнит-тестирование (жесткая зависимость).
+- ❌ Может скрывать зависимости.
+- ❌ Скрывает плохой дизайн вместо того, чтобы решать его.
+
+<Callout>
+Паттерн Одиночка часто считается антипаттерном. Рассмотрите возможность использования **внедрения зависимостей (Dependency Injection)** для лучшей тестируемости и гибкости.
+</Callout>
+
+## Когда использовать
+
+- Соединения с базой данных
+- Сервисы логирования
+- Менеджеры конфигурации
+- Пулы потоков
+- Системы кеширования
+
+## Когда НЕ использовать
+
+- Когда вам нужно несколько конфигураций.
+- В многопоточных средах (используйте потокобезопасные альтернативы).
+- Когда важно юнит-тестирование.
+- Когда вы можете захотеть расширить класс.
+
+## Связанные паттерны
+
+- **Внедрение зависимостей (Dependency Injection)**: Лучшая альтернатива для глобального доступа.
+- **Фабричный метод (Factory Method)**: Может использоваться вместе с Одиночкой.
+- **Абстрактная фабрика (Abstract Factory)**: Может работать вместе с Одиночкой.

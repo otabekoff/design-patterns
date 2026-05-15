@@ -1,0 +1,250 @@
+---
+title: Singleton Pattern
+description: Ensures a class has only one instance and provides a global access point to it.
+icon: CircleDot
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from 'fumadocs-ui/components/tabs';
+
+# Singleton Pattern
+
+## Overview
+
+The Singleton pattern is a creational design pattern that restricts the instantiation of a class to a single object. It provides a global access point to that instance.
+
+### Purpose
+
+- Ensure only one instance of a class exists throughout the application's lifetime
+- Provide a global access point to that instance
+- Control access to shared resources (databases, file systems, loggers, etc.)
+
+## Problem
+
+Sometimes you need to ensure that a class has only one instance. For example:
+- A database connection pool
+- A logger
+- A configuration manager
+- A thread pool
+
+Without this pattern, you might accidentally create multiple instances, leading to inconsistent state or wasted resources.
+
+## Solution
+
+The Singleton pattern solves this by:
+1. Making the constructor private
+2. Creating a static instance of the class
+3. Providing a static method to access the instance
+
+## Implementation
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    // Eager Initialization (Thread-safe)
+    class Database {
+      private static instance: Database = new Database();
+
+      private constructor() {
+        console.log('Database instance created');
+      }
+
+      public static getInstance(): Database {
+        return Database.instance;
+      }
+
+      public query(sql: string): void {
+        console.log(`Executing: ${sql}`);
+      }
+    }
+
+    // Usage
+    const db1 = Database.getInstance();
+    const db2 = Database.getInstance();
+
+    console.log(db1 === db2); // true
+    db1.query('SELECT * FROM users');
+    ```
+  </TabsContent>
+
+  <TabsContent value="python">
+    ```python
+    # Using a class variable (Thread-safe with GIL)
+    class Database:
+        _instance = None
+
+        def __new__(cls):
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                print("Database instance created")
+            return cls._instance
+
+        def query(self, sql):
+            print(f"Executing: {sql}")
+
+    # Usage
+    db1 = Database()
+    db2 = Database()
+
+    print(db1 is db2)  # True
+    db1.query("SELECT * FROM users")
+    ```
+  </TabsContent>
+
+  <TabsContent value="java">
+    ```java
+    // Eager Initialization
+    public class Database {
+        private static final Database INSTANCE = new Database();
+
+        private Database() {
+            System.out.println("Database instance created");
+        }
+
+        public static Database getInstance() {
+            return INSTANCE;
+        }
+
+        public void query(String sql) {
+            System.out.println("Executing: " + sql);
+        }
+    }
+
+    // Usage
+    Database db1 = Database.getInstance();
+    Database db2 = Database.getInstance();
+
+    System.out.println(db1 == db2); // true
+    db1.query("SELECT * FROM users");
+    ```
+  </TabsContent>
+</Tabs>
+
+## Advanced: Lazy Initialization (Thread-Safe)
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    class Database {
+      private static instance: Database;
+
+      private constructor() {
+        console.log('Database instance created');
+      }
+
+      public static getInstance(): Database {
+        if (!Database.instance) {
+          Database.instance = new Database();
+        }
+        return Database.instance;
+      }
+
+      public query(sql: string): void {
+        console.log(`Executing: ${sql}`);
+      }
+    }
+    ```
+  </TabsContent>
+
+  <TabsContent value="java">
+    ```java
+    // Double-Checked Locking
+    public class Database {
+        private static volatile Database instance;
+
+        private Database() {
+            System.out.println("Database instance created");
+        }
+
+        public static Database getInstance() {
+            if (instance == null) {
+                synchronized (Database.class) {
+                    if (instance == null) {
+                        instance = new Database();
+                    }
+                }
+            }
+            return instance;
+        }
+    }
+    ```
+  </TabsContent>
+</Tabs>
+
+## Real-World Example: Logger
+
+```typescript
+class Logger {
+  private static instance: Logger;
+  private logs: string[] = [];
+
+  private constructor() {}
+
+  public static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger();
+    }
+    return Logger.instance;
+  }
+
+  public log(message: string): void {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${message}`;
+    this.logs.push(logEntry);
+    console.log(logEntry);
+  }
+
+  public getLogs(): string[] {
+    return [...this.logs];
+  }
+}
+
+// Usage
+const logger1 = Logger.getInstance();
+const logger2 = Logger.getInstance();
+
+logger1.log('Application started');
+logger2.log('User logged in');
+
+console.log(logger1 === logger2); // true
+console.log(logger1.getLogs());
+```
+
+## Advantages
+
+- ✅ Controlled access to a single, shared resource
+- ✅ Lazy initialization possible
+- ✅ Thread-safe when implemented correctly
+- ✅ Simple to implement
+
+## Disadvantages
+
+- ❌ Violates Single Responsibility Principle
+- ❌ Makes unit testing difficult (tight coupling)
+- ❌ Can hide dependencies
+- ❌ Hides poor design rather than solving it
+
+<Callout>
+The Singleton pattern is often considered an anti-pattern. Consider using **Dependency Injection** instead for better testability and flexibility.
+</Callout>
+
+## When to Use
+
+- Database connections
+- Logging services
+- Configuration managers
+- Thread pools
+- Caching systems
+
+## When NOT to Use
+
+- When you need multiple configurations
+- In multithreaded environments (use thread-safe alternatives)
+- When unit testing is important
+- When you might want to extend the class
+
+## Related Patterns
+
+- **Dependency Injection**: A better alternative for global access
+- **Factory Method**: Can be used with Singleton
+- **Abstract Factory**: Can work alongside Singleton

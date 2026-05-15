@@ -1,0 +1,371 @@
+---
+title: Active Record Pattern
+description: Wraps a database row in an object with data and behavior
+icon: Table
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+
+## Overview
+
+The **Active Record** pattern is an architectural approach where an object carries both data and behavior, directly representing a database row. The object knows how to load, save, and delete itself from the database.
+
+Key concepts:
+
+- **Single Object**: Contains both data and persistence logic
+- **Self-Aware**: Object knows how to persist itself
+- **Straightforward**: Direct mapping to database table
+- **Minimal Separation**: Data access mixed with business logic
+
+## Purpose
+
+Active Record aims to:
+
+- Simplify database mapping for straightforward models
+- Reduce boilerplate code for CRUD operations
+- Provide intuitive interface for developers
+- Enable quick prototyping
+- Work well for simple domain models
+- Minimize abstraction overhead
+
+## Problem
+
+Without patterns, database interaction becomes messy:
+
+- Scattered SQL queries throughout code
+- Inconsistent data loading
+- Difficult to refactor database schema
+- Hard to test database-dependent code
+- Scattered persistence logic
+
+```
+❌ Scattered Data Access
+const user = database.query('SELECT * FROM users WHERE id = ?', id);
+user.name = 'John';
+database.execute('UPDATE users SET name = ? WHERE id = ?', user.name, id);
+```
+
+## Solution
+
+Active Record encapsulates database operations:
+
+```
+✅ Active Record
+class User {
+  id: number
+  name: string
+  email: string
+
+  save() { /* persist to DB */ }
+  delete() { /* remove from DB */ }
+  static find(id) { /* query DB */ }
+}
+```
+
+## Implementation
+
+<Tabs defaultValue="typescript">
+<TabsList>
+<TabsTrigger value="typescript">TypeScript</TabsTrigger>
+<TabsTrigger value="python">Python</TabsTrigger>
+</TabsList>
+
+<TabsContent value="typescript">
+
+```typescript
+// Database Connection Mock
+interface Database {
+  execute(sql: string, params?: any[]): any[];
+  query(sql: string, params?: any[]): any[];
+}
+
+const db: Database = {
+  execute: (sql: string) => {
+    console.log(`[DB] Execute: ${sql}`);
+    return [{ affectedRows: 1 }];
+  },
+  query: (sql: string) => {
+    console.log(`[DB] Query: ${sql}`);
+    return [];
+  },
+};
+
+// Active Record Pattern
+class User {
+  id?: number;
+  name: string;
+  email: string;
+  createdAt?: Date;
+
+  constructor(name: string, email: string) {
+    this.name = name;
+    this.email = email;
+  }
+
+  save(): void {
+    if (this.id) {
+      const sql = `UPDATE users SET name = '${this.name}', email = '${this.email}' WHERE id = ${this.id}`;
+      db.execute(sql);
+      console.log(`✅ User ${this.id} updated`);
+    } else {
+      const sql = `INSERT INTO users (name, email) VALUES ('${this.name}', '${this.email}')`;
+      db.execute(sql);
+      this.id = Date.now();
+      console.log(`✅ User created with id ${this.id}`);
+    }
+  }
+
+  delete(): void {
+    if (this.id) {
+      const sql = `DELETE FROM users WHERE id = ${this.id}`;
+      db.execute(sql);
+      console.log(`✅ User ${this.id} deleted`);
+    }
+  }
+
+  getFullInfo(): string {
+    return `User(${this.id}): ${this.name} <${this.email}>`;
+  }
+
+  static findById(id: number): User | null {
+    const sql = `SELECT * FROM users WHERE id = ${id}`;
+    const results = db.query(sql);
+    if (results.length === 0) return null;
+
+    const row = results[0];
+    const user = new User(row.name, row.email);
+    user.id = row.id;
+    user.createdAt = row.created_at;
+    return user;
+  }
+
+  static findByEmail(email: string): User | null {
+    const sql = `SELECT * FROM users WHERE email = '${email}'`;
+    const results = db.query(sql);
+    if (results.length === 0) return null;
+
+    const row = results[0];
+    const user = new User(row.name, row.email);
+    user.id = row.id;
+    user.createdAt = row.created_at;
+    return user;
+  }
+
+  static findAll(): User[] {
+    const sql = "SELECT * FROM users";
+    const results = db.query(sql);
+    return results.map((row) => {
+      const user = new User(row.name, row.email);
+      user.id = row.id;
+      user.createdAt = row.created_at;
+      return user;
+    });
+  }
+
+  static count(): number {
+    const sql = "SELECT COUNT(*) as count FROM users";
+    const results = db.query(sql);
+    return results[0]?.count || 0;
+  }
+}
+
+// Usage
+const user = new User("John Doe", "john@example.com");
+user.save();
+
+if (user.id) {
+  user.name = "John Updated";
+  user.save();
+
+  const loaded = User.findById(user.id);
+  if (loaded) {
+    console.log(`\nLoaded: ${loaded.getFullInfo()}`);
+  }
+
+  loaded?.delete();
+}
+```
+
+</TabsContent>
+
+<TabsContent value="python">
+
+```python
+# Database Connection Mock
+class Database:
+    @staticmethod
+    def execute(sql: str) -> dict:
+        print(f"[DB] Execute: {sql}")
+        return {"affected_rows": 1}
+
+    @staticmethod
+    def query(sql: str) -> list:
+        print(f"[DB] Query: {sql}")
+        return []
+
+db = Database()
+
+# Active Record Pattern
+class User:
+    def __init__(self, name: str, email: str):
+        self.id: int = None
+        self.name = name
+        self.email = email
+        self.created_at = None
+
+    def save(self) -> None:
+        if self.id:
+            sql = f"UPDATE users SET name = '{self.name}', email = '{self.email}' WHERE id = {self.id}"
+            db.execute(sql)
+            print(f"✅ User {self.id} updated")
+        else:
+            sql = f"INSERT INTO users (name, email) VALUES ('{self.name}', '{self.email}')"
+            db.execute(sql)
+            self.id = int(id(self))
+            print(f"✅ User created with id {self.id}")
+
+    def delete(self) -> None:
+        if self.id:
+            sql = f"DELETE FROM users WHERE id = {self.id}"
+            db.execute(sql)
+            print(f"✅ User {self.id} deleted")
+
+    def get_full_info(self) -> str:
+        return f"User({self.id}): {self.name} <{self.email}>"
+
+    @staticmethod
+    def find_by_id(user_id: int):
+        sql = f"SELECT * FROM users WHERE id = {user_id}"
+        results = db.query(sql)
+        if not results:
+            return None
+
+        row = results[0]
+        user = User(row["name"], row["email"])
+        user.id = row["id"]
+        user.created_at = row.get("created_at")
+        return user
+
+    @staticmethod
+    def find_by_email(email: str):
+        sql = f"SELECT * FROM users WHERE email = '{email}'"
+        results = db.query(sql)
+        if not results:
+            return None
+
+        row = results[0]
+        user = User(row["name"], row["email"])
+        user.id = row["id"]
+        user.created_at = row.get("created_at")
+        return user
+
+    @staticmethod
+    def find_all():
+        sql = "SELECT * FROM users"
+        results = db.query(sql)
+        users = []
+        for row in results:
+            user = User(row["name"], row["email"])
+            user.id = row["id"]
+            user.created_at = row.get("created_at")
+            users.append(user)
+        return users
+
+    @staticmethod
+    def count() -> int:
+        sql = "SELECT COUNT(*) as count FROM users"
+        results = db.query(sql)
+        return results[0].get("count", 0) if results else 0
+
+# Usage
+if __name__ == "__main__":
+    user = User("John Doe", "john@example.com")
+    user.save()
+
+    if user.id:
+        user.name = "John Updated"
+        user.save()
+
+        loaded = User.find_by_id(user.id)
+        if loaded:
+            print(f"\nLoaded: {loaded.get_full_info()}")
+
+        if loaded:
+            loaded.delete()
+```
+
+</TabsContent>
+
+</Tabs>
+
+## Real-World Examples
+
+### Ruby on Rails
+
+```ruby
+user = User.new(name: 'John')
+user.save!
+user.update(name: 'Jane')
+user.destroy
+```
+
+### Laravel Eloquent
+
+```php
+$user = new User(['name' => 'John']);
+$user->save();
+$user->update(['name' => 'Jane']);
+$user->delete();
+```
+
+## Advantages ✅
+
+- **Simplicity**: Easy to understand and implement
+- **Quick Development**: Fast to write basic CRUD
+- **Intuitive**: Natural object-oriented approach
+- **Less Boilerplate**: Minimal code needed
+- **Convention Over Configuration**: Sensible defaults
+- **Familiar**: Used in many popular frameworks
+- **Direct Mapping**: Clear relationship to database
+- **Good for Simple Models**: Perfect for straightforward entities
+
+## Disadvantages ❌
+
+- **Mixing Concerns**: Data and persistence mixed
+- **Hard to Test**: Tightly coupled to database
+- **Not Scalable**: Doesn't work well for complex domains
+- **Limited Flexibility**: Assumes table-per-class
+- **Performance**: N+1 query problems common
+- **Database Dependent**: Difficult to switch databases
+- **Complex Logic**: Hard to implement intricate rules
+- **Anti-Pattern for DDD**: Violates domain-driven design
+
+## When to Use ✅
+
+- **Simple CRUD Apps**: Straightforward operations
+- **Rapid Prototyping**: Quick MVPs
+- **Small Projects**: Limited scope and complexity
+- **Simple Domains**: Straightforward business logic
+- **Familiar Team**: Team experienced with framework
+- **Single Database**: One primary data source
+- **Convention-Based**: Following framework conventions
+- **Time-Constrained**: Need to ship quickly
+
+## When NOT to Use ❌
+
+- **Complex Domains**: Intricate business logic
+- **Testing-Critical**: Heavy unit testing required
+- **Multiple Data Sources**: Using APIs, caches, multiple DBs
+- **Complex Queries**: Intricate data access patterns
+- **Performance-Critical**: Need fine-grained control
+- **Team Preference**: Team prefers separation
+- **Large Teams**: Multiple developers on same codebase
+- **Long-Term Maintenance**: Where flexibility matters
+
+## Related Patterns
+
+- **Repository Pattern**: Better for complex applications
+- **Data Mapper**: Alternative for separation
+- **Unit of Work**: For managing multiple records
+- **Identity Map**: Caching pattern for active records

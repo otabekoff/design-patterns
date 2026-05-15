@@ -1,0 +1,318 @@
+---
+title: Prototype Pattern
+description: Creates new objects by cloning an existing object.
+icon: Copy
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+
+# Prototype Pattern
+
+## Overview
+
+The Prototype pattern is a creational design pattern that lets you copy existing objects without making your code dependent on their classes.
+
+### Purpose
+
+- Create new objects by copying an existing object
+- Avoid subclassing
+- Reduce object creation overhead
+- Clone complex objects efficiently
+
+## Problem
+
+Sometimes you need to create objects that are similar to existing ones, but creating them from scratch is expensive or complex. Additionally, you may not know the exact types at compile time.
+
+```typescript
+// Without Prototype - Expensive and rigid
+function cloneShape(shape: Shape): Shape {
+  if (shape instanceof Circle) {
+    return new Circle(shape.radius);
+  } else if (shape instanceof Rectangle) {
+    return new Rectangle(shape.width, shape.height);
+  }
+  throw new Error("Unknown shape");
+}
+```
+
+## Solution
+
+The Prototype pattern solves this by:
+
+1. Defining a clone method in the base class
+2. Allowing objects to clone themselves
+3. Avoiding type-specific cloning logic
+
+## Implementation
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    // Prototype interface
+    interface Cloneable {
+      clone(): Cloneable;
+    }
+
+    // Abstract prototype
+    abstract class Shape implements Cloneable {
+      color: string = 'red';
+      x: number = 0;
+      y: number = 0;
+
+      abstract clone(): Shape;
+
+      abstract getArea(): number;
+    }
+
+    // Concrete prototypes
+    class Circle extends Shape {
+      radius: number = 1;
+
+      clone(): Circle {
+        const cloned = Object.create(Circle.prototype);
+        Object.assign(cloned, this);
+        return cloned;
+      }
+
+      getArea(): number {
+        return Math.PI * this.radius * this.radius;
+      }
+    }
+
+    class Rectangle extends Shape {
+      width: number = 1;
+      height: number = 1;
+
+      clone(): Rectangle {
+        const cloned = Object.create(Rectangle.prototype);
+        Object.assign(cloned, this);
+        return cloned;
+      }
+
+      getArea(): number {
+        return this.width * this.height;
+      }
+    }
+
+    // Usage
+    const original = new Circle();
+    original.radius = 5;
+    original.color = 'blue';
+
+    const cloned = original.clone();
+    cloned.radius = 10;
+
+    console.log(original.radius); // 5
+    console.log(cloned.radius); // 10
+    console.log(original === cloned); // false
+    ```
+
+  </TabsContent>
+
+  <TabsContent value="python">
+    ```python
+    from abc import ABC, abstractmethod
+    import copy
+
+    class Shape(ABC):
+        def __init__(self):
+            self.color = 'red'
+            self.x = 0
+            self.y = 0
+
+        @abstractmethod
+        def clone(self):
+            pass
+
+        @abstractmethod
+        def get_area(self):
+            pass
+
+    class Circle(Shape):
+        def __init__(self):
+            super().__init__()
+            self.radius = 1
+
+        def clone(self):
+            return copy.deepcopy(self)
+
+        def get_area(self):
+            return 3.14159 * self.radius * self.radius
+
+    class Rectangle(Shape):
+        def __init__(self):
+            super().__init__()
+            self.width = 1
+            self.height = 1
+
+        def clone(self):
+            return copy.deepcopy(self)
+
+        def get_area(self):
+            return self.width * self.height
+
+    # Usage
+    original = Circle()
+    original.radius = 5
+    original.color = 'blue'
+
+    cloned = original.clone()
+    cloned.radius = 10
+
+    print(original.radius)  # 5
+    print(cloned.radius)  # 10
+    ```
+
+  </TabsContent>
+</Tabs>
+
+## Real-World Example: Document Prototype Registry
+
+```typescript
+class Document {
+  private title: string;
+  private content: string;
+  private tags: string[] = [];
+
+  constructor(title: string = "", content: string = "") {
+    this.title = title;
+    this.content = content;
+  }
+
+  clone(): Document {
+    const cloned = new Document(this.title, this.content);
+    cloned.tags = [...this.tags];
+    return cloned;
+  }
+
+  getInfo(): string {
+    return `${this.title}: ${this.content} (Tags: ${this.tags.join(", ")})`;
+  }
+}
+
+class DocumentRegistry {
+  private prototypes: Map<string, Document> = new Map();
+
+  registerPrototype(name: string, prototype: Document): void {
+    this.prototypes.set(name, prototype);
+  }
+
+  createDocument(name: string): Document {
+    const prototype = this.prototypes.get(name);
+    if (!prototype) {
+      throw new Error(`Prototype "${name}" not found`);
+    }
+    return prototype.clone();
+  }
+}
+
+// Usage
+const registry = new DocumentRegistry();
+
+// Register prototypes
+const businessLetterTemplate = new Document("Business Letter", "Dear Sir/Madam...");
+businessLetterTemplate.tags.push("official", "formal");
+
+const reportTemplate = new Document("Report", "Executive Summary...");
+reportTemplate.tags.push("document", "analysis");
+
+registry.registerPrototype("business-letter", businessLetterTemplate);
+registry.registerPrototype("report", reportTemplate);
+
+// Create instances
+const letter1 = registry.createDocument("business-letter");
+const letter2 = registry.createDocument("business-letter");
+
+console.log(letter1.getInfo());
+console.log(letter2.getInfo());
+console.log(letter1 === letter2); // false
+```
+
+## Shallow vs Deep Copy
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    class Author {
+      constructor(public name: string) {}
+    }
+
+    class Article {
+      author: Author;
+      tags: string[] = [];
+
+      constructor(title: string, author: Author) {
+        this.author = author;
+      }
+
+      // Shallow copy - references are shared
+      shallowClone(): Article {
+        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+      }
+
+      // Deep copy - everything is copied
+      deepClone(): Article {
+        const cloned = new Article('', new Author(this.author.name));
+        cloned.tags = [...this.tags];
+        return cloned;
+      }
+    }
+
+    // Example of the difference
+    const author = new Author('John');
+    const original = new Article('Article', author);
+    original.tags.push('typescript');
+
+    const shallow = original.shallowClone();
+    const deep = original.deepClone();
+
+    shallow.tags.push('javascript');
+    deep.tags.push('python');
+
+    console.log(original.tags); // ['typescript', 'javascript'] - modified!
+    console.log(shallow.tags); // ['typescript', 'javascript']
+    console.log(deep.tags); // ['typescript', 'python']
+    ```
+
+  </TabsContent>
+</Tabs>
+
+## Advantages
+
+- ✅ Reduce creation overhead for complex objects
+- ✅ Avoid hardcoding object classes
+- ✅ Create objects without knowing their exact types
+- ✅ Useful for copying complex object graphs
+
+## Disadvantages
+
+- ❌ Deep copying complex objects can be expensive
+- ❌ Circular references require special handling
+- ❌ Can hide object complexity
+- ❌ Need to implement clone method in all classes
+
+<Callout type="warn">
+  Be careful with shallow vs deep copying. Shallow copying shared mutable state can lead to
+  unexpected behavior.
+</Callout>
+
+## When to Use
+
+- Creating a copy of an object is as expensive as creating it from scratch
+- You need to create many similar objects
+- Object type is not known until runtime
+- Want to avoid subclass explosion
+
+## When NOT to Use
+
+- Simple objects are easier to create
+- Performance overhead of cloning is significant
+- Objects have complex circular references
+- Immutability is not guaranteed
+
+## Related Patterns
+
+- **Abstract Factory**: Often combined with Prototype
+- **Decorator**: Can add behavior to cloned objects
+- **Singleton**: Prototype registry can be Singleton

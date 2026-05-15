@@ -1,0 +1,355 @@
+---
+title: Read-Write Lock (O'qish-Yozish Qulfi)
+description: Birgalikda o'qishga ruxsat beradi, lekin umumiy resursga yozishni bitta alohida oqimga cheklaydi.
+icon: Lock
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+
+# Read-Write Lock Pattern
+
+## Umumiy ko'rinish (Overview)
+
+Read-Write Lock (O'qish-yozish qulfi) patterni — bu bir nechta o'quvchilarga (readers) umumiy resursga bir vaqtning o'zida kirish imkonini beruvchi, ammo yozuvchilar (writers) uchun mutlaq (exclusive) kirishni ta'minlaydigan parallellik (concurrency) dizayn patternidir. Bu o'qish tez-tez, yozish esa kamdan-kam sodir bo'ladigan stsenariylarda ishlash tezligini (performance) oshiradi.
+
+### Maqsad (Purpose)
+
+- Bir nechta parallel o'qish operatsiyalariga ruxsat berish
+- Yozish uchun mutlaq kirishni ta'minlash
+- O'qish ko'p bo'lgan stsenariylarda o'tkazuvchanlikni (throughput) oshirish
+- Ziddiyatlarni (contention) minimallashtirgan holda poyga holatlarini (race conditions) oldini olish
+
+## Muammo (Problem)
+
+Bir nechta oqimlar (threads) umumiy resursga kirishi kerak bo'lganda:
+
+- Oddiy qulflar barcha kirishlarni, shu jumladan o'qishlarni ham ketma-ketlashtiradi (serialize)
+- Agar bir nechta o'quvchilar xavfsiz tarzda bir vaqtning o'zida kirishi mumkin bo'lsa, bu paralellikni isrof qiladi
+- O'qish ko'p bo'lgan ish yuklarida ishlash tezligi pasayadi
+- Oqimlar keraksiz bloklanadi
+
+```typescript
+// Read-Write Locksiz - Barcha kirishlar ketma-ketlashtirilgan
+class SimpleCache {
+  private data: Map<string, any> = new Map();
+  private locked = false;
+
+  async get(key: string): Promise<any> {
+    // Hattoki o'qishlar ham mutlaq qulfni kutishi kerak
+    while (this.locked) await sleep(10);
+    this.locked = true;
+    try {
+      return this.data.get(key);
+    } finally {
+      this.locked = false;
+    }
+  }
+
+  async set(key: string, value: any): Promise<void> {
+    while (this.locked) await sleep(10);
+    this.locked = true;
+    try {
+      this.data.set(key, value);
+    } finally {
+      this.locked = false;
+    }
+  }
+}
+```
+
+## Yechim (Solution)
+
+Read-Write Lock patterni buni quyidagilar orqali hal qiladi:
+
+1. Bir vaqtning o'zida bir nechta o'quvchilarga ruxsat berish
+2. Yozuvchilarga mutlaq (exclusive) kirish huquqini berish
+3. Yozuvchi faol bo'lganda o'quvchilarni bloklash
+4. Yozuvchi kutayotganida yangi o'quvchilarni kirishini oldini olish
+
+## Amalga oshirish (Implementation)
+
+<Tabs defaultValue="typescript">
+  <TabsContent value="typescript">
+    ```typescript
+    class ReadWriteLock {
+      private readersCount: number = 0;
+      private writersCount: number = 0;
+      private readersWaiting: number = 0;
+      private writersWaiting: number = 0;
+      private conditions = {
+        canRead: true,
+        canWrite: true
+      };
+
+      async acquireRead(): Promise<void> {
+        this.readersWaiting++;
+        while (this.writersCount > 0 || this.writersWaiting > 0) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        this.readersWaiting--;
+        this.readersCount++;
+      }
+
+      releaseRead(): void {
+        this.readersCount--;
+      }
+
+      async acquireWrite(): Promise<void> {
+        this.writersWaiting++;
+        while (this.readersCount > 0 || this.writersCount > 0) {
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        this.writersWaiting--;
+        this.writersCount++;
+      }
+
+      releaseWrite(): void {
+        this.writersCount--;
+      }
+    }
+
+    // Usage
+    class Cache {
+      private data: Map<string, any> = new Map();
+      private lock = new ReadWriteLock();
+
+      async get(key: string): Promise<any> {
+        await this.lock.acquireRead();
+        try {
+          console.log(`Reading ${key}`);
+          return this.data.get(key);
+        } finally {
+          this.lock.releaseRead();
+        }
+      }
+
+      async set(key: string, value: any): Promise<void> {
+        await this.lock.acquireWrite();
+        try {
+          console.log(`Writing ${key}`);
+          this.data.set(key, value);
+        } finally {
+          this.lock.releaseWrite();
+        }
+      }
+    }
+
+    // Example
+    const cache = new Cache();
+
+    // Multiple concurrent reads - allowed
+    Promise.all([
+      cache.get('key1'),
+      cache.get('key2'),
+      cache.get('key3')
+    ]);
+
+    // Write blocks readers
+    await cache.set('key1', 'value1');
+    ```
+
+  </TabsContent>
+  
+  <TabsContent value="python">
+    ```python
+    import threading
+    import time
+
+    class ReadWriteLock:
+        def __init__(self):
+            self.readers_count = 0
+            self.writers_count = 0
+            self.readers_waiting = 0
+            self.writers_waiting = 0
+            self.lock = threading.Lock()
+            self.read_event = threading.Event()
+            self.write_event = threading.Event()
+
+        def acquire_read(self):
+            with self.lock:
+                self.readers_waiting += 1
+
+            while True:
+                with self.lock:
+                    if self.writers_count == 0 and self.writers_waiting == 0:
+                        self.readers_waiting -= 1
+                        self.readers_count += 1
+                        break
+                time.sleep(0.01)
+
+        def release_read(self):
+            with self.lock:
+                self.readers_count -= 1
+
+        def acquire_write(self):
+            with self.lock:
+                self.writers_waiting += 1
+
+            while True:
+                with self.lock:
+                    if self.readers_count == 0 and self.writers_count == 0:
+                        self.writers_waiting -= 1
+                        self.writers_count += 1
+                        break
+                time.sleep(0.01)
+
+        def release_write(self):
+            with self.lock:
+                self.writers_count -= 1
+
+    class Cache:
+        def __init__(self):
+            self.data = {}
+            self.lock = ReadWriteLock()
+
+        def get(self, key):
+            self.lock.acquire_read()
+            try:
+                print(f"Reading {key}")
+                return self.data.get(key)
+            finally:
+                self.lock.release_read()
+
+        def set(self, key, value):
+            self.lock.acquire_write()
+            try:
+                print(f"Writing {key}")
+                self.data[key] = value
+            finally:
+                self.lock.release_write()
+
+    # Example usage
+    import concurrent.futures
+    cache = Cache()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [
+            executor.submit(cache.get, 'key1'),
+            executor.submit(cache.get, 'key2'),
+            executor.submit(cache.get, 'key3')
+        ]
+        concurrent.futures.wait(futures)
+    ```
+
+  </TabsContent>
+</Tabs>
+
+## Haqiqiy hayotdagi misol: O'qish-Yozish Qulfi bilan Xavfsiz Kesh
+
+```typescript
+class ThreadSafeCache<T> {
+  private cache: Map<string, T> = new Map();
+  private lock = new ReadWriteLock();
+  private hits: number = 0;
+  private misses: number = 0;
+
+  async get(key: string): Promise<T | undefined> {
+    await this.lock.acquireRead();
+    try {
+      const value = this.cache.get(key);
+      if (value) {
+        this.hits++;
+        console.log(`Cache hit for ${key} (total hits: ${this.hits})`);
+      } else {
+        this.misses++;
+        console.log(`Cache miss for ${key} (total misses: ${this.misses})`);
+      }
+      return value;
+    } finally {
+      this.lock.releaseRead();
+    }
+  }
+
+  async set(key: string, value: T): Promise<void> {
+    await this.lock.acquireWrite();
+    try {
+      this.cache.set(key, value);
+      console.log(`Cached ${key}`);
+    } finally {
+      this.lock.releaseWrite();
+    }
+  }
+
+  async getStats(): Promise<{ hits: number; misses: number; ratio: number }> {
+    await this.lock.acquireRead();
+    try {
+      return {
+        hits: this.hits,
+        misses: this.misses,
+        ratio: this.misses > 0 ? this.hits / this.misses : 0,
+      };
+    } finally {
+      this.lock.releaseRead();
+    }
+  }
+
+  async clear(): Promise<void> {
+    await this.lock.acquireWrite();
+    try {
+      this.cache.clear();
+      console.log("Cache cleared");
+    } finally {
+      this.lock.releaseWrite();
+    }
+  }
+}
+
+// Ishlatilishi
+const cache = new ThreadSafeCache<string>();
+
+// Bir nechta o'qish jarayonlarini simulyatsiya qilish
+const readOperations = Array(10)
+  .fill(null)
+  .map((_, i) => cache.get(`key${i % 3}`));
+
+// Bitta yozish operatsiyasi
+cache.set("key0", "value0");
+
+// Yana o'qishlar
+cache.get("key0");
+cache.get("key1");
+```
+
+## Afzalliklari (Advantages)
+
+- ✅ O'qish ko'p bo'lgan ish yuklari uchun parallellikni maksimal darajaga ko'taradi
+- ✅ Poyga holatlarini xavfsiz tarzda oldini oladi
+- ✅ Oddiy qulflarga (locks) qaraganda yaxshiroq ishlash tezligi
+- ✅ Yozuvchilarni adolatli rejalashtirish yozuvchilarning "och qolishini" (starvation) oldini oladi
+- ✅ Ko'plab o'quvchilar bilan yaxshi masshtablanadi (scalable)
+
+## Kamchiliklari (Disadvantages)
+
+- ❌ Murakkabroq implementatsiya
+- ❌ Agar ko'plab o'quvchilar mavjud bo'lsa, yozuvchilar "och qolishi" (starvation) mumkin
+- ❌ Oddiy qulflarga qaraganda ko'proq resurs (overhead) talab qiladi
+- ❌ Ko'plab oqimlar bo'lganda konteksni almashtirish xarajati yuqori
+- ❌ Xatolarni qidirish (debugging) qiyin
+
+<Callout type="warn">
+  Qulf bilan himoyalangan hududlarda to'g'ri istisnolar ishlov berilishini (exception handling) ta'minlang. Qulf albatta bo'shatilishini kafolatlash uchun `try-finally` dan foydalaning.
+</Callout>
+
+## Qachon foydalanish kerak (When to Use)
+
+- O'qish ko'p bo'lgan ish yuklari (yozishga qaraganda o'qish ancha ko'p)
+- Umumiy kesh (shared cache) yoki qidiruv jadvali (lookup table)
+- Tez-tez kiriladigan konfiguratsiya ma'lumotlari
+- Ma'lumotlar bazasiga ulanish hovuzlari (connection pools)
+- Oqimlar uchun xavfsiz (thread-safe) to'plamlar
+
+## Qachon foydalanmaslik kerak (When NOT to Use)
+
+- Yozish ko'p bo'lgan ish yuklari
+- Oddiy bitta oqimli (single-threaded) ilovalar
+- Bir vaqtning o'zida bir nechta kirishlar kam bo'lsa
+- Qulf bo'yicha tortishuvlar (lock contention) yuqori bo'lsa
+- Oddiy Mutex yetarli bo'lgan hollarda
+
+## Aloqador Patternlar (Related Patterns)
+
+- **Mutex**: Oddiyroq qulflash mexanizmi
+- **Semaphore**: Pastroq darajadagi sinxronizatsiya
+- **Producer-Consumer**: Ko'pincha o'qish-yozish qulflaridan foydalanadi
+- **Active Object**: Parallellikni boshqacha usulda boshqaradi

@@ -12,11 +12,11 @@ hero:
     alt: Design Patterns Logo
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Introduction
+      link: /introduction
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Tour
+      link: /tour
 
 features:
   - title: Feature A

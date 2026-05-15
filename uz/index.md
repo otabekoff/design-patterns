@@ -11,11 +11,11 @@ hero:
     alt: Design Patterns Logo
   actions:
     - theme: brand
-      text: Markdown Misollari
-      link: /uz/markdown-examples
+      text: Kirish
+      link: /uz/introduction
     - theme: alt
-      text: API Misollari
-      link: /uz/api-examples
+      text: Sayohat
+      link: /uz/tour
 
 features:
   - title: Xususiyat A

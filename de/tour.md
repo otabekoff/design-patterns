@@ -1,0 +1,274 @@
+---
+title: Documentation Tour
+description: A guided tour of the Design Patterns documentation features
+icon: BookOpen
+---
+
+import { Cards, Card } from "fumadocs-ui/components/card";
+import { Callout } from "fumadocs-ui/components/callout";
+
+# 📚 Documentation Tour
+
+Welcome to the comprehensive Design Patterns documentation! Let me give you a tour of what's available and how to use it effectively.
+
+## 🎯 What You Have
+
+This documentation contains **38 design patterns** organized into 4 categories:
+
+- **6 Creational Patterns** - Focus on object creation
+- **7 Structural Patterns** - Focus on object composition
+- **12 Behavioral Patterns** - Focus on object communication
+- **13 Architectural Patterns** - Focus on system structure
+
+## 🚀 Getting Started
+
+- [**Main Page**](/): Browse all patterns by category with visual cards
+  - [**Quick Reference**](/quick-reference): Tables, decision trees, and pattern comparison
+  - [**Creational Patterns**](/creational/singleton): Object creation mechanisms
+  - [**Structural Patterns**](/structural/adapter): Object composition and relationships
+  - [**Behavioral Patterns**](/behavioral/observer): Object communication and responsibility
+  - [**Architectural Patterns**](/architectural/mvc): System structure and concurrency
+
+## 📖 Features & Components
+
+### 1. Interactive Cards (Main Page)
+
+The main page uses **Card components** to:
+
+- Display all patterns with descriptions
+- Organize patterns by category
+- Provide quick navigation links
+- Use icons for visual distinction
+
+**Example**: Check the [main page](/) to see cards for all patterns.
+
+### 2. Code Tabs (All Pattern Pages)
+
+Every pattern includes **Tabs** component for:
+
+- TypeScript implementations
+- Python implementations
+- Easy switching between languages
+- Production-ready code samples
+
+::: info
+Each code example is complete and runnable. You can copy and use them directly in your projects!
+:::
+
+### 3. Comparison Tables
+
+The Quick Reference page includes:
+
+- Pattern comparison tables
+- Decision trees for choosing patterns
+- Performance considerations
+- Testing recommendations
+- Common mistakes
+
+### 4. Callout Boxes
+
+Important information is highlighted with **Callout** components:
+
+- ⚠️ Warnings for anti-patterns
+- 💡 Tips for best practices
+- 📌 Important considerations
+
+### 5. Comprehensive Content
+
+Each pattern page includes:
+
+```
+Overview          → What is the pattern?
+Purpose           → Why use it?
+Problem           → What problem does it solve?
+Solution          → How does it work?
+Implementation    → Code examples (TypeScript + Python)
+Real-World Example → Practical application
+Advantages        → ✅ Benefits
+Disadvantages     → ❌ Drawbacks
+When to Use       → Ideal scenarios
+When NOT to Use   → Anti-patterns
+Related Patterns  → Connected patterns
+```
+
+## 🎓 Recommended Learning Path
+
+### For Beginners
+
+1. Start with **Quick Reference** for context
+2. Learn **Singleton** (simple, foundational)
+3. Learn **Factory Method** (practical, common)
+4. Learn **Strategy** (useful, flexible)
+5. Learn **Observer** (event-driven concept)
+
+### For Intermediate
+
+1. Master **Creational Patterns** first
+2. Then **Structural Patterns** (composition)
+3. Then **Behavioral Patterns** (communication)
+4. Finally **Architectural Patterns** (system design)
+
+### For Advanced
+
+1. Understand **pattern combinations**
+2. Study **architectural patterns** deeply
+3. Learn **concurrency patterns**
+4. Practice **CQRS** and **Event Sourcing**
+
+## 💡 How to Use This Documentation
+
+### For Decision Making
+
+1. Go to [Quick Reference](/quick-reference)
+2. Use the Decision Tree section
+3. Find your use case
+4. Click on the recommended pattern
+
+### For Implementation
+
+1. Read the pattern overview
+2. Understand the problem it solves
+3. Study the code examples
+4. Review the real-world example
+5. Check advantages and disadvantages
+
+### For Team Discussions
+
+- Reference the pattern names for common vocabulary
+- Share specific pattern pages with your team
+- Use the "Related Patterns" section to discuss combinations
+- Review "Common Mistakes" to avoid pitfalls
+
+### For Interview Preparation
+
+- Review the Quick Reference regularly
+- Practice explaining each pattern
+- Study the code examples
+- Understand when and why to use each pattern
+- Know the relationships between patterns
+
+## 🔍 Navigation Tips
+
+### Within the Documentation
+
+- Use the **sidebar** to browse all patterns
+- Click **Related Patterns** links to explore connections
+- Use the **search function** (Cmd+K on Mac, Ctrl+K on Windows)
+- Check **Quick Reference** for quick lookups
+
+### Jumping Between Patterns
+
+Each pattern page includes:
+
+- Links to related patterns
+- Cross-references in the text
+- Suggestions for which pattern to learn next
+
+## 📊 Content Highlights
+
+### Real-World Examples
+
+Every pattern includes practical examples like:
+
+- Database patterns using actual SQL scenarios
+- UI patterns with React/UI frameworks
+- Payment processing with multiple methods
+- Caching systems with concurrency
+
+### Multiple Code Languages
+
+All examples include:
+
+- **TypeScript** - For web developers
+- **Python** - For general programming
+
+### Complete Implementations
+
+Code examples are:
+
+- ✅ Production-ready
+- ✅ Well-commented
+- ✅ Error-handled
+- ✅ Type-safe
+- ✅ Easy to understand
+
+## 🎯 Quick Access
+
+::: info
+Use the Quick Reference page as your decision-making tool. It contains decision trees, use cases,
+  and pattern combinations.
+:::
+
+### Common Scenarios
+
+**"I need to create objects efficiently"**
+→ [Singleton](/creational/singleton) | [Factory Method](/creational/factory-method) | [Builder](/creational/builder)
+
+**"I need to handle events"**
+→ [Observer](/behavioral/observer) | [Command](/behavioral/command) | [Chain of Responsibility](/behavioral/chain-of-responsibility)
+
+**"I need to structure my app"**
+→ [MVC](/architectural/mvc) | [MVP](/architectural/mvp) | [Repository](/architectural/repository)
+
+**"I need to handle concurrency"**
+→ [Producer-Consumer](/architectural/producer-consumer) | [Read-Write Lock](/architectural/read-write-lock)
+
+## 📚 Resources
+
+### On This Site
+
+- **Main Page** - Overview of all 38 patterns
+- **Quick Reference** - Decision trees and tables
+- **Pattern Pages** - Deep dives into each pattern
+- **Code Examples** - Ready-to-use implementations
+
+### External Resources
+
+Consider supplementing this documentation with:
+
+- Gang of Four book ("Design Patterns")
+- Refactoring.Guru design patterns guide
+- Your IDE's built-in documentation
+- GitHub repositories showing pattern implementations
+
+## 🤝 Contributing
+
+If you'd like to:
+
+- Add more examples
+- Suggest improvements
+- Report errors
+- Add new patterns
+
+Check the [project repository](https://github.com) or contact the documentation maintainers.
+
+## ✅ Checklist for Learning
+
+- [ ] Read the main page
+- [ ] Study the Quick Reference
+- [ ] Learn 3-5 beginner patterns
+- [ ] Practice implementing a pattern
+- [ ] Teach a pattern to someone else
+- [ ] Combine two patterns in a project
+- [ ] Study advanced architectural patterns
+- [ ] Contribute your own examples
+
+---
+
+## 🎉 Ready to Explore?
+
+Start with the **[Main Page](/)** for an overview, or jump to the **[Quick Reference](/quick-reference)** to find the pattern you need.
+
+Happy learning! 🚀
+
+### Pro Tips
+
+1. **Bookmark the Quick Reference** - You'll use it often
+2. **Read code examples multiple times** - Understanding takes practice
+3. **Implement patterns in small projects** - Learning by doing is best
+4. **Combine patterns** - Real applications use multiple patterns
+5. **Discuss with others** - Teaching others helps you learn
+
+---
+
+**Need help?** Check the Quick Reference or search for keywords using Cmd+K (Mac) or Ctrl+K (Windows).

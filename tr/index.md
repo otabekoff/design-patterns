@@ -11,11 +11,11 @@ hero:
     alt: Design Patterns Logo
   actions:
     - theme: brand
-      text: Markdown Örnekleri
-      link: /tr/markdown-examples
+      text: Giriş
+      link: /tr/introduction
     - theme: alt
-      text: API Örnekleri
-      link: /tr/api-examples
+      text: Tur
+      link: /tr/tour
 
 features:
   - title: Özellik A

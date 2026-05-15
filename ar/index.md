@@ -11,11 +11,11 @@ hero:
     alt: Design Patterns Logo
   actions:
     - theme: brand
-      text: أمثلة ماركداون
-      link: /ar/markdown-examples
+      text: مقدمة
+      link: /ar/introduction
     - theme: alt
-      text: أمثلة API
-      link: /ar/api-examples
+      text: جولة
+      link: /ar/tour
 
 features:
   - title: ميزة أ

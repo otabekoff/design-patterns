@@ -1,5 +1,5 @@
 <template>
-  <a v-if="href" :href="withBase(href)" class="vp-card is-link">
+  <a v-if="href" :href="localizedHref" class="vp-card is-link">
     <h3 class="title">{{ title }}</h3>
     <p v-if="description" class="description">{{ description }}</p>
     <slot></slot>
@@ -12,12 +12,38 @@
 </template>
 
 <script setup>
-import { withBase } from 'vitepress'
-defineProps({
+import { computed } from 'vue'
+import { useData, withBase } from 'vitepress'
+
+const props = defineProps({
   title: String,
   description: String,
   href: String,
   icon: String
+})
+
+const { lang } = useData()
+
+const localizedHref = computed(() => {
+  if (!props.href) return ''
+  
+  // Don't modify external links
+  if (/^https?:\/\//.test(props.href)) return props.href
+
+  // Get current language code (e.g., 'uz' from 'uz' or 'uz-UZ')
+  const currentLang = lang.value || 'en'
+  const langKey = currentLang.split('-')[0]
+  
+  // If we are in a non-English locale and the href is an internal absolute path
+  if (langKey !== 'en' && props.href.startsWith('/')) {
+    // Prefix with locale if not already prefixed
+    const prefix = `/${langKey}`
+    if (!props.href.startsWith(prefix)) {
+      return withBase(`${prefix}${props.href}`)
+    }
+  }
+
+  return withBase(props.href)
 })
 </script>
 

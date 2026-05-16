@@ -17,6 +17,9 @@ import HomeCategoriesHeader from './components/HomeCategoriesHeader.vue'
 import DocHeader from './components/DocHeader.vue'
 import DocFooter from './components/DocFooter.vue'
 import NotFound from './components/NotFound.vue'
+import SidebarTop from './components/SidebarTop.vue'
+import SidebarBottom from './components/SidebarBottom.vue'
+import CodeControls from './components/CodeControls.vue'
 
 export default {
   extends: DefaultTheme,
@@ -25,9 +28,13 @@ export default {
       'home-features-before': () => h(HomeCategoriesHeader),
       'doc-before': () => h(DocHeader),
       'doc-footer-before': () => h(DocFooter),
-      'not-found': () => h(NotFound)
+      'not-found': () => h(NotFound),
+      'sidebar-nav-before': () => h(SidebarTop),
+      'sidebar-nav-after': () => h(SidebarBottom),
+      'layout-bottom': () => h(CodeControls)
     })
   },
+
   enhanceApp({ app, router, siteData }) {
     app.component('Callout', Callout)
     app.component('Cards', Cards)

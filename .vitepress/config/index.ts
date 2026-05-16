@@ -33,12 +33,12 @@ export default defineConfig({
   mpa: false,
   lastUpdated: true,
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/design-patterns/favicon/favicon-96x96.png?v=20260516', sizes: '96x96' }],
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/design-patterns/favicon/favicon.svg?v=20260516' }],
-    ['link', { rel: 'shortcut icon', href: '/design-patterns/favicon/favicon.ico?v=20260516' }],
-    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/design-patterns/favicon/apple-touch-icon.png?v=20260516' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/design-patterns/favicon-96x96.png?v=20260516', sizes: '96x96' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/design-patterns/favicon.svg?v=20260516' }],
+    ['link', { rel: 'shortcut icon', href: '/design-patterns/favicon.ico?v=20260516' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/design-patterns/apple-touch-icon.png?v=20260516' }],
     ['meta', { name: 'apple-mobile-web-app-title', content: 'Design Patterns' }],
-    ['link', { rel: 'manifest', href: '/design-patterns/favicon/site.webmanifest?v=20260516' }],
+    ['link', { rel: 'manifest', href: '/design-patterns/site.webmanifest?v=20260516' }],
     ['meta', { name: 'twitter:site', content: '@otabekoff' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { property: 'og:image:width', content: '1200' }],
@@ -55,6 +55,11 @@ export default defineConfig({
   transformPageData: async (pageData, context) => {
     const { siteConfig } = context
     pageData.frontmatter.head ??= []
+
+    // Hide navbar on doc pages, but keep it on home/index pages
+    if (!pageData.filePath.endsWith('index.md')) {
+      pageData.frontmatter.navbar = false
+    }
 
     pageData.frontmatter.head.push(
       [
@@ -127,7 +132,7 @@ export default defineConfig({
   themeConfig: {
     logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' },
     externalLinkIcon: true,
-    i18nRouting: false,
+    // i18nRouting: false,
     search: {
       provider: 'local',
       options: {

@@ -270,3 +270,108 @@ div[class*="language-"] > button.copy.copied::before,
 div[class*="language-"] > button.copy.copied::after {
   display: none !important;
 }
+
+div[class*="language-"] > button.copy.copied {
+  border-radius: 4px !important;
+}
+
+/* Sidebar Custom Layout */
+.VPSidebar {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.VPSidebar .container {
+  height: 100vh !important;
+}
+
+.VPSidebar .nav {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important; /* The nav itself doesn't scroll anymore */
+  position: relative !important;
+  padding: 0 !important;
+}
+
+.sidebar-top {
+  flex-shrink: 0 !important;
+  background-color: var(--vp-c-bg-alt) !important;
+  padding: 32px 24px 20px !important;
+  border-bottom: 1px solid var(--vp-c-divider);
+  width: 100% !important;
+}
+
+.sidebar-bottom {
+  flex-shrink: 0 !important;
+  background-color: var(--vp-c-bg-alt) !important;
+  padding: 12px 24px !important;
+  border-top: 1px solid var(--vp-c-divider);
+  width: 100% !important;
+  margin-top: auto !important;
+}
+
+/* THE MAGIC WRAPPER: This is the div we 'earned' via JS */
+.sidebar-groups-wrapper {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+  scrollbar-gutter: stable;
+  padding-bottom: 24px !important;
+}
+
+.VPSidebarItem.level-0 {
+  padding-bottom: 0 !important;
+}
+
+/* Fix search button shift */
+.VPSidebar .VPNavBarSearch {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.VPSidebar .DocSearch-Button {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Spacing for groups inside the wrapper */
+.VPSidebar .group {
+  padding: 12px 24px !important;
+  width: 100% !important;
+}
+
+.VPSidebar .group:first-of-type {
+  padding-top: 12px !important;
+}
+
+.sidebar-groups-wrapper {
+  padding-bottom: 12px !important;
+}
+
+.VPDoc {
+  padding: 48px 0 !important;
+}
+
+.VPContent.has-sidebar {
+  padding-right: 0 !important;
+}
+
+.VPDoc.has-aside .content-container {
+  max-width: 100% !important;
+}
+
+.aside-container {
+  width: 254px;
+}
+
+.aside {
+  padding-left: 0 !important;
+}
+
+@media (max-width: 959px) {
+  .content-container {
+    padding-inline: 24px !important;
+  }
+}

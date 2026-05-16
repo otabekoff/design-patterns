@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from "vue";
 import { useData, withBase } from "vitepress";
 import { Copy, Share2, ChevronDown, Check, Lightbulb } from "@lucide/vue";
 
+import SupportBanner from './SupportBanner.vue'
+
 const { page, theme, lang } = useData();
 
 const isOpen = ref(false);
@@ -16,65 +18,52 @@ const translations = {
     copied: 'Copied',
     copying: 'Copying...',
     open: 'Open',
-    share: 'Share page link',
-    supportText: 'Did this guide help you? Support us to make it even better.',
-    supportBtn: 'Support Us'
+    share: 'Share page link'
   },
   uz: {
     copy: 'Markdown-ni nusxalash',
     copied: 'Nusxalandi',
     copying: 'Nusxalanmoqda...',
     open: 'Ochish',
-    share: 'Sahifa havolasini ulashish',
-    supportText: 'Ushbu qo\'llanma sizga yordam berdimi? Uni yanada yaxshilash uchun bizni qo\'llab-quvvatlang.',
-    supportBtn: 'Qo\'llab-quvvatlash'
+    share: 'Sahifa havolasini ulashish'
   },
   ru: {
     copy: 'Скопировать Markdown',
     copied: 'Скопировано',
     copying: 'Копирование...',
     open: 'Открыть',
-    share: 'Поделиться ссылкой',
-    supportText: 'Помогло ли вам это руководство? Поддержите нас, чтобы сделать его еще лучше.',
-    supportBtn: 'Поддержать'
+    share: 'Поделиться ссылкой'
   },
   tr: {
     copy: 'Markdown\'ı Kopyala',
     copied: 'Kopyalandı',
     copying: 'Kopyalanıyor...',
     open: 'Aç',
-    share: 'Sayfa bağlantısını paylaş',
-    supportText: 'Bu rehber size yardımcı oldu mu? Daha iyi hale getirmek için bizi destekleyin.',
-    supportBtn: 'Destek Ol'
+    share: 'Sayfa bağlantısını paylaş'
   },
   de: {
     copy: 'Markdown kopieren',
     copied: 'Kopiert',
     copying: 'Kopieren...',
     open: 'Öffnen',
-    share: 'Seitenlink teilen',
-    supportText: 'Hat Ihnen diese Anleitung geholfen? Unterstützen Sie uns, um sie noch besser zu machen.',
-    supportBtn: 'Unterstützen'
+    share: 'Seitenlink teilen'
   },
   es: {
     copy: 'Copiar Markdown',
     copied: 'Copiado',
     copying: 'Copiando...',
     open: 'Abrir',
-    share: 'Compartir enlace de la página',
-    supportText: '¿Te ayudó esta guía? Apóyanos para mejorarla aún más.',
-    supportBtn: 'Apóyanos'
+    share: 'Compartir enlace de la página'
   },
   ar: {
     copy: 'نسخ Markdown',
     copied: 'تم النسخ',
     copying: 'جاري النسخ...',
     open: 'فتح',
-    share: 'مشاركة رابط الصفحة',
-    supportText: 'هل ساعدك هذا الدليل؟ ادعمنا لجعله أفضل.',
-    supportBtn: 'ادعمنا'
+    share: 'مشاركة رابط الصفحة'
   }
 };
+
 
 const t = computed(() => {
   const currentLang = lang.value || 'en';
@@ -170,18 +159,7 @@ const rawUrl = computed(
 <template>
   <div class="doc-header-wrapper" v-if="page.relativePath !== 'index.md' && !page.relativePath.endsWith('/index.md')">
     <!-- Support Banner -->
-    <div class="support-banner">
-      <div class="support-content">
-        <Lightbulb :size="20" class="support-icon-svg" />
-        <span>{{ t.supportText }}</span>
-      </div>
-      <a
-        href="https://tirikchilik.uz/uzhandy"
-        target="_blank"
-        class="support-btn"
-        >{{ t.supportBtn }}</a
-      >
-    </div>
+    <SupportBanner style="margin-bottom: 20px" />
 
     <!-- Action Buttons -->
     <div class="action-buttons">
@@ -288,51 +266,6 @@ const rawUrl = computed(
 <style scoped>
 .doc-header-wrapper {
   margin-bottom: 32px;
-}
-
-.support-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--vp-c-brand-soft);
-  padding: 16px 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.support-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 500;
-  color: var(--vp-c-text-1);
-}
-
-.support-icon-svg {
-  color: var(--vp-c-brand-1);
-  flex-shrink: 0;
-}
-
-.support-btn {
-  background-color: var(--vp-c-brand-1);
-  color: white !important;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none !important;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.support-btn:hover {
-  background-color: var(--vp-c-brand-2);
-  transform: translateY(-1px);
 }
 
 .action-buttons {

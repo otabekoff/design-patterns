@@ -6,8 +6,6 @@ icon: Layers
 
 # Bridge Pattern
 
-
-
 ## Overview
 
 The Bridge Pattern is a structural design pattern that decouples an abstraction from its implementation, allowing the two to vary independently. It's useful when you want to avoid a permanent binding between abstraction and implementation, or when changes in implementation should not affect clients.
@@ -266,8 +264,6 @@ advancedRemote.record();
 advancedRemote.getStatus();
 ```
 
-
-  
 ```python [python]
 from abc import ABC, abstractmethod
 

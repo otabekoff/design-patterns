@@ -17,6 +17,7 @@ function processLocale(localeObj: any) {
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: '/design-patterns/',
   title: "Design Patterns",
   description: "Complete Reference Guide",
 

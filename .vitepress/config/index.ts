@@ -28,6 +28,9 @@ export default defineConfig({
   sitemap: {
     hostname: 'https://otabekoff.github.io/design-patterns/'
   },
+  ignoreDeadLinks: true,
+  metaChunk: true,
+  mpa: false,
   lastUpdated: true,
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: '/design-patterns/favicon/favicon-96x96.png?v=20260516', sizes: '96x96' }],

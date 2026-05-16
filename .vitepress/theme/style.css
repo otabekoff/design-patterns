@@ -264,3 +264,9 @@ div[class*="language-"] pre,
   scrollbar-width: thin;
   scrollbar-color: var(--vp-c-divider) transparent;
 }
+
+/* Prevent Copy button glitch by completely hiding the 'Copied' tooltip */
+div[class*="language-"] > button.copy.copied::before,
+div[class*="language-"] > button.copy.copied::after {
+  display: none !important;
+}

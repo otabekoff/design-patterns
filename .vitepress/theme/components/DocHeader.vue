@@ -1,14 +1,87 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useData, withBase } from "vitepress";
 import { Copy, Share2, ChevronDown, Check, Lightbulb } from "@lucide/vue";
 
-const { page, theme } = useData();
+const { page, theme, lang } = useData();
 
 const isOpen = ref(false);
 const isCopied = ref(false);
 const isCopying = ref(false);
 const isShared = ref(false);
+
+const translations = {
+  en: {
+    copy: 'Copy Markdown',
+    copied: 'Copied',
+    copying: 'Copying...',
+    open: 'Open',
+    share: 'Share page link',
+    supportText: 'Did this guide help you? Support us to make it even better.',
+    supportBtn: 'Support Us'
+  },
+  uz: {
+    copy: 'Markdown-ni nusxalash',
+    copied: 'Nusxalandi',
+    copying: 'Nusxalanmoqda...',
+    open: 'Ochish',
+    share: 'Sahifa havolasini ulashish',
+    supportText: 'Ushbu qo\'llanma sizga yordam berdimi? Uni yanada yaxshilash uchun bizni qo\'llab-quvvatlang.',
+    supportBtn: 'Qo\'llab-quvvatlash'
+  },
+  ru: {
+    copy: 'Скопировать Markdown',
+    copied: 'Скопировано',
+    copying: 'Копирование...',
+    open: 'Открыть',
+    share: 'Поделиться ссылкой',
+    supportText: 'Помогло ли вам это руководство? Поддержите нас, чтобы сделать его еще лучше.',
+    supportBtn: 'Поддержать'
+  },
+  tr: {
+    copy: 'Markdown\'ı Kopyala',
+    copied: 'Kopyalandı',
+    copying: 'Kopyalanıyor...',
+    open: 'Aç',
+    share: 'Sayfa bağlantısını paylaş',
+    supportText: 'Bu rehber size yardımcı oldu mu? Daha iyi hale getirmek için bizi destekleyin.',
+    supportBtn: 'Destek Ol'
+  },
+  de: {
+    copy: 'Markdown kopieren',
+    copied: 'Kopiert',
+    copying: 'Kopieren...',
+    open: 'Öffnen',
+    share: 'Seitenlink teilen',
+    supportText: 'Hat Ihnen diese Anleitung geholfen? Unterstützen Sie uns, um sie noch besser zu machen.',
+    supportBtn: 'Unterstützen'
+  },
+  es: {
+    copy: 'Copiar Markdown',
+    copied: 'Copiado',
+    copying: 'Copiando...',
+    open: 'Abrir',
+    share: 'Compartir enlace de la página',
+    supportText: '¿Te ayudó esta guía? Apóyanos para mejorarla aún más.',
+    supportBtn: 'Apóyanos'
+  },
+  ar: {
+    copy: 'نسخ Markdown',
+    copied: 'تم النسخ',
+    copying: 'جاري النسخ...',
+    open: 'فتح',
+    share: 'مشاركة رابط الصفحة',
+    supportText: 'هل ساعدك هذا الدليل؟ ادعمنا لجعله أفضل.',
+    supportBtn: 'ادعمنا'
+  }
+};
+
+const t = computed(() => {
+  const currentLang = lang.value || 'en';
+  // Handle language codes like 'en-US' by taking the prefix
+  const langKey = currentLang.split('-')[0];
+  return translations[langKey] || translations.en;
+});
 
 // Read raw markdown from local file system during build/dev
 const rawMarkdownFiles = import.meta.glob("../../../src/**/*.md", {
@@ -21,6 +94,7 @@ const copyMarkdown = async () => {
   isCopying.value = true;
 
   try {
+    const startTime = Date.now();
     const filePath = `../../../src/${page.value.relativePath}`;
     let text = "";
     if (rawMarkdownFiles[filePath]) {
@@ -34,6 +108,13 @@ const copyMarkdown = async () => {
     }
 
     await navigator.clipboard.writeText(text);
+    
+    // Ensure at least 1 second of loading state
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < 1000) {
+      await new Promise(resolve => setTimeout(resolve, 1000 - elapsedTime));
+    }
+
     isCopied.value = true;
     setTimeout(() => {
       isCopied.value = false;
@@ -44,8 +125,6 @@ const copyMarkdown = async () => {
     isCopying.value = false;
   }
 };
-
-import { onMounted } from 'vue';
 
 const shareLink = async () => {
   try {
@@ -84,23 +163,23 @@ const githubUrl = computed(
     `https://github.com/otabekoff/design-patterns/blob/main/src/${page.value.relativePath}`,
 );
 const rawUrl = computed(
-  () => currentOrigin.value ? `${currentOrigin.value}/${page.value.relativePath}` : '#',
+  () => withBase(`/${page.value.relativePath}`),
 );
 </script>
 
 <template>
-  <div class="doc-header-wrapper" v-if="page.relativePath !== 'index.md'">
+  <div class="doc-header-wrapper" v-if="page.relativePath !== 'index.md' && !page.relativePath.endsWith('/index.md')">
     <!-- Support Banner -->
     <div class="support-banner">
       <div class="support-content">
         <Lightbulb :size="20" class="support-icon-svg" />
-        <span>Did this guide help you? Support us to make it even better.</span>
+        <span>{{ t.supportText }}</span>
       </div>
       <a
         href="https://tirikchilik.uz/uzhandy"
         target="_blank"
         class="support-btn"
-        >Support Us</a
+        >{{ t.supportBtn }}</a
       >
     </div>
 
@@ -112,13 +191,12 @@ const rawUrl = computed(
         :class="{ 'is-disabled': isCopying }"
         :disabled="isCopying"
       >
-        <span v-if="isCopying" class="spinner"></span>
-        <Check v-else-if="isCopied" :size="16" />
-        <Copy v-else :size="16" />
-        <span v-if="!isCopying">{{
-          isCopied ? "Copied" : "Copy Markdown"
-        }}</span>
-        <span v-else>Copying...</span>
+        <span class="btn-icon-container">
+          <span v-if="isCopying" class="spinner"></span>
+          <Check v-else-if="isCopied" :size="16" />
+          <Copy v-else :size="16" />
+        </span>
+        <span>{{ t.copy }}</span>
       </button>
 
       <div
@@ -127,7 +205,7 @@ const rawUrl = computed(
         @mouseleave="isOpen = false"
       >
         <button class="action-btn">
-          <span>Open in...</span>
+          <span>{{ t.open }}</span>
           <ChevronDown :size="16" />
         </button>
 
@@ -198,7 +276,7 @@ const rawUrl = computed(
       <button
         @click="shareLink"
         class="action-btn icon-only"
-        title="Share page link"
+        :title="t.share"
       >
         <Check v-if="isShared" :size="16" />
         <Share2 v-else :size="16" />
@@ -266,8 +344,10 @@ const rawUrl = computed(
 .action-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 6px 12px;
+  height: 32px;
+  padding: 0 12px;
   background-color: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-border);
   border-radius: 6px;
@@ -275,7 +355,7 @@ const rawUrl = computed(
   font-weight: 500;
   color: var(--vp-c-text-2);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .action-btn:hover:not(.is-disabled) {
@@ -290,12 +370,22 @@ const rawUrl = computed(
 }
 
 .action-btn.icon-only {
-  padding: 6px;
+  width: 32px;
+  padding: 0;
+}
+
+.btn-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .spinner {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 2px solid var(--vp-c-text-3);
   border-top-color: var(--vp-c-brand-1);
   border-radius: 50%;

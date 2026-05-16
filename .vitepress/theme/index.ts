@@ -16,6 +16,7 @@ import TabsContent from './components/TabsContent.vue'
 import HomeCategoriesHeader from './components/HomeCategoriesHeader.vue'
 import DocHeader from './components/DocHeader.vue'
 import DocFooter from './components/DocFooter.vue'
+import NotFound from './components/NotFound.vue'
 
 export default {
   extends: DefaultTheme,
@@ -23,7 +24,8 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'home-features-before': () => h(HomeCategoriesHeader),
       'doc-before': () => h(DocHeader),
-      'doc-footer-before': () => h(DocFooter)
+      'doc-footer-before': () => h(DocFooter),
+      'not-found': () => h(NotFound)
     })
   },
   enhanceApp({ app, router, siteData }) {

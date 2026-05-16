@@ -1,0 +1,96 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0d0d18" />
+      <stop offset="100%" stop-color="#08080e" />
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+    <linearGradient id="accV" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </linearGradient>
+    <pattern id="grid" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,0.028)" stroke-width="1" />
+    </pattern>
+    <clipPath id="clip">
+      <rect width="1200" height="630" />
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+  <ellipse cx="80" cy="80" rx="520" ry="380" fill="url(#glow)" />
+
+  <!-- Right decorative geometry -->
+  <g clip-path="url(#clip)">
+    <rect x="860" y="140" width="320" height="320" rx="6" fill="none" stroke="rgba(99,102,241,0.12)"
+      stroke-width="1.5" />
+    <rect x="880" y="160" width="320" height="320" rx="6" fill="none" stroke="rgba(34,211,238,0.08)"
+      stroke-width="1.5" />
+    <rect x="900" y="180" width="320" height="320" rx="6" fill="none" stroke="rgba(99,102,241,0.06)"
+      stroke-width="1.5" />
+    <line x1="1020" y1="260" x2="1020" y2="340" stroke="rgba(99,102,241,0.2)" stroke-width="1" />
+    <line x1="980" y1="300" x2="1060" y2="300" stroke="rgba(99,102,241,0.2)" stroke-width="1" />
+    <circle cx="1020" cy="300" r="3" fill="#6366f1" opacity="0.4" />
+  </g>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="2.5" fill="url(#acc)" />
+
+  <!-- Left vertical rule -->
+  <rect x="64" y="76" width="2" height="420" fill="url(#accV)" />
+
+  <!-- Logo + site name -->
+  <g transform="translate(84, 76)">
+    <g transform="scale(0.52)">
+      <path d="M50 12 L83 31 L83 69 L50 88 L17 69 L17 31 Z"
+        stroke="#818cf8" stroke-width="8" stroke-linejoin="round" fill="none" />
+      <circle cx="50" cy="50" r="14" fill="#818cf8" fill-opacity="0.15" />
+      <circle cx="50" cy="50" r="14" stroke="#818cf8" stroke-width="2" fill="none" />
+      <path d="M50 12 L50 30 M83 31 L67 40 M83 69 L67 60 M50 88 L50 70 M17 69 L33 60 M17 31 L33 40"
+        stroke="#818cf8" stroke-width="8" stroke-linecap="round" />
+    </g>
+    <text x="68" y="36"
+      font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      font-size="24" font-weight="500" fill="#64748b" letter-spacing="0.2">Design Patterns</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="84" y1="150" x2="680" y2="150" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+
+  <!-- Title — max 20 chars/line safe at this font size -->
+  <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-weight="700" fill="#f1f5f9" letter-spacing="-1.5">
+    <tspan x="84" y="296" font-size="84">{{line1}}</tspan>
+    <tspan x="84" dy="100" font-size="84">{{line2}}</tspan>
+    <tspan x="84" dy="100" font-size="84">{{line3}}</tspan>
+  </text>
+
+  <!-- Accent underline -->
+  <rect x="84" y="308" width="300" height="3" rx="2" fill="url(#acc)" opacity="0.6" />
+
+  <!-- Footer -->
+  <rect x="0" y="578" width="1200" height="52" fill="rgba(0,0,0,0.25)" />
+  <line x1="0" y1="578" x2="1200" y2="578" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+  <text x="84" y="612"
+    font-family="ui-monospace, 'Cascadia Code', 'Fira Code', monospace"
+    font-size="22" fill="#475569" letter-spacing="0.3">otabekoff.github.io/design-patterns</text>
+  <circle cx="1108" cy="604" r="5" fill="#6366f1" opacity="0.5" />
+  <text x="1122" y="609"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-size="18" fill="#334155">docs</text>
+
+  <!-- Corner brackets -->
+  <path d="M1168,82 L1168,64 L1150,64" stroke="rgba(99,102,241,0.2)" stroke-width="1.5" fill="none"
+    stroke-linecap="round" />
+  <path d="M1150,530 L1168,530 L1168,548" stroke="rgba(34,211,238,0.2)" stroke-width="1.5"
+    fill="none" stroke-linecap="round" />
+</svg>

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 import path from 'path'
 import { joinURL, withoutTrailingSlash } from 'ufo'
+import { addOgImage } from 'vitepress-plugin-og'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { en } from './langs/en'
 import { uz } from './langs/uz'
@@ -48,7 +49,8 @@ export default defineConfig({
       md.use(groupIconMdPlugin)
     },
   },
-  transformPageData: (pageData, { siteConfig }) => {
+  transformPageData: async (pageData, context) => {
+    const { siteConfig } = context
     pageData.frontmatter.head ??= []
 
     pageData.frontmatter.head.push(
@@ -101,6 +103,13 @@ export default defineConfig({
         },
       ]
     )
+
+    await addOgImage(pageData, context, {
+      domain: 'https://otabekoff.github.io/design-patterns',
+      outDir: 'og',
+      ogTemplate: '.vitepress/og-template.svg',
+      maxTitleSizePerLine: 20,
+    })
   },
   locales: {
     root: processLocale(en),

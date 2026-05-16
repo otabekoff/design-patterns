@@ -5,6 +5,10 @@ export const uz = {
   lang: 'uz',
   link: '/uz/',
   themeConfig: {
+    editLink: {
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
+      text: 'Ushbu sahifani GitHub-da tahrirlash'
+    },
     nav: [
       { text: 'Bosh sahifa', link: '/uz/' },
       { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' },

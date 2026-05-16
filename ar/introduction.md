@@ -14,59 +14,219 @@ icon: Palette
 
 تتعامل مع آليات إنشاء الكائنات. فهي تجرد عملية إنشاء النسخ لجعل الأنظمة مستقلة عن كيفية تكوين كائناتها وتمثيلها.
 
-- [**Singleton**](/creational/singleton): يضمن أن للفئة نسخة واحدة فقط مع توفير نقطة وصول عالمية لها
-  - [**Factory Method**](/creational/factory-method): ينشئ كائنات دون تحديد الفئات الدقيقة
-  - [**Abstract Factory**](/creational/abstract-factory): ينشئ عائلات من الكائنات ذات الصلة
-  - [**Builder**](/creational/builder): يبني كائنات معقدة خطوة بخطوة
-  - [**Prototype**](/creational/prototype): ينشئ كائنات جديدة عن طريق استنساخ الكائنات الموجودة
-  - [**Object Pool**](/creational/object-pool): يعيد استخدام الكائنات التي تم تهيئتها بكفاءة
+<Cards>
+  <Card
+    title="Singleton"
+    description="يضمن أن للفئة نسخة واحدة فقط مع توفير نقطة وصول عالمية لها"
+    href="/creational/singleton"
+  />
+  <Card
+    title="Factory Method"
+    description="ينشئ كائنات دون تحديد الفئات الدقيقة"
+    href="/creational/factory-method"
+  />
+  <Card
+    title="Abstract Factory"
+    description="ينشئ عائلات من الكائنات ذات الصلة"
+    href="/creational/abstract-factory"
+  />
+  <Card
+    title="Builder"
+    description="يبني كائنات معقدة خطوة بخطوة"
+    href="/creational/builder"
+  />
+  <Card
+    title="Prototype"
+    description="ينشئ كائنات جديدة عن طريق استنساخ الكائنات الموجودة"
+    href="/creational/prototype"
+  />
+  <Card
+    title="Object Pool"
+    description="يعيد استخدام الكائنات التي تم تهيئتها بكفاءة"
+    href="/creational/object-pool"
+  />
+</Cards>
 
 ## 🔧 الأنماط الهيكلية (Structural)
 
 تتعامل مع تكوين الكائنات والعلاقات بينها. تساعد في تكوين كائنات في هياكل أكبر مع الحفاظ على مرونة وكفاءة هذه الهياكل.
 
-- [**Adapter**](/structural/adapter): يحول الواجهات لجعل الكائنات غير المتوافقة تعمل معاً
-  - [**Bridge**](/structural/bridge): يفصل التجريد عن التنفيذ
-  - [**Composite**](/structural/composite): يكون كائنات في هياكل شجرية
-  - [**Decorator**](/structural/decorator): يضيف مسؤوليات للكائنات ديناميكياً
-  - [**Facade**](/structural/facade): يوفر واجهة مبسطة لنظام فرعي معقد
-  - [**Flyweight**](/structural/flyweight): يشارك الكائنات بكفاءة لتوفير الذاكرة
-  - [**Proxy**](/structural/proxy): يوفر بديلاً للتحكم في الوصول
+<Cards>
+  <Card
+    title="Adapter"
+    description="يحول الواجهات لجعل الكائنات غير المتوافقة تعمل معاً"
+    href="/structural/adapter"
+  />
+  <Card
+    title="Bridge"
+    description="يفصل التجريد عن التنفيذ"
+    href="/structural/bridge"
+  />
+  <Card
+    title="Composite"
+    description="يكون كائنات في هياكل شجرية"
+    href="/structural/composite"
+  />
+  <Card
+    title="Decorator"
+    description="يضيف مسؤوليات للكائنات ديناميكياً"
+    href="/structural/decorator"
+  />
+  <Card
+    title="Facade"
+    description="يوفر واجهة مبسطة لنظام فرعي معقد"
+    href="/structural/facade"
+  />
+  <Card
+    title="Flyweight"
+    description="يشارك الكائنات بكفاءة لتوفير الذاكرة"
+    href="/structural/flyweight"
+  />
+  <Card
+    title="Proxy"
+    description="يوفر بديلاً للتحكم في الوصول"
+    href="/structural/proxy"
+  />
+</Cards>
 
 ## 🔄 الأنماط السلوكية (Behavioral)
 
 تتعامل مع التواصل والمسؤولية بين الكائنات. تحدد كيفية تفاعل الكائنات وتوزيع المسؤولية بينها.
 
-- [**Chain of Responsibility**](/behavioral/chain-of-responsibility): يمرر الطلبات على طول سلسلة من المعالجين
-  - [**Command**](/behavioral/command): يغلف الطلبات ككائنات
-  - [**Interpreter**](/behavioral/interpreter): يحدد قواعد اللغة والمفسر
-  - [**Iterator**](/behavioral/iterator): يصل إلى عناصر المجموعة بالتسلسل
-  - [**Mediator**](/behavioral/mediator): يغلف تفاعل الكائنات
-  - [**Memento**](/behavioral/memento): يلتقط ويستعيد حالة الكائن
-  - [**Observer**](/behavioral/observer): يخطر كائنات متعددة بتغييرات الحالة
-  - [**State**](/behavioral/state): يغير السلوك بناءً على الحالة الداخلية
-  - [**Strategy**](/behavioral/strategy): يغلف الخوارزميات القابلة للتبديل
-  - [**Template Method**](/behavioral/template-method): يحدد الهيكل العظمي للخوارزمية في الفئة الأساسية
-  - [**Visitor**](/behavioral/visitor): يضيف عمليات للكائنات دون تعديلها
-  - [**Null Object**](/behavioral/null-object): يوفر سلوكاً افتراضياً لا يفعل شيئاً
+<Cards>
+  <Card
+    title="Chain of Responsibility"
+    description="يمرر الطلبات على طول سلسلة من المعالجين"
+    href="/behavioral/chain-of-responsibility"
+  />
+  <Card
+    title="Command"
+    description="يغلف الطلبات ككائنات"
+    href="/behavioral/command"
+  />
+  <Card
+    title="Interpreter"
+    description="يحدد قواعد اللغة والمفسر"
+    href="/behavioral/interpreter"
+  />
+  <Card
+    title="Iterator"
+    description="يصل إلى عناصر المجموعة بالتسلسل"
+    href="/behavioral/iterator"
+  />
+  <Card
+    title="Mediator"
+    description="يغلف تفاعل الكائنات"
+    href="/behavioral/mediator"
+  />
+  <Card
+    title="Memento"
+    description="يلتقط ويستعيد حالة الكائن"
+    href="/behavioral/memento"
+  />
+  <Card
+    title="Observer"
+    description="يخطر كائنات متعددة بتغييرات الحالة"
+    href="/behavioral/observer"
+  />
+  <Card
+    title="State"
+    description="يغير السلوك بناءً على الحالة الداخلية"
+    href="/behavioral/state"
+  />
+  <Card
+    title="Strategy"
+    description="يغلف الخوارزميات القابلة للتبديل"
+    href="/behavioral/strategy"
+  />
+  <Card
+    title="Template Method"
+    description="يحدد الهيكل العظمي للخوارزمية في الفئة الأساسية"
+    href="/behavioral/template-method"
+  />
+  <Card
+    title="Visitor"
+    description="يضيف عمليات للكائنات دون تعديلها"
+    href="/behavioral/visitor"
+  />
+  <Card
+    title="Null Object"
+    description="يوفر سلوكاً افتراضياً لا يفعل شيئاً"
+    href="/behavioral/null-object"
+  />
+</Cards>
 
 ## 🏛️ الأنماط المعمارية والتزامن
 
 أنماط عالية المستوى لهيكل النظام وتعدد الخيوط. تعالج هذه الأنماط مخاوف معمارية أكبر.
 
-- [**MVC**](/architectural/mvc): يفصل النموذج والعرض والمتحكم
-  - [**MVP**](/architectural/mvp): يتولى العارض جميع منطق واجهة المستخدم
-  - [**MVVM**](/architectural/mvvm): يربط واجهة المستخدم بنموذج عرض تفاعلي
-  - [**Repository**](/architectural/repository): يجرد طبقة الوصول إلى البيانات
-  - [**CQRS**](/architectural/cqrs): يفصل بين عمليات القراءة والكتابة
-  - [**Event Sourcing**](/architectural/event-sourcing): يخزن الحالة كسلسلة من الأحداث
-  - [**Active Record**](/architectural/active-record): يغلف صف قاعدة البيانات في كائن
-  - [**Data Mapper**](/architectural/data-mapper): يفصل الكائنات في الذاكرة عن قاعدة البيانات
-  - [**Service Locator**](/architectural/service-locator): يحدد موقع الخدمات من السجل
-  - [**Dependency Injection**](/architectural/dependency-injection): يمرر التبعيات إلى الكائنات
-  - [**Producer-Consumer**](/architectural/producer-consumer): يفصل بين المنتجين والمستهلكين
-  - [**Scheduler**](/architectural/scheduler): يتحكم في الوصول إلى موارد الخيوط
-  - [**Read-Write Lock**](/architectural/read-write-lock): يسمح بالقراءات المتزامنة والكتابة الحصرية
+<Cards>
+  <Card
+    title="MVC"
+    description="يفصل النموذج والعرض والمتحكم"
+    href="/architectural/mvc"
+  />
+  <Card
+    title="MVP"
+    description="يتولى العارض جميع منطق واجهة المستخدم"
+    href="/architectural/mvp"
+  />
+  <Card
+    title="MVVM"
+    description="يربط واجهة المستخدم بنموذج عرض تفاعلي"
+    href="/architectural/mvvm"
+  />
+  <Card
+    title="Repository"
+    description="يجرد طبقة الوصول إلى البيانات"
+    href="/architectural/repository"
+  />
+  <Card
+    title="CQRS"
+    description="يفصل بين عمليات القراءة والكتابة"
+    href="/architectural/cqrs"
+  />
+  <Card
+    title="Event Sourcing"
+    description="يخزن الحالة كسلسلة من الأحداث"
+    href="/architectural/event-sourcing"
+  />
+  <Card
+    title="Active Record"
+    description="يغلف صف قاعدة البيانات في كائن"
+    href="/architectural/active-record"
+  />
+  <Card
+    title="Data Mapper"
+    description="يفصل الكائنات في الذاكرة عن قاعدة البيانات"
+    href="/architectural/data-mapper"
+  />
+  <Card
+    title="Service Locator"
+    description="يحدد موقع الخدمات من السجل"
+    href="/architectural/service-locator"
+  />
+  <Card
+    title="Dependency Injection"
+    description="يمرر التبعيات إلى الكائنات"
+    href="/architectural/dependency-injection"
+  />
+  <Card
+    title="Producer-Consumer"
+    description="يفصل بين المنتجين والمستهلكين"
+    href="/architectural/producer-consumer"
+  />
+  <Card
+    title="Scheduler"
+    description="يتحكم في الوصول إلى موارد الخيوط"
+    href="/architectural/scheduler"
+  />
+  <Card
+    title="Read-Write Lock"
+    description="يسمح بالقراءات المتزامنة والكتابة الحصرية"
+    href="/architectural/read-write-lock"
+  />
+</Cards>
 
 ---
 
@@ -83,3 +243,4 @@ icon: Palette
 - **أفضل الممارسات**: تجسد أفضل ممارسات هندسة البرمجيات
 
 ابدأ في استكشاف الأنماط عن طريق اختيار فئة أعلاه!
+

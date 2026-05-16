@@ -14,59 +14,219 @@ icon: Palette
 
 Имеют дело с механизмами создания объектов. Они абстрагируют процесс создания экземпляров, чтобы сделать системы независимыми от того, как их объекты создаются, компонуются и представляются.
 
-- [**Singleton**](/creational/singleton): Гарантирует, что у класса есть только один экземпляр с глобальной точкой доступа
-  - [**Factory Method**](/creational/factory-method): Создает объекты без указания точных классов
-  - [**Abstract Factory**](/creational/abstract-factory): Создает семейства связанных объектов
-  - [**Builder**](/creational/builder): Пошагово конструирует сложные объекты
-  - [**Prototype**](/creational/prototype): Создает новые объекты путем клонирования существующих
-  - [**Object Pool**](/creational/object-pool): Эффективно переиспользует инициализированные объекты
+<Cards>
+  <Card
+    title="Singleton"
+    description="Гарантирует, что у класса есть только один экземпляр с глобальной точкой доступа"
+    href="/creational/singleton"
+  />
+  <Card
+    title="Factory Method"
+    description="Создает объекты без указания точных классов"
+    href="/creational/factory-method"
+  />
+  <Card
+    title="Abstract Factory"
+    description="Создает семейства связанных объектов"
+    href="/creational/abstract-factory"
+  />
+  <Card
+    title="Builder"
+    description="Пошагово конструирует сложные объекты"
+    href="/creational/builder"
+  />
+  <Card
+    title="Prototype"
+    description="Создает новые объекты путем клонирования существующих"
+    href="/creational/prototype"
+  />
+  <Card
+    title="Object Pool"
+    description="Эффективно переиспользует инициализированные объекты"
+    href="/creational/object-pool"
+  />
+</Cards>
 
 ## 🔧 Структурные (Structural) паттерны
 
 Имеют дело с составом объектов и отношениями между ними. Они помогают объединять объекты в более крупные структуры, сохраняя эти структуры гибкими и эффективными.
 
-- [**Adapter**](/structural/adapter): Преобразует интерфейсы для совместной работы несовместимых объектов
-  - [**Bridge**](/structural/bridge): Разделяет абстракцию и реализацию
-  - [**Composite**](/structural/composite): Объединяет объекты в древовидные структуры
-  - [**Decorator**](/structural/decorator): Динамически добавляет объектам новые обязанности
-  - [**Facade**](/structural/facade): Предоставляет упрощенный интерфейс к сложной подсистеме
-  - [**Flyweight**](/structural/flyweight): Эффективно разделяет объекты для экономии памяти
-  - [**Proxy**](/structural/proxy): Предоставляет суррогат для управления доступом
+<Cards>
+  <Card
+    title="Adapter"
+    description="Преобразует интерфейсы для совместной работы несовместимых объектов"
+    href="/structural/adapter"
+  />
+  <Card
+    title="Bridge"
+    description="Разделяет абстракцию и реализацию"
+    href="/structural/bridge"
+  />
+  <Card
+    title="Composite"
+    description="Объединяет объекты в древовидные структуры"
+    href="/structural/composite"
+  />
+  <Card
+    title="Decorator"
+    description="Динамически добавляет объектам новые обязанности"
+    href="/structural/decorator"
+  />
+  <Card
+    title="Facade"
+    description="Предоставляет упрощенный интерфейс к сложной подсистеме"
+    href="/structural/facade"
+  />
+  <Card
+    title="Flyweight"
+    description="Эффективно разделяет объекты для экономии памяти"
+    href="/structural/flyweight"
+  />
+  <Card
+    title="Proxy"
+    description="Предоставляет суррогат для управления доступом"
+    href="/structural/proxy"
+  />
+</Cards>
 
 ## 🔄 Поведенческие (Behavioral) паттерны
 
 Имеют дело с коммуникацией и обязанностями объектов. Они определяют, как объекты взаимодействуют и распределяют обязанности между собой.
 
-- [**Chain of Responsibility**](/behavioral/chain-of-responsibility): Передает запросы по цепочке обработчиков
-  - [**Command**](/behavioral/command): Инкапсулирует запросы как объекты
-  - [**Interpreter**](/behavioral/interpreter): Определяет грамматику языка и интерпретатор
-  - [**Iterator**](/behavioral/iterator): Последовательно обращается к элементам коллекции
-  - [**Mediator**](/behavioral/mediator): Инкапсулирует взаимодействие объектов
-  - [**Memento**](/behavioral/memento): Фиксирует и восстанавливает состояние объекта
-  - [**Observer**](/behavioral/observer): Уведомляет несколько объектов об изменениях состояния
-  - [**State**](/behavioral/state): Изменяет поведение в зависимости от внутреннего состояния
-  - [**Strategy**](/behavioral/strategy): Инкапсулирует взаимозаменяемые алгоритмы
-  - [**Template Method**](/behavioral/template-method): Определяет скелет алгоритма в базовом классе
-  - [**Visitor**](/behavioral/visitor): Добавляет операции к объектам без их изменения
-  - [**Null Object**](/behavioral/null-object): Обеспечивает поведение по умолчанию «ничего не делать»
+<Cards>
+  <Card
+    title="Chain of Responsibility"
+    description="Передает запросы по цепочке обработчиков"
+    href="/behavioral/chain-of-responsibility"
+  />
+  <Card
+    title="Command"
+    description="Инкапсулирует запросы как объекты"
+    href="/behavioral/command"
+  />
+  <Card
+    title="Interpreter"
+    description="Определяет грамматику языка и интерпретатор"
+    href="/behavioral/interpreter"
+  />
+  <Card
+    title="Iterator"
+    description="Последовательно обращается к элементам коллекции"
+    href="/behavioral/iterator"
+  />
+  <Card
+    title="Mediator"
+    description="Инкапсулирует взаимодействие объектов"
+    href="/behavioral/mediator"
+  />
+  <Card
+    title="Memento"
+    description="Фиксирует и восстанавливает состояние объекта"
+    href="/behavioral/memento"
+  />
+  <Card
+    title="Observer"
+    description="Уведомляет несколько объектов об изменениях состояния"
+    href="/behavioral/observer"
+  />
+  <Card
+    title="State"
+    description="Изменяет поведение в зависимости от внутреннего состояния"
+    href="/behavioral/state"
+  />
+  <Card
+    title="Strategy"
+    description="Инкапсулирует взаимозаменяемые алгоритмы"
+    href="/behavioral/strategy"
+  />
+  <Card
+    title="Template Method"
+    description="Определяет скелет алгоритма в базовом классе"
+    href="/behavioral/template-method"
+  />
+  <Card
+    title="Visitor"
+    description="Добавляет операции к объектам без их изменения"
+    href="/behavioral/visitor"
+  />
+  <Card
+    title="Null Object"
+    description="Обеспечивает поведение по умолчанию «ничего не делать»"
+    href="/behavioral/null-object"
+  />
+</Cards>
 
 ## 🏛️ Архитектурные паттерны и паттерны параллелизма
 
 Высокоуровневые паттерны для структуры системы и многопоточности. Эти паттерны решают более крупные архитектурные задачи.
 
-- [**MVC**](/architectural/mvc): Разделяет модель, представление и контроллер
-  - [**MVP**](/architectural/mvp): Презентер обрабатывает всю логику пользовательского интерфейса
-  - [**MVVM**](/architectural/mvvm): Связывает UI с реактивной моделью представления
-  - [**Repository**](/architectural/repository): Абстрагирует уровень доступа к данным
-  - [**CQRS**](/architectural/cqrs): Разделяет операции чтения и записи
-  - [**Event Sourcing**](/architectural/event-sourcing): Хранит состояние как последовательность событий
-  - [**Active Record**](/architectural/active-record): Оборачивает строку базы данных в объект
-  - [**Data Mapper**](/architectural/data-mapper): Отделяет объекты в памяти от базы данных
-  - [**Service Locator**](/architectural/service-locator): Находит службы в реестре
-  - [**Dependency Injection**](/architectural/dependency-injection): Передает зависимости в объекты
-  - [**Producer-Consumer**](/architectural/producer-consumer): Разделяет производителей и потребителей
-  - [**Scheduler**](/architectural/scheduler): Контролирует доступ потоков к ресурсам
-  - [**Read-Write Lock**](/architectural/read-write-lock): Разрешает одновременное чтение, эксклюзивную запись
+<Cards>
+  <Card
+    title="MVC"
+    description="Разделяет модель, представление и контроллер"
+    href="/architectural/mvc"
+  />
+  <Card
+    title="MVP"
+    description="Презентер обрабатывает всю логику пользовательского интерфейса"
+    href="/architectural/mvp"
+  />
+  <Card
+    title="MVVM"
+    description="Связывает UI с реактивной моделью представления"
+    href="/architectural/mvvm"
+  />
+  <Card
+    title="Repository"
+    description="Абстрагирует уровень доступа к данным"
+    href="/architectural/repository"
+  />
+  <Card
+    title="CQRS"
+    description="Разделяет операции чтения и записи"
+    href="/architectural/cqrs"
+  />
+  <Card
+    title="Event Sourcing"
+    description="Хранит состояние как последовательность событий"
+    href="/architectural/event-sourcing"
+  />
+  <Card
+    title="Active Record"
+    description="Оборачивает строку базы данных в объект"
+    href="/architectural/active-record"
+  />
+  <Card
+    title="Data Mapper"
+    description="Отделяет объекты в памяти от базы данных"
+    href="/architectural/data-mapper"
+  />
+  <Card
+    title="Service Locator"
+    description="Находит службы в реестре"
+    href="/architectural/service-locator"
+  />
+  <Card
+    title="Dependency Injection"
+    description="Передает зависимости в объекты"
+    href="/architectural/dependency-injection"
+  />
+  <Card
+    title="Producer-Consumer"
+    description="Разделяет производителей и потребителей"
+    href="/architectural/producer-consumer"
+  />
+  <Card
+    title="Scheduler"
+    description="Контролирует доступ потоков к ресурсам"
+    href="/architectural/scheduler"
+  />
+  <Card
+    title="Read-Write Lock"
+    description="Разрешает одновременное чтение, эксклюзивную запись"
+    href="/architectural/read-write-lock"
+  />
+</Cards>
 
 ---
 
@@ -83,3 +243,4 @@ icon: Palette
 - **Лучшие практики**: Они воплощают лучшие практики программной инженерии
 
 Начните изучать паттерны, выбрав категорию выше!
+

@@ -4,6 +4,10 @@ export const en = {
   label: 'English',
   lang: 'en',
   themeConfig: {
+    editLink: {
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
+      text: 'Edit this page on GitHub'
+    },
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Quick Reference', link: '/quick-reference' },

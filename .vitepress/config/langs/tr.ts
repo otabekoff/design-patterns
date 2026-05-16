@@ -5,6 +5,10 @@ export const tr = {
   lang: 'tr',
   link: '/tr/',
   themeConfig: {
+    editLink: {
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
+      text: 'Bu sayfayı GitHub'da düzenleyin'
+    },
     nav: [
       { text: 'Ana Sayfa', link: '/tr/' },
       { text: 'Hızlı Başvuru', link: '/tr/quick-reference' },

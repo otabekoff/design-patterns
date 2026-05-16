@@ -14,59 +14,219 @@ Dizayn patternlari odatda maqsadiga ko'ra **uchta asosiy toifaga** bo'linadi:
 
 Obyektlarni yaratish mexanizmlari bilan shug'ullanadi. Ular obyektlarning qanday yaratilishi va qanday tuzilishidan qat'i nazar, tizimlarni mustaqil qilish uchun instansiya jarayonini mavhumlashtiradi.
 
-- [**Singleton**](/creational/singleton): Klassning faqat bitta instansiyasi va unga global kirish nuqtasi mavjudligini ta'minlaydi
-  - [**Factory Method**](/creational/factory-method): Aniq klasslarni ko'rsatmasdan obyektlarni yaratadi
-  - [**Abstract Factory**](/creational/abstract-factory): Bog'liq obyektlar oilalarini yaratadi
-  - [**Builder**](/creational/builder): Murakkab obyektlarni bosqichma-bosqich quradi
-  - [**Prototype**](/creational/prototype): Mavjud obyektlarni klonlash orqali yangi obyektlar yaratadi
-  - [**Object Pool**](/creational/object-pool): Initsializatsiya qilingan obyektlarni samarali qayta ishlatadi
+<Cards>
+  <Card
+    title="Singleton"
+    description="Klassning faqat bitta instansiyasi va unga global kirish nuqtasi mavjudligini ta'minlaydi"
+    href="/creational/singleton"
+  />
+  <Card
+    title="Factory Method"
+    description="Aniq klasslarni ko'rsatmasdan obyektlarni yaratadi"
+    href="/creational/factory-method"
+  />
+  <Card
+    title="Abstract Factory"
+    description="Bog'liq obyektlar oilalarini yaratadi"
+    href="/creational/abstract-factory"
+  />
+  <Card
+    title="Builder"
+    description="Murakkab obyektlarni bosqichma-bosqich quradi"
+    href="/creational/builder"
+  />
+  <Card
+    title="Prototype"
+    description="Mavjud obyektlarni klonlash orqali yangi obyektlar yaratadi"
+    href="/creational/prototype"
+  />
+  <Card
+    title="Object Pool"
+    description="Initsializatsiya qilingan obyektlarni samarali qayta ishlatadi"
+    href="/creational/object-pool"
+  />
+</Cards>
 
 ## 🔧 Tuzilmaviy (Structural) patternlar
 
 Obyektlarning tarkibi va munosabatlari bilan shug'ullanadi. Ular obyektlarni kattaroq tuzilmalarga birlashtirishga yordam beradi, shu bilan birga bu tuzilmalarni moslashuvchan va samarali saqlaydi.
 
-- [**Adapter**](/structural/adapter): Mos kelmaydigan obyektlarni birga ishlashi uchun interfeyslarni o'zgartiradi
-  - [**Bridge**](/structural/bridge): Abstraksiyani amalga oshirishdan ajratadi
-  - [**Composite**](/structural/composite): Obyektlarni daraxtsimon tuzilmalarga birlashtiradi
-  - [**Decorator**](/structural/decorator): Obyektlarga dinamik ravishda mas'uliyatlarni qo'shadi
-  - [**Facade**](/structural/facade): Murakkab quyi tizimga soddalashtirilgan interfeys taqdim etadi
-  - [**Flyweight**](/structural/flyweight): Xotirani tejash uchun obyektlarni samarali baham ko'radi
-  - [**Proxy**](/structural/proxy): Kirishni nazorat qilish uchun o'rinbosar taqdim etadi
+<Cards>
+  <Card
+    title="Adapter"
+    description="Mos kelmaydigan obyektlarni birga ishlashi uchun interfeyslarni o'zgartiradi"
+    href="/structural/adapter"
+  />
+  <Card
+    title="Bridge"
+    description="Abstraksiyani amalga oshirishdan ajratadi"
+    href="/structural/bridge"
+  />
+  <Card
+    title="Composite"
+    description="Obyektlarni daraxtsimon tuzilmalarga birlashtiradi"
+    href="/structural/composite"
+  />
+  <Card
+    title="Decorator"
+    description="Obyektlarga dinamik ravishda mas'uliyatlarni qo'shadi"
+    href="/structural/decorator"
+  />
+  <Card
+    title="Facade"
+    description="Murakkab quyi tizimga soddalashtirilgan interfeys taqdim etadi"
+    href="/structural/facade"
+  />
+  <Card
+    title="Flyweight"
+    description="Xotirani tejash uchun obyektlarni samarali baham ko'radi"
+    href="/structural/flyweight"
+  />
+  <Card
+    title="Proxy"
+    description="Kirishni nazorat qilish uchun o'rinbosar taqdim etadi"
+    href="/structural/proxy"
+  />
+</Cards>
 
 ## 🔄 Xulq-atvor (Behavioral) patternlar
 
 Obyektlar orasidagi aloqa va mas'uliyat bilan shug'ullanadi. Ular obyektlarning qanday o'zaro ta'sir qilishini va mas'uliyatni qanday taqsimlashini belgilaydi.
 
-- [**Chain of Responsibility**](/behavioral/chain-of-responsibility): So'rovlarni ishlov beruvchilar zanjiri bo'ylab uzatadi
-  - [**Command**](/behavioral/command): So'rovlarni obyektlar sifatida inkapsulyatsiya qiladi
-  - [**Interpreter**](/behavioral/interpreter): Til grammatikasi va interpretatorini belgilaydi
-  - [**Iterator**](/behavioral/iterator): To'plam elementlariga ketma-ket kirish imkonini beradi
-  - [**Mediator**](/behavioral/mediator): Obyektlarning o'zaro ta'sirini inkapsulyatsiya qiladi
-  - [**Memento**](/behavioral/memento): Obyekt holatini saqlaydi va tiklaydi
-  - [**Observer**](/behavioral/observer): Holat o'zgarishi haqida bir nechta obyektlarni xabardor qiladi
-  - [**State**](/behavioral/state): Ichki holatga qarab xatti-harakatni o'zgartiradi
-  - [**Strategy**](/behavioral/strategy): O'zaro almashinadigan algoritmlarni inkapsulyatsiya qiladi
-  - [**Template Method**](/behavioral/template-method): Bazaviy klassda algoritm skeletini belgilaydi
-  - [**Visitor**](/behavioral/visitor): Obyektlarni o'zgartirmasdan ularga yangi operatsiyalarni qo'shadi
-  - [**Null Object**](/behavioral/null-object): Hech narsa qilmaydigan standart xatti-harakatni taqdim etadi
+<Cards>
+  <Card
+    title="Chain of Responsibility"
+    description="So'rovlarni ishlov beruvchilar zanjiri bo'ylab uzatadi"
+    href="/behavioral/chain-of-responsibility"
+  />
+  <Card
+    title="Command"
+    description="So'rovlarni obyektlar sifatida inkapsulyatsiya qiladi"
+    href="/behavioral/command"
+  />
+  <Card
+    title="Interpreter"
+    description="Til grammatikasi va interpretatorini belgilaydi"
+    href="/behavioral/interpreter"
+  />
+  <Card
+    title="Iterator"
+    description="To'plam elementlariga ketma-ket kirish imkonini beradi"
+    href="/behavioral/iterator"
+  />
+  <Card
+    title="Mediator"
+    description="Obyektlarning o'zaro ta'sirini inkapsulyatsiya qiladi"
+    href="/behavioral/mediator"
+  />
+  <Card
+    title="Memento"
+    description="Obyekt holatini saqlaydi va tiklaydi"
+    href="/behavioral/memento"
+  />
+  <Card
+    title="Observer"
+    description="Holat o'zgarishi haqida bir nechta obyektlarni xabardor qiladi"
+    href="/behavioral/observer"
+  />
+  <Card
+    title="State"
+    description="Ichki holatga qarab xatti-harakatni o'zgartiradi"
+    href="/behavioral/state"
+  />
+  <Card
+    title="Strategy"
+    description="O'zaro almashinadigan algoritmlarni inkapsulyatsiya qiladi"
+    href="/behavioral/strategy"
+  />
+  <Card
+    title="Template Method"
+    description="Bazaviy klassda algoritm skeletini belgilaydi"
+    href="/behavioral/template-method"
+  />
+  <Card
+    title="Visitor"
+    description="Obyektlarni o'zgartirmasdan ularga yangi operatsiyalarni qo'shadi"
+    href="/behavioral/visitor"
+  />
+  <Card
+    title="Null Object"
+    description="Hech narsa qilmaydigan standart xatti-harakatni taqdim etadi"
+    href="/behavioral/null-object"
+  />
+</Cards>
 
 ## 🏛️ Arxitektura va parallellik patternlari
 
 Tizim tuzilishi va ko'p oqimli ishlov berish uchun yuqori darajadagi patternlar. Bu patternlar kattaroq arxitektura masalalarini hal qiladi.
 
-- [**MVC**](/architectural/mvc): Model, view va controllerni ajratadi
-  - [**MVP**](/architectural/mvp): Presenter barcha UI mantiqini boshqaradi
-  - [**MVVM**](/architectural/mvvm): UI-ni reaktiv view modeliga bog'laydi
-  - [**Repository**](/architectural/repository): Ma'lumotlarga kirish qatlamini mavhumlashtiradi
-  - [**CQRS**](/architectural/cqrs): O'qish va yozish operatsiyalarini ajratadi
-  - [**Event Sourcing**](/architectural/event-sourcing): Holatni voqealar ketma-ketligi sifatida saqlaydi
-  - [**Active Record**](/architectural/active-record): Ma'lumotlar bazasi qatorini obyekt bilan o'raydi
-  - [**Data Mapper**](/architectural/data-mapper): Xotiradagi obyektlarni ma'lumotlar bazasidan ajratadi
-  - [**Service Locator**](/architectural/service-locator): Servislarni registrdan topadi
-  - [**Dependency Injection**](/architectural/dependency-injection): Bog'liqliklarni obyektlarga uzatadi
-  - [**Producer-Consumer**](/architectural/producer-consumer): Ishlab chiqaruvchilar va iste'molchilarni ajratadi
-  - [**Scheduler**](/architectural/scheduler): Oqim resurslaridan foydalanishni boshqaradi
-  - [**Read-Write Lock**](/architectural/read-write-lock): Bir vaqtning o'zida o'qish va eksklyuziv yozish imkonini beradi
+<Cards>
+  <Card
+    title="MVC"
+    description="Model, view va controllerni ajratadi"
+    href="/architectural/mvc"
+  />
+  <Card
+    title="MVP"
+    description="Presenter barcha UI mantiqini boshqaradi"
+    href="/architectural/mvp"
+  />
+  <Card
+    title="MVVM"
+    description="UI-ni reaktiv view modeliga bog'laydi"
+    href="/architectural/mvvm"
+  />
+  <Card
+    title="Repository"
+    description="Ma'lumotlarga kirish qatlamini mavhumlashtiradi"
+    href="/architectural/repository"
+  />
+  <Card
+    title="CQRS"
+    description="O'qish va yozish operatsiyalarini ajratadi"
+    href="/architectural/cqrs"
+  />
+  <Card
+    title="Event Sourcing"
+    description="Holatni voqealar ketma-ketligi sifatida saqlaydi"
+    href="/architectural/event-sourcing"
+  />
+  <Card
+    title="Active Record"
+    description="Ma'lumotlar bazasi qatorini obyekt bilan o'raydi"
+    href="/architectural/active-record"
+  />
+  <Card
+    title="Data Mapper"
+    description="Xotiradagi obyektlarni ma'lumotlar bazasidan ajratadi"
+    href="/architectural/data-mapper"
+  />
+  <Card
+    title="Service Locator"
+    description="Servislarni registrdan topadi"
+    href="/architectural/service-locator"
+  />
+  <Card
+    title="Dependency Injection"
+    description="Bog'liqliklarni obyektlarga uzatadi"
+    href="/architectural/dependency-injection"
+  />
+  <Card
+    title="Producer-Consumer"
+    description="Ishlab chiqaruvchilar va iste'molchilarni ajratadi"
+    href="/architectural/producer-consumer"
+  />
+  <Card
+    title="Scheduler"
+    description="Oqim resurslaridan foydalanishni boshqaradi"
+    href="/architectural/scheduler"
+  />
+  <Card
+    title="Read-Write Lock"
+    description="Bir vaqtning o'zida o'qish va eksklyuziv yozish imkonini beradi"
+    href="/architectural/read-write-lock"
+  />
+</Cards>
 
 ---
 
@@ -83,3 +243,4 @@ Dastlabki 23 ta pattern (Yaratuvchi, Tuzilmaviy va Xulq-atvor) Gamma, Helm, John
 - **Eng yaxshi amaliyotlar**: Ular dasturiy muhandislikning eng yaxshi amaliyotlarini o'zida mujassam etadi
 
 Yuqoridagi toifalardan birini tanlash orqali patternlarni o'rganishni boshlang!
+

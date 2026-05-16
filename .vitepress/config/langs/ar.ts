@@ -6,6 +6,10 @@ export const ar = {
   link: '/ar/',
   dir: 'rtl',
   themeConfig: {
+    editLink: {
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
+      text: 'تعديل هذه الصفحة على GitHub'
+    },
     nav: [
       { text: 'الرئيسية', link: '/ar/' },
       { text: 'مرجع سريع', link: '/ar/quick-reference' },

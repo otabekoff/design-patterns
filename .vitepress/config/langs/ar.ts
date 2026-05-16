@@ -26,6 +26,29 @@ export const ar = {
     }
   },
   themeConfig: {
+    lastUpdated: {
+      text: 'آخر تحديث',
+      formatOptions: {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        forceLocale: true
+      }
+    },
+    outline: {
+      level: 'deep',
+      label: 'في هذه الصفحة'
+    },
+    docFooter: {
+      prev: 'الصفحة السابقة',
+      next: 'الصفحة التالية'
+    },
+    darkModeSwitchLabel: 'المظهر',
+    lightModeSwitchTitle: 'التبديل إلى المظهر الفاتح',
+    darkModeSwitchTitle: 'التبديل إلى المظهر الداكن',
+    sidebarMenuLabel: 'القائمة',
+    returnToTopLabel: 'العودة إلى الأعلى',
+    langMenuLabel: 'تغيير اللغة',
+    skipToContentLabel: 'تخطي إلى المحتوى',
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
       text: 'تعديل هذه الصفحة على GitHub'
@@ -33,8 +56,13 @@ export const ar = {
     nav: [
       { text: 'الرئيسية', link: '/ar/' },
       { text: 'مرجع سريع', link: '/ar/quick-reference' },
+      {
+        text: 'المزيد',
+        items: [
           { text: 'مشاريع أخرى', link: 'https://github.com/otabekoff' },
-      { text: 'ادعمنا', link: 'https://tirikchilik.uz/uzhandy' }
+          { text: 'ادعمنا', link: 'https://tirikchilik.uz/uzhandy' }
+        ]
+      }
     ],
     sidebar: [
       {
@@ -108,6 +136,10 @@ export const ar = {
           { text: 'Proxy', link: '/ar/structural/proxy' }
         ]
       }
-    ]
+    ],
+    footer: {
+      message: 'صدر تحت <a href="https://github.com/otabekoff/design-patterns/blob/main/LICENSE">رخصة MIT</a>.',
+      copyright: 'حقوق النشر © 2025-الحاضر <a href="https://github.com/otabekoff">أوتابيك ساديريدينوف</a>'
+    }
   }
 }

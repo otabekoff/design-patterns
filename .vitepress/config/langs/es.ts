@@ -25,6 +25,29 @@ export const es = {
     }
   },
   themeConfig: {
+    lastUpdated: {
+      text: 'Última actualización',
+      formatOptions: {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        forceLocale: true
+      }
+    },
+    outline: {
+      level: 'deep',
+      label: 'En esta página'
+    },
+    docFooter: {
+      prev: 'Página anterior',
+      next: 'Página siguiente'
+    },
+    darkModeSwitchLabel: 'Apariencia',
+    lightModeSwitchTitle: 'Cambiar al tema claro',
+    darkModeSwitchTitle: 'Cambiar al tema oscuro',
+    sidebarMenuLabel: 'Menú',
+    returnToTopLabel: 'Volver arriba',
+    langMenuLabel: 'Cambiar idioma',
+    skipToContentLabel: 'Saltar al contenido',
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
       text: 'Editar esta página en GitHub'
@@ -32,8 +55,13 @@ export const es = {
     nav: [
       { text: 'Inicio', link: '/es/' },
       { text: 'Referencia Rápida', link: '/es/quick-reference' },
+      {
+        text: 'Más',
+        items: [
           { text: 'Otros proyectos', link: 'https://github.com/otabekoff' },
-      { text: 'Apóyanos', link: 'https://tirikchilik.uz/uzhandy' }
+          { text: 'Apóyanos', link: 'https://tirikchilik.uz/uzhandy' }
+        ]
+      }
     ],
     sidebar: [
       {
@@ -107,6 +135,10 @@ export const es = {
           { text: 'Proxy', link: '/es/structural/proxy' }
         ]
       }
-    ]
+    ],
+    footer: {
+      message: 'Publicado bajo la <a href="https://github.com/otabekoff/design-patterns/blob/main/LICENSE">Licencia MIT</a>.',
+      copyright: 'Derechos de autor © 2025-presente <a href="https://github.com/otabekoff">Otabek Sadiridinov</a>'
+    }
   }
 }

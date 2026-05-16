@@ -25,6 +25,29 @@ export const tr = {
     }
   },
   themeConfig: {
+    lastUpdated: {
+      text: 'Son güncelleme',
+      formatOptions: {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        forceLocale: true
+      }
+    },
+    outline: {
+      level: 'deep',
+      label: 'Bu sayfada'
+    },
+    docFooter: {
+      prev: 'Önceki sayfa',
+      next: 'Sonraki sayfa'
+    },
+    darkModeSwitchLabel: 'Görünüm',
+    lightModeSwitchTitle: 'Açık temaya geç',
+    darkModeSwitchTitle: 'Koyu temaya geç',
+    sidebarMenuLabel: 'Menü',
+    returnToTopLabel: 'Yukarı dön',
+    langMenuLabel: 'Dili değiştir',
+    skipToContentLabel: 'İçeriğe atla',
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
       text: "Bu sayfayı GitHub'da düzenleyin"
@@ -32,8 +55,13 @@ export const tr = {
     nav: [
       { text: 'Ana Sayfa', link: '/tr/' },
       { text: 'Hızlı Başvuru', link: '/tr/quick-reference' },
+      {
+        text: 'Daha fazla',
+        items: [
           { text: 'Diğer projeler', link: 'https://github.com/otabekoff' },
-      { text: 'Bizi Destekleyin', link: 'https://tirikchilik.uz/uzhandy' }
+          { text: 'Bizi Destekleyin', link: 'https://tirikchilik.uz/uzhandy' }
+        ]
+      }
     ],
     sidebar: [
       {
@@ -107,6 +135,10 @@ export const tr = {
           { text: 'Proxy', link: '/tr/structural/proxy' }
         ]
       }
-    ]
+    ],
+    footer: {
+      message: '<a href="https://github.com/otabekoff/design-patterns/blob/main/LICENSE">MIT Lisansı</a> altında yayınlanmıştır.',
+      copyright: 'Telif Hakkı © 2025-günümüz <a href="https://github.com/otabekoff">Otabek Sadiridinov</a>'
+    }
   }
 }

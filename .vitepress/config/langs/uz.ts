@@ -24,6 +24,29 @@ export const uz = {
     }
   },
   themeConfig: {
+    lastUpdated: {
+      text: 'Oxirgi yangilanish',
+      formatOptions: {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        forceLocale: true
+      }
+    },
+    outline: {
+      level: 'deep',
+      label: 'Ushbu sahifada'
+    },
+    docFooter: {
+      prev: 'Oldingi sahifa',
+      next: 'Keyingi sahifa'
+    },
+    darkModeSwitchLabel: 'Ko\'rinish',
+    lightModeSwitchTitle: 'Yorug\' rejimga o\'tish',
+    darkModeSwitchTitle: 'Qorong\'u rejimga o\'tish',
+    sidebarMenuLabel: 'Menyu',
+    returnToTopLabel: 'Yuqoriga qaytish',
+    langMenuLabel: 'Tilni o\'zgartirish',
+    skipToContentLabel: 'Asosiy kontentga o\'tish',
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/src/:path',
       text: 'Ushbu sahifani GitHubda tahrirlash'
@@ -31,8 +54,13 @@ export const uz = {
     nav: [
       { text: 'Bosh sahifa', link: '/uz/' },
       { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' },
-      { text: 'Boshqa loyihalar', link: 'https://github.com/otabekoff' },
-      { text: 'Qo\'llab-quvvatlash', link: 'https://tirikchilik.uz/uzhandy' }
+      {
+        text: 'Ko\'proq',
+        items: [
+          { text: 'Boshqa loyihalar', link: 'https://github.com/otabekoff' },
+          { text: 'Qo\'llab-quvvatlash', link: 'https://tirikchilik.uz/uzhandy' }
+        ]
+      }
     ],
     sidebar: [
       {
@@ -106,6 +134,10 @@ export const uz = {
           { text: 'Proxy', link: '/uz/structural/proxy' }
         ]
       }
-    ]
+    ],
+    footer: {
+      message: '<a href="https://github.com/otabekoff/design-patterns/blob/main/LICENSE">MIT Litsenziyasi</a> ostida tarqatilgan.',
+      copyright: 'Mualliflik huquqi © 2025-hozirga qadar <a href="https://github.com/otabekoff">Otabek Sadiridinov</a>'
+    }
   }
 }

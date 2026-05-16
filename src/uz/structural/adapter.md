@@ -6,8 +6,6 @@ icon: Package
 
 # Adapter Pattern
 
-
-
 ## Overview
 
 The Adapter Pattern is a structural design pattern that allows incompatible interfaces to collaborate. It acts as a bridge between two incompatible interfaces by converting the interface of a class into another interface that clients expect.
@@ -157,8 +155,6 @@ console.log('User data:', data);
 })();
 ```
 
-
-  
 ```python [python]
 from abc import ABC, abstractmethod
 

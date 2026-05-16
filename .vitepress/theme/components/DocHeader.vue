@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { useData } from "vitepress";
+import { useData, withBase } from "vitepress";
 import { Copy, Share2, ChevronDown, Check, Lightbulb } from "@lucide/vue";
 
 const { page, theme } = useData();
@@ -11,7 +11,7 @@ const isCopying = ref(false);
 const isShared = ref(false);
 
 // Read raw markdown from local file system during build/dev
-const rawMarkdownFiles = import.meta.glob("../../../**/*.md", {
+const rawMarkdownFiles = import.meta.glob("../../../src/**/*.md", {
   query: "?raw",
   import: "default",
 });
@@ -21,13 +21,13 @@ const copyMarkdown = async () => {
   isCopying.value = true;
 
   try {
-    const filePath = `../../../${page.value.relativePath}`;
+    const filePath = `../../../src/${page.value.relativePath}`;
     let text = "";
     if (rawMarkdownFiles[filePath]) {
       text = await rawMarkdownFiles[filePath]();
     } else {
       const res = await fetch(
-        `https://raw.githubusercontent.com/otabekoff/design-patterns/main/${page.value.relativePath}`,
+        `https://raw.githubusercontent.com/otabekoff/design-patterns/main/src/${page.value.relativePath}`,
       );
       if (!res.ok) throw new Error("Not found");
       text = await res.text();
@@ -81,7 +81,7 @@ const cursorUrl = computed(() => currentUrl.value ? `https://cursor.com/link/pro
 
 const githubUrl = computed(
   () =>
-    `https://github.com/otabekoff/design-patterns/blob/main/content/docs/${page.value.relativePath}`,
+    `https://github.com/otabekoff/design-patterns/blob/main/src/${page.value.relativePath}`,
 );
 const rawUrl = computed(
   () => currentOrigin.value ? `${currentOrigin.value}/${page.value.relativePath}` : '#',
@@ -135,60 +135,60 @@ const rawUrl = computed(
           <a :href="githubUrl" target="_blank" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/github.svg&quot;);
-                mask-image: url(&quot;/icons/github.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/github.svg')})`,
+                'mask-image': `url(${withBase('/icons/github.svg')})`
+              }"
             ></span>
             <span>GitHub</span>
           </a>
           <a :href="rawUrl" target="_blank" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/markdown-text.svg&quot;);
-                mask-image: url(&quot;/icons/markdown-text.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/markdown-text.svg')})`,
+                'mask-image': `url(${withBase('/icons/markdown-text.svg')})`
+              }"
             ></span>
             <span>Markdown</span>
           </a>
           <a :href="sciraUrl" target="_blank" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/scira.svg&quot;);
-                mask-image: url(&quot;/icons/scira.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/scira.svg')})`,
+                'mask-image': `url(${withBase('/icons/scira.svg')})`
+              }"
             ></span>
             <span>Scira AI</span>
           </a>
           <a :href="chatgptUrl" target="_blank" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/openai.svg&quot;);
-                mask-image: url(&quot;/icons/openai.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/openai.svg')})`,
+                'mask-image': `url(${withBase('/icons/openai.svg')})`
+              }"
             ></span>
             <span>ChatGPT</span>
           </a>
           <a :href="claudeUrl" target="_blank" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/antrophic.svg&quot;);
-                mask-image: url(&quot;/icons/antrophic.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/antrophic.svg')})`,
+                'mask-image': `url(${withBase('/icons/antrophic.svg')})`
+              }"
             ></span>
             <span>Claude</span>
           </a>
           <a :href="cursorUrl" class="dropdown-item">
             <span
               class="item-icon custom-icon"
-              style="
-                -webkit-mask-image: url(&quot;/icons/cursor.svg&quot;);
-                mask-image: url(&quot;/icons/cursor.svg&quot;);
-              "
+              :style="{
+                '-webkit-mask-image': `url(${withBase('/icons/cursor.svg')})`,
+                'mask-image': `url(${withBase('/icons/cursor.svg')})`
+              }"
             ></span>
             <span>Cursor</span>
           </a>

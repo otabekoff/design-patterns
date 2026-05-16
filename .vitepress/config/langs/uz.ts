@@ -1,19 +1,38 @@
 export const uz = {
   title: "Dizayn Naqshlari",
-  description: "To'liq Ma'lumotnoma",
-  label: 'Oʻzbekcha',
+  description: "To'liq qo'llanma",
+  label: 'O\'zbek',
   lang: 'uz',
-  link: '/uz/',
+  search: {
+    translations: {
+      button: { buttonText: 'Qidiruv', buttonAriaLabel: 'Qidiruv' },
+      modal: {
+        displayDetails: 'Batafsil ro\'yxatni ko\'rsatish',
+        resetButtonTitle: 'Qidiruvni tozalash',
+        backButtonTitle: 'Qidiruvni yopish',
+        noResultsText: 'Natija topilmadi',
+        footer: {
+          selectText: 'tanlash uchun',
+          selectKeyAriaLabel: 'kirish',
+          navigateText: 'navigatsiya qilish uchun',
+          navigateUpKeyAriaLabel: 'yuqoriga',
+          navigateDownKeyAriaLabel: 'pastga',
+          closeText: 'yopish uchun',
+          closeKeyAriaLabel: 'chiqish'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
-      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
-      text: 'Ushbu sahifani GitHub-da tahrirlash'
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/src/:path',
+      text: 'Ushbu sahifani GitHubda tahrirlash'
     },
     nav: [
       { text: 'Bosh sahifa', link: '/uz/' },
       { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' },
-          { text: 'Boshqa loyihalar', link: 'https://github.com/otabekoff' },
-      { text: "Qo'llab-quvvatlash", link: 'https://tirikchilik.uz/uzhandy' }
+      { text: 'Boshqa loyihalar', link: 'https://github.com/otabekoff' },
+      { text: 'Qo\'llab-quvvatlash', link: 'https://tirikchilik.uz/uzhandy' }
     ],
     sidebar: [
       {
@@ -22,7 +41,7 @@ export const uz = {
         items: [
           { text: 'Kirish', link: '/uz/introduction' },
           { text: 'Sayohat', link: '/uz/tour' },
-          { text: 'Tezkor ma\'lumot', link: '/uz/quick-reference' }
+          { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' }
         ]
       },
       {
@@ -45,7 +64,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Xulq-atvor Naqshlari',
+        text: 'Behavioral Patterns',
         collapsed: false,
         items: [
           { text: 'Chain of Responsibility', link: '/uz/behavioral/chain-of-responsibility' },
@@ -63,7 +82,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Yaratuvchi Naqshlar',
+        text: 'Creational Patterns',
         collapsed: false,
         items: [
           { text: 'Singleton', link: '/uz/creational/singleton' },
@@ -75,7 +94,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Tuzilmali Naqshlar',
+        text: 'Structural Patterns',
         collapsed: false,
         items: [
           { text: 'Adapter', link: '/uz/structural/adapter' },

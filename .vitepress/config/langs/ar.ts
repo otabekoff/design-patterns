@@ -5,6 +5,26 @@ export const ar = {
   lang: 'ar',
   link: '/ar/',
   dir: 'rtl',
+  search: {
+    translations: {
+      button: { buttonText: 'بحث', buttonAriaLabel: 'بحث' },
+      modal: {
+        displayDetails: 'عرض قائمة مفصلة',
+        resetButtonTitle: 'إعادة ضبط البحث',
+        backButtonTitle: 'إغلاق البحث',
+        noResultsText: 'لم يتم العثور على نتائج',
+        footer: {
+          selectText: 'للاختيار',
+          selectKeyAriaLabel: 'إدخال',
+          navigateText: 'للتنقل',
+          navigateUpKeyAriaLabel: 'السهم لأعلى',
+          navigateDownKeyAriaLabel: 'السهم لأسفل',
+          closeText: 'للإغلاق',
+          closeKeyAriaLabel: 'إغلاق'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',

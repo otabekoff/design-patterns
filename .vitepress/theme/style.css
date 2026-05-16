@@ -214,3 +214,53 @@
   font-size: 16px;
   margin-bottom: 32px;
 }
+
+/* --- Code Block Constraints --- */
+div[class*="language-"] pre,
+.vp-code-group .tabs-content {
+  max-height: 400px;
+  overflow: auto !important;
+}
+
+/* Ensure code group itself doesn't scroll */
+.vp-code-group {
+  overflow: visible;
+}
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+:root {
+  scrollbar-gutter: stable;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 99px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-text-3);
+}
+
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vp-c-divider) transparent;
+}

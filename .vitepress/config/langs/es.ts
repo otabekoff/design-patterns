@@ -4,6 +4,26 @@ export const es = {
   label: 'Español',
   lang: 'es',
   link: '/es/',
+  search: {
+    translations: {
+      button: { buttonText: 'Buscar', buttonAriaLabel: 'Buscar' },
+      modal: {
+        displayDetails: 'Mostrar lista detallada',
+        resetButtonTitle: 'Restablecer búsqueda',
+        backButtonTitle: 'Cerrar búsqueda',
+        noResultsText: 'No se encontraron resultados',
+        footer: {
+          selectText: 'para seleccionar',
+          selectKeyAriaLabel: 'entrada',
+          navigateText: 'para navegar',
+          navigateUpKeyAriaLabel: 'flecha arriba',
+          navigateDownKeyAriaLabel: 'flecha abajo',
+          closeText: 'para cerrar',
+          closeKeyAriaLabel: 'escape'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',

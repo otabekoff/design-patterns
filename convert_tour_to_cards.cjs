@@ -4,7 +4,7 @@ const path = require('path');
 const languages = ['.', 'uz', 'tr', 'ru', 'es', 'de', 'ar'];
 
 for (const lang of languages) {
-  const file = path.join(__dirname, lang, 'introduction.md');
+  const file = path.join(__dirname, 'src', lang, 'tour.md');
   if (!fs.existsSync(file)) {
     console.log(`Skipping ${file}`);
     continue;
@@ -17,13 +17,15 @@ for (const lang of languages) {
 
   const blocks = content.split('\n\n');
   const newBlocks = blocks.map(block => {
-    // We trim each line before testing because of potential nested formatting issues
     const lines = block.split('\n');
-    const isList = lines.every(line => /^\s*-\s+\[\*\*/.test(line));
+    
+    // Check if every line in the block is a list item (allowing leading whitespace)
+    const isList = lines.every(line => /^\s*-\s+\[/.test(line));
     
     if (isList && lines.length > 0) {
       let cardStr = '<Cards>\n';
-      const itemRegex = /^\s*-\s+\[\*\*([^*]+)\*\*\]\(([^)]+)\)[:\-]?\s*(.+)$/;
+      // Capture lines regardless of leading spaces
+      const itemRegex = /^\s*-\s+\[(?:\*\*)?([^*\]]+)(?:\*\*)?\]\(([^)]+)\)[:\-]?\s*(.+)$/;
       for (const line of lines) {
         const match = line.match(itemRegex);
         if (match) {
@@ -33,6 +35,7 @@ for (const lang of languages) {
           desc = desc.replace(/"/g, '&quot;');
           cardStr += `  <Card\n    title="${title}"\n    description="${desc}"\n    href="${href}"\n  />\n`;
         } else {
+          // If a line doesn't match the list pattern, return the original block to be safe
           return block; 
         }
       }

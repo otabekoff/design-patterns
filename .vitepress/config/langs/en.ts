@@ -3,6 +3,26 @@ export const en = {
   description: "Complete Reference Guide",
   label: 'English',
   lang: 'en',
+  search: {
+    translations: {
+      button: { buttonText: 'Search', buttonAriaLabel: 'Search' },
+      modal: {
+        displayDetails: 'Display detailed list',
+        resetButtonTitle: 'Reset search',
+        backButtonTitle: 'Close search',
+        noResultsText: 'No results found',
+        footer: {
+          selectText: 'to select',
+          selectKeyAriaLabel: 'enter',
+          navigateText: 'to navigate',
+          navigateUpKeyAriaLabel: 'up arrow',
+          navigateDownKeyAriaLabel: 'down arrow',
+          closeText: 'to close',
+          closeKeyAriaLabel: 'escape'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
@@ -11,7 +31,7 @@ export const en = {
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Quick Reference', link: '/quick-reference' },
-          { text: 'Other projects', link: 'https://github.com/otabekoff' },
+      { text: 'Other projects', link: 'https://github.com/otabekoff' },
       { text: 'Support Us', link: 'https://tirikchilik.uz/uzhandy' }
     ],
     sidebar: [

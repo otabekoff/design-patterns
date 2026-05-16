@@ -4,6 +4,26 @@ export const ru = {
   label: 'Русский',
   lang: 'ru',
   link: '/ru/',
+  search: {
+    translations: {
+      button: { buttonText: 'Поиск', buttonAriaLabel: 'Поиск' },
+      modal: {
+        displayDetails: 'Показать подробный список',
+        resetButtonTitle: 'Сбросить поиск',
+        backButtonTitle: 'Закрыть поиск',
+        noResultsText: 'Результатов не найдено',
+        footer: {
+          selectText: 'выбрать',
+          selectKeyAriaLabel: 'ввод',
+          navigateText: 'навигация',
+          navigateUpKeyAriaLabel: 'стрелка вверх',
+          navigateDownKeyAriaLabel: 'стрелка вниз',
+          closeText: 'закрыть',
+          closeKeyAriaLabel: 'escape'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',

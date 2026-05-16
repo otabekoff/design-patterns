@@ -4,10 +4,30 @@ export const tr = {
   label: 'Türkçe',
   lang: 'tr',
   link: '/tr/',
+  search: {
+    translations: {
+      button: { buttonText: 'Ara', buttonAriaLabel: 'Ara' },
+      modal: {
+        displayDetails: 'Detaylı listeyi göster',
+        resetButtonTitle: 'Aramayı sıfırla',
+        backButtonTitle: 'Aramayı kapat',
+        noResultsText: 'Sonuç bulunamadı',
+        footer: {
+          selectText: 'seçmek için',
+          selectKeyAriaLabel: 'giriş',
+          navigateText: 'gezinmek için',
+          navigateUpKeyAriaLabel: 'yukarı ok',
+          navigateDownKeyAriaLabel: 'aşağı ok',
+          closeText: 'kapatmak için',
+          closeKeyAriaLabel: 'kaçış'
+        }
+      }
+    }
+  },
   themeConfig: {
     editLink: {
       pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
-      text: 'Bu sayfayı GitHub'da düzenleyin'
+      text: "Bu sayfayı GitHub'da düzenleyin"
     },
     nav: [
       { text: 'Ana Sayfa', link: '/tr/' },

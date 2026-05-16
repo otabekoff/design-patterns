@@ -1,8 +1,9 @@
 ---
+title: Dizayn namunalari
 layout: home
 
 hero:
-  name: "Dizayn Naqshlari"
+  name: "Dizayn namunalari"
   text: "To'liq Ma'lumotnoma"
   tagline: "Dasturiy ta'minotni loyihalashdagi umumiy muammolarga qayta ishlatiladigan yechimlarni o'rganing"
   image:

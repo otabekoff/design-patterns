@@ -106,7 +106,7 @@ export default defineConfig({
 
     await addOgImage(pageData, context, {
       domain: 'https://otabekoff.github.io/design-patterns',
-      outDir: 'og',
+      outDir: '../../public/og',
       ogTemplate: '.vitepress/og-template.svg',
       maxTitleSizePerLine: 20,
     })

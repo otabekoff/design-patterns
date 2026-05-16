@@ -1,4 +1,5 @@
 ---
+title: Entwurfsmuster
 layout: home
 
 hero:

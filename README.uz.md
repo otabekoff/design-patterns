@@ -1,8 +1,8 @@
-# Dizayn naqshlari hujjatlari
+# Dizayn namunalari
 
 Languages: [English](README.md) | [Oʻzbek](README.uz.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [العربية](README.ar.md) | [Deutsch](README.de.md) | [Español](README.es.md)
 
-Dizayn naqshlari uchun zamonaviy, tez va qidiruvga qulay hujjatlar sayti. TanStack Start va Fumadocs asosida qurilgan bo‘lib, kreasion, strukturaviy, xulq-atvor va arxitektura naqshlarini o‘qishga qulay tarzda taqdim etadi.
+Dizayn namunalari uchun zamonaviy, tez va qidiruvga qulay hujjatlar sayti. TanStack Start va Fumadocs asosida qurilgan bo‘lib, kreasion, strukturaviy, xulq-atvor va arxitektura namunalarini o‘qishga qulay tarzda taqdim etadi.
 
 ## Xususiyatlar
 

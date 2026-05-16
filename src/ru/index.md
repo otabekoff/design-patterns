@@ -1,4 +1,5 @@
 ---
+title: Паттерны проектирования
 layout: home
 
 hero:

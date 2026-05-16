@@ -1,5 +1,5 @@
 export const uz = {
-  title: "Dizayn Naqshlari",
+  title: "Dizayn namunalari",
   description: "To'liq qo'llanma",
   label: 'O\'zbek',
   lang: 'uz',
@@ -73,7 +73,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Arxitektura Naqshlari',
+        text: 'Arxitektura Namunalari',
         collapsed: false,
         items: [
           { text: 'Active Record', link: '/uz/architectural/active-record' },

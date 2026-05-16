@@ -553,7 +553,7 @@ if __name__ == "__main__":
 
 ## Qachon foydalanish kerak (When to Use) ✅
 
-- **Katta yuklamali tizimlar (High-Volume Systems)**: O'qish/yozish naqshlari farq qiluvchi tizimlar
+- **Katta yuklamali tizimlar (High-Volume Systems)**: O'qish/yozish namunalari farq qiluvchi tizimlar
 - **Murakkab domenlar**: Qiyin biznes qoidalariga ega tizimlar
 - **Kengayuvchanlik muhim bo'lganda**: Mustaqil kengaytirish zarur bo'lgan hollarda
 - **Hisobotga asoslangan (Reporting-Heavy)**: Katta hajmdagi hisobotlar talab qilinganda

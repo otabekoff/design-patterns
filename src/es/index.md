@@ -1,4 +1,5 @@
 ---
+title: Patrones de Diseño
 layout: home
 
 hero:

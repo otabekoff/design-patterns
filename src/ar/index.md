@@ -1,4 +1,5 @@
 ---
+title: أنماط التصميم
 layout: home
 
 hero:

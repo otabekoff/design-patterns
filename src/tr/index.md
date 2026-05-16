@@ -1,4 +1,5 @@
 ---
+title: Tasarım Kalıpları
 layout: home
 
 hero:

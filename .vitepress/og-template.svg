@@ -74,9 +74,6 @@
     <tspan x="84" dy="100" font-size="84">{{line3}}</tspan>
   </text>
 
-  <!-- Accent underline -->
-  <rect x="84" y="308" width="300" height="3" rx="2" fill="url(#acc)" opacity="0.6" />
-
   <!-- Footer -->
   <rect x="0" y="578" width="1200" height="52" fill="rgba(0,0,0,0.25)" />
   <line x1="0" y1="578" x2="1200" y2="578" stroke="rgba(255,255,255,0.05)" stroke-width="1" />

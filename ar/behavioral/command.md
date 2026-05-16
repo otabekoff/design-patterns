@@ -4,8 +4,9 @@ description: Encapsulate requests as objects, allowing parameterization of clien
 icon: Command
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Command
+
+
 
 ## Overview
 
@@ -109,12 +110,7 @@ class TextEditor {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Command interface
     interface Command {

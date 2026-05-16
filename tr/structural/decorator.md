@@ -4,6 +4,8 @@ description: Dynamically attaches additional responsibilities to objects, provid
 icon: Wand
 ---
 
+# Decorator Pattern
+
 ## Overview
 
 The Decorator Pattern is a structural design pattern that dynamically attaches additional responsibilities to objects. It provides a flexible alternative to subclassing for extending functionality by allowing you to "decorate" objects with new behavior at runtime.
@@ -50,12 +52,7 @@ This allows unlimited combinations of features through composition instead of in
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // ========== Component Interface ==========
 interface Beverage {
@@ -288,8 +285,6 @@ button = new BorderDecorator(button);
 button = new ShadowDecorator(button);
 
 console.log(button.render());
-
-`
 ```
 
   
@@ -514,7 +509,6 @@ button = BorderDecorator(button)
 button = ShadowDecorator(button)
 
 print(button.render())
-`
 ```
 
 :::
@@ -534,7 +528,7 @@ You can combine any decorators to create a document with exactly the features yo
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Avoids Class Explosion**: Combine features through composition instead of inheritance
 
 ✅ **Dynamic Functionality**: Add or remove responsibilities at runtime

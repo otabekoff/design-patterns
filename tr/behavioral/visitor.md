@@ -4,8 +4,9 @@ description: Represent an operation to be performed on elements of a structure. 
 icon: GitBranch
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Visitor
+
+
 
 ## Overview
 
@@ -86,12 +87,7 @@ class CompileVisitor implements Visitor {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Element interface
     interface Shape {

@@ -4,8 +4,9 @@ description: Ilova mantig'ini o'zaro bog'langan uchta komponentga ajratadi
 icon: Layers
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Model-View-Controller (MVC)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -77,11 +78,6 @@ MVC patterni ilovani uchta qatlamga bo'lish orqali aniq ajratishni (clear separa
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Model - Manages application data and business logic

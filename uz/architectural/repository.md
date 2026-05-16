@@ -4,8 +4,9 @@ description: Ma'lumotlar manbaiga kirishni mavhumlashtiradi va ma'lumotlarga to'
 icon: Database
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Repository (Ombor)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -86,11 +87,6 @@ Repository ma'lumotlarga kirish uchun abstraksiya (mavhumlik) qatlamini taqdim e
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Entity

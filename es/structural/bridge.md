@@ -4,8 +4,9 @@ description: Decouples an abstraction from its implementation so the two can var
 icon: Layers
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Bridge Pattern
+
+
 
 ## Overview
 
@@ -46,12 +47,7 @@ The abstraction holds a reference to an implementation, allowing them to vary in
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // ========== Implementation Hierarchy ==========
 interface Renderer {
@@ -268,8 +264,6 @@ advancedRemote.togglePower();
 advancedRemote.changeChannel(102.3);
 advancedRemote.record();
 advancedRemote.getStatus();
-
-`
 ```
 
 
@@ -479,7 +473,6 @@ advanced_remote.toggle_power()
 advanced_remote.change_channel(102.3)
 advanced_remote.record()
 advanced_remote.get_status()
-`
 ```
 
 :::
@@ -504,7 +497,7 @@ Similarly, a multi-platform UI framework might have:
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Avoids Dimension Explosion**: Prevents N×M class explosion with multiple variations
 
 ✅ **Independent Variation**: Abstraction and implementation can change independently

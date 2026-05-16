@@ -4,8 +4,9 @@ description: Uses sharing to efficiently support large numbers of similar object
 icon: Minimize2
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Flyweight Pattern
+
+
 
 ## Overview
 
@@ -48,12 +49,7 @@ The Flyweight Pattern provides a solution by:
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // ========== Flyweight (Intrinsic State) ==========
 
@@ -320,8 +316,6 @@ particleSystem.emitExplosion(200, 200, 1000);
 
 particleSystem.render();
 particleSystem.getStatistics();
-
-`
 ```
 
 
@@ -571,7 +565,6 @@ particle_system.emit_explosion(200, 200, 1000)
 
 particle_system.render()
 particle_system.get_statistics()
-`
 ```
 
 :::
@@ -603,7 +596,7 @@ Instead of storing 100,000 complete tree objects (potentially 500+ MB), you stor
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Dramatically Reduces Memory**: Share identical intrinsic state across objects
 
 ✅ **Improves Performance**: Fewer objects to allocate, track, and garbage collect

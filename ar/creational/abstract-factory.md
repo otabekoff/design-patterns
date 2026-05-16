@@ -4,8 +4,6 @@ description: Creates families of related objects without specifying their concre
 icon: Boxes
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Abstract Factory Pattern
 

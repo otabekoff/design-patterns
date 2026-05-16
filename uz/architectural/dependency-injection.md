@@ -4,8 +4,9 @@ description: Qaramliklarni obyektlarning o'zi yaratish o'rniga, ularni obyektlar
 icon: Wrench
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Dependency Injection Pattern
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -68,11 +69,6 @@ class UserService {
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Dependencies

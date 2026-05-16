@@ -4,8 +4,6 @@ description: Defines an interface for creating objects, but lets subclasses deci
 icon: Package
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Factory Method Pattern
 

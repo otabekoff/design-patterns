@@ -4,8 +4,9 @@ description: Provide an object as a surrogate for the lack of an object. Avoid n
 icon: Circle
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Null Object
+
+
 
 ## Overview
 
@@ -101,12 +102,7 @@ class Order {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Logger interface
     interface Logger {

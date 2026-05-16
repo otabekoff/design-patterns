@@ -4,8 +4,9 @@ description: Encapsulate complex communication between objects. Promote loose co
 icon: Users
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Mediator
+
+
 
 ## Overview
 
@@ -81,12 +82,7 @@ class LoginDialogMediator implements Mediator {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Mediator interface
     interface ChatMediator {

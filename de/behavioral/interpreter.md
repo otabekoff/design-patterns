@@ -4,8 +4,9 @@ description: Define a language grammar and interpreter to evaluate sentences of 
 icon: Brackets
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Interpreter
+
+
 
 ## Overview
 
@@ -96,12 +97,7 @@ class MultiplyExpression implements Expression {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Abstract expression interface
     interface Expression {

@@ -4,8 +4,9 @@ description: Separates in-memory objects from database representation
 icon: GitGraph
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Data Mapper Pattern
+
+
 
 ## Overview
 
@@ -72,11 +73,6 @@ class UserMapper {
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Object - Pure business logic

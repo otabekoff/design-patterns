@@ -4,8 +4,9 @@ description: Provides a unified, simplified interface to a set of interfaces in 
 icon: Zap
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Facade Pattern
+
+
 
 ## Overview
 
@@ -55,12 +56,7 @@ The Facade Pattern provides a solution by:
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // ========== Subsystem Components ==========
 
@@ -396,8 +392,6 @@ framework.handleUserLogout('john_doe');
 // Access services directly for advanced configuration
 const logger = framework.getLogger();
 logger.error('Custom error message');
-
-`
 ```
 
 
@@ -663,7 +657,6 @@ framework.handle_user_logout("john_doe")
 # Access services directly for advanced configuration
 logger = framework.get_logger()
 logger.error("Custom error message")
-`
 ```
 
 :::
@@ -682,7 +675,7 @@ A simple `PlaceOrderFacade` coordinates all these services so customers just cal
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Simplified Interface**: Clients see one simple interface instead of many complex ones
 
 ✅ **Reduced Coupling**: Clients depend on the facade, not on subsystem components

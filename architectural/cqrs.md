@@ -4,8 +4,9 @@ description: Separates read and write operations into different models
 icon: Split
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Command Query Responsibility Segregation (CQRS)
+
+
 
 ## Overview
 
@@ -90,11 +91,6 @@ CQRS separates into two distinct models:
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Events

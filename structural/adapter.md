@@ -4,8 +4,7 @@ description: Converts the interface of a class into another interface clients ex
 icon: Package
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Adapter Pattern
 
 ## Overview
 
@@ -51,12 +50,7 @@ The adapter holds a reference to the adaptee and implements the target interface
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // The target interface that clients expect
 interface PaymentProcessor {
@@ -159,12 +153,8 @@ const httpAdapter = new HttpClientAdapter(legacyHttp);
 const data = await httpAdapter.get('/api/users');
 console.log('User data:', data);
 })();
-
-`
 ```
 
-
-  
 ```python [python]
 from abc import ABC, abstractmethod
 
@@ -262,7 +252,6 @@ db_adapter = OldDatabaseAdapter(old_db)
 results = db_adapter.execute_query("SELECT * FROM users WHERE status = ?", ['active'])
 print(f"Results: {json.dumps(results, indent=2)}")
 db_adapter.close()
-`
 ```
 
 :::
@@ -295,7 +284,7 @@ class WeatherAPIAdapter implements WeatherData {
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Promotes Reusability**: Use existing classes without modification
 
 ✅ **Improves Flexibility**: Change implementations without affecting clients

@@ -4,8 +4,6 @@ description: Creates new objects by cloning an existing object.
 icon: Copy
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Prototype Pattern
 

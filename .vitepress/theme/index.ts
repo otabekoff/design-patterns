@@ -4,14 +4,34 @@ import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import './style.css'
 
+import Callout from './components/Callout.vue'
+import Cards from './components/Cards.vue'
+import Card from './components/Card.vue'
+import Tabs from './components/Tabs.vue'
+import TabsList from './components/TabsList.vue'
+import TabsTrigger from './components/TabsTrigger.vue'
+import TabsContent from './components/TabsContent.vue'
+
+import HomeCategoriesHeader from './components/HomeCategoriesHeader.vue'
+import DocHeader from './components/DocHeader.vue'
+import DocFooter from './components/DocFooter.vue'
+
 export default {
   extends: DefaultTheme,
   Layout: () => {
     return h(DefaultTheme.Layout, null, {
-      // https://vitepress.dev/guide/extending-default-theme#layout-slots
+      'home-features-before': () => h(HomeCategoriesHeader),
+      'doc-before': () => h(DocHeader),
+      'doc-footer-before': () => h(DocFooter)
     })
   },
   enhanceApp({ app, router, siteData }) {
-    // ...
+    app.component('Callout', Callout)
+    app.component('Cards', Cards)
+    app.component('Card', Card)
+    app.component('Tabs', Tabs)
+    app.component('TabsList', TabsList)
+    app.component('TabsTrigger', TabsTrigger)
+    app.component('TabsContent', TabsContent)
   }
 } satisfies Theme

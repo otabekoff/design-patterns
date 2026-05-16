@@ -4,8 +4,9 @@ description: Decouples producers and consumers using a buffer/queue
 icon: Play
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Producer-Consumer Pattern
+
+
 
 ## Overview
 
@@ -57,11 +58,6 @@ Producer → [Buffer/Queue] → Consumer
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Queue implementation

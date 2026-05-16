@@ -4,8 +4,6 @@ description: A guided tour of the Design Patterns documentation features
 icon: BookOpen
 ---
 
-import { Cards, Card } from "fumadocs-ui/components/card";
-import { Callout } from "fumadocs-ui/components/callout";
 
 # 📚 Documentation Tour
 

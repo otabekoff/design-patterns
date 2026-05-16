@@ -4,8 +4,9 @@ description: O'qish va yozish operatsiyalarini turli modellarga ajratadi
 icon: Split
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Command Query Responsibility Segregation (CQRS)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -90,11 +91,6 @@ CQRS ikkita alohida modelga ajratadi:
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Events

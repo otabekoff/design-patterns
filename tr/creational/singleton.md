@@ -4,8 +4,6 @@ description: Ensures a class has only one instance and provides a global access 
 icon: CircleDot
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from 'fumadocs-ui/components/tabs';
 
 # Singleton Pattern
 

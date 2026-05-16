@@ -4,8 +4,9 @@ description: Define the skeleton of an algorithm in a base class and let subclas
 icon: BookMarked
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Template Method
+
+
 
 ## Overview
 
@@ -96,12 +97,7 @@ class CSVProcessor extends DataProcessor {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Template Method abstract class
     abstract class CoffeeRecipe {

@@ -4,8 +4,9 @@ description: Allow an object to alter its behavior when its internal state chang
 icon: Zap
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# State
+
+
 
 ## Overview
 
@@ -100,12 +101,7 @@ class PlayingState implements State {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // State interface
     interface PlayerState {

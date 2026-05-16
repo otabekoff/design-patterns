@@ -4,8 +4,9 @@ description: Passes dependencies into objects rather than having them create dep
 icon: Wrench
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Dependency Injection Pattern
+
+
 
 ## Overview
 
@@ -68,11 +69,6 @@ class UserService {
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Dependencies

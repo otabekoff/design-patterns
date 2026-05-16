@@ -4,8 +4,6 @@ description: Constructs complex objects step by step, separating construction fr
 icon: Hammer
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Builder Pattern
 

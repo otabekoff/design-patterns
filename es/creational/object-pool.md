@@ -4,8 +4,6 @@ description: Reuses a set of initialized objects rather than creating and destro
 icon: Database
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Object Pool Pattern
 

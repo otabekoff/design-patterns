@@ -4,8 +4,7 @@ description: Provides a surrogate or placeholder for another object to control a
 icon: Shield
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Proxy Pattern
 
 ## Overview
 
@@ -45,10 +44,7 @@ The Proxy Pattern provides a solution by:
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
+
 
   
 ```typescript [typescript]
@@ -335,8 +331,6 @@ console.log(`  ${img.getWidth()}x${img.getHeight()}`);
 
 console.log(`\nRendering specific image (triggers loading):`);
 images[1].render();
-
-`
 ```
 
 
@@ -592,7 +586,6 @@ for img in images:
 
 print(f"\nRendering specific image (triggers loading):")
 images[1].render()
-`
 ```
 
 :::
@@ -611,7 +604,7 @@ Example: A `DatabaseProxy` wraps a remote database connection, implementing cach
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Lazy Initialization**: Create expensive objects only when needed
 
 ✅ **Access Control**: Restrict or control how objects are accessed

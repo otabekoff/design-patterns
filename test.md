@@ -3,6 +3,8 @@ title: Components
 description: Components
 ---
 
+# Components
+
 ## Code Block
 
 ```js

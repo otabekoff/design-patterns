@@ -4,8 +4,9 @@ description: Sequentially access elements of a collection without exposing its u
 icon: BookOpen
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Iterator
+
+
 
 ## Overview
 
@@ -85,12 +86,7 @@ function processCollection<T>(collection: Collection<T>) {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Iterator interface
     interface Iterator<T> {

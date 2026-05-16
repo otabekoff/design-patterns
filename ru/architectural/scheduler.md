@@ -4,8 +4,9 @@ description: Controls thread resource access by scheduling tasks
 icon: Clock
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Scheduler Pattern
+
+
 
 ## Overview
 
@@ -60,11 +61,6 @@ Thread3 ─┘    (Fair access)
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Task to schedule

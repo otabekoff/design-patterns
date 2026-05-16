@@ -4,8 +4,9 @@ description: Stores the state of an entity as a sequence of state-changing event
 icon: Zap
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Event Sourcing
+
+
 
 ## Overview
 
@@ -70,11 +71,6 @@ Replay events to reconstruct state
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Events

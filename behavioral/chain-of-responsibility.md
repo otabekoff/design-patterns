@@ -4,8 +4,9 @@ description: Pass requests along a handler chain until one handles it. Avoid tig
 icon: Link
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Chain of Responsibility
+
+
 
 ## Overview
 
@@ -102,12 +103,7 @@ class ErrorHandler extends Handler {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Request interface
     interface Request {

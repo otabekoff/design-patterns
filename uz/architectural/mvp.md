@@ -4,8 +4,9 @@ description: Taqdimot mantig'ini test qilish mumkin bo'lgan presenterlar yordami
 icon: Users
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Model-View-Presenter (MVP)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -80,11 +81,6 @@ MVP taqdimot mantig'ini View va Modelni boshqaruvchi Presenterga ajratadi:
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Model - Contains data and business logic

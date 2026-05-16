@@ -4,8 +4,9 @@ description: Separates presentation logic from views with testable presenters
 icon: Users
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Model-View-Presenter (MVP)
+
+
 
 ## Overview
 
@@ -80,11 +81,6 @@ MVP separates presentation logic into a Presenter that orchestrates the View and
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Model - Contains data and business logic

@@ -4,8 +4,9 @@ description: Separates UI from business logic with data binding
 icon: Box
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Model-View-ViewModel (MVVM)
+
+
 
 ## Overview
 
@@ -82,11 +83,6 @@ MVVM separates concerns and enables data binding:
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Model - Contains data and business logic

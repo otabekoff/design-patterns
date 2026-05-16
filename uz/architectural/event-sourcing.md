@@ -4,8 +4,9 @@ description: Obyekt holatini holat o'zgartiruvchi voqealar (events) ketma-ketlig
 icon: Zap
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Event Sourcing
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -70,11 +71,6 @@ Holatni tiklash uchun voqealarni qayta o'ynash
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Events

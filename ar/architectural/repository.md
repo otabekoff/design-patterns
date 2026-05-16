@@ -4,8 +4,9 @@ description: Abstracts data source access and provides a data-like collection in
 icon: Database
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Repository Pattern
+
+
 
 ## Overview
 
@@ -86,11 +87,6 @@ Repository provides abstraction layer for data access:
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Entity

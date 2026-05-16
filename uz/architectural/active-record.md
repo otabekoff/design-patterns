@@ -4,8 +4,9 @@ description: Ma'lumotlar bazasi qatorini ma'lumot va xatti-harakatga ega obyekt 
 icon: Table
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Active Record Pattern
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -66,11 +67,6 @@ class User {
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Database Connection Mock

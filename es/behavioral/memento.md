@@ -4,8 +4,9 @@ description: Capture and externalize an object's internal state without violatin
 icon: History
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Memento
+
+
 
 ## Overview
 
@@ -98,12 +99,7 @@ class EditorHistory {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Memento class - stores state
     class EditorMemento {

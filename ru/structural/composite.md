@@ -4,6 +4,8 @@ description: Composes objects into tree structures to represent part-whole hiera
 icon: GitBranch
 ---
 
+# Composite Pattern
+
 ## Overview
 
 The Composite Pattern is a structural design pattern that allows you to compose objects into tree structures to represent part-whole hierarchies. It lets clients treat individual objects and compositions of objects uniformly, creating recursive tree structures.
@@ -45,12 +47,7 @@ The Composite Pattern provides a solution by:
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // ========== Component Interface ==========
 interface Component {
@@ -315,8 +312,6 @@ console.log(`Total items in projects: ${projects.getItemCount()}`);
 // Find a file
 const found = root.findByName('script.js');
 console.log(`\nFound: ${found?.getName()}`);
-
-`
 ```
 
   
@@ -576,7 +571,6 @@ print(f"Total items in projects: {projects.get_item_count()}")
 # Find a file
 found = root.find_by_name('script.js')
 print(f"\nFound: {found.get_name() if found else 'Not found'}")
-`
 ```
 
 :::
@@ -594,7 +588,7 @@ Both departments and teams can contain employees, and departments can contain bo
 
 ## Advantages
 
-::: success
+::: tip
 ✅ **Simplified Client Code**: Clients treat individual and composite objects uniformly
 
 ✅ **Natural Hierarchy Representation**: Easily represents tree structures in problem domain

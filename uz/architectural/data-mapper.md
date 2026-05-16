@@ -4,8 +4,9 @@ description: Xotiradagi obyektlarni ularning ma'lumotlar bazasidagi ifodasidan a
 icon: GitGraph
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Data Mapper Pattern
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -72,11 +73,6 @@ class UserMapper {
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Domain Object - Pure business logic

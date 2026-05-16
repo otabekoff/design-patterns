@@ -4,8 +4,9 @@ description: Define a one-to-many dependency between objects. When one object ch
 icon: Bell
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Observer
+
+
 
 ## Overview
 
@@ -97,12 +98,7 @@ class DataModel implements Subject {
 ## Implementation
 
 ::: code-group
-<TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="typescript">TypeScript</TabsTrigger>
-    <TabsTrigger value="python">Python</TabsTrigger>
-  </TabsList>
 
-  
 ```typescript [typescript]
 // Observer interface
     interface Observer {

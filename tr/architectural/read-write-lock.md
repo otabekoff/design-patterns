@@ -4,8 +4,6 @@ description: Allows concurrent reads but exclusive writes to a shared resource.
 icon: Lock
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
 
 # Read-Write Lock Pattern
 

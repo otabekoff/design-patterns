@@ -4,8 +4,9 @@ description: UI ni ma'lumotlarni bog'lash orqali biznes mantig'idan ajratadi
 icon: Box
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Model-View-ViewModel (MVVM)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -82,11 +83,6 @@ MVVM vazifalarni ajratadi va ma'lumotlarni bog'lash imkonini beradi:
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Model - Contains data and business logic

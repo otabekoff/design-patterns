@@ -4,8 +4,9 @@ description: Vazifalarni rejalashtirish orqali oqimlar (thread) resurslariga kir
 icon: Clock
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Scheduler (Rejalashtiruvchi)
+
+
 
 ## Umumiy ko'rinish (Overview)
 
@@ -60,11 +61,6 @@ Thread3 ─┘    (Adolatli kirish)
 ## Amalga oshirish (Implementation)
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Task to schedule

@@ -4,8 +4,9 @@ description: Wraps a database row in an object with data and behavior
 icon: Table
 ---
 
-import { Callout } from "fumadocs-ui/components/callout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "fumadocs-ui/components/tabs";
+# Active Record Pattern
+
+
 
 ## Overview
 
@@ -66,11 +67,6 @@ class User {
 ## Implementation
 
 ::: code-group
-<TabsList>
-<TabsTrigger value="typescript">TypeScript</TabsTrigger>
-<TabsTrigger value="python">Python</TabsTrigger>
-</TabsList>
-
 
 ```typescript [typescript]
 // Database Connection Mock

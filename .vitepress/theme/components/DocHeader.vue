@@ -15,6 +15,7 @@ const isShared = ref(false);
 const translations = {
   en: {
     copy: 'Copy Markdown',
+    copyShort: 'Copy',
     copied: 'Copied',
     copying: 'Copying...',
     open: 'Open',
@@ -22,6 +23,7 @@ const translations = {
   },
   uz: {
     copy: 'Markdown-ni nusxalash',
+    copyShort: 'Nusxalash',
     copied: 'Nusxalandi',
     copying: 'Nusxalanmoqda...',
     open: 'Ochish',
@@ -29,6 +31,7 @@ const translations = {
   },
   ru: {
     copy: 'Скопировать Markdown',
+    copyShort: 'Копировать',
     copied: 'Скопировано',
     copying: 'Копирование...',
     open: 'Открыть',
@@ -36,6 +39,7 @@ const translations = {
   },
   tr: {
     copy: 'Markdown\'ı Kopyala',
+    copyShort: 'Kopyala',
     copied: 'Kopyalandı',
     copying: 'Kopyalanıyor...',
     open: 'Aç',
@@ -43,6 +47,7 @@ const translations = {
   },
   de: {
     copy: 'Markdown kopieren',
+    copyShort: 'Kopieren',
     copied: 'Kopiert',
     copying: 'Kopieren...',
     open: 'Öffnen',
@@ -50,6 +55,7 @@ const translations = {
   },
   es: {
     copy: 'Copiar Markdown',
+    copyShort: 'Copiar',
     copied: 'Copiado',
     copying: 'Copiando...',
     open: 'Abrir',
@@ -57,6 +63,7 @@ const translations = {
   },
   ar: {
     copy: 'نسخ Markdown',
+    copyShort: 'نسخ',
     copied: 'تم النسخ',
     copying: 'جاري النسخ...',
     open: 'فتح',
@@ -174,7 +181,8 @@ const rawUrl = computed(
           <Check v-else-if="isCopied" :size="16" />
           <Copy v-else :size="16" />
         </span>
-        <span>{{ t.copy }}</span>
+        <span class="btn-text-full">{{ t.copy }}</span>
+        <span class="btn-text-short">{{ t.copyShort }}</span>
       </button>
 
       <div
@@ -390,5 +398,18 @@ const rawUrl = computed(
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   display: inline-block;
+}
+
+.btn-text-short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .btn-text-full {
+    display: none;
+  }
+  .btn-text-short {
+    display: inline;
+  }
 }
 </style>

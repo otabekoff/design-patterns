@@ -59,6 +59,7 @@ export default defineConfig({
     // Hide navbar on doc pages, but keep it on home/index pages
     if (!pageData.filePath.endsWith('index.md')) {
       pageData.frontmatter.navbar = false
+      pageData.frontmatter.aside = true
     }
 
     pageData.frontmatter.head.push(
@@ -161,7 +162,8 @@ export default defineConfig({
           'typescript': 'vscode-icons:file-type-typescript-official',
           'python': 'vscode-icons:file-type-python',
           'sh': 'vscode-icons:file-type-shell',
-          'bash': 'vscode-icons:file-type-shell'
+          'bash': 'vscode-icons:file-type-shell',
+          'java': 'logos:java'
         }
       })
     ],

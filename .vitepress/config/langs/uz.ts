@@ -81,14 +81,17 @@ export const uz = {
           { text: 'Data Mapper', link: '/uz/architectural/data-mapper' },
           { text: 'Dependency Injection', link: '/uz/architectural/dependency-injection' },
           { text: 'Event Sourcing', link: '/uz/architectural/event-sourcing' },
+          { text: 'Identity Map', link: '/uz/architectural/identity-map' },
           { text: 'MVC', link: '/uz/architectural/mvc' },
           { text: 'MVP', link: '/uz/architectural/mvp' },
+          { text: 'MVT', link: '/uz/architectural/mvt' },
           { text: 'MVVM', link: '/uz/architectural/mvvm' },
           { text: 'Producer Consumer', link: '/uz/architectural/producer-consumer' },
           { text: 'Read Write Lock', link: '/uz/architectural/read-write-lock' },
           { text: 'Repository', link: '/uz/architectural/repository' },
           { text: 'Scheduler', link: '/uz/architectural/scheduler' },
-          { text: 'Service Locator', link: '/uz/architectural/service-locator' }
+          { text: 'Service Locator', link: '/uz/architectural/service-locator' },
+          { text: 'Unit of Work', link: '/uz/architectural/unit-of-work' }
         ]
       },
       {

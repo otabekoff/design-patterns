@@ -1,114 +1,117 @@
 ---
 title: Quick Reference
-description: A quick reference guide for all design patterns.
+description: Barcha dizayn namunalari uchun tezkor ma'lumotnoma.
 icon: BookMarked
 ---
 
-# Design Patterns Quick Reference Guide
+# Dizayn Namunalari: Tezkor Ma'lumotnoma
 
-This page provides a quick reference for all 38 design patterns covered in this documentation.
+Ushbu sahifa ushbu hujjatda keltirilgan barcha 41 ta dizayn namunasi haqida qisqacha ma'lumot beradi.
 
-## Creational Patterns (6)
+## Creational Patterns (6) - Yaratuvchi Namunalar
 
-Used for object creation mechanisms.
+Ob'ektlarni yaratish mexanizmlari uchun ishlatiladi.
 
-| Pattern              | Purpose                                    | Best For                                  |
+| Namuna               | Maqsadi                                    | Eng Yaxshi Holat                          |
 | -------------------- | ------------------------------------------ | ----------------------------------------- |
-| **Singleton**        | Single instance with global access         | Loggers, configs, database connections    |
-| **Factory Method**   | Object creation without specifying classes | Different document types, payment methods |
-| **Abstract Factory** | Families of related objects                | UI themes, database families              |
-| **Builder**          | Step-by-step object construction           | Complex objects, fluent APIs              |
-| **Prototype**        | Clone existing objects                     | Document templates, configuration copies  |
-| **Object Pool**      | Reuse expensive objects                    | Database connections, thread pools        |
+| **Singleton**        | Global kirishga ega yagona nusxa           | Loggerlar, konfiguratsiyalar, DB ulanishlar |
+| **Factory Method**   | Klasslarni aniqlashtirmasdan ob'ekt yaratish | Har xil hujjat turlari, to'lov usullari   |
+| **Abstract Factory** | Bog'liq ob'ektlar oilalari                 | UI mavzulari, ma'lumotlar bazasi oilalari |
+| **Builder**          | Ob'ektni bosqichma-bosqich qurish          | Murakkab ob'ektlar, fluent APIlar         |
+| **Prototype**        | Mavjud ob'ektlarni nusxalash               | Hujjat shablonlari, konfiguratsiya nusxalari |
+| **Object Pool**      | Qimmat ob'ektlarni qayta ishlatish         | DB ulanishlari, oqimlar (thread) pullari  |
 
-## Structural Patterns (7)
+## Structural Patterns (7) - Strukturaviy Namunalar
 
-Used for object composition and relationships.
+Ob'ektlar tarkibi va munosabatlari uchun ishlatiladi.
 
-| Pattern       | Purpose                                  | Best For                             |
-| ------------- | ---------------------------------------- | ------------------------------------ |
-| **Adapter**   | Convert incompatible interfaces          | Weather APIs, payment gateways       |
-| **Bridge**    | Decouple abstraction from implementation | Graphics rendering, device drivers   |
-| **Composite** | Tree structures                          | File systems, UI components          |
-| **Decorator** | Add responsibilities dynamically         | Beverage customization, data streams |
-| **Facade**    | Simplify complex subsystems              | Home automation, framework APIs      |
-| **Flyweight** | Share objects efficiently                | Text editors, particle systems       |
-| **Proxy**     | Control access to objects                | Caching, lazy loading, security      |
+| Namuna        | Maqsadi                                   | Eng Yaxshi Holat                     |
+| ------------- | ----------------------------------------- | ------------------------------------ |
+| **Adapter**   | Mos kelmaydigan interfeyslarni o'zgartirish | Ob-havo APIlari, to'lov shlyuzlari   |
+| **Bridge**    | Abstraksiyani implementatsiyadan ajratish | Grafika renderlash, qurilma drayverlari |
+| **Composite** | Daraxtsimon tuzilmalar                    | Fayl tizimlari, UI komponentlari     |
+| **Decorator** | Mas'uliyatlarni dinamik ravishda qo'shish | Ichimliklarni sozlash, ma'lumotlar oqimi |
+| **Facade**    | Murakkab quyi tizimlarni soddalashtirish  | Uy avtomatizatsiyasi, freymvork APIlari |
+| **Flyweight** | Ob'ektlarni samarali ulashish             | Matn muharrirlari, zarra tizimlari   |
+| **Proxy**     | Ob'ektlarga kirishni nazorat qilish       | Keshlar, kechiktirilgan yuklash, xavfsizlik |
 
-## Behavioral Patterns (12)
+## Behavioral Patterns (12) - Xulq-atvor Namunalari
 
-Used for communication and responsibility between objects.
+Ob'ektlar o'rtasidagi aloqa va mas'uliyat uchun ishlatiladi.
 
-| Pattern                     | Purpose                                  | Best For                              |
-| --------------------------- | ---------------------------------------- | ------------------------------------- |
-| **Chain of Responsibility** | Pass requests along a chain              | Event handling, logging levels        |
-| **Command**                 | Encapsulate requests as objects          | Undo/redo, task queues, macros        |
-| **Interpreter**             | Language grammar and interpretation      | Expression evaluation, DSLs           |
-| **Iterator**                | Sequential access to elements            | Collections, custom sequences         |
-| **Mediator**                | Encapsulate object interaction           | Dialog boxes, chat systems            |
-| **Memento**                 | Capture and restore state                | Undo/redo, save points, checkpoints   |
-| **Observer**                | Notify multiple objects of changes       | Event systems, pub/sub, data binding  |
-| **State**                   | Change behavior with state               | Traffic lights, workflow states       |
-| **Strategy**                | Interchangeable algorithms               | Sorting, compression, authentication  |
-| **Template Method**         | Algorithm skeleton in base class         | Frameworks, data processing pipelines |
-| **Visitor**                 | Add operations without modifying objects | AST traversal, report generation      |
-| **Null Object**             | Default do-nothing behavior              | Fallback handlers, mock objects       |
+| Namuna                      | Maqsadi                                   | Eng Yaxshi Holat                      |
+| --------------------------- | ----------------------------------------- | ------------------------------------- |
+| **Chain of Responsibility** | So'rovlarni zanjir bo'ylab uzatish        | Hodisalarni boshqarish, logging darajalari |
+| **Command**                 | So'rovlarni ob'ektlar sifatida inkapsulyatsiya qilish | Orqaga qaytarish (undo/redo), vazifalar navbati |
+| **Interpreter**             | Til grammatikasi va talqini               | Ifodalarni baholash, DSLlar           |
+| **Iterator**                | Elementlarga ketma-ket kirish             | To'plamlar, maxsus ketma-ketliklar    |
+| **Mediator**                | Ob'ektlar o'rtasidagi o'zaro ta'sirni inkapsulyatsiya qilish | Muloqot oynalari, chat tizimlari      |
+| **Memento**                 | Holatni suratga olish va tiklash          | Undo/redo, saqlash nuqtalari          |
+| **Observer**                | O'zgarishlar haqida bir nechta ob'ektni xabardor qilish | Hodisa tizimlari, pub/sub, data binding |
+| **State**                   | Holatga qarab xulq-atvorni o'zgartirish   | Svetoforlar, ish jarayoni holatlari   |
+| **Strategy**                | Bir-birini almashtiruvchi algoritmlar     | Saralash, siqish, autentifikatsiya    |
+| **Template Method**         | Algoritm skeleti asosiy klassda           | Freymvorklar, ma'lumotlarni qayta ishlash |
+| **Visitor**                 | Ob'ektlarni o'zgartirmasdan operatsiyalarni qo'shish | AST traversal, hisobot yaratish       |
+| **Null Object**             | Defolt "hech narsa qilma" xulq-atvori     | Fallback handlerlar, mock ob'ektlar   |
 
-## Architectural Patterns (13)
+## Architectural Patterns (16) - Arxitektura Namunalari
 
-Higher-level patterns for system structure and concurrency.
+Tizim tuzilishi va konkurensiya uchun yuqori darajadagi namunalar.
 
-| Pattern                  | Purpose                            | Best For                               |
+| Namuna                   | Maqsadi                            | Eng Yaxshi Holat                       |
 | ------------------------ | ---------------------------------- | -------------------------------------- |
-| **MVC**                  | Separate model, view, controller   | Web applications, desktop apps         |
-| **MVP**                  | Presenter handles UI logic         | Test-heavy applications, complex UIs   |
-| **MVVM**                 | Bind UI to view model              | Data-binding frameworks, reactive apps |
-| **Repository**           | Abstract data access layer         | Database interactions, DAL             |
-| **CQRS**                 | Separate reads and writes          | Complex domains, event-driven systems  |
-| **Event Sourcing**       | Store state as events              | Audit trails, event-driven systems     |
-| **Active Record**        | Database row as object             | Simple CRUD operations                 |
-| **Data Mapper**          | Separate objects from database     | Complex object-relational mapping      |
-| **Service Locator**      | Registry for services              | Dependency management, plugin systems  |
-| **Dependency Injection** | Pass dependencies in               | Testable code, loose coupling          |
-| **Producer-Consumer**    | Decouple producers/consumers       | Message queues, data pipelines         |
-| **Scheduler**            | Control thread resource access     | Thread synchronization, concurrency    |
-| **Read-Write Lock**      | Concurrent reads, exclusive writes | Caches, lookup tables, configuration   |
+| **MVC**                  | Model, view, controller'ni ajratish | Veb-ilovalar, ish stoli ilovalari      |
+| **MVP**                  | Presenter UI mantiqini boshqaradi  | Testga yo'naltirilgan ilovalar         |
+| **MVVM**                 | UI-ni view modelga bog'lash        | Data-binding freymvorklari             |
+| **Repository**           | Ma'lumotlarga kirish qatlamini abstrakt qilish | Ma'lumotlar bazasi bilan ishlash       |
+| **CQRS**                 | O'qish va yozishni ajratish        | Murakkab domenlar, hodisaga asoslangan tizimlar |
+| **Event Sourcing**       | Holatni hodisalar sifatida saqlash | Audit jurnallari, hodisaga asoslangan tizimlar |
+| **Active Record**        | Baza qatori ob'ekt sifatida        | Oddiy CRUD operatsiyalari              |
+| **Data Mapper**          | Ob'ektlarni bazadan ajratish       | Murakkab ob'ekt-relyatsion xaritalash  |
+| **Identity Map**         | Ob'ektlar yagonaligi keshi         | Takroriy baza yuklashlarining oldini olish |
+| **Unit of Work**         | Atomar tranzaksiyalarni kuzatish   | Bir nechta DB yangilanishlarini boshqarish |
+| **MVT**                  | Model-View-Template                | Django ilovalari, tezkor veb ishlanmalar |
+| **Service Locator**      | Servislar uchun registratura       | Bog'liqliklarni boshqarish, pluginlar  |
+| **Dependency Injection** | Bog'liqliklarni tashqaridan uzatish | Testlanadigan kod, kuchsiz bog'lanish  |
+| **Producer-Consumer**    | Ishlab chiqaruvchi/iste'molchini ajratish | Xabarlar navbati, data pipelinelar     |
+| **Scheduler**            | Oqim resurslariga kirishni nazorat qilish | Oqimlarni sinxronlash, konkurensiya    |
+| **Read-Write Lock**      | Bir vaqtda o'qish, eksklyuziv yozish | Keshlar, qidiruv jadvallari            |
 
-## Decision Tree
+## Qaror Daraxti
 
-Choose a pattern based on your need:
+Ehtiyojingizga qarab namuna tanlang:
 
-### I need to create objects efficiently
+### Ob'ektlarni samarali yaratishim kerak
 
-→ **Singleton** (single instance) or **Factory Method** (multiple types) or **Builder** (complex construction)
+→ **Singleton** (yagona nusxa) yoki **Factory Method** (bir nechta tur) yoki **Builder** (murakkab qurilish)
 
-### I need to work with existing objects differently
+### Mavjud ob'ektlar bilan boshqacha ishlashim kerak
 
-→ **Adapter** (incompatible interfaces) or **Decorator** (add behavior) or **Proxy** (control access)
+→ **Adapter** (mos kelmaydigan interfeyslar) yoki **Decorator** (xulq-atvor qo'shish) or **Proxy** (kirishni nazorat qilish)
 
-### I need to organize complex structures
+### Murakkab tuzilmalarni tashkil qilishim kerak
 
-→ **Composite** (hierarchies) or **Facade** (simplify subsystems)
+→ **Composite** (iyerarxiyalar) yoki **Facade** (quyi tizimlarni soddalashtirish)
 
-### I need to handle events and notifications
+### Hodisalar va xabardor qilishni boshqarishim kerak
 
-→ **Observer** (one-to-many) or **Chain of Responsibility** (sequential handlers) or **Mediator** (centralized)
+→ **Observer** (birdan-ko'pga) yoki **Chain of Responsibility** (ketma-ket handlerlar) yoki **Mediator** (markazlashtirilgan)
 
-### I need to manage state and behavior changes
+### Holat va xulq-atvor o'zgarishlarini boshqarishim kerak
 
-→ **State** (internal state) or **Strategy** (algorithm switching) or **Template Method** (algorithm skeleton)
+→ **State** (ichki holat) yoki **Strategy** (algoritmni almashtirish) yoki **Template Method** (algoritm skeleti)
 
-### I need to handle concurrency
+### Konkurensiyani (bir vaqtda ishlashni) boshqarishim kerak
 
-→ **Producer-Consumer** (decoupled), **Scheduler** (resource control), or **Read-Write Lock** (concurrent access)
+→ **Producer-Consumer** (ajratilgan), **Scheduler** (resurs nazorati) yoki **Read-Write Lock** (bir vaqtda kirish)
 
-### I need to structure my application
+### Ilovamni strukturaviy tashkil qilishim kerak
 
-→ **MVC** (web), **MVP** (testing), **MVVM** (data binding), or **Repository** (data access)
+→ **MVC** (veb), **MVT** (Django), **MVP** (testlash), **MVVM** (data binding) yoki **Repository** (ma'lumotlarga kirish)
 
-## Pattern Relationships
+## Namuna Munosabatlari
 
-### Patterns that work together:
+### Birga ishlaydigan namunalar:
 
 - **Factory Method** + **Template Method**
 - **Abstract Factory** + **Factory Method**
@@ -117,38 +120,41 @@ Choose a pattern based on your need:
 - **Repository** + **Factory Method** + **Singleton**
 - **MVC** + **Observer** + **Strategy**
 - **Dependency Injection** + **Singleton** + **Factory Method**
+- **Unit of Work** + **Repository** + **Identity Map**
 
-## By Use Case
+## Foydalanish Holatlari Bo'yicha
 
-### High Performance / Caching
+### Yuqori Samaradorlik / Keshlashtirish
 
 - Object Pool
 - Flyweight
-- Proxy (caching variant)
+- Identity Map
+- Proxy (keshlash varianti)
 - Read-Write Lock
 
-### Testing & Maintainability
+### Testlash va Qo'llab-quvvatlash
 
 - Dependency Injection
 - Strategy
 - Template Method
-- Mock objects (Null Object)
+- Null Object
 
-### Complex Business Logic
+### Murakkab Biznes Mantig'i
 
 - State
 - Chain of Responsibility
 - Mediator
 - Visitor
 
-### Data Processing
+### Ma'lumotlarni Qayta Ishlash
 
 - Iterator
 - Composite
 - Visitor
 - Pipeline (Producer-Consumer)
+- Unit of Work
 
-### User Interface
+### Foydalanuvchi Interfeysi (UI)
 
 - Observer
 - Command
@@ -156,77 +162,6 @@ Choose a pattern based on your need:
 - State
 - MVC / MVP / MVVM
 
-### System Integration
-
-- Adapter
-- Facade
-- Bridge
-- Repository
-
-## Performance Considerations
-
-**Potentially Expensive:**
-
-- Prototype (deep cloning)
-- Composite (tree traversal)
-- Visitor (multiple traversals)
-- Read-Write Lock (lock overhead)
-
-**Generally Lightweight:**
-
-- Singleton
-- Strategy
-- Decorator
-- Proxy (unless lazy-loading)
-
-## Testing Considerations
-
-**Easy to Test:**
-
-- Strategy
-- Template Method
-- Dependency Injection
-- Factory Method
-
-**Challenging to Test:**
-
-- Singleton (tight coupling)
-- Service Locator
-- Static methods
-
-## Common Mistakes
-
-| Pattern   | Common Mistake                   | Solution                   |
-| --------- | -------------------------------- | -------------------------- |
-| Singleton | Creates tight coupling           | Use Dependency Injection   |
-| Observer  | Memory leaks from unsubscription | Always unsubscribe         |
-| Composite | Treating leaves as nodes         | Use proper type hierarchy  |
-| Decorator | Order dependency                 | Ensure composability       |
-| Factory   | Hardcoding types                 | Use reflection or registry |
-| Strategy  | Too many tiny strategies         | Combine related strategies |
-| State     | State explosion                  | Group related states       |
-
-## Starting Point Recommendations
-
-### Beginner
-
-1. Start with: **Singleton**, **Factory Method**, **Strategy**
-2. Then learn: **Observer**, **Decorator**, **Adapter**
-3. Finally: **Builder**, **Repository**, **Dependency Injection**
-
-### Intermediate
-
-1. Strengthen understanding of basic patterns
-2. Learn: **Composite**, **Visitor**, **Template Method**
-3. Explore: **MVC**, **Repository**, **Command**
-
-### Advanced
-
-1. Master: **CQRS**, **Event Sourcing**, **Producer-Consumer**
-2. Combine patterns strategically
-3. Understand: **Read-Write Lock**, **Scheduler** for concurrency
-4. Apply to real systems: **Architectural Patterns**
-
 ---
 
-Remember: Patterns are tools, not requirements. Use them when they solve a real problem, not just because they exist!
+Esda tuting: Namunalar talab emas, balki asboblardir. Ulardan faqat haqiqiy muammoni hal qilgandagina foydalaning!

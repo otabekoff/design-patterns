@@ -81,14 +81,17 @@ export const en = {
           { text: 'Data Mapper', link: '/architectural/data-mapper' },
           { text: 'Dependency Injection', link: '/architectural/dependency-injection' },
           { text: 'Event Sourcing', link: '/architectural/event-sourcing' },
+          { text: 'Identity Map', link: '/architectural/identity-map' },
           { text: 'MVC', link: '/architectural/mvc' },
           { text: 'MVP', link: '/architectural/mvp' },
+          { text: 'MVT', link: '/architectural/mvt' },
           { text: 'MVVM', link: '/architectural/mvvm' },
           { text: 'Producer Consumer', link: '/architectural/producer-consumer' },
           { text: 'Read Write Lock', link: '/architectural/read-write-lock' },
           { text: 'Repository', link: '/architectural/repository' },
           { text: 'Scheduler', link: '/architectural/scheduler' },
-          { text: 'Service Locator', link: '/architectural/service-locator' }
+          { text: 'Service Locator', link: '/architectural/service-locator' },
+          { text: 'Unit of Work', link: '/architectural/unit-of-work' }
         ]
       },
       {

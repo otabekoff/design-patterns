@@ -6,7 +6,7 @@ icon: BookMarked
 
 # Design Patterns Quick Reference Guide
 
-This page provides a quick reference for all 38 design patterns covered in this documentation.
+This page provides a quick reference for all 41 design patterns covered in this documentation.
 
 ## Creational Patterns (6)
 
@@ -54,7 +54,7 @@ Used for communication and responsibility between objects.
 | **Visitor**                 | Add operations without modifying objects | AST traversal, report generation      |
 | **Null Object**             | Default do-nothing behavior              | Fallback handlers, mock objects       |
 
-## Architectural Patterns (13)
+## Architectural Patterns (16)
 
 Higher-level patterns for system structure and concurrency.
 
@@ -68,6 +68,9 @@ Higher-level patterns for system structure and concurrency.
 | **Event Sourcing**       | Store state as events              | Audit trails, event-driven systems     |
 | **Active Record**        | Database row as object             | Simple CRUD operations                 |
 | **Data Mapper**          | Separate objects from database     | Complex object-relational mapping      |
+| **Identity Map**         | Object uniqueness cache            | Preventing redundant DB loads          |
+| **Unit of Work**         | Atomic transaction tracking        | Managing multiple DB updates           |
+| **MVT**                  | Model-View-Template                | Django applications, rapid web dev     |
 | **Service Locator**      | Registry for services              | Dependency management, plugin systems  |
 | **Dependency Injection** | Pass dependencies in               | Testable code, loose coupling          |
 | **Producer-Consumer**    | Decouple producers/consumers       | Message queues, data pipelines         |
@@ -104,7 +107,7 @@ Choose a pattern based on your need:
 
 ### I need to structure my application
 
-→ **MVC** (web), **MVP** (testing), **MVVM** (data binding), or **Repository** (data access)
+→ **MVC** (web), **MVT** (Django), **MVP** (testing), **MVVM** (data binding), or **Repository** (data access)
 
 ## Pattern Relationships
 
@@ -117,6 +120,7 @@ Choose a pattern based on your need:
 - **Repository** + **Factory Method** + **Singleton**
 - **MVC** + **Observer** + **Strategy**
 - **Dependency Injection** + **Singleton** + **Factory Method**
+- **Unit of Work** + **Repository** + **Identity Map**
 
 ## By Use Case
 
@@ -124,6 +128,7 @@ Choose a pattern based on your need:
 
 - Object Pool
 - Flyweight
+- Identity Map
 - Proxy (caching variant)
 - Read-Write Lock
 
@@ -147,6 +152,7 @@ Choose a pattern based on your need:
 - Composite
 - Visitor
 - Pipeline (Producer-Consumer)
+- Unit of Work
 
 ### User Interface
 

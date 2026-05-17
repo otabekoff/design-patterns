@@ -1,6 +1,9 @@
 # What's a design pattern?
 
-![Cover](/covers/getting-started/what-is-design-pattern.png)
+<CoverImage src="/covers/getting-started/what-is-design-pattern.png" alt="Cover">
+  <h1>What is a Design Pattern?</h1>
+  <p>A wizard-hat robot sitting in a floating library, pointing a magic wand at a shelf of glowing, transparent 3D blueprints (a bridge, a castle gate, a shield) that fit perfectly over chaotic piles of jumbled toy blocks.</p>
+</CoverImage>
 
 **Design patterns** are typical solutions to commonly occurring problems in software design. They are like pre-made blueprints that you can customize to solve a recurring design problem in your code.
 

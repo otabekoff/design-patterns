@@ -6,7 +6,10 @@ icon: BookOpen
 
 # 📚 Documentation Tour
 
-![Cover](/covers/getting-started/tour.png)
+<CoverImage src="/covers/getting-started/tour.png" alt="Cover">
+  <h1>Tour</h1>
+  <p>A cheerful robot tour guide driving a tiny, sleek futuristic hover-bus filled with little curious baby robots peering out of the windows at grand, floating monuments representing Creational, Structural, and Behavioral patterns.</p>
+</CoverImage>
 
 Welcome to the comprehensive Design Patterns documentation! Let me give you a tour of what's available and how to use it effectively.
 

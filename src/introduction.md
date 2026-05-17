@@ -6,7 +6,10 @@ icon: Palette
 
 # Introduction to Design Patterns
 
-![Cover](/covers/getting-started/introduction.png)
+<CoverImage src="/covers/getting-started/introduction.png" alt="Cover">
+  <h1>Introduction</h1>
+  <p>A charming, tiny white robot holding a giant glowing "Hello World" handbook, standing excitedly at the grand stone entrance of a beautiful, shimmering maze of futuristic geometric architecture.</p>
+</CoverImage>
 
 Design patterns are proven design approaches to recurring problems in software systems. They are not copy-and-paste solutions. Instead, they are reusable ideas that help you communicate design intent, structure code clearly, and make tradeoffs explicit.
 

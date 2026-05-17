@@ -20,6 +20,7 @@ import DocFooter from './components/DocFooter.vue'
 import NotFound from './components/NotFound.vue'
 import SidebarTop from './components/SidebarTop.vue'
 import SidebarBottom from './components/SidebarBottom.vue'
+import CoverImage from './components/CoverImage.vue'
 
 const getIconSvg = () => {
   if (typeof document === 'undefined') return '';
@@ -106,5 +107,6 @@ export default {
     app.component('TabsList', TabsList)
     app.component('TabsTrigger', TabsTrigger)
     app.component('TabsContent', TabsContent)
+    app.component('CoverImage', CoverImage)
   }
 } satisfies Theme

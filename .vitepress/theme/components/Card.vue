@@ -72,7 +72,7 @@ const localizedHref = computed(() => {
 .vp-card {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-gutter);
   border-radius: 12px;
   background: var(--vp-c-bg-soft);
   transition:
@@ -98,10 +98,7 @@ const localizedHref = computed(() => {
   overflow: hidden;
   background-color: white !important;
   border-bottom: 1px solid var(--vp-c-gutter);
-}
-
-html.dark .image-wrapper {
-  background-color: black !important;
+  background-color: white;
 }
 
 .card-image {
@@ -111,10 +108,6 @@ html.dark .image-wrapper {
   transition: transform 0.3s;
   border: none !important;
   border-radius: 0 !important;
-}
-
-html.dark .card-image {
-  filter: invert(100%) hue-rotate(-48deg) !important;
 }
 
 .content-wrapper {

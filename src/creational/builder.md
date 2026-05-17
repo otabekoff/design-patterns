@@ -4,6 +4,8 @@ description: Constructs complex objects step-by-step, separating construction lo
 icon: Hammer
 ---
 
+![Builder Concept](/images/patterns/builder-mini.png)
+
 # Builder Pattern
 
 ## Overview

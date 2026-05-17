@@ -1,322 +1,501 @@
 ---
 title: Dependency Injection Pattern
-description: Passes dependencies into objects rather than having them create dependencies
+description: An architectural pattern that passes dependencies into objects rather than having the objects create their own dependencies.
 icon: Wrench
 ---
 
 # Dependency Injection Pattern
 
-
-
 ## Overview
 
-**Dependency Injection (DI)** is an architectural pattern that provides objects with their dependencies rather than having them create dependencies themselves. Dependencies are injected from outside the object.
+**Dependency Injection (DI)** is a fundamental architectural pattern where an object or function receives the objects it depends on (its dependencies) from the outside, rather than creating them internally.
 
-Key concepts:
+**Key advantage**: It completely decouples the creation of an object from the behavior of the object. This is the cornerstone of writing modular, highly testable, and maintainable code.
 
-- **Constructor Injection**: Dependencies passed via constructor
-- **Setter Injection**: Dependencies set via properties
-- **Interface Injection**: Dependencies via interfaces
-- **Container**: Manages dependency creation and injection
+**Modern perspective**: Dependency Injection is no longer just a "pattern"; it is a mandatory architectural principle in modern software engineering. It is the core concept behind "Inversion of Control" (IoC) and is heavily enforced by almost every modern enterprise framework (Spring Boot in Java, NestJS/Angular in TypeScript, ASP.NET Core in C#).
 
-## Purpose
+## The Problem
 
-Dependency Injection aims to:
+When a class instantiates its own dependencies, it becomes permanently and tightly coupled to those exact implementations.
 
-- Reduce coupling between components
-- Improve testability through mocking
-- Enable flexible component composition
-- Centralize dependency configuration
-- Support multiple implementations
-- Promote SOLID principles
-- Simplify component reuse
-
-## Problem
-
-Without DI:
-
-- Components tightly coupled
-- Hard to test (can't mock dependencies)
-- Difficult to swap implementations
-- Dependencies buried in code
-- Hard to understand component relationships
-
-```
-❌ Hard-Coded Dependencies
+```typescript
+// ❌ Bad: The service creates its own dependencies
 class UserService {
-  private logger = new ConsoleLogger();
-  private db = new Database();
+  private db: PostgresDatabase;
+  private logger: FileLogger;
 
-  // Can't use different logger or DB
-}
-```
-
-## Solution
-
-DI provides dependencies externally:
-
-```
-✅ Dependency Injection
-class UserService {
-  constructor(logger: Logger, db: Database) {
-    this.logger = logger;
-    this.db = db;
+  constructor() {
+    // Tightly coupled to specific concrete classes
+    this.db = new PostgresDatabase("localhost:5432");
+    this.logger = new FileLogger("/var/log/app.log");
   }
-  // Dependencies configurable
+
+  public createUser(name: string) {
+    this.logger.log(`Creating user ${name}`);
+    this.db.query("INSERT INTO users...");
+  }
 }
 ```
 
-## Implementation
+This creates severe architectural flaws:
+
+1. **Impossible to Unit Test**: You cannot test `UserService` without a running Postgres database and file system access.
+2. **Violation of the Single Responsibility Principle**: `UserService` is now responsible for knowing how to connect to a database and where log files are stored.
+3. **Rigid**: If you want to use a `MockDatabase` for testing or a `ConsoleLogger` in development, you have to modify the `UserService` code.
+
+## The Solution
+
+Instead of creating dependencies, the class should **ask** for them. Ideally, it should ask for _Interfaces_, not concrete classes.
+
+```typescript
+// ✅ Good: Dependencies are injected via the constructor
+class UserService {
+  // Depends on Interfaces, not concrete classes
+  constructor(
+    private db: IDatabase,
+    private logger: ILogger,
+  ) {}
+
+  public createUser(name: string) {
+    this.logger.log(`Creating user ${name}`);
+    this.db.query("INSERT INTO users...");
+  }
+}
+
+// In Production:
+const service = new UserService(new PostgresDatabase(), new FileLogger());
+
+// In Testing:
+const service = new UserService(new MockDatabase(), new ConsoleLogger());
+```
+
+## Types of Dependency Injection
+
+1. **Constructor Injection** (Recommended): Dependencies are passed through the class constructor. Ensures the object is always in a valid state when created.
+2. **Setter Injection**: Dependencies are passed via public setter methods (`service.setLogger(logger)`). Useful for optional dependencies.
+3. **Interface Injection**: The dependency provides an injector method that will inject the dependency into any client passed to it. (Rarely used).
+
+## Structure
+
+```mermaid
+classDiagram
+    class Injector {
+        +createService()
+    }
+
+    class Client {
+        -service: IService
+        +doWork()
+    }
+
+    class IService {
+        <<interface>>
+        +execute()
+    }
+
+    class ConcreteService {
+        +execute()
+    }
+
+    Injector --> Client : "injects dependency into"
+    Injector --> ConcreteService : "instantiates"
+    Client --> IService : "depends on abstraction"
+    ConcreteService ..|> IService : "implements"
+```
+
+## Flow
+
+1. **Definition**: Define an interface for the dependency (e.g., `ILogger`).
+2. **Implementation**: Create concrete classes implementing the interface (`ConsoleLogger`, `FileLogger`).
+3. **Injection Target**: Ensure the Client class accepts the interface via its constructor.
+4. **Resolution**: An external entity (the `main` function or an IoC Container) instantiates the concrete dependency and passes it into the Client.
+
+## Real-World Analogy
+
+Think of a **Surgeon in an Operating Room**.
+The Surgeon does not manufacture their own scalpels, nor do they walk to a cabinet to fetch them while operating. Doing so would break their focus and sterilization.
+
+Instead, a Scrub Nurse (the Injector) hands the exact instrument needed directly into the Surgeon's hand (Dependency Injection). The Surgeon only needs to know _how to use_ a scalpel (the Interface), not how it was made or where it was stored.
+
+## Step-by-Step Implementation
+
+1. **Extract Interfaces**: Identify the dependencies a class needs and define interfaces for them.
+2. **Modify the Constructor**: Update the target class to accept these interfaces through its constructor.
+3. **Remove `new` keywords**: Delete all instantiation of dependencies inside the target class.
+4. **Wire it together (Composition Root)**: At the very entry point of your application (e.g., `main.ts`, `Program.cs`), instantiate all dependencies and pass them into your services. Alternatively, configure a DI Container to do this automatically.
+
+## Code Examples
+
+We will build an application that requires a `Database` and a `Logger`. We will demonstrate manual dependency injection (wiring it together in the `main` method).
 
 ::: code-group
 
-```typescript [typescript]
-// Dependencies
-interface Logger {
+```typescript [TypeScript]
+// 1. Define Interfaces
+interface ILogger {
   log(message: string): void;
 }
 
-interface Database {
-  query(sql: string): any[];
+interface IDatabase {
+  save(data: string): void;
 }
 
-// Implementations
-class ConsoleLogger implements Logger {
+// 2. Concrete Implementations
+class ConsoleLogger implements ILogger {
   log(message: string): void {
-    console.log(`[LOG] ${message}`);
+    console.log(`[CONSOLE] ${message}`);
   }
 }
 
-class MockDatabase implements Database {
-  query(sql: string): any[] {
-    console.log(`[DB] ${sql}`);
-    return [];
+class PostgresDatabase implements IDatabase {
+  save(data: string): void {
+    console.log(`[POSTGRES] Saving '${data}' to database...`);
   }
 }
 
-// Service - receives dependencies
+class MockDatabase implements IDatabase {
+  save(data: string): void {
+    console.log(`[MOCK DB] Pretending to save '${data}'...`);
+  }
+}
+
+// 3. The Client (Service) - Uses Constructor Injection
 class UserService {
+  // Receives interfaces, strictly unaware of concrete implementations
   constructor(
-    private logger: Logger,
-    private db: Database,
+    private readonly db: IDatabase,
+    private readonly logger: ILogger,
   ) {}
 
-  createUser(name: string, email: string): void {
-    this.logger.log(`Creating user: ${name}`);
-    this.db.query(`INSERT INTO users VALUES ('${name}', '${email}')`);
-  }
-
-  getUsers(): void {
-    this.logger.log("Fetching users");
-    const results = this.db.query("SELECT * FROM users");
-    this.logger.log(`Found ${results.length} users`);
+  public processUser(name: string): void {
+    this.logger.log(`Processing user: ${name}`);
+    this.db.save(name);
   }
 }
 
-// Simple DI Container
-class Container {
-  private services: Map<string, any> = new Map();
+// 4. The Composition Root (Manual DI)
+function main() {
+  console.log("--- Production Configuration ---");
+  // The 'main' function is responsible for wiring dependencies
+  const prodLogger = new ConsoleLogger();
+  const prodDb = new PostgresDatabase();
+  const prodService = new UserService(prodDb, prodLogger);
 
-  register(name: string, factory: () => any): void {
-    this.services.set(name, factory);
-  }
+  prodService.processUser("Alice");
 
-  resolve<T>(name: string): T {
-    const factory = this.services.get(name);
-    if (!factory) {
-      throw new Error(`Service not registered: ${name}`);
-    }
-    return factory();
-  }
+  console.log("\n--- Testing Configuration ---");
+  // Instantly swap the database implementation without touching UserService
+  const testDb = new MockDatabase();
+  const testService = new UserService(testDb, prodLogger);
+
+  testService.processUser("Bob");
 }
 
-// Usage
-const container = new Container();
-container.register("logger", () => new ConsoleLogger());
-container.register("database", () => new MockDatabase());
-container.register("userService", () => {
-  const logger = container.resolve<Logger>("logger");
-  const db = container.resolve<Database>("database");
-  return new UserService(logger, db);
-});
-
-const userService = container.resolve<UserService>("userService");
-userService.createUser("John Doe", "john@example.com");
-userService.getUsers();
-
-console.log("\n=== Testing with Mocks ===");
-const mockLogger: Logger = {
-  log: (msg) => console.log(`[MOCK] ${msg}`),
-};
-const mockDb: Database = {
-  query: () => [{ id: 1, name: "Test" }],
-};
-
-const testService = new UserService(mockLogger, mockDb);
-testService.getUsers();
+main();
 ```
 
-
-
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
-from typing import Dict, Callable, Any, TypeVar
 
-T = TypeVar('T')
-
-# Dependencies
-class Logger(ABC):
+# 1. Define Interfaces (Abstract Base Classes)
+class ILogger(ABC):
     @abstractmethod
     def log(self, message: str) -> None:
         pass
 
-class Database(ABC):
+class IDatabase(ABC):
     @abstractmethod
-    def query(self, sql: str) -> list:
+    def save(self, data: str) -> None:
         pass
 
-# Implementations
-class ConsoleLogger(Logger):
+# 2. Concrete Implementations
+class ConsoleLogger(ILogger):
     def log(self, message: str) -> None:
-        print(f"[LOG] {message}")
+        print(f"[CONSOLE] {message}")
 
-class MockDatabase(Database):
-    def query(self, sql: str) -> list:
-        print(f"[DB] {sql}")
-        return []
+class PostgresDatabase(IDatabase):
+    def save(self, data: str) -> None:
+        print(f"[POSTGRES] Saving '{data}' to database...")
 
-# Service - receives dependencies
+class MockDatabase(IDatabase):
+    def save(self, data: str) -> None:
+        print(f"[MOCK DB] Pretending to save '{data}'...")
+
+# 3. The Client (Service) - Uses Constructor Injection
 class UserService:
-    def __init__(self, logger: Logger, database: Database):
-        self.logger = logger
-        self.db = database
+    def __init__(self, db: IDatabase, logger: ILogger):
+        self._db = db
+        self._logger = logger
 
-    def create_user(self, name: str, email: str) -> None:
-        self.logger.log(f"Creating user: {name}")
-        self.db.query(f"INSERT INTO users VALUES ('{name}', '{email}')")
+    def process_user(self, name: str) -> None:
+        self._logger.log(f"Processing user: {name}")
+        self._db.save(name)
 
-    def get_users(self) -> None:
-        self.logger.log("Fetching users")
-        results = self.db.query("SELECT * FROM users")
-        self.logger.log(f"Found {len(results)} users")
-
-# Simple DI Container
-class Container:
-    def __init__(self):
-        self.services: Dict[str, Callable] = {}
-
-    def register(self, name: str, factory: Callable) -> None:
-        self.services[name] = factory
-
-    def resolve(self, name: str) -> Any:
-        if name not in self.services:
-            raise ValueError(f"Service not registered: {name}")
-        return self.services[name]()
-
-# Usage
+# 4. The Composition Root (Manual DI)
 if __name__ == "__main__":
-    container = Container()
-    container.register("logger", lambda: ConsoleLogger())
-    container.register("database", lambda: MockDatabase())
-    container.register("userService", lambda: UserService(
-        container.resolve("logger"),
-        container.resolve("database")
-    ))
+    print("--- Production Configuration ---")
+    prod_logger = ConsoleLogger()
+    prod_db = PostgresDatabase()
+    prod_service = UserService(prod_db, prod_logger)
 
-    user_service = container.resolve("userService")
-    user_service.create_user("John Doe", "john@example.com")
-    user_service.get_users()
+    prod_service.process_user("Alice")
 
-    print("\n=== Testing with Mocks ===")
-    class MockLogger(Logger):
-        def log(self, message: str) -> None:
-            print(f"[MOCK] {message}")
+    print("\n--- Testing Configuration ---")
+    # Instantly swap the database implementation without touching UserService
+    test_db = MockDatabase()
+    test_service = UserService(test_db, prod_logger)
 
-    class TestDatabase(Database):
-        def query(self, sql: str) -> list:
-            return [{"id": 1, "name": "Test"}]
+    test_service.process_user("Bob")
+```
 
-    test_service = UserService(MockLogger(), TestDatabase())
-    test_service.get_users()
+```java [Java]
+// 1. Define Interfaces
+interface ILogger {
+    void log(String message);
+}
+
+interface IDatabase {
+    void save(String data);
+}
+
+// 2. Concrete Implementations
+class ConsoleLogger implements ILogger {
+    @Override
+    public void log(String message) {
+        System.out.println("[CONSOLE] " + message);
+    }
+}
+
+class PostgresDatabase implements IDatabase {
+    @Override
+    public void save(String data) {
+        System.out.println("[POSTGRES] Saving '" + data + "' to database...");
+    }
+}
+
+class MockDatabase implements IDatabase {
+    @Override
+    public void save(String data) {
+        System.out.println("[MOCK DB] Pretending to save '" + data + "'...");
+    }
+}
+
+// 3. The Client (Service) - Uses Constructor Injection
+class UserService {
+    private final IDatabase db;
+    private final ILogger logger;
+
+    // Receives interfaces, strictly unaware of concrete implementations
+    public UserService(IDatabase db, ILogger logger) {
+        this.db = db;
+        this.logger = logger;
+    }
+
+    public void processUser(String name) {
+        logger.log("Processing user: " + name);
+        db.save(name);
+    }
+}
+
+// 4. The Composition Root (Manual DI)
+public class DependencyInjectionDemo {
+    public static void main(String[] args) {
+        System.out.println("--- Production Configuration ---");
+        ILogger prodLogger = new ConsoleLogger();
+        IDatabase prodDb = new PostgresDatabase();
+        UserService prodService = new UserService(prodDb, prodLogger);
+
+        prodService.processUser("Alice");
+
+        System.out.println("\n--- Testing Configuration ---");
+        // Instantly swap the database implementation without touching UserService
+        IDatabase testDb = new MockDatabase();
+        UserService testService = new UserService(testDb, prodLogger);
+
+        testService.processUser("Bob");
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. Define Interfaces
+type ILogger interface {
+	Log(message string)
+}
+
+type IDatabase interface {
+	Save(data string)
+}
+
+// 2. Concrete Implementations
+type ConsoleLogger struct{}
+
+func (l *ConsoleLogger) Log(message string) {
+	fmt.Printf("[CONSOLE] %s\n", message)
+}
+
+type PostgresDatabase struct{}
+
+func (db *PostgresDatabase) Save(data string) {
+	fmt.Printf("[POSTGRES] Saving '%s' to database...\n", data)
+}
+
+type MockDatabase struct{}
+
+func (db *MockDatabase) Save(data string) {
+	fmt.Printf("[MOCK DB] Pretending to save '%s'...\n", data)
+}
+
+// 3. The Client (Service) - Uses Constructor Injection
+type UserService struct {
+	db     IDatabase
+	logger ILogger
+}
+
+func NewUserService(db IDatabase, logger ILogger) *UserService {
+	return &UserService{
+		db:     db,
+		logger: logger,
+	}
+}
+
+func (s *UserService) ProcessUser(name string) {
+	s.logger.Log(fmt.Sprintf("Processing user: %s", name))
+	s.db.Save(name)
+}
+
+// 4. The Composition Root (Manual DI)
+func main() {
+	fmt.Println("--- Production Configuration ---")
+	prodLogger := &ConsoleLogger{}
+	prodDb := &PostgresDatabase{}
+	prodService := NewUserService(prodDb, prodLogger)
+
+	prodService.ProcessUser("Alice")
+
+	fmt.Println("\n--- Testing Configuration ---")
+	// Instantly swap the database implementation without touching UserService
+	testDb := &MockDatabase{}
+	testService := NewUserService(testDb, prodLogger)
+
+	testService.ProcessUser("Bob")
+}
+```
+
+```rust [Rust]
+// 1. Define Traits (Interfaces)
+pub trait ILogger {
+    fn log(&self, message: &str);
+}
+
+pub trait IDatabase {
+    fn save(&self, data: &str);
+}
+
+// 2. Concrete Implementations
+pub struct ConsoleLogger;
+
+impl ILogger for ConsoleLogger {
+    fn log(&self, message: &str) {
+        println!("[CONSOLE] {}", message);
+    }
+}
+
+pub struct PostgresDatabase;
+
+impl IDatabase for PostgresDatabase {
+    fn save(&self, data: &str) {
+        println!("[POSTGRES] Saving '{}' to database...", data);
+    }
+}
+
+pub struct MockDatabase;
+
+impl IDatabase for MockDatabase {
+    fn save(&self, data: &str) {
+        println!("[MOCK DB] Pretending to save '{}'...", data);
+    }
+}
+
+// 3. The Client (Service) - Uses Constructor Injection
+// In Rust, we use dynamic dispatch (dyn Trait) or static dispatch (Generics).
+// Here we use dynamic dispatch for flexibility similar to OOP languages.
+pub struct UserService {
+    db: Box<dyn IDatabase>,
+    logger: Box<dyn ILogger>,
+}
+
+impl UserService {
+    pub fn new(db: Box<dyn IDatabase>, logger: Box<dyn ILogger>) -> Self {
+        Self { db, logger }
+    }
+
+    pub fn process_user(&self, name: &str) {
+        self.logger.log(&format!("Processing user: {}", name));
+        self.db.save(name);
+    }
+}
+
+// 4. The Composition Root (Manual DI)
+fn main() {
+    println!("--- Production Configuration ---");
+    let prod_logger = Box::new(ConsoleLogger);
+    let prod_db = Box::new(PostgresDatabase);
+    let prod_service = UserService::new(prod_db, prod_logger);
+
+    prod_service.process_user("Alice");
+
+    println!("\n--- Testing Configuration ---");
+    let test_logger = Box::new(ConsoleLogger);
+    let test_db = Box::new(MockDatabase);
+    let test_service = UserService::new(test_db, test_logger);
+
+    test_service.process_user("Bob");
+}
 ```
 
 :::
 
-## Real-World Examples
+## Pros and Cons
 
-### Spring Framework (Java)
+### Advantages
 
-```java
-@Component
-class UserService {
-  @Autowired
-  private Logger logger;
+- **Testability**: The absolute biggest advantage. You can inject mock databases or mock loggers instantly.
+- **Loose Coupling**: The class knows nothing about _how_ its dependencies work, only the API they expose.
+- **Flexibility**: Swapping from a local MySQL database to a cloud REST API requires changing exactly zero lines of code in your core business logic.
+- **Adherence to SOLID**: Directly enforces the Dependency Inversion Principle (D) and Single Responsibility Principle (S).
 
-  @Autowired
-  private Database db;
-}
-```
+### Disadvantages
 
-### Angular (TypeScript)
+- **Complexity in Setup**: Creating deeply nested objects requires passing dependencies all the way down the chain.
+- **Boilerplate**: Without a DI Container, the "Composition Root" (the place where you wire everything together) can become massive and tedious to maintain.
 
-```typescript
-@Injectable()
-class UserService {
-  constructor(
-    private logger: Logger,
-    private http: HttpClient,
-  ) {}
-}
-```
+## When to Use
 
-## Advantages ✅
+- **Always**: In modern application development, constructor-based Dependency Injection should be the default way you build services, repositories, and controllers.
+- **Unit Testing**: Whenever you have a class that relies on external I/O (Database, Network, File System, System Clock) and you want to test the class in isolation.
 
-- **Loose Coupling**: Components independent
-- **Testability**: Easy to mock dependencies
-- **Flexibility**: Swap implementations easily
-- **Reusability**: Components usable in different contexts
-- **Configuration**: Centralized configuration
-- **SOLID Compliant**: Follows dependency inversion
-- **Clear Dependencies**: Obvious what component needs
-- **Framework Support**: Native support in major frameworks
+## When NOT to Use
 
-## Disadvantages ❌
+- **Simple Scripts**: If you are writing a 50-line python script, creating interfaces and dependency injection is a massive waste of time.
+- **Data Transfer Objects (DTOs)**: Simple data objects (like a `User` struct) do not need dependencies injected. They just hold data.
 
-- **Complexity**: More code initially
-- **Learning Curve**: Developers need to understand DI
-- **Container Overhead**: DI container adds overhead
-- **Configuration**: Requires setup and configuration
-- **Debugging**: Harder to trace component creation
-- **Performance**: Container lookup has cost
-- **Testing Setup**: Need to configure for tests
-- **Magic**: Can feel like "magic" to beginners
+## Common Mistakes
 
-## When to Use ✅
+### 1. Partial Injection
 
-- **Enterprise Applications**: Large-scale systems
-- **Team Development**: Multiple developers
-- **Testing-Heavy**: Unit testing important
-- **Long-Term**: Flexibility matters
-- **Framework-Based**: Framework supports DI
-- **Modular Design**: Multiple independent modules
-- **Configuration-Heavy**: Many swappable components
-- **Multiple Implementations**: Need different versions
+Creating some dependencies internally, but injecting others. _Solution: If a class relies on an external service or state, it MUST be injected._
 
-## When NOT to Use ❌
+### 2. Over-Injection (Constructor Over-injection)
 
-- **Simple Scripts**: Overkill for simple code
-- **Rapid Prototyping**: Too much setup
-- **Single Developer**: YAGNI principle
-- **Performance-Critical**: Container overhead
-- **Simple Services**: Straightforward dependencies
-- **Legacy Code**: Retrofitting difficult
-- **Microservices**: Each service isolated
-- **Quick Projects**: Need speed over design
+If your constructor requires 15 different dependencies, DI is not your problem—your class violates the Single Responsibility Principle and is doing way too much. Break the class down into smaller components.
 
 ## Related Patterns
 
-- **Service Locator**: Related but different approach
-- **Factory Pattern**: For creating objects
-- **Builder Pattern**: Complex object creation
-- **Singleton Pattern**: Often used with DI
-- **Strategy Pattern**: Different implementations via DI
+- **Service Locator**: An anti-pattern alternative to DI where classes "ask" a global registry for their dependencies.
+- **IoC Container**: A framework pattern that automates Dependency Injection. You register your classes, and the container automatically instantiates the graph of dependencies for you using reflection or code generation.
+- **Factory**: Often used alongside DI to create objects that require dependencies but whose lifetimes aren't managed by the DI container.

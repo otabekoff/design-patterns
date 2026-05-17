@@ -1,453 +1,548 @@
 ---
 title: Event Sourcing
-description: Stores the state of an entity as a sequence of state-changing events
+description: Stores the state of an entity as a sequence of immutable, append-only state-changing events.
 icon: Zap
 ---
 
 # Event Sourcing
 
-
-
 ## Overview
 
-**Event Sourcing** is an architectural pattern that ensures all changes to application state are stored as an immutable sequence of events. Instead of storing only the current state, the system persists all events that caused state changes.
+**Event Sourcing** is a radical departure from traditional data storage. Instead of storing the *current state* of an entity in a database table, Event Sourcing stores **every state-changing event** that has ever occurred to that entity in an append-only log.
+
+To get the current state of an entity, you read all the events from the log and "replay" them in order.
 
 Key concepts:
+- **Events**: Immutable records of something that happened in the past (e.g., `FundsDeposited`, `AddressChanged`).
+- **Event Store**: An append-only database specifically optimized for storing sequences of events.
+- **Projections**: Read-models that listen to the Event Store and build a queryable representation of the current state (closely tied to CQRS).
+- **Snapshots**: Because replaying 10,000 events takes time, the system periodically saves a "Snapshot" of the state at a specific point in time.
 
-- **Events**: Immutable records of state changes
-- **Event Store**: Append-only database storing all events
-- **Snapshots**: Cached state at specific points
-- **Event Replay**: Rebuild state by replaying events
+## The Problem
 
-## Purpose
+Traditional CRUD databases only store the *current* state of the world. 
 
-Event Sourcing aims to:
-
-- Maintain complete audit trail of all changes
-- Enable time-travel debugging (replay to any point)
-- Improve system reliability and recovery
-- Support event-driven architectures
-- Enable CQRS pattern implementation
-- Provide basis for temporal queries
-- Support multiple views from same event stream
-
-## Problem
-
-Traditional state management suffers from:
-
-- No audit trail of how state changed
-- Difficult to debug state inconsistencies
-- No recovery mechanism for errors
-- Difficult to understand business logic flow
-- Hard to implement reporting features
-- Complex conflict resolution
-- Difficult to integrate with external systems
-
-```
-❌ Traditional State Storage
-Update: John (age: 30) → age: 31
-Update: John (age: 31) → age: 32
-Delete: Record lost forever (no history)
+```sql
+-- ❌ Traditional CRUD: Information is destroyed!
+UPDATE BankAccount SET balance = 500 WHERE id = 123;
 ```
 
-## Solution
+When you overwrite a row in a relational database, the previous data is permanently destroyed. This creates massive business problems:
+1. **No True Audit Trail**: If a bank balance suddenly drops by $10,000, you can't reliably prove *why* or *when* it happened using just the current row. (Audit tables are often hacked on later as an afterthought).
+2. **Lost Business Value**: Data analysts love historical data. Overwriting data destroys the ability to analyze user behavior over time.
+3. **Difficult Debugging**: If your system enters an invalid state, you cannot "rewind" the database to see exactly what sequence of operations caused the bug.
 
-Event Sourcing preserves all changes:
+## The Solution
 
+In Event Sourcing, the database is just a list of events. **You never UPDATE or DELETE data.** You only APPEND.
+
+```text
+✅ Event Sourcing (The Bank Account Ledger)
+1. AccountCreated (balance: $0)
+2. FundsDeposited (amount: $1000)
+3. FundsWithdrawn (amount: $200)
+4. AddressChanged (new_city: "New York")
+5. FundsWithdrawn (amount: $300)
 ```
-✅ Event Sourcing
-┌─────────────────────────────────────┐
-│        Event Store (Append-Only)    │
-├─────────────────────────────────────┤
-│ Event 1: UserCreated(John, 30)      │
-│ Event 2: UserAged(John, +1 year)    │
-│ Event 3: UserAged(John, +1 year)    │
-│ Event 4: UserRenamed(John → Johnny) │
-└─────────────────────────────────────┘
-         ▼
-Replay events to reconstruct state
+
+To know the current balance, the system loads the events and applies them: `$0 + $1000 - $200 - $300 = $500`. 
+If you want to know what the user's balance was last Tuesday, you simply replay the events up until last Tuesday.
+
+```mermaid
+flowchart TD
+    Cmd[Incoming Command\n'Withdraw $200'] --> Aggregate
+
+    subgraph Domain
+        Aggregate[Bank Account Aggregate]
+    end
+
+    Aggregate -- "1. Validate Rules" --> Aggregate
+    Aggregate -- "2. Generate Event\n'FundsWithdrawn($200)'" --> EventStore
+
+    subgraph Infrastructure
+        EventStore[(Event Store\nAppend-Only Log)]
+    end
+
+    EventStore -- "3. Replay Events to\ncalculate current state" --> Aggregate
 ```
 
-## Implementation
+## Real-World Analogy
+
+Think of your **Bank Account Statement**. 
+Your bank does not store a single sticky note with your current balance on it. They store a ledger of every single deposit, withdrawal, and fee that has ever occurred. 
+Your "current balance" is simply a projection calculated by summing all the transactions in the ledger. If you dispute a charge, the bank can look at the exact historical sequence of events. Event Sourcing applies this financial ledger concept to software architecture.
+
+## Step-by-Step Implementation
+
+1. **Define Domain Events**: Create immutable classes representing things that happened in the past (must be named in past tense).
+2. **Create the Aggregate Root**: The core entity that receives commands, validates them against its current state, and emits new events.
+3. **Implement Apply Methods**: The Aggregate must have methods to mutate its own internal state when an event is replayed.
+4. **Implement the Repository**: A class that fetches events from the Event Store, creates a blank Aggregate, and feeds the events into it to reconstruct state.
+
+## Code Examples
+
+We will implement a Bank Account aggregate. Notice how the `withdraw` command doesn't change the state directly—it just creates an event. The state only changes inside the `apply` method.
 
 ::: code-group
 
-```typescript [typescript]
-// Domain Events
-interface DomainEvent {
-  eventId: string;
-  timestamp: Date;
-  aggregateId: string;
-  eventType: string;
-  version: number;
+```typescript [TypeScript]
+// 1. Define Events (Immutable, Past Tense)
+interface DomainEvent { type: string; timestamp: Date; }
+
+class AccountCreated implements DomainEvent {
+  type = 'AccountCreated';
+  constructor(public accountId: string, public timestamp = new Date()) {}
 }
 
-interface UserCreatedEvent extends DomainEvent {
-  eventType: "UserCreated";
-  name: string;
-  email: string;
+class FundsDeposited implements DomainEvent {
+  type = 'FundsDeposited';
+  constructor(public amount: number, public timestamp = new Date()) {}
 }
 
-interface UserAgedEvent extends DomainEvent {
-  eventType: "UserAged";
-  newAge: number;
+class FundsWithdrawn implements DomainEvent {
+  type = 'FundsWithdrawn';
+  constructor(public amount: number, public timestamp = new Date()) {}
 }
 
-// Aggregate Root
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  age: number;
-  version: number;
-}
-
-// Event Store
-class EventStore {
-  private events: DomainEvent[] = [];
-
-  appendEvent(event: DomainEvent): void {
-    this.events.push(event);
-    console.log(`[Event Store] Event appended: ${event.eventType}`);
-  }
-
-  getEventsByAggregateId(aggregateId: string): DomainEvent[] {
-    return this.events.filter((e) => e.aggregateId === aggregateId);
-  }
-
-  getAllEvents(): DomainEvent[] {
-    return [...this.events];
-  }
-}
-
-// User Aggregate
-class UserAggregate {
-  private id: string;
-  private name: string = "";
-  private email: string = "";
-  private age: number = 0;
-  private version: number = 0;
+// 2. The Aggregate Root
+class BankAccount {
+  public id: string = '';
+  public balance: number = 0;
   private uncommittedEvents: DomainEvent[] = [];
 
-  constructor(id: string) {
-    this.id = id;
+  // Replay historical events to rebuild state
+  public loadFromHistory(history: DomainEvent[]) {
+    history.forEach(event => this.apply(event));
   }
 
-  createUser(name: string, email: string, age: number): void {
-    const event: UserCreatedEvent = {
-      eventId: `event-${Date.now()}`,
-      timestamp: new Date(),
-      aggregateId: this.id,
-      eventType: "UserCreated",
-      version: this.version + 1,
-      name,
-      email,
-    };
-
-    this.applyEvent(event);
-    this.uncommittedEvents.push(event);
+  // --- COMMANDS (Business Logic & Validation) ---
+  
+  public createAccount(id: string) {
+    if (this.id) throw new Error("Account already exists");
+    this.recordThat(new AccountCreated(id));
   }
 
-  ageUser(years: number): void {
-    const event: UserAgedEvent = {
-      eventId: `event-${Date.now()}`,
-      timestamp: new Date(),
-      aggregateId: this.id,
-      eventType: "UserAged",
-      version: this.version + 1,
-      newAge: this.age + years,
-    };
-
-    this.applyEvent(event);
-    this.uncommittedEvents.push(event);
+  public deposit(amount: number) {
+    if (amount <= 0) throw new Error("Deposit must be positive");
+    this.recordThat(new FundsDeposited(amount));
   }
 
-  private applyEvent(event: DomainEvent): void {
-    if (event.eventType === "UserCreated") {
-      const e = event as UserCreatedEvent;
-      this.name = e.name;
-      this.email = e.email;
-      this.age = 0;
-      this.version = e.version;
-    } else if (event.eventType === "UserAged") {
-      const e = event as UserAgedEvent;
-      this.age = e.newAge;
-      this.version = e.version;
+  public withdraw(amount: number) {
+    if (this.balance < amount) throw new Error("Insufficient funds");
+    this.recordThat(new FundsWithdrawn(amount));
+  }
+
+  // --- STATE MUTATION (Only happens via Events) ---
+
+  private recordThat(event: DomainEvent) {
+    this.uncommittedEvents.push(event); // Save to commit later
+    this.apply(event);                  // Mutate current state
+  }
+
+  private apply(event: DomainEvent) {
+    switch (event.type) {
+      case 'AccountCreated':
+        this.id = (event as AccountCreated).accountId;
+        break;
+      case 'FundsDeposited':
+        this.balance += (event as FundsDeposited).amount;
+        break;
+      case 'FundsWithdrawn':
+        this.balance -= (event as FundsWithdrawn).amount;
+        break;
     }
   }
 
-  loadFromHistory(events: DomainEvent[]): void {
-    events.forEach((event) => this.applyEvent(event));
-  }
-
-  getUncommittedEvents(): DomainEvent[] {
-    return this.uncommittedEvents;
-  }
-
-  markEventsAsCommitted(): void {
-    this.uncommittedEvents = [];
-  }
-
-  getState(): User {
-    return {
-      id: this.id,
-      name: this.name,
-      email: this.email,
-      age: this.age,
-      version: this.version,
-    };
-  }
+  public getUncommittedEvents() { return this.uncommittedEvents; }
+  public clearUncommittedEvents() { this.uncommittedEvents = []; }
 }
 
-// Repository
-class UserRepository {
-  constructor(private eventStore: EventStore) {}
+// Execution
+const account = new BankAccount();
 
-  save(aggregate: UserAggregate): void {
-    const events = aggregate.getUncommittedEvents();
-    events.forEach((event) => this.eventStore.appendEvent(event));
-    aggregate.markEventsAsCommitted();
-  }
+// Process Commands
+account.createAccount("acc_123");
+account.deposit(500);
+account.withdraw(200);
 
-  getById(id: string): UserAggregate {
-    const aggregate = new UserAggregate(id);
-    const events = this.eventStore.getEventsByAggregateId(id);
-    aggregate.loadFromHistory(events);
-    return aggregate;
-  }
-}
+console.log("Current Balance:", account.balance); // 300
 
-// Usage
-const eventStore = new EventStore();
-const repository = new UserRepository(eventStore);
-
-const user = new UserAggregate("user-1");
-user.createUser("John Doe", "john@example.com", 30);
-repository.save(user);
-
-user.ageUser(1);
-user.ageUser(1);
-repository.save(user);
-
-console.log("\n=== Current State ===");
-console.log(user.getState());
-
-console.log("\n=== Event History ===");
-const events = eventStore.getEventsByAggregateId("user-1");
-events.forEach((e) => console.log(`${e.timestamp.toISOString()}: ${e.eventType}`));
-
-console.log("\n=== Replay to Rebuild State ===");
-const replayedUser = repository.getById("user-1");
-console.log(replayedUser.getState());
+// Later, rebuilding from the database:
+const historyFromDb = account.getUncommittedEvents(); 
+const rebuiltAccount = new BankAccount();
+rebuiltAccount.loadFromHistory(historyFromDb);
+console.log("Rebuilt Balance:", rebuiltAccount.balance); // 300
 ```
 
-
-
-```python [python]
-from abc import ABC, abstractmethod
-from typing import List, Optional
-from dataclasses import dataclass, field
+```python [Python]
 from datetime import datetime
+from typing import List
 
-# Domain Events
-@dataclass
+# 1. Events
 class DomainEvent:
-    event_id: str
-    timestamp: datetime
-    aggregate_id: str
-    event_type: str
-    version: int
-
-@dataclass
-class UserCreatedEvent(DomainEvent):
-    name: str = ""
-    email: str = ""
-
-@dataclass
-class UserAgedEvent(DomainEvent):
-    new_age: int = 0
-
-# User State
-@dataclass
-class User:
-    id: str
-    name: str
-    email: str
-    age: int
-    version: int
-
-# Event Store
-class EventStore:
     def __init__(self):
-        self.events: List[DomainEvent] = []
+        self.timestamp = datetime.now()
 
-    def append_event(self, event: DomainEvent) -> None:
-        self.events.append(event)
-        print(f"[Event Store] Event appended: {event.event_type}")
+class AccountCreated(DomainEvent):
+    def __init__(self, account_id: str):
+        super().__init__()
+        self.account_id = account_id
 
-    def get_events_by_aggregate_id(self, aggregate_id: str) -> List[DomainEvent]:
-        return [e for e in self.events if e.aggregate_id == aggregate_id]
+class FundsDeposited(DomainEvent):
+    def __init__(self, amount: float):
+        super().__init__()
+        self.amount = amount
 
-    def get_all_events(self) -> List[DomainEvent]:
-        return self.events.copy()
+class FundsWithdrawn(DomainEvent):
+    def __init__(self, amount: float):
+        super().__init__()
+        self.amount = amount
 
-# User Aggregate
-class UserAggregate:
-    def __init__(self, user_id: str):
-        self.id = user_id
-        self.name = ""
-        self.email = ""
-        self.age = 0
-        self.version = 0
+# 2. Aggregate
+class BankAccount:
+    def __init__(self):
+        self.id = None
+        self.balance = 0.0
         self.uncommitted_events: List[DomainEvent] = []
 
-    def create_user(self, name: str, email: str, age: int = 0) -> None:
-        event = UserCreatedEvent(
-            event_id=f"event-{int(datetime.now().timestamp())}",
-            timestamp=datetime.now(),
-            aggregate_id=self.id,
-            event_type="UserCreated",
-            version=self.version + 1,
-            name=name,
-            email=email
-        )
-        self.apply_event(event)
+    def load_from_history(self, history: List[DomainEvent]):
+        for event in history:
+            self._apply(event)
+
+    # Commands
+    def create_account(self, account_id: str):
+        if self.id: raise ValueError("Already exists")
+        self._record_that(AccountCreated(account_id))
+
+    def deposit(self, amount: float):
+        if amount <= 0: raise ValueError("Must be positive")
+        self._record_that(FundsDeposited(amount))
+
+    def withdraw(self, amount: float):
+        if self.balance < amount: raise ValueError("Insufficient funds")
+        self._record_that(FundsWithdrawn(amount))
+
+    # Internal State Application
+    def _record_that(self, event: DomainEvent):
         self.uncommitted_events.append(event)
+        self._apply(event)
 
-    def age_user(self, years: int) -> None:
-        event = UserAgedEvent(
-            event_id=f"event-{int(datetime.now().timestamp())}",
-            timestamp=datetime.now(),
-            aggregate_id=self.id,
-            event_type="UserAged",
-            version=self.version + 1,
-            new_age=self.age + years
-        )
-        self.apply_event(event)
-        self.uncommitted_events.append(event)
+    def _apply(self, event: DomainEvent):
+        if isinstance(event, AccountCreated):
+            self.id = event.account_id
+        elif isinstance(event, FundsDeposited):
+            self.balance += event.amount
+        elif isinstance(event, FundsWithdrawn):
+            self.balance -= event.amount
 
-    def apply_event(self, event: DomainEvent) -> None:
-        if event.event_type == "UserCreated":
-            self.name = event.name
-            self.email = event.email
-            self.age = 0
-            self.version = event.version
-        elif event.event_type == "UserAged":
-            self.age = event.new_age
-            self.version = event.version
+# Execution
+account = BankAccount()
+account.create_account("acc_123")
+account.deposit(500)
+account.withdraw(200)
 
-    def load_from_history(self, events: List[DomainEvent]) -> None:
-        for event in events:
-            self.apply_event(event)
+print(f"Current Balance: {account.balance}") # 300
 
-    def get_uncommitted_events(self) -> List[DomainEvent]:
-        return self.uncommitted_events.copy()
+# Rebuilding
+history = account.uncommitted_events
+rebuilt = BankAccount()
+rebuilt.load_from_history(history)
+print(f"Rebuilt Balance: {rebuilt.balance}") # 300
+```
 
-    def mark_events_as_committed(self) -> None:
-        self.uncommitted_events = []
+```java [Java]
+import java.util.ArrayList;
+import java.util.List;
 
-    def get_state(self) -> User:
-        return User(
-            id=self.id,
-            name=self.name,
-            email=self.email,
-            age=self.age,
-            version=self.version
-        )
+// 1. Events
+abstract class DomainEvent {}
 
-# Repository
-class UserRepository:
-    def __init__(self, event_store: EventStore):
-        self.event_store = event_store
+class AccountCreated extends DomainEvent {
+    public final String accountId;
+    public AccountCreated(String id) { this.accountId = id; }
+}
 
-    def save(self, aggregate: UserAggregate) -> None:
-        events = aggregate.get_uncommitted_events()
-        for event in events:
-            self.event_store.append_event(event)
-        aggregate.mark_events_as_committed()
+class FundsDeposited extends DomainEvent {
+    public final double amount;
+    public FundsDeposited(double amount) { this.amount = amount; }
+}
 
-    def get_by_id(self, user_id: str) -> UserAggregate:
-        aggregate = UserAggregate(user_id)
-        events = self.event_store.get_events_by_aggregate_id(user_id)
-        aggregate.load_from_history(events)
-        return aggregate
+class FundsWithdrawn extends DomainEvent {
+    public final double amount;
+    public FundsWithdrawn(double amount) { this.amount = amount; }
+}
 
-# Usage
-if __name__ == "__main__":
-    event_store = EventStore()
-    repository = UserRepository(event_store)
+// 2. Aggregate
+class BankAccount {
+    private String id;
+    private double balance = 0;
+    private List<DomainEvent> uncommittedEvents = new ArrayList<>();
 
-    user = UserAggregate("user-1")
-    user.create_user("John Doe", "john@example.com", 30)
-    repository.save(user)
+    public void loadFromHistory(List<DomainEvent> history) {
+        for (DomainEvent e : history) apply(e);
+    }
 
-    user.age_user(1)
-    user.age_user(1)
-    repository.save(user)
+    // Commands
+    public void createAccount(String accountId) {
+        if (this.id != null) throw new IllegalStateException("Already exists");
+        recordThat(new AccountCreated(accountId));
+    }
 
-    print("\n=== Current State ===")
-    print(user.get_state())
+    public void deposit(double amount) {
+        if (amount <= 0) throw new IllegalArgumentException("Must be positive");
+        recordThat(new FundsDeposited(amount));
+    }
 
-    print("\n=== Event History ===")
-    events = event_store.get_events_by_aggregate_id("user-1")
-    for e in events:
-        print(f"{e.timestamp.isoformat()}: {e.event_type}")
+    public void withdraw(double amount) {
+        if (this.balance < amount) throw new IllegalStateException("Insufficient funds");
+        recordThat(new FundsWithdrawn(amount));
+    }
 
-    print("\n=== Replay to Rebuild State ===")
-    replayed_user = repository.get_by_id("user-1")
-    print(replayed_user.get_state())
+    // State Mutation
+    private void recordThat(DomainEvent event) {
+        uncommittedEvents.add(event);
+        apply(event);
+    }
+
+    private void apply(DomainEvent event) {
+        if (event instanceof AccountCreated e) {
+            this.id = e.accountId;
+        } else if (event instanceof FundsDeposited e) {
+            this.balance += e.amount;
+        } else if (event instanceof FundsWithdrawn e) {
+            this.balance -= e.amount;
+        }
+    }
+
+    public double getBalance() { return balance; }
+    public List<DomainEvent> getUncommittedEvents() { return uncommittedEvents; }
+}
+
+public class EventSourcingDemo {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount();
+        account.createAccount("acc_123");
+        account.deposit(500);
+        account.withdraw(200);
+        
+        System.out.println("Balance: " + account.getBalance());
+
+        // Rebuilding
+        List<DomainEvent> history = account.getUncommittedEvents();
+        BankAccount rebuilt = new BankAccount();
+        rebuilt.loadFromHistory(history);
+        System.out.println("Rebuilt Balance: " + rebuilt.getBalance());
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+// 1. Events
+type DomainEvent interface {
+	EventType() string
+}
+
+type AccountCreated struct { AccountId string }
+func (e AccountCreated) EventType() string { return "AccountCreated" }
+
+type FundsDeposited struct { Amount float64 }
+func (e FundsDeposited) EventType() string { return "FundsDeposited" }
+
+type FundsWithdrawn struct { Amount float64 }
+func (e FundsWithdrawn) EventType() string { return "FundsWithdrawn" }
+
+// 2. Aggregate
+type BankAccount struct {
+	ID                string
+	Balance           float64
+	uncommittedEvents []DomainEvent
+}
+
+func (a *BankAccount) LoadFromHistory(history []DomainEvent) {
+	for _, e := range history {
+		a.apply(e)
+	}
+}
+
+// Commands
+func (a *BankAccount) CreateAccount(id string) error {
+	if a.ID != "" { return errors.New("already exists") }
+	a.recordThat(AccountCreated{AccountId: id})
+	return nil
+}
+
+func (a *BankAccount) Deposit(amount float64) error {
+	if amount <= 0 { return errors.New("must be positive") }
+	a.recordThat(FundsDeposited{Amount: amount})
+	return nil
+}
+
+func (a *BankAccount) Withdraw(amount float64) error {
+	if a.Balance < amount { return errors.New("insufficient funds") }
+	a.recordThat(FundsWithdrawn{Amount: amount})
+	return nil
+}
+
+// State Mutation
+func (a *BankAccount) recordThat(event DomainEvent) {
+	a.uncommittedEvents = append(a.uncommittedEvents, event)
+	a.apply(event)
+}
+
+func (a *BankAccount) apply(event DomainEvent) {
+	switch e := event.(type) {
+	case AccountCreated:
+		a.ID = e.AccountId
+	case FundsDeposited:
+		a.Balance += e.Amount
+	case FundsWithdrawn:
+		a.Balance -= e.Amount
+	}
+}
+
+func main() {
+	account := &BankAccount{}
+	account.CreateAccount("acc_123")
+	account.Deposit(500)
+	account.Withdraw(200)
+
+	fmt.Printf("Balance: %.2f\n", account.Balance)
+
+	// Rebuilding
+	history := account.uncommittedEvents
+	rebuilt := &BankAccount{}
+	rebuilt.LoadFromHistory(history)
+	fmt.Printf("Rebuilt Balance: %.2f\n", rebuilt.Balance)
+}
+```
+
+```rust [Rust]
+// 1. Events
+#[derive(Clone, Debug)]
+enum DomainEvent {
+    AccountCreated { account_id: String },
+    FundsDeposited { amount: f64 },
+    FundsWithdrawn { amount: f64 },
+}
+
+// 2. Aggregate
+struct BankAccount {
+    id: Option<String>,
+    balance: f64,
+    uncommitted_events: Vec<DomainEvent>,
+}
+
+impl BankAccount {
+    fn new() -> Self {
+        BankAccount {
+            id: None,
+            balance: 0.0,
+            uncommitted_events: Vec::new(),
+        }
+    }
+
+    fn load_from_history(&mut self, history: &[DomainEvent]) {
+        for event in history {
+            self.apply(event);
+        }
+    }
+
+    // Commands
+    fn create_account(&mut self, account_id: String) -> Result<(), &'static str> {
+        if self.id.is_some() { return Err("Already exists"); }
+        self.record_that(DomainEvent::AccountCreated { account_id });
+        Ok(())
+    }
+
+    fn deposit(&mut self, amount: f64) -> Result<(), &'static str> {
+        if amount <= 0.0 { return Err("Must be positive"); }
+        self.record_that(DomainEvent::FundsDeposited { amount });
+        Ok(())
+    }
+
+    fn withdraw(&mut self, amount: f64) -> Result<(), &'static str> {
+        if self.balance < amount { return Err("Insufficient funds"); }
+        self.record_that(DomainEvent::FundsWithdrawn { amount });
+        Ok(())
+    }
+
+    // State Mutation
+    fn record_that(&mut self, event: DomainEvent) {
+        self.apply(&event);
+        self.uncommitted_events.push(event);
+    }
+
+    fn apply(&mut self, event: &DomainEvent) {
+        match event {
+            DomainEvent::AccountCreated { account_id } => {
+                self.id = Some(account_id.clone());
+            }
+            DomainEvent::FundsDeposited { amount } => {
+                self.balance += amount;
+            }
+            DomainEvent::FundsWithdrawn { amount } => {
+                self.balance -= amount;
+            }
+        }
+    }
+}
+
+fn main() {
+    let mut account = BankAccount::new();
+    let _ = account.create_account("acc_123".to_string());
+    let _ = account.deposit(500.0);
+    let _ = account.withdraw(200.0);
+
+    println!("Balance: {}", account.balance); // 300
+
+    // Rebuilding
+    let history = account.uncommitted_events.clone();
+    let mut rebuilt = BankAccount::new();
+    rebuilt.load_from_history(&history);
+    
+    println!("Rebuilt Balance: {}", rebuilt.balance); // 300
+}
 ```
 
 :::
 
-## Advantages ✅
+## Pros and Cons
 
-- **Complete Audit Trail**: Full history of all changes
-- **Time-Travel**: Rebuild state at any point
-- **Debugging**: Easy to understand what happened
-- **Recovery**: Replay events to recover from errors
-- **Event-Driven**: Foundation for event-driven systems
-- **Temporal Queries**: Query state at specific times
-- **Multiple Views**: Different projections from same events
-- **Compliance**: Perfect for regulatory requirements
+### Advantages
+- **Perfect Audit Trail**: Guaranteed, 100% accurate history of every change that ever happened in the system. It is cryptographically verifiable.
+- **Time-Travel Debugging**: If a bug corrupts a user's state, you can delete the corrupted projection, fix the code in the `apply` method, and replay the event stream from the beginning to instantly fix their data.
+- **Business Value**: You can retroactively generate new insights. If marketing asks "How many users deposited money and withdrew it on the same day last year?", you can write a script to replay the historical events to find out, even if you never tracked that specific metric before.
 
-## Disadvantages ❌
+### Disadvantages
+- **Incredibly Difficult**: Event Sourcing fundamentally changes how you think about databases, validation, and consistency. It has an immense learning curve.
+- **Event Evolution**: If you change the shape of an event (e.g., adding a new required field), you still have to be able to deserialize the millions of old events that were saved in the old format. "Event Upcasting" is notoriously difficult.
+- **Performance Constraints on Reads**: Replaying 100,000 events just to get a user's name is too slow. You *must* implement CQRS to project these events into a standard queryable database, drastically increasing system complexity.
 
-- **Complexity**: More complex codebase
-- **Storage**: Events require significant storage
-- **Learning Curve**: Different paradigm for developers
-- **Query Performance**: Complex queries harder to optimize
-- **Eventual Consistency**: Projections eventually consistent
-- **Event Versioning**: Managing evolving event schemas
-- **Snapshot Management**: Complex for large event streams
-- **Debugging**: Larger search space for root causes
+## When to Use
 
-## When to Use ✅
+- **Financial and Healthcare Systems**: Where an immutable audit trail is legally required and must never be altered.
+- **High-Value Enterprise Domains**: Core domains where the *history of changes* is just as important as the *current state* (e.g., Shopping Cart abandonment analysis, Order tracking).
+- **Collaborative Systems**: Where multiple users edit the same entity simultaneously (e.g., Google Docs uses a form of Event Sourcing called Operational Transformation).
 
-- **Audit Requirements**: Need complete change history
-- **Complex Domains**: Intricate business logic
-- **Temporal Queries**: Need historical state
-- **Event-Driven Systems**: Already event-based
-- **Compliance**: Regulatory requirements
-- **CQRS**: Using CQRS pattern
-- **Debugging**: Need to understand what happened
-- **Multiple Projections**: Need different views
+## When NOT to Use
 
-## When NOT to Use ❌
+- **Standard Web Apps**: Blogs, content management systems, or simple internal admin panels. If your app is basically a UI over a SQL table, Event Sourcing will destroy your productivity.
+- **Low-Skill Teams**: If your team struggles with standard MVC/DDD architectures, adopting Event Sourcing will cause the project to fail.
 
-- **Simple CRUD**: Over-engineering simple apps
-- **Real-Time**: Strict latency requirements
-- **Performance-Critical**: Where overhead matters
-- **Storage Limited**: Limited disk space
-- **Learning Curve**: Team not familiar with pattern
-- **Simple State**: Straightforward requirements
-- **Rapid Prototyping**: Quick throwaway code
-- **Legacy Systems**: Complex to retrofit
+## Common Mistakes
+
+- **Putting Side Effects in the `apply` Method**: `apply` methods run every time an event is replayed. If your `apply` method sends an email, it will send 10,000 emails every time you rebuild the aggregate from the database! *Solution: `apply` must only mutate memory. Side effects belong in Event Handlers.*
+- **Saving State in the Event**: An event should only contain the delta (what changed). Don't save the entire entity state inside the event payload.
 
 ## Related Patterns
 
-- **CQRS**: Often used together
-- **Saga Pattern**: For distributed transactions
-- **Snapshot Pattern**: For performance optimization
-- **Observer Pattern**: For event notification
-- **Memento Pattern**: For state reconstruction
+- **CQRS (Command Query Responsibility Segregation)**: Almost universally paired with Event Sourcing to provide fast read access.
+- **Snapshot Pattern**: Used to periodically save the state of an aggregate so you only have to replay the last 50 events instead of 50,000.
+- **Observer Pattern**: The underlying mechanism used to publish events from the Event Store to the Read Projections.

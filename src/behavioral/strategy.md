@@ -1,424 +1,602 @@
 ---
-title: Strategy
+title: Strategy Pattern
 description: Define a family of algorithms, encapsulate each one, and make them interchangeable. Promote algorithm flexibility.
 icon: ScrollText
 ---
 
-# Strategy
-
-
+# Strategy Pattern
 
 ## Overview
 
-The **Strategy** pattern is a behavioral design pattern that defines a family of algorithms, encapsulates each one, and makes them interchangeable. It lets the algorithm vary independently from clients that use it. This pattern promotes open/closed principle and makes code more flexible.
+The **Strategy** pattern is a behavioral design pattern that lets you define a family of algorithms, put each of them into a separate class, and make their objects interchangeable. 
 
-## Purpose
+**Key advantage**: It isolates the business logic of a class from the implementation details of algorithms that may not be that important in the context of that logic.
 
-The Strategy pattern aims to:
+**Modern perspective**: The Strategy pattern is incredibly common. In modern functional languages, Strategy is often simplified by simply passing "First-Class Functions" (callbacks/closures) instead of full classes. However, in complex enterprise architectures, encapsulating strategies into classes provides necessary structure, dependency injection capabilities, and testability.
 
-- Define a family of algorithms
-- Encapsulate each algorithm in separate classes
-- Make algorithms interchangeable
-- Allow clients to choose algorithms at runtime
-- Eliminate conditional logic for algorithm selection
-- Promote code reuse and flexibility
+## The Problem
 
-## Problem
+Imagine you are building a Navigation app. At first, it only provides routing for cars. It works great.
 
-Consider a payment processor with different payment methods:
+Then, you decide to add walking routes. The code grows.
+Then, you add public transport. The code grows more.
+Then, you add cycling routes.
 
 ```typescript
-// Without Strategy pattern - complex conditionals
-class PaymentProcessor {
-  processPayment(amount: number, method: string): void {
-    if (method === "credit_card") {
-      // Process credit card payment
-    } else if (method === "paypal") {
-      // Process PayPal payment
-    } else if (method === "bitcoin") {
-      // Process Bitcoin payment
+// ❌ Bad: Massive conditional logic
+class Navigator {
+  buildRoute(start: Point, end: Point, transportType: string) {
+    if (transportType === "car") {
+      // 500 lines of complex car routing logic
+    } else if (transportType === "walking") {
+      // 400 lines of walking logic
+    } else if (transportType === "transit") {
+      // 600 lines of transit logic
+    } else if (transportType === "cycling") {
+      // 300 lines of cycling logic
     }
   }
 }
 ```
 
-Issues with this approach:
+Every time you add a new routing algorithm, the `Navigator` class doubles in size. Merge conflicts become a daily nightmare. The `Navigator` class, which should just be responsible for rendering the map and managing the UI, becomes an unmaintainable God Object holding the logic for every mathematical routing algorithm in existence.
 
-- Adding new payment methods requires modifying the class
-- Complex nested conditionals
-- Algorithms are tightly coupled to the processor
-- Hard to test individual algorithms
-- Violates open/closed principle
+## The Solution
 
-## Solution
+The Strategy pattern suggests that you take a class that does something specific in a lot of different ways and extract all of these algorithms into separate classes called **Strategies**.
 
-The Strategy pattern encapsulates each algorithm in its own class:
+1. **Context**: The original class (`Navigator`). It must have a field for storing a reference to one of the strategies.
+2. **Strategy Interface**: A common interface that all routing algorithms must implement.
+3. **Concrete Strategies**: Independent classes that implement the specific routing logic (`CarStrategy`, `WalkStrategy`, etc.).
 
-```typescript
-// Strategy interface
-interface PaymentStrategy {
-  pay(amount: number): void;
-}
+The `Context` delegates the work to a linked strategy object instead of executing it on its own. The Context isn't responsible for selecting an appropriate algorithm—the client passes the desired strategy to the Context.
 
-// Concrete strategies
-class CreditCardStrategy implements PaymentStrategy {
-  pay(amount: number): void {
-    console.log(`Processing credit card payment: $${amount}`);
-  }
-}
+## Structure
 
-// Context
-class PaymentProcessor {
-  private strategy: PaymentStrategy;
+```mermaid
+classDiagram
+    class Context {
+        -strategy: Strategy
+        +setStrategy(strategy: Strategy)
+        +executeStrategy()
+    }
+    class Strategy {
+        <<interface>>
+        +execute(data)
+    }
+    class ConcreteStrategyA {
+        +execute(data)
+    }
+    class ConcreteStrategyB {
+        +execute(data)
+    }
+    class ConcreteStrategyC {
+        +execute(data)
+    }
 
-  setStrategy(strategy: PaymentStrategy): void {
-    this.strategy = strategy;
-  }
-
-  processPayment(amount: number): void {
-    this.strategy.pay(amount);
-  }
-}
+    Context o--> Strategy
+    Strategy <|.. ConcreteStrategyA
+    Strategy <|.. ConcreteStrategyB
+    Strategy <|.. ConcreteStrategyC
 ```
 
-## Implementation
+## Flow
+
+1. The client creates a specific **ConcreteStrategy**.
+2. The client passes this strategy to the **Context** (via constructor or setter).
+3. The client calls a business method on the **Context**.
+4. The **Context** delegates the work to `strategy.execute()`.
+
+## Real-World Analogy
+
+Think of **Traveling to the Airport**.
+You need to get to the airport (the Context). You have several strategies to get there:
+1. Drive your own car.
+2. Order a Taxi / Uber.
+3. Take the city bus.
+
+The result is the same (you arrive at the airport), but the execution, cost, and time vary wildly. Depending on your current constraints (budget vs. time), you dynamically select the strategy that fits best.
+
+## Step-by-Step Implementation
+
+1. **Identify an Algorithm Family**: Find code in your app that frequently changes depending on variants of an algorithm (e.g., sorting, payment processing, file compression, routing).
+2. **Declare the Strategy Interface**: Create an interface that makes all variants interchangeable.
+3. **Extract the Algorithms**: Move the logic into separate classes implementing the interface.
+4. **Modify the Context**: Add a field to store a reference to a strategy. Add a setter to replace the strategy dynamically.
+5. **Client Configuration**: The client code associates the Context with the desired strategy.
+
+## Code Examples
+
+We will build an **E-Commerce Checkout System**. We need to calculate discounts, but we have different discount strategies (No Discount, Percentage Discount, Fixed Amount Discount).
 
 ::: code-group
 
-```typescript [typescript]
-// Strategy interface
-    interface SortingStrategy {
-      sort(array: number[]): number[];
-      getName(): string;
-    }
+```typescript [TypeScript]
+// 1. Strategy Interface
+interface DiscountStrategy {
+  calculateDiscount(amount: number): number;
+}
 
-    // Concrete strategies
-    class BubbleSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        const result = [...array];
-        for (let i = 0; i < result.length; i++) {
-          for (let j = 0; j < result.length - i - 1; j++) {
-            if (result[j] > result[j + 1]) {
-              [result[j], result[j + 1]] = [result[j + 1], result[j]];
-            }
-          }
-        }
-        return result;
-      }
+// 2. Concrete Strategies
+class NoDiscount implements DiscountStrategy {
+  calculateDiscount(amount: number): number {
+    return 0;
+  }
+}
 
-      getName(): string {
-        return 'Bubble Sort';
-      }
-    }
+class PercentageDiscount implements DiscountStrategy {
+  constructor(private percentage: number) {} // e.g., 20 for 20%
 
-    class QuickSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        if (array.length <= 1) return array;
+  calculateDiscount(amount: number): number {
+    return amount * (this.percentage / 100);
+  }
+}
 
-        const pivot = array[Math.floor(array.length / 2)];
-        const left = array.filter(x => x < pivot);
-        const middle = array.filter(x => x === pivot);
-        const right = array.filter(x => x > pivot);
+class FixedDiscount implements DiscountStrategy {
+  constructor(private discountAmount: number) {}
 
-        return [
-          ...this.sort(left),
-          ...middle,
-          ...this.sort(right)
-        ];
-      }
+  calculateDiscount(amount: number): number {
+    return Math.min(amount, this.discountAmount); // Can't discount more than total
+  }
+}
 
-      getName(): string {
-        return 'Quick Sort';
-      }
-    }
+// 3. Context
+class ShoppingCart {
+  private items: { name: string; price: number }[] = [];
+  
+  // Context maintains a reference to a Strategy
+  constructor(private discountStrategy: DiscountStrategy = new NoDiscount()) {}
 
-    class MergeSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        if (array.length <= 1) return array;
+  // Allows swapping the strategy at runtime!
+  setDiscountStrategy(strategy: DiscountStrategy): void {
+    this.discountStrategy = strategy;
+  }
 
-        const mid = Math.floor(array.length / 2);
-        const left = this.sort(array.slice(0, mid));
-        const right = this.sort(array.slice(mid));
+  addItem(name: string, price: number): void {
+    this.items.push({ name, price });
+  }
 
-        return this.merge(left, right);
-      }
+  checkout(): void {
+    const subtotal = this.items.reduce((sum, item) => sum + item.price, 0);
+    
+    // Context delegates the complex calculation to the Strategy
+    const discount = this.discountStrategy.calculateDiscount(subtotal);
+    
+    const total = subtotal - discount;
 
-      private merge(left: number[], right: number[]): number[] {
-        const result: number[] = [];
-        let i = 0, j = 0;
+    console.log(`Subtotal: $${subtotal.toFixed(2)}`);
+    console.log(`Discount: -$${discount.toFixed(2)}`);
+    console.log(`Total:    $${total.toFixed(2)}\n`);
+  }
+}
 
-        while (i < left.length && j < right.length) {
-          if (left[i] <= right[j]) {
-            result.push(left[i++]);
-          } else {
-            result.push(right[j++]);
-          }
-        }
+// 4. Client
+const cart = new ShoppingCart();
+cart.addItem("Mechanical Keyboard", 120.00);
+cart.addItem("Mousepad", 30.00);
 
-        return [...result, ...left.slice(i), ...right.slice(j)];
-      }
+console.log("--- Normal Checkout ---");
+cart.checkout();
 
-      getName(): string {
-        return 'Merge Sort';
-      }
-    }
+console.log("--- Black Friday (20% off) ---");
+cart.setDiscountStrategy(new PercentageDiscount(20));
+cart.checkout();
 
-    // Context
-    class Sorter {
-      private strategy: SortingStrategy;
-
-      constructor(strategy: SortingStrategy) {
-        this.strategy = strategy;
-      }
-
-      setStrategy(strategy: SortingStrategy): void {
-        this.strategy = strategy;
-      }
-
-      sort(array: number[]): number[] {
-        console.log(`Sorting with ${this.strategy.getName()}`);
-        const startTime = performance.now();
-        const result = this.strategy.sort([...array]);
-        const endTime = performance.now();
-        console.log(`Time: ${(endTime - startTime).toFixed(2)}ms`);
-        return result;
-      }
-    }
-
-    // Usage
-    const data = [64, 34, 25, 12, 22, 11, 90];
-    const sorter = new Sorter(new BubbleSortStrategy());
-
-    console.log('Original:', data);
-    console.log('Sorted:', sorter.sort(data));
-
-    sorter.setStrategy(new QuickSortStrategy());
-    console.log('Sorted:', sorter.sort(data));
-
-    sorter.setStrategy(new MergeSortStrategy());
-    console.log('Sorted:', sorter.sort(data));
+console.log("--- Loyalty Voucher ($50 off) ---");
+cart.setDiscountStrategy(new FixedDiscount(50));
+cart.checkout();
 ```
 
-
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
-    from typing import List
-    import time
+from typing import List, Dict
 
-    class SortingStrategy(ABC):
-        @abstractmethod
-        def sort(self, array: List[int]) -> List[int]:
-            pass
+# 1. Strategy Interface
+class DiscountStrategy(ABC):
+    @abstractmethod
+    def calculate_discount(self, amount: float) -> float:
+        pass
 
-        @abstractmethod
-        def get_name(self) -> str:
-            pass
+# 2. Concrete Strategies
+class NoDiscount(DiscountStrategy):
+    def calculate_discount(self, amount: float) -> float:
+        return 0.0
 
-    class BubbleSortStrategy(SortingStrategy):
-        def sort(self, array: List[int]) -> List[int]:
-            result = array.copy()
-            for i in range(len(result)):
-                for j in range(len(result) - i - 1):
-                    if result[j] > result[j + 1]:
-                        result[j], result[j + 1] = result[j + 1], result[j]
-            return result
+class PercentageDiscount(DiscountStrategy):
+    def __init__(self, percentage: float):
+        self.percentage = percentage
 
-        def get_name(self) -> str:
-            return "Bubble Sort"
+    def calculate_discount(self, amount: float) -> float:
+        return amount * (self.percentage / 100)
 
-    class QuickSortStrategy(SortingStrategy):
-        def sort(self, array: List[int]) -> List[int]:
-            if len(array) <= 1:
-                return array
+class FixedDiscount(DiscountStrategy):
+    def __init__(self, discount_amount: float):
+        self.discount_amount = discount_amount
 
-            pivot = array[len(array) // 2]
-            left = [x for x in array if x < pivot]
-            middle = [x for x in array if x == pivot]
-            right = [x for x in array if x > pivot]
+    def calculate_discount(self, amount: float) -> float:
+        return min(amount, self.discount_amount)
 
-            return self.sort(left) + middle + self.sort(right)
+# 3. Context
+class ShoppingCart:
+    def __init__(self, discount_strategy: DiscountStrategy = NoDiscount()):
+        self._items: List[Dict[str, float]] = []
+        self._discount_strategy = discount_strategy
 
-        def get_name(self) -> str:
-            return "Quick Sort"
+    def set_discount_strategy(self, strategy: DiscountStrategy) -> None:
+        self._discount_strategy = strategy
 
-    class MergeSortStrategy(SortingStrategy):
-        def sort(self, array: List[int]) -> List[int]:
-            if len(array) <= 1:
-                return array
+    def add_item(self, name: str, price: float) -> None:
+        self._items.append({"name": name, "price": price})
 
-            mid = len(array) // 2
-            left = self.sort(array[:mid])
-            right = self.sort(array[mid:])
+    def checkout(self) -> None:
+        subtotal = sum(item["price"] for item in self._items)
+        discount = self._discount_strategy.calculate_discount(subtotal)
+        total = subtotal - discount
 
-            return self.merge(left, right)
+        print(f"Subtotal: ${subtotal:.2f}")
+        print(f"Discount: -${discount:.2f}")
+        print(f"Total:    ${total:.2f}\n")
 
-        def merge(self, left: List[int], right: List[int]) -> List[int]:
-            result = []
-            i = j = 0
+# 4. Client
+if __name__ == "__main__":
+    cart = ShoppingCart()
+    cart.add_item("Mechanical Keyboard", 120.00)
+    cart.add_item("Mousepad", 30.00)
 
-            while i < len(left) and j < len(right):
-                if left[i] <= right[j]:
-                    result.append(left[i])
-                    i += 1
-                else:
-                    result.append(right[j])
-                    j += 1
+    print("--- Normal Checkout ---")
+    cart.checkout()
 
-            return result + left[i:] + right[j:]
+    print("--- Black Friday (20% off) ---")
+    cart.set_discount_strategy(PercentageDiscount(20))
+    cart.checkout()
 
-        def get_name(self) -> str:
-            return "Merge Sort"
+    print("--- Loyalty Voucher ($50 off) ---")
+    cart.set_discount_strategy(FixedDiscount(50))
+    cart.checkout()
+```
 
-    class Sorter:
-        def __init__(self, strategy: SortingStrategy):
-            self.strategy = strategy
+```java [Java]
+import java.util.ArrayList;
+import java.util.List;
 
-        def set_strategy(self, strategy: SortingStrategy) -> None:
-            self.strategy = strategy
+// 1. Strategy Interface
+interface DiscountStrategy {
+    double calculateDiscount(double amount);
+}
 
-        def sort(self, array: List[int]) -> List[int]:
-            print(f"Sorting with {self.strategy.get_name()}")
-            start_time = time.time()
-            result = self.strategy.sort(array.copy())
-            end_time = time.time()
-            print(f"Time: {(end_time - start_time) * 1000:.2f}ms")
-            return result
+// 2. Concrete Strategies
+class NoDiscount implements DiscountStrategy {
+    public double calculateDiscount(double amount) {
+        return 0.0;
+    }
+}
 
-    # Usage
-    data = [64, 34, 25, 12, 22, 11, 90]
-    sorter = Sorter(BubbleSortStrategy())
+class PercentageDiscount implements DiscountStrategy {
+    private double percentage;
 
-    print("Original:", data)
-    print("Sorted:", sorter.sort(data))
+    public PercentageDiscount(double percentage) {
+        this.percentage = percentage;
+    }
 
-    sorter.set_strategy(QuickSortStrategy())
-    print("Sorted:", sorter.sort(data))
+    public double calculateDiscount(double amount) {
+        return amount * (percentage / 100.0);
+    }
+}
 
-    sorter.set_strategy(MergeSortStrategy())
-    print("Sorted:", sorter.sort(data))
+class FixedDiscount implements DiscountStrategy {
+    private double discountAmount;
+
+    public FixedDiscount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public double calculateDiscount(double amount) {
+        return Math.min(amount, discountAmount);
+    }
+}
+
+// Item helper
+class Item {
+    String name;
+    double price;
+    Item(String name, double price) { this.name = name; this.price = price; }
+}
+
+// 3. Context
+class ShoppingCart {
+    private List<Item> items = new ArrayList<>();
+    private DiscountStrategy discountStrategy;
+
+    public ShoppingCart() {
+        this.discountStrategy = new NoDiscount();
+    }
+
+    public void setDiscountStrategy(DiscountStrategy strategy) {
+        this.discountStrategy = strategy;
+    }
+
+    public void addItem(String name, double price) {
+        items.add(new Item(name, price));
+    }
+
+    public void checkout() {
+        double subtotal = items.stream().mapToDouble(i -> i.price).sum();
+        double discount = discountStrategy.calculateDiscount(subtotal);
+        double total = subtotal - discount;
+
+        System.out.printf("Subtotal: $%.2f%n", subtotal);
+        System.out.printf("Discount: -$%.2f%n", discount);
+        System.out.printf("Total:    $%.2f%n%n", total);
+    }
+}
+
+// 4. Client
+public class StrategyDemo {
+    public static void main(String[] args) {
+        ShoppingCart cart = new ShoppingCart();
+        cart.addItem("Mechanical Keyboard", 120.00);
+        cart.addItem("Mousepad", 30.00);
+
+        System.out.println("--- Normal Checkout ---");
+        cart.checkout();
+
+        System.out.println("--- Black Friday (20% off) ---");
+        cart.setDiscountStrategy(new PercentageDiscount(20));
+        cart.checkout();
+
+        System.out.println("--- Loyalty Voucher ($50 off) ---");
+        cart.setDiscountStrategy(new FixedDiscount(50));
+        cart.checkout();
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+// 1. Strategy Interface
+type DiscountStrategy interface {
+	CalculateDiscount(amount float64) float64
+}
+
+// 2. Concrete Strategies
+type NoDiscount struct{}
+
+func (s *NoDiscount) CalculateDiscount(amount float64) float64 {
+	return 0.0
+}
+
+type PercentageDiscount struct {
+	percentage float64
+}
+
+func (s *PercentageDiscount) CalculateDiscount(amount float64) float64 {
+	return amount * (s.percentage / 100.0)
+}
+
+type FixedDiscount struct {
+	discountAmount float64
+}
+
+func (s *FixedDiscount) CalculateDiscount(amount float64) float64 {
+	return math.Min(amount, s.discountAmount)
+}
+
+// 3. Context
+type Item struct {
+	name  string
+	price float64
+}
+
+type ShoppingCart struct {
+	items            []Item
+	discountStrategy DiscountStrategy
+}
+
+func NewShoppingCart() *ShoppingCart {
+	return &ShoppingCart{
+		discountStrategy: &NoDiscount{},
+	}
+}
+
+func (c *ShoppingCart) SetDiscountStrategy(strategy DiscountStrategy) {
+	c.discountStrategy = strategy
+}
+
+func (c *ShoppingCart) AddItem(name string, price float64) {
+	c.items = append(c.items, Item{name, price})
+}
+
+func (c *ShoppingCart) Checkout() {
+	var subtotal float64
+	for _, item := range c.items {
+		subtotal += item.price
+	}
+
+	discount := c.discountStrategy.CalculateDiscount(subtotal)
+	total := subtotal - discount
+
+	fmt.Printf("Subtotal: $%.2f\n", subtotal)
+	fmt.Printf("Discount: -$%.2f\n", discount)
+	fmt.Printf("Total:    $%.2f\n\n", total)
+}
+
+// 4. Client
+func main() {
+	cart := NewShoppingCart()
+	cart.AddItem("Mechanical Keyboard", 120.00)
+	cart.AddItem("Mousepad", 30.00)
+
+	fmt.Println("--- Normal Checkout ---")
+	cart.Checkout()
+
+	fmt.Println("--- Black Friday (20% off) ---")
+	cart.SetDiscountStrategy(&PercentageDiscount{percentage: 20})
+	cart.Checkout()
+
+	fmt.Println("--- Loyalty Voucher ($50 off) ---")
+	cart.SetDiscountStrategy(&FixedDiscount{discountAmount: 50})
+	cart.Checkout()
+}
+```
+
+```rust [Rust]
+// 1. Strategy Trait
+trait DiscountStrategy {
+    fn calculate_discount(&self, amount: f64) -> f64;
+}
+
+// 2. Concrete Strategies
+struct NoDiscount;
+impl DiscountStrategy for NoDiscount {
+    fn calculate_discount(&self, _amount: f64) -> f64 {
+        0.0
+    }
+}
+
+struct PercentageDiscount {
+    percentage: f64,
+}
+impl DiscountStrategy for PercentageDiscount {
+    fn calculate_discount(&self, amount: f64) -> f64 {
+        amount * (self.percentage / 100.0)
+    }
+}
+
+struct FixedDiscount {
+    discount_amount: f64,
+}
+impl DiscountStrategy for FixedDiscount {
+    fn calculate_discount(&self, amount: f64) -> f64 {
+        amount.min(self.discount_amount)
+    }
+}
+
+// 3. Context
+struct Item {
+    _name: String,
+    price: f64,
+}
+
+// We use Box<dyn Trait> for dynamic dispatch (swapping algorithms at runtime)
+struct ShoppingCart {
+    items: Vec<Item>,
+    discount_strategy: Box<dyn DiscountStrategy>,
+}
+
+impl ShoppingCart {
+    fn new() -> Self {
+        Self {
+            items: Vec::new(),
+            discount_strategy: Box::new(NoDiscount),
+        }
+    }
+
+    fn set_discount_strategy(&mut self, strategy: Box<dyn DiscountStrategy>) {
+        self.discount_strategy = strategy;
+    }
+
+    fn add_item(&mut self, name: &str, price: f64) {
+        self.items.push(Item {
+            _name: name.to_string(),
+            price,
+        });
+    }
+
+    fn checkout(&self) {
+        let subtotal: f64 = self.items.iter().map(|i| i.price).sum();
+        let discount = self.discount_strategy.calculate_discount(subtotal);
+        let total = subtotal - discount;
+
+        println!("Subtotal: ${:.2}", subtotal);
+        println!("Discount: -${:.2}", discount);
+        println!("Total:    ${:.2}\n", total);
+    }
+}
+
+// 4. Client
+fn main() {
+    let mut cart = ShoppingCart::new();
+    cart.add_item("Mechanical Keyboard", 120.00);
+    cart.add_item("Mousepad", 30.00);
+
+    println!("--- Normal Checkout ---");
+    cart.checkout();
+
+    println!("--- Black Friday (20% off) ---");
+    cart.set_discount_strategy(Box::new(PercentageDiscount { percentage: 20.0 }));
+    cart.checkout();
+
+    println!("--- Loyalty Voucher ($50 off) ---");
+    cart.set_discount_strategy(Box::new(FixedDiscount { discount_amount: 50.0 }));
+    cart.checkout();
+}
 ```
 
 :::
 
-## Real-World Example
+## Pros and Cons
 
-### Payment Processing with Multiple Strategies
+### Advantages
+- **Open/Closed Principle**: You can introduce new strategies without having to change the Context class.
+- **Isolates Algorithm Internals**: The complicated math/logic of an algorithm is hidden from the Context.
+- **Swapping Algorithms at Runtime**: The strategy can be easily changed at runtime based on user input or environmental conditions.
+- **Composition over Inheritance**: Replaces rigid inheritance hierarchies with flexible object composition.
 
-```typescript
-interface PaymentStrategy {
-  validate(): boolean;
-  pay(amount: number): boolean;
-}
-
-class CreditCardStrategy implements PaymentStrategy {
-  constructor(
-    private cardNumber: string,
-    private cvv: string,
-  ) {}
-
-  validate(): boolean {
-    return this.cardNumber.length === 16 && this.cvv.length === 3;
-  }
-
-  pay(amount: number): boolean {
-    if (!this.validate()) return false;
-    console.log(`Charging ${amount} to credit card`);
-    return true;
-  }
-}
-
-class PayPalStrategy implements PaymentStrategy {
-  constructor(private email: string) {}
-
-  validate(): boolean {
-    return this.email.includes("@");
-  }
-
-  pay(amount: number): boolean {
-    if (!this.validate()) return false;
-    console.log(`Charging ${amount} via PayPal`);
-    return true;
-  }
-}
-
-class CryptoStrategy implements PaymentStrategy {
-  constructor(private walletAddress: string) {}
-
-  validate(): boolean {
-    return this.walletAddress.length > 20;
-  }
-
-  pay(amount: number): boolean {
-    if (!this.validate()) return false;
-    console.log(`Charging ${amount} to crypto wallet`);
-    return true;
-  }
-}
-
-class Order {
-  private strategy: PaymentStrategy;
-
-  setPaymentStrategy(strategy: PaymentStrategy): void {
-    this.strategy = strategy;
-  }
-
-  checkout(amount: number): void {
-    if (this.strategy.pay(amount)) {
-      console.log("Payment successful");
-    } else {
-      console.log("Payment failed");
-    }
-  }
-}
-
-// Usage
-const order = new Order();
-order.setPaymentStrategy(new CreditCardStrategy("1234567890123456", "123"));
-order.checkout(99.99);
-```
-
-## Advantages
-
-✅ **Algorithm Flexibility** - Easy to switch algorithms at runtime
-✅ **Open/Closed Principle** - Open for extension, closed for modification
-✅ **Eliminates Conditionals** - No long if-else chains
-✅ **Reusability** - Strategies can be reused in different contexts
-✅ **Testability** - Each strategy can be tested independently
-✅ **Separation of Concerns** - Algorithm logic is separated from client
-✅ **Dynamic Selection** - Choose algorithm based on runtime conditions
-
-## Disadvantages
-
-❌ **Complexity** - Can be overkill for simple conditionals
-❌ **Number of Classes** - Creates many strategy classes
-❌ **Context Awareness** - Clients must be aware of different strategies
-❌ **Communication** - Strategies may need complex data from context
-❌ **Performance** - Extra indirection may impact performance
-❌ **Learning Curve** - Developers must understand strategy pattern
+### Disadvantages
+- **Client Must Be Aware of Strategies**: The client code must understand the differences between the strategies so that it can select the correct one.
+- **Increased Object Count**: Introduces many new classes/interfaces into the codebase. If the algorithms are simple, this is overkill.
+- **Data Passing**: The Context must either pass a lot of data to the Strategy, or pass a reference to itself. If the Context passes itself, the Strategy is suddenly tightly coupled to the Context's interface.
 
 ## When to Use
 
-- You have multiple algorithms for a task
-- You want to switch algorithms at runtime
-- You want to avoid long conditional statements
-- You want to reuse algorithms in different contexts
-- Algorithm logic changes frequently
-- You need to test algorithms independently
-- You want to follow open/closed principle
+- **Multiple Variants of an Algorithm**: Sorting (QuickSort vs. MergeSort), Routing (Walking vs. Driving), Payment (CreditCard vs. PayPal), Image Compression (PNG vs. JPEG).
+- **Massive Conditionals**: When you have a class cluttered with massive `if/else` statements solely to switch between different variations of the same behavior.
 
 ## When NOT to Use
 
-- Only one algorithm exists
-- Algorithms are simple and rarely change
-- The overhead isn't worth it for few algorithms
-- Performance is critical
-- Algorithms share significant state
-- You can use polymorphism without extra complexity
+- **Only a few, static algorithms**: If you only have two algorithms and they rarely change, putting them in the same class as separate methods or behind a simple boolean is often more readable.
+- **Functional Contexts**: In languages with First-Class Functions, using full Strategy classes is often an anti-pattern. You can just pass an anonymous function/closure.
+
+## Functional Strategy Approach
+
+In modern TypeScript/JavaScript, Python, or Go, passing a function is usually superior to creating a full Strategy class structure, unless you need Dependency Injection.
+
+```typescript
+// Modern TypeScript (Functional Strategy)
+type DiscountStrategy = (amount: number) => number;
+
+const noDiscount: DiscountStrategy = () => 0;
+const percentDiscount = (pct: number): DiscountStrategy => (amt) => amt * (pct / 100);
+
+class ShoppingCart {
+  constructor(private discountFn: DiscountStrategy = noDiscount) {}
+  
+  setDiscount(fn: DiscountStrategy) { this.discountFn = fn; }
+  
+  checkout(subtotal: number) {
+    const total = subtotal - this.discountFn(subtotal);
+  }
+}
+
+const cart = new ShoppingCart();
+cart.setDiscount(percentDiscount(20)); // Extremely clean
+```
 
 ## Related Patterns
 
-- **State** - Similar structure but state-driven behavior
-- **Template Method** - Defines algorithm skeleton, Strategy varies entire algorithm
-- **Factory** - Can be used to create strategies
-- **Decorator** - Can wrap strategies
+- **State**: The twin of Strategy. Structure is identical. Intent is different. Strategy handles completely different ways to do the *same* thing. State handles *different* behaviors entirely based on the object's life cycle.
+- **Template Method**: Strategy is based on Composition (swapping out the whole algorithm object). Template Method is based on Inheritance (overriding specific steps of a base algorithm).
+- **Command**: Strategy provides *how* an action is performed. Command encapsulates *the action itself* (what, who, when).
+
+## Interview Insights
+
+- **Question**: "What is the difference between Strategy and Template Method?"
+  - **Answer**: "Strategy relies on Composition. You extract the algorithm into a separate object and pass it to the Context. Template Method relies on Inheritance. You define an algorithm skeleton in a base class, and subclasses override specific steps. Strategy modifies the entire algorithm; Template Method modifies parts of it."
+- **Question**: "Can Strategy Pattern violate the Interface Segregation Principle?"
+  - **Answer**: "Yes, if the Strategy Interface requires data that some concrete strategies don't need. If the Context blindly passes all its state to the Strategy, you couple them tightly. It's better to pass only the specific data needed as method arguments."

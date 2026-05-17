@@ -1,477 +1,402 @@
 ---
 title: Model-View-Controller (MVC)
-description: Separates application logic into three interconnected components
+description: The grandfather of all architectural patterns that separates application logic into three interconnected components.
 icon: Layers
 ---
 
 # Model-View-Controller (MVC)
 
-
-
 ## Overview
 
-The **Model-View-Controller (MVC)** pattern is a fundamental architectural pattern that divides an application into three interconnected components:
+The **Model-View-Controller (MVC)** pattern is arguably the most famous architectural pattern in software engineering. Created in the 1970s for early graphical user interfaces (Smalltalk), it has since become the dominant architecture for backend web frameworks (Ruby on Rails, Spring Boot, ASP.NET MVC, Laravel).
 
-- **Model**: Manages the application data and business logic
-- **View**: Presents the data to the user
-- **Controller**: Handles user input and updates the model
+It divides an application into three distinct responsibilities:
+- **Model**: Manages the data, business rules, and database interactions.
+- **View**: Generates the UI (HTML/JSON) presented to the user.
+- **Controller**: Listens to user inputs (HTTP Requests), manipulates the Model, and chooses which View to render.
 
-This separation of concerns allows for better code organization, maintainability, and testability.
+**Modern perspective**: While originally designed for desktop UIs where the View and Model constantly talked to each other, modern web development uses a linear "Request/Response" MVC. The frontend (React/Vue) is now entirely separate, and backend MVCs usually just return JSON, blurring the line of the "View".
 
-## Purpose
+## The Problem
 
-The MVC pattern aims to:
+Before MVC, developers wrote "Spaghetti Code" where database queries, business logic, and HTML markup were all mixed into a single file (like early PHP or Classic ASP).
 
-- Separate business logic from presentation
-- Enable independent development of components
-- Facilitate code reusability
-- Improve application testability
-- Allow multiple views for the same model
-
-## Problem
-
-Without proper separation, applications often become monolithic with mixed concerns:
-
-- Business logic tangled with UI code
-- Difficult to test individual components
-- Hard to maintain and extend
-- Changes in one area affect unrelated parts
-- Multiple views for the same data require code duplication
-
-```
-❌ Monolithic Application
-┌─────────────────────────────────────┐
-│   Business Logic + UI + Logic Mix   │
-│   - Hard to test                    │
-│   - Difficult to maintain           │
-│   - Code duplication                │
-└─────────────────────────────────────┘
+```php
+<!-- ❌ Bad: Classic "Spaghetti" Code -->
+<?php
+  // Database connection mixed with HTML
+  $conn = new mysqli("localhost", "user", "pass", "db");
+  $result = $conn->query("SELECT * FROM users");
+?>
+<html>
+  <body>
+    <h1>User List</h1>
+    <?php while($row = $result->fetch_assoc()): ?>
+      <!-- Logic mixed with markup -->
+      <?php if($row['age'] >= 18): ?>
+        <p><?= $row['name'] ?> (Adult)</p>
+      <?php else: ?>
+        <p><?= $row['name'] ?> (Minor)</p>
+      <?php endif; ?>
+    <?php endwhile; ?>
+  </body>
+</html>
 ```
 
-## Solution
+This creates severe issues:
+1. **Unmaintainable**: Changing the database schema breaks the HTML. Changing the CSS might accidentally break the SQL query.
+2. **Untestable**: You cannot write an automated test to check the "Adult vs Minor" logic without spinning up a real database and parsing the HTML output.
+3. **Impossible Collaboration**: A frontend designer and a backend database engineer cannot work on this file at the same time.
 
-The MVC pattern provides a clear separation by dividing the application into three layers:
+## The Solution
 
-```
-✅ MVC Architecture
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│    Model     │      │    View      │      │  Controller  │
-├──────────────┤      ├──────────────┤      ├──────────────┤
-│ • Data       │◄─────│ • Templates  │◄─────│ • Routes     │
-│ • Business   │      │ • Display    │      │ • Handlers   │
-│   Logic      │      │ • User       │      │ • Requests   │
-│ • Database   │      │   Interaction│      │              │
-└──────────────┘      └──────────────┘      └──────────────┘
-      ▲                      ▲                      │
-      └──────────────────────┴──────────────────────┘
-          Updates & Notifications
+MVC forces a strict separation of concerns.
+
+```mermaid
+classDiagram
+    class User {
+        <<Actor>>
+    }
+
+    class Controller {
+        +handleRequest()
+    }
+
+    class Model {
+        +getData()
+        +updateData()
+    }
+
+    class View {
+        +renderUI()
+    }
+
+    User --> Controller : "1. Sends Input (HTTP Request)"
+    Controller --> Model : "2. Updates/Requests Data"
+    Model --> Controller : "3. Returns Data"
+    Controller --> View : "4. Passes Data to Template"
+    View --> User : "5. Renders Output (HTML/JSON)"
 ```
 
 **Flow:**
+1. **Controller**: Receives an HTTP GET request to `/users`. It asks the Model for all users.
+2. **Model**: Executes the database query, applies the "Adult/Minor" logic, and returns a clean array of `User` objects to the Controller.
+3. **Controller**: Takes the array of users and passes it to the `UserListView`.
+4. **View**: Loops over the array and renders purely the HTML.
 
-1. User interacts with the View
-2. Controller receives the request
-3. Controller updates the Model
-4. Model notifies the View of changes
-5. View renders updated data
+## Real-World Analogy
 
-## Implementation
+Think of a **Restaurant**.
+- **The Customer (User)**: Looks at the menu and places an order.
+- **The Waiter (Controller)**: Takes the order, validates it, and brings it to the kitchen. Later, brings the finished food back to the table.
+- **The Chef (Model)**: Knows the recipes (business logic), fetches ingredients from the fridge (database), and cooks the food.
+- **The Plating / Presentation (View)**: The visual arrangement of the food on the plate.
+
+The Waiter doesn't cook the food. The Chef doesn't talk to the Customer. The responsibilities are strictly separated.
+
+## Step-by-Step Implementation (Backend Web API)
+
+In a modern context, we will build a backend API where the "View" is just JSON rendering.
+
+1. **The Model**: Create a class representing the core data and business logic.
+2. **The Controller**: Create a class with methods (endpoints) that handle HTTP requests.
+3. **The View (Optional for APIs)**: In APIs, the framework's JSON serializer acts as the View. In older web apps, this would be an HTML template.
+
+## Code Examples
 
 ::: code-group
 
-```typescript [typescript]
-// Model - Manages application data and business logic
+```typescript [TypeScript (Express)]
+import express, { Request, Response } from 'express';
+
+// 1. Model: Handles data and business logic
 class UserModel {
-  private users: Map<number, User> = new Map();
-  private nextId: number = 1;
-  private observers: ModelObserver[] = [];
+  private users = [
+    { id: 1, name: "Alice", age: 25 },
+    { id: 2, name: "Bob", age: 17 }
+  ];
 
-  interface User {
-    id: number;
-    name: string;
-    email: string;
-    age: number;
+  public getAllAdults() {
+    // Business Logic lives here, not in the controller
+    return this.users.filter(u => u.age >= 18);
   }
 
-  interface ModelObserver {
-    update(model: UserModel): void;
-  }
-
-  addObserver(observer: ModelObserver): void {
-    this.observers.push(observer);
-  }
-
-  notifyObservers(): void {
-    this.observers.forEach(observer => observer.update(this));
-  }
-
-  addUser(name: string, email: string, age: number): User {
-    const user: User = {
-      id: this.nextId++,
-      name,
-      email,
-      age
-    };
-    this.users.set(user.id, user);
-    this.notifyObservers();
-    return user;
-  }
-
-  getUser(id: number): User | undefined {
-    return this.users.get(id);
-  }
-
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
-  }
-
-  updateUser(id: number, updates: Partial<User>): User | null {
-    const user = this.users.get(id);
-    if (!user) return null;
-
-    const updated = { ...user, ...updates };
-    this.users.set(id, updated);
-    this.notifyObservers();
-    return updated;
-  }
-
-  deleteUser(id: number): boolean {
-    const deleted = this.users.delete(id);
-    if (deleted) {
-      this.notifyObservers();
-    }
-    return deleted;
+  public createUser(name: string, age: number) {
+    if (age < 0) throw new Error("Age cannot be negative");
+    const newUser = { id: Date.now(), name, age };
+    this.users.push(newUser);
+    return newUser;
   }
 }
 
-// View - Displays data to the user
-class UserView {
-  render(users: UserModel.User[]): void {
-    console.log('=== User List ===');
-    users.forEach(user => {
-      console.log(`ID: ${user.id}`);
-      console.log(`Name: ${user.name}`);
-      console.log(`Email: ${user.email}`);
-      console.log(`Age: ${user.age}`);
-      console.log('---');
-    });
-  }
-
-  renderForm(): void {
-    console.log('Please enter user details:');
-    console.log('- Name (string)');
-    console.log('- Email (string)');
-    console.log('- Age (number)');
-  }
-
-  displayError(message: string): void {
-    console.error(`❌ Error: ${message}`);
-  }
-
-  displaySuccess(message: string): void {
-    console.log(`✅ ${message}`);
-  }
-}
-
-// Controller - Handles user input and coordinates Model and View
+// 2. Controller: Handles HTTP requests, talks to Model, responds with View
 class UserController {
-  constructor(
-    private model: UserModel,
-    private view: UserView
-  ) {
-    // Model notifies controller when data changes
-    this.model.addObserver(this);
+  private model: UserModel;
+
+  constructor() {
+    this.model = new UserModel();
   }
 
-  update(model: UserModel): void {
-    this.view.render(model.getAllUsers());
-  }
-
-  handleAddUser(name: string, email: string, age: number): void {
-    if (!name || !email || age < 0) {
-      this.view.displayError('Invalid input data');
-      return;
-    }
-
-    const user = this.model.addUser(name, email, age);
-    this.view.displaySuccess(`User added with ID: ${user.id}`);
-  }
-
-  handleUpdateUser(id: number, name: string, email: string, age: number): void {
-    const updated = this.model.updateUser(id, { name, email, age });
-    if (updated) {
-      this.view.displaySuccess(`User ${id} updated`);
-    } else {
-      this.view.displayError(`User ${id} not found`);
+  public getAdults = (req: Request, res: Response) => {
+    try {
+      const adults = this.model.getAllAdults();
+      // 3. View: The framework serializes the data to JSON
+      res.status(200).json({ success: true, data: adults });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
     }
   }
 
-  handleDeleteUser(id: number): void {
-    const deleted = this.model.deleteUser(id);
-    if (deleted) {
-      this.view.displaySuccess(`User ${id} deleted`);
-    } else {
-      this.view.displayError(`User ${id} not found`);
+  public create = (req: Request, res: Response) => {
+    try {
+      const { name, age } = req.body;
+      const user = this.model.createUser(name, age);
+      res.status(201).json({ success: true, data: user });
+    } catch (error: any) {
+      // Handle business logic errors
+      res.status(400).json({ success: false, message: error.message });
     }
-  }
-
-  handleViewUsers(): void {
-    this.view.render(this.model.getAllUsers());
-  }
-
-  handleShowForm(): void {
-    this.view.renderForm();
   }
 }
 
-// Usage
-const model = new UserModel();
-const view = new UserView();
-const controller = new UserController(model, view);
+// Router wiring
+const app = express();
+app.use(express.json());
+const controller = new UserController();
 
-controller.handleAddUser('John Doe', 'john@example.com', 30);
-controller.handleAddUser('Jane Smith', 'jane@example.com', 28);
-controller.handleViewUsers();
-
-controller.handleUpdateUser(1, 'John Updated', 'john.updated@example.com', 31);
-controller.handleDeleteUser(2);
-controller.handleViewUsers();
+app.get('/users/adults', controller.getAdults);
+app.post('/users', controller.create);
 ```
 
+```java [Java (Spring Boot)]
+import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
+// 1. Model (Entity + Service/Business Logic)
+class User {
+    public int id;
+    public String name;
+    public int age;
+    public User(int id, String name, int age) { this.id = id; this.name = name; this.age = age; }
+}
 
-```python [python]
-from typing import Dict, List, Optional
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+@org.springframework.stereotype.Service
+class UserService {
+    private List<User> users = new ArrayList<>(List.of(
+        new User(1, "Alice", 25),
+        new User(2, "Bob", 17)
+    ));
 
-# Model - Manages application data and business logic
-@dataclass
-class User:
+    public List<User> getAllAdults() {
+        return users.stream()
+            .filter(u -> u.age >= 18)
+            .collect(Collectors.toList());
+    }
+
+    public User createUser(String name, int age) {
+        if (age < 0) throw new IllegalArgumentException("Age cannot be negative");
+        User user = new User((int)System.currentTimeMillis(), name, age);
+        users.add(user);
+        return user;
+    }
+}
+
+// 2. Controller: Handles HTTP Routes
+@RestController
+@RequestMapping("/users")
+class UserController {
+    
+    private final UserService userService;
+
+    // Dependency Injection of the Model/Service
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/adults")
+    public List<User> getAdults() {
+        // 3. View: Spring automatically converts this List to a JSON Response
+        return userService.getAllAdults();
+    }
+
+    @PostMapping
+    public User create(@RequestBody User request) {
+        return userService.createUser(request.name, request.age);
+    }
+}
+```
+
+```python [Python (FastAPI)]
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List
+
+app = FastAPI()
+
+# 1. Model (Data shape and Business Logic)
+class User(BaseModel):
     id: int
     name: str
-    email: str
     age: int
-
-class ModelObserver(ABC):
-    @abstractmethod
-    def update(self, model: 'UserModel') -> None:
-        pass
 
 class UserModel:
     def __init__(self):
-        self.users: Dict[int, User] = {}
-        self.next_id: int = 1
-        self.observers: List[ModelObserver] = []
+        self.users = [
+            User(id=1, name="Alice", age=25),
+            User(id=2, name="Bob", age=17)
+        ]
 
-    def add_observer(self, observer: ModelObserver) -> None:
-        self.observers.append(observer)
+    def get_adults(self) -> List[User]:
+        return [u for u in self.users if u.age >= 18]
 
-    def notify_observers(self) -> None:
-        for observer in self.observers:
-            observer.update(self)
+    def create_user(self, name: str, age: int) -> User:
+        if age < 0:
+            raise ValueError("Age cannot be negative")
+        new_user = User(id=len(self.users)+1, name=name, age=age)
+        self.users.append(new_user)
+        return new_user
 
-    def add_user(self, name: str, email: str, age: int) -> User:
-        user = User(
-            id=self.next_id,
-            name=name,
-            email=email,
-            age=age
-        )
-        self.next_id += 1
-        self.users[user.id] = user
-        self.notify_observers()
-        return user
+db_model = UserModel()
 
-    def get_user(self, user_id: int) -> Optional[User]:
-        return self.users.get(user_id)
+# 2. Controller (Route Handlers)
+@app.get("/users/adults", response_model=List[User])
+def get_adults():
+    # 3. View: FastAPI automatically serializes to JSON
+    return db_model.get_adults()
 
-    def get_all_users(self) -> List[User]:
-        return list(self.users.values())
+@app.post("/users", response_model=User)
+def create_user(name: str, age: int):
+    try:
+        return db_model.create_user(name, age)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
 
-    def update_user(self, user_id: int, **updates) -> Optional[User]:
-        user = self.users.get(user_id)
-        if not user:
-            return None
+```go [Go (Gin)]
+package main
 
-        for key, value in updates.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
+import (
+	"errors"
+	"net/http"
+	"github.com/gin-gonic/gin"
+)
 
-        self.notify_observers()
-        return user
+// 1. Model
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
 
-    def delete_user(self, user_id: int) -> bool:
-        if user_id in self.users:
-            del self.users[user_id]
-            self.notify_observers()
-            return True
-        return False
+type UserModel struct {
+	users []User
+}
 
-# View - Displays data to the user
-class UserView:
-    def render(self, users: List[User]) -> None:
-        print("=== User List ===")
-        for user in users:
-            print(f"ID: {user.id}")
-            print(f"Name: {user.name}")
-            print(f"Email: {user.email}")
-            print(f"Age: {user.age}")
-            print("---")
+func NewUserModel() *UserModel {
+	return &UserModel{
+		users: []User{
+			{ID: 1, Name: "Alice", Age: 25},
+			{ID: 2, Name: "Bob", Age: 17},
+		},
+	}
+}
 
-    def render_form(self) -> None:
-        print("Please enter user details:")
-        print("- Name (string)")
-        print("- Email (string)")
-        print("- Age (number)")
+func (m *UserModel) GetAdults() []User {
+	var adults []User
+	for _, u := range m.users {
+		if u.Age >= 18 {
+			adults = append(adults, u)
+		}
+	}
+	return adults
+}
 
-    def display_error(self, message: str) -> None:
-        print(f"❌ Error: {message}")
+func (m *UserModel) CreateUser(name string, age int) (User, error) {
+	if age < 0 {
+		return User{}, errors.New("Age cannot be negative")
+	}
+	user := User{ID: len(m.users) + 1, Name: name, Age: age}
+	m.users = append(m.users, user)
+	return user, nil
+}
 
-    def display_success(self, message: str) -> None:
-        print(f"✅ {message}")
+// 2. Controller
+type UserController struct {
+	model *UserModel
+}
 
-# Controller - Handles user input and coordinates Model and View
-class UserController(ModelObserver):
-    def __init__(self, model: UserModel, view: UserView):
-        self.model = model
-        self.view = view
-        self.model.add_observer(self)
+func (c *UserController) GetAdults(ctx *gin.Context) {
+	adults := c.model.GetAdults()
+	// 3. View: Gin serializes map to JSON
+	ctx.JSON(http.StatusOK, gin.H{"data": adults})
+}
 
-    def update(self, model: UserModel) -> None:
-        self.view.render(model.get_all_users())
+func (c *UserController) Create(ctx *gin.Context) {
+	var json struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    def handle_add_user(self, name: str, email: str, age: int) -> None:
-        if not name or not email or age < 0:
-            self.view.display_error("Invalid input data")
-            return
+	user, err := c.model.CreateUser(json.Name, json.Age)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-        user = self.model.add_user(name, email, age)
-        self.view.display_success(f"User added with ID: {user.id}")
+	ctx.JSON(http.StatusCreated, gin.H{"data": user})
+}
 
-    def handle_update_user(self, user_id: int, name: str, email: str, age: int) -> None:
-        updated = self.model.update_user(user_id, name=name, email=email, age=age)
-        if updated:
-            self.view.display_success(f"User {user_id} updated")
-        else:
-            self.view.display_error(f"User {user_id} not found")
+func main() {
+	r := gin.Default()
+	model := NewUserModel()
+	controller := &UserController{model: model}
 
-    def handle_delete_user(self, user_id: int) -> None:
-        if self.model.delete_user(user_id):
-            self.view.display_success(f"User {user_id} deleted")
-        else:
-            self.view.display_error(f"User {user_id} not found")
-
-    def handle_view_users(self) -> None:
-        self.view.render(self.model.get_all_users())
-
-    def handle_show_form(self) -> None:
-        self.view.render_form()
-
-# Usage
-model = UserModel()
-view = UserView()
-controller = UserController(model, view)
-
-controller.handle_add_user("John Doe", "john@example.com", 30)
-controller.handle_add_user("Jane Smith", "jane@example.com", 28)
-controller.handle_view_users()
-
-controller.handle_update_user(1, "John Updated", "john.updated@example.com", 31)
-controller.handle_delete_user(2)
-controller.handle_view_users()
+	r.GET("/users/adults", controller.GetAdults)
+	r.POST("/users", controller.Create)
+	r.Run(":8080")
+}
 ```
 
 :::
 
-## Real-World Examples
+## Pros and Cons
 
-### Web Framework (Express.js)
+### Advantages
+- **Separation of Concerns**: UI design changes do not require database logic changes.
+- **Parallel Development**: Frontend devs work on Views, Backend devs work on Models/Controllers simultaneously.
+- **Testability**: You can write unit tests for the Model independently of the Web Server (Controller).
 
-```javascript
-// Model
-const userDatabase = new Map();
+### Disadvantages
+- **Fat Controllers**: Over time, developers get lazy and start putting business logic inside the Controller instead of the Model. This breaks the pattern.
+- **Excessive for Small Apps**: If you are just serving a static HTML page, forcing it through an MVC router and model layer is overkill.
+- **Not for Modern Frontend**: MVC is terrible for highly interactive, reactive web apps (like a chat app). The frontend world abandoned MVC in favor of MVVM/Component architectures (React, Vue).
 
-// View (HTML template)
-app.get("/users", (req, res) => {
-  const users = userDatabase.values();
-  res.render("users.html", { users });
-});
+## When to Use
 
-// Controller
-app.post("/users", (req, res) => {
-  const newUser = { id: Date.now(), ...req.body };
-  userDatabase.set(newUser.id, newUser);
-  res.redirect("/users");
-});
-```
+- **Backend Web APIs**: Almost every modern REST API framework defaults to an MVC (or MVC-adjacent) structure.
+- **Server-Rendered Websites**: Traditional applications where the server renders HTML (Laravel, Rails, ASP.NET).
 
-### Ruby on Rails
+## When NOT to Use
 
-Rails follows MVC convention:
+- **Single Page Applications (SPAs)**: Do not try to force MVC onto React, Vue, or Angular. They use Component-Based Architectures or MVVM.
+- **Microservices**: A tiny microservice doing exactly one background job usually doesn't need Controllers or Views.
 
-- **Models**: `app/models/user.rb`
-- **Views**: `app/views/users/`
-- **Controllers**: `app/controllers/users_controller.rb`
+## Common Mistakes
 
-### Django
+### 1. Fat Controller / Skinny Model
+Writing raw SQL queries and complex validation loops inside the Controller. *Solution: The Controller should only handle HTTP logic (headers, status codes, JSON). All data rules must be moved to the Model (or a Service layer).*
 
-Django implements MVC as MTV (Model-Template-View):
-
-- **Models**: Database schema
-- **Templates**: HTML rendering
-- **Views**: Request handlers
-
-## Advantages ✅
-
-- **Separation of Concerns**: Each component has a single responsibility
-- **Reusability**: Models and controllers can be reused with different views
-- **Testability**: Easy to unit test each component independently
-- **Scalability**: Clear structure makes it easier to add new features
-- **Multiple Views**: Same model can be displayed through different views
-- **Parallel Development**: Teams can work on different components simultaneously
-- **Code Organization**: Clear folder structure and file organization
-- **Framework Support**: Many frameworks provide built-in MVC support
-
-## Disadvantages ❌
-
-- **Complexity**: Adding an abstraction layer for small applications
-- **Learning Curve**: Developers need to understand the pattern
-- **Performance Overhead**: Additional abstraction can add latency
-- **Two-Way Binding Issues**: Model-View synchronization can be complex
-- **View Logic**: Views sometimes contain too much logic
-- **File Organization**: Can lead to many small files to manage
-- **Testing Complexity**: Testing view updates can be challenging
-- **Over-Engineering**: May be overkill for simple applications
-
-## When to Use ✅
-
-- **Web Applications**: Especially dynamic web applications
-- **Desktop Applications**: GUI applications with complex logic
-- **Mobile Applications**: To separate business logic from UI
-- **Large Teams**: When multiple developers work on the same project
-- **Long-Term Maintenance**: Projects that will be maintained for years
-- **Complex Business Logic**: Applications with intricate rules and workflows
-- **Multiple Presentation Layers**: When you need different ways to present data
-- **Framework-Based Projects**: When using MVC frameworks (Rails, Django, etc.)
-
-## When NOT to Use ❌
-
-- **Simple Scripts**: Command-line utilities or small scripts
-- **Real-Time Systems**: Systems with strict latency requirements
-- **Microservices**: Where each service is already isolated
-- **Static Content**: Websites with primarily static content
-- **Performance-Critical**: Applications where overhead matters
-- **Single-Page Applications**: Consider MVVM instead
-- **Event-Driven Systems**: Where MVC's controller pattern doesn't fit
-- **Prototypes**: Quick throwaway prototypes
+### 2. View Logic
+Putting `if/else` statements and data manipulation inside HTML templates. *Solution: The Controller should process the data into its final, display-ready state before passing it to the View.*
 
 ## Related Patterns
 
-- **Model-View-Presenter (MVP)**: Evolved from MVC with improved testability
-- **Model-View-ViewModel (MVVM)**: Better for data binding and reactive systems
-- **Model-View-Whatever (MVW)**: Generalization of MV\* patterns
-- **Repository Pattern**: Often used to abstract data access in models
-- **Observer Pattern**: Used for model-view communication
-- **Strategy Pattern**: Used to vary view rendering strategies
-- **Command Pattern**: Often used in controllers to handle requests
+- **MVVM (Model-View-ViewModel)**: The evolution of MVC used by modern Frontend frameworks where two-way data binding replaces the Controller.
+- **MVP (Model-View-Presenter)**: Used mostly in Android/Desktop apps, focusing on a View that is completely passive.
+- **MVT (Model-View-Template)**: Django's specific flavor of MVC.

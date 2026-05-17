@@ -10,256 +10,796 @@ icon: CircleDot
 
 ## Overview
 
-The **Singleton** pattern is a creational design pattern that ensures a class has only one instance while providing a global access point to this instance. It is one of the simplest yet most debated patterns in software engineering.
+The **Singleton** pattern is a creational design pattern that restricts a class to a single instance and provides a global access point to that instance. While straightforward in concept, Singleton is controversial in practice because it trades simplicity for testing difficulty and hidden coupling.
 
-The pattern addresses two problems at the same time, violating the _Single Responsibility Principle_:
+A Singleton solves two problems simultaneously, which itself is a warning sign:
 
-1. **Ensure that a class has just a single instance**: This is useful for controlling access to shared resources, such as a database, a file system, or a global configuration object.
-2. **Provide a global access point to that instance**: This allows any part of the program to access the object without passing it around as a dependency (though this can lead to tight coupling).
+1. **Ensure exactly one instance exists**: Useful when you truly need centralized control over a shared resource.
+2. **Provide global access**: Convenient, but often a sign of a deeper design issue.
+
+**Modern perspective**: Most uses of Singleton should be replaced with **Dependency Injection** and explicit dependency passing. Use Singleton only when the pattern genuinely simplifies your architecture without creating testing or maintenance burden.
 
 ## Real-World Analogy
 
-Imagine the **Government** of a country. A country can have only one official government at a time. Regardless of the personal identities of the individuals who form the government, the title "The Government of [Country]" is a global point of access that identifies the group of people in charge.
+Consider a **national capital**: A country has one official capital at any time. It is the central, globally-known reference point for government affairs. However, referencing "the capital" everywhere in your code doesn't mean hardcoding it—you should pass it as a parameter.
 
-Similarly, in a software system, you might have a **Configuration Manager** that loads settings from a file. You don't want to load that file ten times in ten different parts of your app; you want one object to hold those settings and provide them to everyone.
+Similarly, a configuration system or logger might conceptually need only one instance across your application. But hardcoding access to `Logger.getInstance()` everywhere creates hidden dependencies and makes testing harder than explicitly passing the logger where it is needed.
 
 ## The Problem
 
-Most of the time, we create objects by calling a constructor. But what if you want to prevent users from creating a second instance?
+Without control over instance creation, you risk multiple instances managing the same critical resource:
 
-### Scenario: Database Connections
+### Scenario: Inconsistent Configuration
 
-If you create a new database connection object every time you need to make a query, you will soon exhaust the database's connection limit. Even if you don't hit the limit, you're wasting memory and CPU cycles on redundant setup.
-
-### Scenario: Shared State
-
-If two different parts of your application create their own "Settings" objects, and one part changes a setting, the other part won't see that change. This leads to inconsistent application behavior.
+If each module independently loads settings, and one module changes a setting, others don't see it:
 
 ```typescript
-// ❌ Problem: Multiple instances lead to inconsistency
-const settings1 = new Settings();
-const settings2 = new Settings();
+// ❌ Problem: Multiple independent instances
+const config1 = new AppConfig();
+const config2 = new AppConfig();
 
-settings1.setDarkMode(true);
-console.log(settings2.isDarkMode()); // false (Inconsistent!)
+config1.set("theme", "dark");
+console.log(config2.get("theme")); // 'light' (Inconsistent state!)
 ```
+
+### Scenario: Resource Exhaustion
+
+Database connection pools, file handles, or thread pools are expensive. Creating multiple independent pools wastes resources:
+
+```typescript
+// ❌ Problem: Each module has its own pool
+const dbPool1 = new ConnectionPool(10); // 10 connections
+const dbPool2 = new ConnectionPool(10); // 10 more connections
+// Total: 20 connections, but designed for 10
+```
+
+### Scenario: Synchronization Issues
+
+If multiple parts of your system rely on inconsistent state, concurrency bugs emerge that are hard to trace.
 
 ## The Solution
 
-The Singleton pattern implements a "Self-Preservation" mechanism:
+The Singleton pattern enforces instance uniqueness through controlled construction:
 
-1. **Private Constructor**: Make the default constructor private to prevent other objects from using the `new` operator with the Singleton class.
-2. **Static Instance Field**: Create a static field that will hold the single instance.
-3. **Static Accessor Method**: Create a public static method that acts as a gatekeeper. It checks if an instance already exists; if not, it creates one. If yes, it returns the existing one.
+1. **Private Constructor**: Prevent direct instantiation via `new`.
+2. **Static Instance Storage**: Hold the single instance in a static field.
+3. **Static Access Method**: Provide a controlled method to get the instance, creating it on first call (lazy initialization).
 
 ```typescript
-// ✅ Solution: One shared instance
-const settings1 = Settings.getInstance();
-const settings2 = Settings.getInstance();
+// ✅ Solution: One authoritative instance
+const config1 = AppConfig.getInstance();
+const config2 = AppConfig.getInstance();
 
-settings1.setDarkMode(true);
-console.log(settings2.isDarkMode()); // true (Perfect sync!)
+config1.set("theme", "dark");
+console.log(config2.get("theme")); // 'dark' (Consistent!)
+console.log(config1 === config2); // true
 ```
+
+**Key insight**: The pattern guarantees uniqueness but does _not_ guarantee good design. Consider whether explicit dependency injection would be cleaner.
 
 ## Implementation
 
-To implement a Singleton, you generally follow these steps:
+### Core Steps
 
-1. Add a **private static field** to the class for storing the singleton instance.
-2. Declare a **public static creation method** for getting the singleton instance.
-3. Implement **"lazy initialization"** inside the static method. It should create a new object on its first call and put it into the static field. The method should always return that instance on all subsequent calls.
-4. Make the **constructor of the class private**. The static method of the class will still be able to call the constructor, but other objects will not.
-5. Go over the client code and replace all direct calls to the singleton's constructor with calls to its static creation method.
+1. Add a **private static field** to hold the single instance.
+2. Declare a **public static method** for retrieving the instance (lazy initialization).
+3. Make the **constructor private** to prevent direct construction.
+4. Replace all `new ClassName()` calls with `ClassName.getInstance()`.
+
+### TypeScript: Simple Lazy Initialization
 
 ::: code-group
 
 ```typescript [typescript]
 /**
- * The Singleton class defines the `getInstance` method that lets clients access
- * the unique singleton instance.
+ * Database singleton: Lazy initialization, single-threaded safe (JavaScript)
  */
 class Database {
   private static instance: Database;
+  private connected: boolean = false;
 
   /**
-   * The Singleton's constructor should always be private to prevent direct
-   * construction calls with the `new` operator.
+   * Private constructor prevents direct instantiation.
    */
   private constructor() {
-    console.log("Establishing database connection...");
+    console.log("Database: Creating instance...");
   }
 
   /**
-   * The static method that controls the access to the singleton instance.
-   *
-   * This implementation lets you subclass the Singleton class while keeping
-   * just one instance of each subclass around.
+   * Lazy initialization: Returns existing instance or creates one on first call.
    */
-  public static getInstance(): Database {
+  static getInstance(): Database {
     if (!Database.instance) {
       Database.instance = new Database();
+      Database.instance.connect();
     }
-
     return Database.instance;
   }
 
-  /**
-   * Finally, any singleton should define some business logic, which can be
-   * executed on its instance.
-   */
-  public query(sql: string): void {
-    console.log(`Executing SQL: ${sql}`);
+  private connect(): void {
+    console.log("Database: Establishing connection...");
+    this.connected = true;
+  }
+
+  query(sql: string): void {
+    if (!this.connected) throw new Error("Not connected");
+    console.log(`Database: Executing SQL: ${sql}`);
+  }
+
+  isConnected(): boolean {
+    return this.connected;
   }
 }
 
-/**
- * The client code.
- */
-function clientCode() {
-  const s1 = Database.getInstance();
-  const s2 = Database.getInstance();
+// Usage
+const db1 = Database.getInstance(); // "Database: Creating instance..."
+const db2 = Database.getInstance(); // No output (already created)
 
-  if (s1 === s2) {
-    console.log("Singleton works, both variables contain the same instance.");
-  } else {
-    console.log("Singleton failed, variables contain different instances.");
-  }
-}
-
-clientCode();
+console.log(db1 === db2); // true
+db1.query("SELECT * FROM users");
 ```
 
+**Advantages of TypeScript approach:**
+
+- Simple and idiomatic to the language.
+- Works well in single-threaded JavaScript environments (browsers, Node.js event loop).
+- Lazy initialization saves resources if the database is never used.
+
+**Disadvantage:**
+
+- Not thread-safe (though JavaScript is single-threaded by nature).
+
+### Python: Thread-Safe Metaclass
+
 ```python [python]
+from threading import Lock
+
 class SingletonMeta(type):
     """
-    The Singleton class can be implemented in different ways in Python. Some
-    possible methods include: base class, decorator, metaclass. We will use the
-    metaclass because it is best suited for this purpose.
+    Metaclass implementation for thread-safe singleton.
+    Uses double-checked locking to minimize lock contention.
     """
-
     _instances = {}
+    _lock: Lock = Lock()
 
     def __call__(cls, *args, **kwargs):
-        """
-        Possible changes to the value of the `__init__` argument do not affect
-        the returned instance.
-        """
+        # First check without lock (performance optimization)
         if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
+            # Acquire lock for instance creation
+            with cls._lock:
+                # Double-check: another thread may have created it
+                if cls not in cls._instances:
+                    instance = super().__call__(*args, **kwargs)
+                    cls._instances[cls] = instance
         return cls._instances[cls]
 
 
 class Database(metaclass=SingletonMeta):
-    def query(self, sql: str):
-        print(f"Executing SQL: {sql}")
+    """Thread-safe singleton database connection."""
+
+    def __init__(self):
+        self.connected = False
+        print('Database: Creating instance...')
+        self.connect()
+
+    def connect(self) -> None:
+        print('Database: Establishing connection...')
+        self.connected = True
+
+    def query(self, sql: str) -> None:
+        if not self.connected:
+            raise RuntimeError('Not connected')
+        print(f'Database: Executing SQL: {sql}')
 
 
-if __name__ == "__main__":
-    # The client code.
+# Usage
+db1 = Database()  # "Database: Creating instance..."
+db2 = Database()  # No output (already created)
 
-    s1 = Database()
-    s2 = Database()
-
-    if id(s1) == id(s2):
-        print("Singleton works, both variables contain the same instance.")
-    else:
-        print("Singleton failed, variables contain different instances.")
+print(db1 is db2)  # True
+db1.query('SELECT * FROM users')
 ```
+
+**Advantages of Python approach:**
+
+- Thread-safe via double-checked locking.
+- Scales to production multi-threaded environments.
+- Metaclass approach is idiomatic Python.
+
+### Java: Double-Checked Locking
 
 ```java [java]
 /**
- * The Singleton class defines the `getInstance` method that serves as an
- * alternative to constructor and lets clients access the same instance of this
- * class over and over.
+ * Thread-safe Singleton with double-checked locking.
+ * Uses volatile to ensure visibility of instance across threads.
  */
 public final class Database {
-    // The field must be declared volatile so that double check lock would work
-    // correctly.
+    // volatile ensures all threads see the most recent instance
     private static volatile Database instance;
 
-    public String value;
+    private boolean connected;
 
-    private Database(String value) {
-        this.value = value;
+    /**
+     * Private constructor prevents direct instantiation.
+     */
+    private Database() {
+        System.out.println("Database: Creating instance...");
+        connect();
     }
 
-    public static Database getInstance(String value) {
-        // The approach taken here is called double-checked locking (DCL). It
-        // exists to prevent race condition between multiple threads that may
-        // attempt to get singleton instance at the same time, creating separate
-        // instances as a result.
-        //
-        // It may seem that having the `result` variable here is completely
-        // pointless. There is, however, a very important caveat when
-        // implementing double-checked locking in Java, which is solved by
-        // introducing this local variable.
-        //
-        // You can read more info about DCL issues in Java here:
-        // https://refactoring.guru/java-dcl-issue
-        Database result = instance;
-        if (result != null) {
-            return result;
-        }
-        synchronized(Database.class) {
-            if (instance == null) {
-                instance = new Database(value);
+    /**
+     * Thread-safe lazy initialization using double-checked locking.
+     */
+    public static Database getInstance() {
+        // First check (no lock) for performance
+        if (instance == null) {
+            synchronized (Database.class) {
+                // Second check (with lock) to prevent race condition
+                if (instance == null) {
+                    instance = new Database();
+                }
             }
-            return instance;
         }
+        return instance;
+    }
+
+    private void connect() {
+        System.out.println("Database: Establishing connection...");
+        connected = true;
+    }
+
+    public void query(String sql) {
+        if (!connected) {
+            throw new RuntimeException("Not connected");
+        }
+        System.out.println("Database: Executing SQL: " + sql);
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+}
+
+// Usage
+public class Main {
+    public static void main(String[] args) {
+        Database db1 = Database.getInstance(); // "Database: Creating instance..."
+        Database db2 = Database.getInstance(); // No output
+
+        System.out.println(db1 == db2); // true
+        db1.query("SELECT * FROM users");
     }
 }
 ```
 
+**Advantages of Java approach:**
+
+- Explicit synchronization handles thread safety clearly.
+- Double-checked locking minimizes lock contention in production.
+- Works well for enterprise systems with heavy concurrency.
+
+### Go: Goroutine-Safe with sync.Once
+
+```go [go]
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+// Database represents a singleton database connection.
+type Database struct {
+    connected bool
+}
+
+var (
+    // Single package-level instance (private)
+    instance *Database
+    // sync.Once ensures initialization happens exactly once
+    once sync.Once
+)
+
+// GetInstance returns the singleton Database instance.
+// Thread-safe via sync.Once.
+func GetInstance() *Database {
+    once.Do(func() {
+        fmt.Println("Database: Creating instance...")
+        instance = &Database{}
+        instance.connect()
+    })
+    return instance
+}
+
+func (db *Database) connect() {
+    fmt.Println("Database: Establishing connection...")
+    db.connected = true
+}
+
+func (db *Database) Query(sql string) {
+    if !db.connected {
+        panic("Not connected")
+    }
+    fmt.Printf("Database: Executing SQL: %s\n", sql)
+}
+
+// Usage
+func main() {
+    db1 := GetInstance() // "Database: Creating instance..." + connection
+    db2 := GetInstance() // No output (already created)
+
+    fmt.Println(db1 == db2) // true
+    db1.Query("SELECT * FROM users")
+}
+```
+
+**Advantages of Go approach:**
+
+- `sync.Once` is idiomatic and minimizes boilerplate.
+- Goroutine-safe by design.
+- Cleaner than manual double-checked locking.
+- Reflects Go's philosophy of simplicity.
+
+### Rust: Safe via Type System
+
+```rust [rust]
+use std::sync::{Arc, Mutex, Once};
+
+/// Lazy-initialized singleton using Arc and Once.
+pub struct Database {
+    connected: bool,
+}
+
+impl Database {
+    /// Returns a reference to the singleton instance.
+    /// Safe and thread-safe via Rust's type system.
+    pub fn get() -> Arc<Mutex<Database>> {
+        static mut INSTANCE: Option<Arc<Mutex<Database>>> = None;
+        static INIT: Once = Once::new();
+
+        unsafe {
+            INIT.call_once(|| {
+                println!("Database: Creating instance...");
+                let db = Database { connected: false };
+                INSTANCE = Some(Arc::new(Mutex::new(db)));
+                INSTANCE.as_ref().unwrap().lock().unwrap().connect();
+            });
+
+            INSTANCE.as_ref().unwrap().clone()
+        }
+    }
+
+    fn connect(&mut self) {
+        println!("Database: Establishing connection...");
+        self.connected = true;
+    }
+
+    pub fn query(&self, sql: &str) {
+        if !self.connected {
+            panic!("Not connected");
+        }
+        println!("Database: Executing SQL: {}", sql);
+    }
+}
+
+// Usage
+fn main() {
+    let db1 = Database::get();
+    let db2 = Database::get();
+
+    println!("{:p} == {:p}", db1.as_ptr(), db2.as_ptr()); // Same address
+    db1.lock().unwrap().query("SELECT * FROM users");
+}
+```
+
+**Advantages of Rust approach:**
+
+- Type system enforces thread safety and memory safety.
+- `Arc<Mutex<T>>` pattern is idiomatic for shared mutable state.
+- No data races possible at compile time.
+
 :::
 
-## Technical Nuances
+## Thread Safety and Concurrency
 
-### Lazy vs. Eager Initialization
+**Single-threaded environments (JavaScript)**: Simple lazy initialization suffices.
 
-- **Lazy Initialization**: The instance is created only when it is requested for the first time. This saves memory if the object is never used.
-- **Eager Initialization**: The instance is created at the time of class loading. This is simpler and inherently thread-safe in most languages but wastes memory if the object is large and unused.
+**Multi-threaded environments (Java, Python, Go, Rust)**:
 
-### Thread Safety
+- **Java**: Use double-checked locking with `volatile`.
+- **Python**: Use metaclass with locks.
+- **Go**: Use `sync.Once` (idiomatic and clean).
+- **Rust**: Type system prevents races; use `Arc<Mutex<T>>`.
 
-In multi-threaded environments, two threads might call `getInstance()` at the exact same millisecond when the instance is still `null`. Both will see that it's `null` and both will create a new instance.
+## Lazy vs. Eager Initialization
 
-To fix this, you must use **Synchronization** (like `synchronized` in Java or `Lock` in Python) or **Double-Checked Locking** as shown in the Java example above.
+### Lazy Initialization (Most Common)
+
+```typescript
+class Logger {
+  private static instance: Logger;
+
+  static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger();
+    }
+    return Logger.instance;
+  }
+}
+```
+
+**Pros**: Creates instance only if needed; saves memory.  
+**Cons**: First access has initialization overhead; requires thread safety care in multi-threaded environments.
+
+### Eager Initialization
+
+```typescript
+class Logger {
+  private static instance: Logger = new Logger();
+
+  static getInstance(): Logger {
+    return Logger.instance;
+  }
+}
+```
+
+**Pros**: No initialization overhead later; inherently thread-safe.  
+**Cons**: Instance always created, even if unused; harder to test (can't replace).
 
 ## Advantages and Disadvantages
 
 ### ✅ Advantages
 
-- **Guaranteed Uniqueness**: You can be 100% sure that a class has a single instance.
-- **Strict Control**: You gain absolute control over how and when the instance is accessed.
-- **Memory Efficiency**: You avoid creating duplicate objects that hold identical data.
-- **Lazy Initialization**: The object is only initialized when actually needed.
+- **Guaranteed Uniqueness**: Impossible to have multiple instances.
+- **Centralized Access**: No need to pass the instance everywhere.
+- **Lazy Initialization**: Resource is created only when first needed.
+- **Memory Efficiency**: Single shared object for identical state.
 
 ### ❌ Disadvantages
 
-- **Violates Single Responsibility Principle**: The class manages its own lifecycle _and_ its business logic.
-- **Masks Bad Design**: It's often used as a "quick fix" for global variables, hiding deeper architectural flaws.
-- **Testing Difficulties**: Since the constructor is private and the state is global, it's very hard to mock Singletons in unit tests.
-- **Tight Coupling**: Clients become tightly coupled to the Singleton class, making it hard to swap implementations.
+- **Testing Difficulty**: Hard to mock or inject a test double; private constructor blocks customization.
+- **Hidden Coupling**: Classes depend on `ClassName.getInstance()`, hiding the dependency.
+- **Violates Single Responsibility**: Class manages both its instance lifecycle and business logic.
+- **Complicates Refactoring**: If you later need multiple instances, you must refactor all call sites.
+- **Hides Architectural Flaws**: Often used as a band-aid for poor design instead of fixing root issues.
+- **Thread-Safety Complexity**: Multi-threaded implementations require careful synchronization.
 
 ## When to Use
 
 ::: tip USE IT WHEN...
 
-- You need to manage a shared resource (Database, Logger, Config).
-- You want to save memory on heavy objects.
-- You need to strictly control global state.
-  :::
+- **Shared Resource with True Uniqueness Requirement**: Database connection pools, logger factories, configuration managers where having multiple independent instances would genuinely break functionality.
+- **Infrastructure Component**: System-level singletons like thread pools or cache managers that truly benefit from centralized control.
+- **Performance Critical**: Initialization is expensive and reusing the same instance saves significant resources.
+- **Testing Isn't Difficult**: If your architecture doesn't require testing the Singleton in isolation, the coupling is acceptable.
+
+:::
 
 ::: warning AVOID IT WHEN...
 
-- You want to write highly testable code.
-- You might need multiple instances in the future (e.g., connecting to two databases).
-- You can use **Dependency Injection** instead.
-  :::
+- **Testability Matters**: Use **Dependency Injection** instead. Pass the dependency explicitly:
+
+```typescript
+// ❌ Hard to test
+class UserService {
+  private db = Database.getInstance(); // Tightly coupled
+}
+
+// ✅ Testable
+class UserService {
+  constructor(private db: Database) {} // Can inject a mock
+}
+```
+
+- **You Might Need Multiple Instances**: Singleton makes adding multiple instances later very difficult.
+- **The Dependency Is Implicit**: If callers don't see what they depend on, refactoring and understanding becomes harder.
+
+:::
+
+## Common Mistakes
+
+### ❌ Mistake 1: Using Singleton as a Substitute for Dependency Injection
+
+```typescript
+// ❌ Bad: Hidden dependency
+class PaymentService {
+  private config = AppConfig.getInstance();
+
+  process() {
+    const apiKey = this.config.get("stripe_key");
+  }
+}
+
+// ✅ Good: Explicit dependency
+class PaymentService {
+  constructor(private config: AppConfig) {}
+
+  process() {
+    const apiKey = this.config.get("stripe_key");
+  }
+}
+```
+
+**Impact**: The second approach is easier to test, understand, and refactor.
+
+### ❌ Mistake 2: Mutable Singleton State
+
+```typescript
+// ❌ Risky: Shared mutable state
+class Settings {
+  private static instance: Settings;
+  public darkMode = false; // Mutable!
+
+  static getInstance(): Settings {
+    if (!Settings.instance) {
+      Settings.instance = new Settings();
+    }
+    return Settings.instance;
+  }
+}
+
+// Elsewhere, state gets modified unexpectedly
+const settings = Settings.getInstance();
+settings.darkMode = true; // Affects all users
+```
+
+**Solution**: Use immutable patterns or explicit change notifications.
+
+### ❌ Mistake 3: Forgetting Thread Safety
+
+```typescript
+// ❌ Race condition in multi-threaded environment
+class Logger {
+  private static instance: Logger;
+
+  static getInstance(): Logger {
+    if (!Logger.instance) { // Two threads check simultaneously
+      Logger.instance = new Logger(); // Both create instances!
+    }
+    return Logger.instance;
+  }
+}
+
+// ✅ Thread-safe version (Go example)
+var once sync.Once
+func GetLogger() *Logger {
+    once.Do(func() {
+        instance = &Logger{} // Guaranteed to run once
+    })
+    return instance
+}
+```
+
+### ❌ Mistake 4: Circular Initialization Dependency
+
+```typescript
+// ❌ Circular initialization
+class Logger {
+  static getInstance() {
+    return Config.getInstance().logger; // Depends on Config
+  }
+}
+
+class Config {
+  constructor() {
+    this.logger = Logger.getInstance(); // Depends on Logger
+  }
+}
+// Results in stack overflow or null reference error
+
+// ✅ Solution: Separate initialization
+class Logger {
+  /* ... */
+}
+class Config {
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
+}
+const logger = Logger.getInstance();
+const config = new Config(logger);
+```
+
+## Real-World Use Cases
+
+### ✅ Case 1: Logger (With Caveats)
+
+```typescript
+class Logger {
+  private static instance: Logger;
+  private logs: string[] = [];
+
+  private constructor() {}
+
+  static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger();
+    }
+    return Logger.instance;
+  }
+
+  log(message: string): void {
+    const timestamp = new Date().toISOString();
+    this.logs.push(`[${timestamp}] ${message}`);
+    console.log(`[${timestamp}] ${message}`);
+  }
+
+  getLogs(): string[] {
+    return [...this.logs];
+  }
+}
+
+// Usage
+const logger1 = Logger.getInstance();
+const logger2 = Logger.getInstance();
+
+logger1.log("Application started");
+console.log(logger2.getLogs()); // Logger is shared
+```
+
+**Caveat**: For testability in production, pass the logger as a dependency rather than accessing it globally.
+
+### ✅ Case 2: Database Connection Pool
+
+```typescript
+class ConnectionPool {
+  private static instance: ConnectionPool;
+  private connections: Connection[] = [];
+  private readonly maxSize: number = 10;
+
+  private constructor() {
+    console.log("Initializing connection pool...");
+    for (let i = 0; i < this.maxSize; i++) {
+      this.connections.push(new Connection());
+    }
+  }
+
+  static getInstance(): ConnectionPool {
+    if (!ConnectionPool.instance) {
+      ConnectionPool.instance = new ConnectionPool();
+    }
+    return ConnectionPool.instance;
+  }
+
+  getConnection(): Connection {
+    return this.connections.pop() || new Connection();
+  }
+
+  releaseConnection(conn: Connection): void {
+    this.connections.push(conn);
+  }
+}
+
+// Usage across application
+const pool = ConnectionPool.getInstance();
+const conn = pool.getConnection();
+conn.query("SELECT * FROM users");
+pool.releaseConnection(conn);
+```
+
+### ❌ Case 3: Application State (Often Misused)
+
+```typescript
+// ❌ Antipattern: Singleton as global state container
+class AppState {
+  private static instance: AppState;
+  user: User | null = null;
+  theme: string = "light";
+  notifications: Notification[] = [];
+
+  static getInstance(): AppState {
+    if (!AppState.instance) {
+      AppState.instance = new AppState();
+    }
+    return AppState.instance;
+  }
+}
+
+// Problem: Multiple components depend on this hidden global state
+// Refactoring, testing, and understanding become difficult
+
+// ✅ Better: Use state management (Redux, Zustand, etc.)
+const appState = createStore((set) => ({
+  user: null,
+  theme: "light",
+  setUser: (user) => set({ user }),
+  setTheme: (theme) => set({ theme }),
+}));
+```
 
 ## Related Patterns
 
-- **Abstract Factory**, **Builder**, and **Prototype** can all be implemented as Singletons.
-- **Facade** objects are often Singletons because only one Facade object is required.
-- **Dependency Injection** is the most common alternative to Singleton, allowing for global access without the rigid constraints.
+- **Factory Method**: Can be implemented as a Singleton to control object creation globally.
+- **Abstract Factory**: Often uses Singleton instances as concrete factories.
+- **Facade**: Facade objects frequently are Singletons because only one interface to a subsystem is required.
+- **Dependency Injection**: The modern, testable alternative to Singleton for managing shared objects.
+- **Service Locator**: An older pattern that suffers from similar coupling issues as Singleton (avoid in favor of DI).
+
+## Modern Alternatives
+
+**Dependency Injection Container**:
+
+```typescript
+class Container {
+  private services = new Map();
+
+  register(name: string, factory: () => any): void {
+    this.services.set(name, factory);
+  }
+
+  get(name: string): any {
+    const factory = this.services.get(name);
+    if (!factory) throw new Error(`Service ${name} not found`);
+    return factory();
+  }
+}
+
+// Usage
+const container = new Container();
+container.register("database", () => new Database());
+container.register("logger", () => new Logger());
+
+const db = container.get("database");
+const logger = container.get("logger");
+```
+
+**Module Pattern (JavaScript/Node.js)**:
+
+```typescript
+// database.ts - Module-level singleton
+let instance: Database | null = null;
+
+export function getDatabase(): Database {
+  if (!instance) {
+    instance = new Database();
+  }
+  return instance;
+}
+
+// Other modules import the function
+import { getDatabase } from "./database";
+const db = getDatabase();
+```
+
+## Interview Insights
+
+**Q: When would you use Singleton over Dependency Injection?**
+
+A: Rarely. Dependency Injection is almost always preferable for testable, maintainable code. Use Singleton only for:
+
+- Expensive infrastructure (database pools, thread pools) where a true global instance saves resources.
+- System-level concerns where passing the dependency everywhere would pollute function signatures.
+- Legacy codebases where refactoring to DI is impractical.
+
+**Q: How do you test code that depends on a Singleton?**
+
+A: Poorly. This is a major drawback. Options:
+
+1. Refactor to use Dependency Injection instead.
+2. Use **Seams** (Martin Fowler) to replace the Singleton in tests.
+3. Provide a static method to reset the Singleton: `Logger.reset()` for testing.
+
+**Q: What makes Singleton thread-safe?**
+
+A: Proper synchronization:
+
+- **Java**: `volatile` + double-checked locking.
+- **Python**: Locks in metaclass.
+- **Go**: `sync.Once`.
+- **Rust**: Type system + `Arc<Mutex<T>>`.
+
+**Q: How is Singleton different from a static class?**
+
+A:
+
+- **Static class**: All methods are static; no state persists between calls (C#, Java).
+- **Singleton**: Instance is stateful and persists across accesses.
+
+Static classes are often preferable for stateless utilities (math functions, helpers).
+
+## References
+
+- Gang of Four: "Design Patterns" (Chapter on Singleton)
+- Dependency Injection containers: Spring, NestJS, Autofac
+- Concurrency patterns: Java Concurrency in Practice
+- Go idioms: https://golang.org/doc/effective_go#concurrency

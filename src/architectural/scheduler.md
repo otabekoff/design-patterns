@@ -1,302 +1,382 @@
 ---
 title: Scheduler Pattern
-description: Controls thread resource access by scheduling tasks
+description: An architectural pattern that coordinates and controls the execution timing of tasks and access to shared resources.
 icon: Clock
 ---
 
 # Scheduler Pattern
 
-
-
 ## Overview
 
-The **Scheduler** pattern coordinates controlled access to shared resources by managing when threads can execute. It determines which thread gets to use a resource and when.
+The **Scheduler** pattern is a fundamental system-level architectural pattern. It manages a pool of pending tasks and determines exactly **when** and **in what order** they should be executed by worker threads or processes.
+
+While the *Producer-Consumer* pattern focuses on decoupling data flow, the *Scheduler* pattern focuses on **Time**, **Priority**, and **Resource Limits**.
 
 Key concepts:
+- **Task**: An encapsulated unit of work to be executed.
+- **Queue**: Where tasks wait before execution.
+- **Dispatcher/Scheduler**: The engine that evaluates priorities, checks available resources, and triggers execution.
+- **Workers**: The threads or processes that actually do the work.
 
-- **Scheduler**: Manages thread execution order
-- **Resource**: Shared resource being scheduled
-- **Threads**: Competitors for resource access
-- **Fairness**: Equitable resource distribution
+## The Problem
 
-## Purpose
+If you allow every request or task in an application to execute immediately upon arrival, you lose control over your hardware.
 
-Scheduler aims to:
-
-- Prevent resource conflicts
-- Ensure fair resource distribution
-- Maximize resource utilization
-- Control execution order
-- Prevent starvation
-- Enable cooperative multitasking
-
-## Problem
-
-Without scheduling:
-
-- Threads compete for resources
-- Some threads starve
-- Inefficient resource usage
-- Unpredictable behavior
-- Possible deadlocks
-
-```
-❌ Unscheduled Access
-Thread1 ─┐
-Thread2 ─┼─→ [Resource] ← Conflicts!
-Thread3 ─┘
+```javascript
+// ❌ Bad: Immediate unbounded execution
+function handleRequest(req) {
+    // If 10,000 requests hit at once, we spawn 10,000 threads.
+    // The CPU thrashes, Memory runs out, and the Server crashes.
+    new Thread(() => processHeavyData(req)).start(); 
+}
 ```
 
-## Solution
+This causes:
+1. **Resource Exhaustion**: Out Of Memory (OOM) errors and CPU thrashing due to too many active threads.
+2. **Priority Inversion**: A massive batch of low-priority background analytics jobs might consume all CPU, preventing a high-priority user login request from completing.
+3. **Starvation**: Some tasks might never get CPU time if other aggressive tasks keep dominating the system.
 
-Scheduler controls access:
+## The Solution
 
+Route all tasks through a **Scheduler**. The Scheduler applies policies (like FIFO, Round-Robin, Priority-based, or Rate-Limiting) to control the flow of execution.
+
+```mermaid
+flowchart TD
+    T1[High Priority Task] --> S
+    T2[Low Priority Task] --> S
+    T3[Delayed Task] --> S
+    
+    subgraph Engine
+        S{Scheduler Logic\n(Priority / Time)}
+        Q[Priority Queue]
+    end
+    
+    S --> Q
+    
+    Q -- "Dispatches based\n on policy" --> W1[Worker Thread 1]
+    Q --> W2[Worker Thread 2]
 ```
-✅ Scheduled Access
-Thread1 ─┐
-Thread2 ─┼─→ [Scheduler] ─→ [Resource]
-Thread3 ─┘    (Fair access)
-```
 
-## Implementation
+## Real-World Analogy
+
+Think of an **Airport Control Tower**.
+- **The Tasks**: Airplanes wanting to land.
+- **The Resources**: The runways.
+- **The Scheduler**: The Air Traffic Controller.
+
+If 10 planes arrive at once, they cannot all land immediately. The Controller puts them in a holding pattern (Queue). The Controller decides the order: a plane running low on fuel (High Priority) gets to land first, while cargo planes (Low Priority) wait. The Controller ensures the runway is never overloaded.
+
+## Step-by-Step Implementation
+
+We will implement a **Priority Scheduler** that limits the maximum number of concurrent tasks running at once.
+
+1. **Define the Task Interface**: Needs a unique ID, a priority level, and an execution function.
+2. **Create the Scheduler State**: Needs a list of pending tasks (sorted by priority) and a counter for currently running tasks.
+3. **Implement the Dispatcher**: A function that checks if we are under the concurrency limit. If so, it pops the highest priority task and executes it.
+4. **Handle Completion**: When a task finishes, it must notify the Scheduler so the dispatcher can trigger the next task.
+
+## Code Examples
 
 ::: code-group
 
-```typescript [typescript]
-// Task to schedule
-interface Task {
+```typescript [TypeScript (Async/Promise Scheduler)]
+type TaskFn = () => Promise<void>;
+
+interface ScheduledTask {
   id: string;
-  execute: () => void;
-  priority?: number;
+  priority: number;
+  execute: TaskFn;
 }
 
-// Simple Scheduler
-class Scheduler {
-  private taskQueue: Task[] = [];
-  private running = false;
+class PriorityConcurrencyScheduler {
+  private queue: ScheduledTask[] = [];
+  private activeCount: number = 0;
 
-  schedule(task: Task): void {
-    this.taskQueue.push(task);
-    console.log(`📅 Scheduled task: ${task.id}`);
-    this.executeNext();
+  constructor(private maxConcurrent: number) {}
+
+  public schedule(id: string, priority: number, execute: TaskFn) {
+    this.queue.push({ id, priority, execute });
+    // Sort descending by priority (higher number = runs first)
+    this.queue.sort((a, b) => b.priority - a.priority);
+    
+    console.log(`[Scheduled] ${id} (Priority: ${priority})`);
+    this.tick();
   }
 
-  private executeNext(): void {
-    if (this.running || this.taskQueue.length === 0) return;
-
-    this.running = true;
-    const task = this.taskQueue.shift()!;
-
-    console.log(`▶️ Executing: ${task.id}`);
-    try {
-      task.execute();
-      console.log(`✅ Completed: ${task.id}`);
-    } catch (error) {
-      console.error(`❌ Error in ${task.id}: ${error}`);
-    }
-
-    this.running = false;
-    if (this.taskQueue.length > 0) {
-      setImmediate(() => this.executeNext());
-    }
-  }
-
-  getPendingCount(): number {
-    return this.taskQueue.length;
-  }
-}
-
-// Priority Scheduler
-class PriorityScheduler {
-  private taskQueue: Task[] = [];
-  private running = false;
-
-  schedule(task: Task): void {
-    task.priority = task.priority || 0;
-    this.taskQueue.push(task);
-    this.taskQueue.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    console.log(`📅 Scheduled task: ${task.id} (priority: ${task.priority})`);
-    this.executeNext();
-  }
-
-  private executeNext(): void {
-    if (this.running || this.taskQueue.length === 0) return;
-
-    this.running = true;
-    const task = this.taskQueue.shift()!;
-
-    console.log(`▶️ Executing: ${task.id}`);
-    task.execute();
-    console.log(`✅ Completed: ${task.id}`);
-
-    this.running = false;
-    if (this.taskQueue.length > 0) {
-      setImmediate(() => this.executeNext());
+  private tick() {
+    // If we have available "worker slots" and tasks waiting
+    while (this.activeCount < this.maxConcurrent && this.queue.length > 0) {
+      const task = this.queue.shift()!;
+      this.activeCount++;
+      
+      console.log(`[Executing] ${task.id} (Active: ${this.activeCount}/${this.maxConcurrent})`);
+      
+      // Execute asynchronously, don't await here!
+      task.execute()
+        .catch(err => console.error(`[Error] ${task.id}:`, err))
+        .finally(() => {
+          this.activeCount--;
+          console.log(`[Completed] ${task.id}`);
+          this.tick(); // Task finished, trigger the next one
+        });
     }
   }
 }
 
-// Usage
-const scheduler = new Scheduler();
+// Execution
+const scheduler = new PriorityConcurrencyScheduler(2); // Max 2 tasks at once
 
-scheduler.schedule({
-  id: "Task 1",
-  execute: () => console.log("  Doing work 1..."),
-});
+const makeTask = (timeMs: number) => () => new Promise<void>(res => setTimeout(res, timeMs));
 
-scheduler.schedule({
-  id: "Task 2",
-  execute: () => console.log("  Doing work 2..."),
-});
+// Submit tasks out of order
+scheduler.schedule("Task A (Low)", 1, makeTask(1000));
+scheduler.schedule("Task B (Low)", 1, makeTask(1000));
+// Queue is now full (Max 2). Task C will wait.
+scheduler.schedule("Task C (HIGH)", 10, makeTask(500)); 
 
-scheduler.schedule({
-  id: "Task 3",
-  execute: () => console.log("  Doing work 3..."),
-});
-
-console.log(`\nPending tasks: ${scheduler.getPendingCount()}`);
+// Output:
+// [Executing] Task A (Low)
+// [Executing] Task B (Low)
+// [Scheduled] Task C (HIGH)
+// ... 1 second later ...
+// [Completed] Task A
+// [Executing] Task C (HIGH) <- Jumped the queue!
 ```
 
+```python [Python (Asyncio)]
+import asyncio
+from dataclasses import dataclass, field
+from typing import Callable, Awaitable
 
+@dataclass(order=True)
+class PrioritizedTask:
+    # Negative priority so higher numbers sort first in min-heap
+    priority: int
+    id: str = field(compare=False)
+    execute: Callable[[], Awaitable[None]] = field(compare=False)
 
-```python [python]
-from typing import Callable, List
-from dataclasses import dataclass
-import time
+class AsyncScheduler:
+    def __init__(self, max_concurrent: int):
+        self.queue = asyncio.PriorityQueue()
+        self.max_concurrent = max_concurrent
+        self.active_count = 0
 
-# Task to schedule
-@dataclass
-class Task:
-    id: str
-    execute: Callable
-    priority: int = 0
+    async def schedule(self, task_id: str, priority: int, coro_fn: Callable):
+        print(f"[Scheduled] {task_id} (Priority: {priority})")
+        # Invert priority for min-heap
+        await self.queue.put(PrioritizedTask(-priority, task_id, coro_fn))
+        asyncio.create_task(self._tick())
 
-# Simple Scheduler
-class Scheduler:
-    def __init__(self):
-        self.task_queue: List[Task] = []
-        self.running = False
-
-    def schedule(self, task: Task) -> None:
-        self.task_queue.append(task)
-        print(f"📅 Scheduled task: {task.id}")
-        self.execute_next()
-
-    def execute_next(self) -> None:
-        if self.running or not self.task_queue:
+    async def _tick(self):
+        if self.active_count >= self.max_concurrent or self.queue.empty():
             return
 
-        self.running = True
-        task = self.task_queue.pop(0)
+        self.active_count += 1
+        task = await self.queue.get()
+        print(f"[Executing] {task.id}")
 
-        print(f"▶️ Executing: {task.id}")
         try:
-            task.execute()
-            print(f"✅ Completed: {task.id}")
+            await task.execute()
         except Exception as e:
-            print(f"❌ Error in {task.id}: {e}")
+            print(f"[Error] {task.id}: {e}")
+        finally:
+            print(f"[Completed] {task.id}")
+            self.active_count -= 1
+            self.queue.task_done()
+            asyncio.create_task(self._tick()) # Trigger next
 
-        self.running = False
-        if self.task_queue:
-            self.execute_next()
+async def dummy_work(time_sec: float):
+    await asyncio.sleep(time_sec)
 
-    def get_pending_count(self) -> int:
-        return len(self.task_queue)
+async def main():
+    scheduler = AsyncScheduler(max_concurrent=2)
+    
+    await scheduler.schedule("Task A (Low)", 1, lambda: dummy_work(1))
+    await scheduler.schedule("Task B (Low)", 1, lambda: dummy_work(1))
+    # Will execute before any other tasks added after it, once a slot frees up
+    await scheduler.schedule("Task C (HIGH)", 10, lambda: dummy_work(0.5))
+    
+    # Wait for queue to empty
+    await scheduler.queue.join()
 
-# Priority Scheduler
-class PriorityScheduler:
-    def __init__(self):
-        self.task_queue: List[Task] = []
-        self.running = False
-
-    def schedule(self, task: Task) -> None:
-        self.task_queue.append(task)
-        self.task_queue.sort(key=lambda t: t.priority, reverse=True)
-        print(f"📅 Scheduled task: {task.id} (priority: {task.priority})")
-        self.execute_next()
-
-    def execute_next(self) -> None:
-        if self.running or not self.task_queue:
-            return
-
-        self.running = True
-        task = self.task_queue.pop(0)
-
-        print(f"▶️ Executing: {task.id}")
-        task.execute()
-        print(f"✅ Completed: {task.id}")
-
-        self.running = False
-        if self.task_queue:
-            self.execute_next()
-
-# Usage
 if __name__ == "__main__":
-    scheduler = Scheduler()
+    asyncio.run(main())
+```
 
-    scheduler.schedule(Task("Task 1", lambda: print("  Doing work 1...")))
-    scheduler.schedule(Task("Task 2", lambda: print("  Doing work 2...")))
-    scheduler.schedule(Task("Task 3", lambda: print("  Doing work 3...")))
+```java [Java (ExecutorService)]
+import java.util.concurrent.*;
 
-    print(f"\nPending tasks: {scheduler.get_pending_count()}")
+// In Java, ScheduledThreadPoolExecutor is the enterprise standard
+public class SchedulerDemo {
+    public static void main(String[] args) throws InterruptedException {
+        // Create a scheduler with exactly 2 worker threads
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-    print("\n=== Priority Scheduler ===")
-    priority_scheduler = PriorityScheduler()
+        System.out.println("Submitting tasks...");
 
-    priority_scheduler.schedule(Task("Low", lambda: print("  Low priority"), 1))
-    priority_scheduler.schedule(Task("High", lambda: print("  High priority"), 10))
-    priority_scheduler.schedule(Task("Medium", lambda: print("  Medium priority"), 5))
+        // Task 1: Execute after 2 seconds delay
+        scheduler.schedule(() -> {
+            System.out.println("[Executed] Delayed Task");
+        }, 2, TimeUnit.SECONDS);
+
+        // Task 2: Execute repeatedly every 1 second
+        scheduler.scheduleAtFixedRate(() -> {
+            System.out.println("[Executed] Recurring Task / Heartbeat");
+        }, 0, 1, TimeUnit.SECONDS);
+
+        // Let it run for 4 seconds
+        Thread.sleep(4000);
+        System.out.println("Shutting down...");
+        scheduler.shutdown();
+    }
+}
+```
+
+```go [Go (Worker Pool + Priority Queue)]
+package main
+
+import (
+	"fmt"
+	"sort"
+	"sync"
+	"time"
+)
+
+type Task struct {
+	id       string
+	priority int
+	execute  func()
+}
+
+type Scheduler struct {
+	queue         []Task
+	maxConcurrent int
+	activeCount   int
+	mu            sync.Mutex
+}
+
+func NewScheduler(max int) *Scheduler {
+	return &Scheduler{maxConcurrent: max}
+}
+
+func (s *Scheduler) Schedule(id string, priority int, fn func()) {
+	s.mu.Lock()
+	s.queue = append(s.queue, Task{id, priority, fn})
+	// Sort highest priority first
+	sort.Slice(s.queue, func(i, j int) bool {
+		return s.queue[i].priority > s.queue[j].priority
+	})
+	fmt.Printf("[Scheduled] %s\n", id)
+	s.mu.Unlock()
+	
+	s.tick()
+}
+
+func (s *Scheduler) tick() {
+	s.mu.Lock()
+	if s.activeCount >= s.maxConcurrent || len(s.queue) == 0 {
+		s.mu.Unlock()
+		return
+	}
+
+	task := s.queue[0]
+	s.queue = s.queue[1:]
+	s.activeCount++
+	fmt.Printf("[Executing] %s\n", task.id)
+	s.mu.Unlock()
+
+	// Execute in a goroutine (worker)
+	go func() {
+		task.execute()
+		fmt.Printf("[Completed] %s\n", task.id)
+		
+		s.mu.Lock()
+		s.activeCount--
+		s.mu.Unlock()
+		
+		s.tick() // Trigger next
+	}()
+}
+
+func main() {
+	s := NewScheduler(2)
+
+	work := func() { time.Sleep(1 * time.Second) }
+
+	s.Schedule("Task A (Low)", 1, work)
+	s.Schedule("Task B (Low)", 1, work)
+	s.Schedule("Task C (HIGH)", 10, work)
+
+	time.Sleep(3 * time.Second) // wait for completion
+}
+```
+
+```rust [Rust (Tokio Tasks)]
+use std::time::Duration;
+use tokio::time;
+
+// In Rust enterprise apps, Tokio acts as the global async scheduler.
+// We don't usually write custom schedulers; we use concurrency limits.
+
+#[tokio::main]
+async fn main() {
+    // A Semaphore enforces the "max concurrent tasks" rule
+    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(2));
+    let mut handles = vec![];
+
+    for i in 1..=4 {
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+        
+        let handle = tokio::spawn(async move {
+            println!("[Executing] Task {}", i);
+            time::sleep(Duration::from_millis(500)).await;
+            println!("[Completed] Task {}", i);
+            
+            // Drop permit so next task can run
+            drop(permit); 
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
+}
 ```
 
 :::
 
-## Advantages ✅
+## Pros and Cons
 
-- **Fair Access**: Equitable resource use
-- **No Conflicts**: Prevents race conditions
-- **Predictable**: Controlled execution
-- **Priority Support**: Important tasks first
-- **Starvation Prevention**: All tasks get a turn
-- **Resource Efficient**: Better utilization
-- **Simple**: Easy to understand
-- **Flexible**: Different strategies
+### Advantages
+- **System Stability**: By limiting maximum concurrency, the server is protected from traffic spikes and OOM crashes.
+- **Fairness & Prioritization**: Critical systems (like processing payments) can bypass non-critical systems (like sending analytics logs).
+- **Resource Efficiency**: Thread pools combined with schedulers avoid the massive OS overhead of constantly creating and destroying threads.
 
-## Disadvantages ❌
+### Disadvantages
+- **Complexity**: Writing a custom, thread-safe, priority-based scheduler is notoriously difficult and prone to race conditions.
+- **Single Point of Bottleneck**: The scheduler itself evaluates every task. If the scheduler algorithm is slow, the entire application grinds to a halt.
+- **Starvation**: If a system constantly receives High Priority tasks, the Low Priority tasks will sit in the queue forever and never execute.
 
-- **Complexity**: Complex implementation
-- **Overhead**: Scheduling adds latency
-- **Context Switching**: Performance cost
-- **Debugging**: Hard to trace issues
-- **Not Parallel**: Sequential execution
-- **Performance**: Slower than parallel
-- **Synchronization**: Complex locking
-- **Scalability**: Limited by single thread
+## When to Use
 
-## When to Use ✅
+- **Operating Systems & Compilers**: At the core of OS thread management and CPU allocation.
+- **Background Job Processing**: Systems like Celery, Sidekiq, or BullMQ are distributed schedulers.
+- **Rate Limiting**: When calling third-party APIs that only allow 5 requests per second, you must use a scheduler to throttle your outbound requests.
+- **Database Connection Pooling**: A connection pool is a scheduler that restricts how many queries can hit the database simultaneously.
 
-- **Shared Resources**: Limited resource access
-- **Fair Distribution**: Need fairness
-- **Priority Tasks**: Some more important
-- **Single Threaded**: Event loop required
-- **Cooperative**: Threads cooperate
-- **Resource Pooling**: Limited resources
-- **Task Management**: Centralized control
-- **Event-Driven**: Event loop patterns
+## When NOT to Use
 
-## When NOT to Use ❌
+- **Trivial Apps**: If your app naturally handles low load, adding a scheduler is premature optimization.
+- **When Frameworks Provide It**: Never write your own thread pool scheduler in Java/Go/Rust. Use `ExecutorService`, `goroutines`, or `Tokio`. Only write a custom logic scheduler if you need highly specific business prioritization rules.
 
-- **Parallel Execution**: Need true parallelism
-- **Performance-Critical**: Overhead unacceptable
-- **Simple Cases**: Over-engineering
-- **Real-Time**: Unpredictable timing
-- **Distributed**: Multiple machines
-- **Microservices**: Already distributed
-- **Modern Async**: Use async/await
-- **Lock-Free**: Lock-free better
+## Common Mistakes
+
+- **Not handling Starvation**: Failing to implement "Aging" (gradually increasing the priority of tasks that have been waiting in the queue too long) resulting in abandoned low-priority tasks.
+- **Blocking the Scheduler Thread**: If a task executes synchronously *on* the dispatcher thread instead of a worker thread, the entire system freezes.
 
 ## Related Patterns
 
-- **Thread Pool**: Common use of scheduling
-- **Producer-Consumer**: With scheduling
-- **Observer Pattern**: Event scheduling
-- **Command Pattern**: Queued commands
+- **Producer-Consumer**: The Scheduler is an advanced variation of Producer-Consumer where the queue is sorted by priority and execution is strictly monitored.
+- **Thread Pool**: The underlying mechanism that the Scheduler uses to execute tasks.
+- **Command Pattern**: The tasks placed into the Scheduler queue are usually Command objects.

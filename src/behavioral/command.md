@@ -1,497 +1,744 @@
 ---
-title: Command
-description: Encapsulate requests as objects, allowing parameterization of clients with different requests, queuing, and logging.
+title: Command Pattern
+description: Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations.
 icon: Command
 ---
 
-# Command
-
-
+# Command Pattern
 
 ## Overview
 
-The **Command** pattern is a behavioral design pattern that encapsulates a request as an object, thereby allowing you to parameterize clients with different requests, queue requests, and support undoable operations. This pattern turns an action or request into a standalone object that can be passed around, stored, and executed.
+The **Command** pattern is a behavioral design pattern that turns a request or an action into a standalone object. This transformation lets you parameterize methods with different requests, delay or queue a request's execution, and support undoable operations.
 
-## Purpose
+**Key advantage**: It decouples the object that *invokes* the operation from the object that *performs* the operation.
 
-The Command pattern aims to:
+**Modern perspective**: The Command pattern is heavily used in modern GUI applications (undo/redo stacks), job queues (Redis/Celery workers), transactional systems (compensating transactions in distributed architectures), and CQRS (Command Query Responsibility Segregation).
 
-- Encapsulate requests as objects so they can be parameterized and queued
-- Decouple the object that invokes an operation from the one that performs it
-- Support undoable and redoable operations
-- Support queuing operations, scheduling execution, and logging
-- Support transactions and macro commands
+## The Problem
 
-## Problem
+Imagine you are building a modern Text Editor. You want to implement a toolbar with buttons for operations like `Copy`, `Paste`, `Undo`, and `Save`. 
 
-Consider a text editor with undo/redo functionality. Without the Command pattern, you might have:
+Initially, you might just write event listeners for each button that directly call methods on the `Document` object:
 
 ```typescript
-// Without Command pattern - tightly coupled
-class TextEditor {
-  private text = "";
+// ❌ Bad: UI is tightly coupled to business logic
+class SaveButton {
+  constructor(private document: Document) {}
 
-  executeUndo() {
-    // How do we know what to undo?
-    // What if we have multiple undo operations?
-  }
-
-  executeRedo() {
-    // Similar problem
+  onClick() {
+    this.document.saveToFile();
   }
 }
 ```
 
-Issues with this approach:
+This seems fine until you realize:
+1. You also want a keyboard shortcut (Ctrl+S) to save the document. Now you have to duplicate the save logic or awkwardly link the shortcut to the button.
+2. You want to implement an "Undo" feature. But `onClick` executes immediately and leaves no trace. How do you remember what was changed?
+3. You want to add macro support (recording a sequence of actions and playing them back).
 
-- No clear way to handle undo/redo for different operations
-- Tightly coupling operations to the editor
-- Difficult to queue or schedule operations
-- Hard to log or audit what operations were performed
-- Cannot easily support macros or composite operations
+Directly coupling the UI to the business logic makes it impossible to build complex features that treat actions as data.
 
-## Solution
+## The Solution
 
-The Command pattern solves this by creating command objects that encapsulate operations. Each command knows how to execute itself and potentially how to undo itself.
+The Command pattern suggests that instead of UI components calling business logic directly, you extract the request details into a separate **Command** object.
 
-```typescript
-// Command interface
+1. The UI component (the **Invoker**) just calls `execute()` on a Command interface.
+2. The **Command** object knows exactly which method to call on the **Receiver** (the business logic object).
+3. Because the command is an object, you can store it in an array (for history/undo), serialize it, or send it over a network.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Invoker {
+        -command: Command
+        +setCommand(Command)
+        +executeCommand()
+    }
+    class Command {
+        <<interface>>
+        +execute()
+        +undo()
+    }
+    class ConcreteCommand {
+        -receiver: Receiver
+        -params: any
+        +execute()
+        +undo()
+    }
+    class Receiver {
+        +action(params)
+        +reverseAction(params)
+    }
+    class Client {
+    }
+
+    Client --> Invoker
+    Client --> Receiver
+    Client ..> ConcreteCommand : creates
+    Invoker o--> Command
+    Command <|.. ConcreteCommand
+    ConcreteCommand --> Receiver : calls
+```
+
+## Flow
+
+1. **Client** configures the **Invoker** (e.g., a button) with a specific **ConcreteCommand** (e.g., `SaveCommand`).
+2. The user clicks the button, causing the **Invoker** to call `command.execute()`.
+3. The **ConcreteCommand** calls the actual business logic on the **Receiver** (e.g., `document.save()`).
+4. (Optional) The **ConcreteCommand** saves its state before executing, allowing it to reverse the operation if `command.undo()` is called later.
+
+## Real-World Analogy
+
+Think of ordering food at a **Restaurant**.
+1. You (the **Client**) tell the Waiter what you want.
+2. The Waiter (the **Invoker**) writes your request on an order ticket (the **Command**). 
+3. The Waiter places the ticket on the kitchen counter. They don't cook the food; they just pass the ticket.
+4. The Chef (the **Receiver**) picks up the ticket and reads the instructions to cook the meal.
+
+The order ticket encapsulates all the details of the request. It can be queued, cancelled (undone), or logged for billing.
+
+## Step-by-Step Implementation
+
+1. **Declare the Command interface**: Define at least an `execute()` method. If you need undo functionality, add `undo()`.
+2. **Create Concrete Commands**: Implement the interface. These classes should accept a Receiver object and any necessary parameters via their constructor.
+3. **Implement the Receiver**: This is the core business logic class that actually performs the work.
+4. **Create the Invoker**: The class that will trigger the command. It should hold a reference to a Command and call `execute()` on it. (e.g., a History stack for undo/redo).
+
+## Code Examples
+
+Here is a full implementation of a simple Text Editor that supports formatting commands with Undo/Redo functionality.
+
+::: code-group
+
+```typescript [TypeScript]
+// 1. Receiver
+class TextDocument {
+  private content: string = "";
+
+  getContent(): string { return this.content; }
+  
+  insert(position: number, text: string): void {
+    this.content = this.content.slice(0, position) + text + this.content.slice(position);
+  }
+
+  delete(position: number, length: number): string {
+    const deleted = this.content.slice(position, position + length);
+    this.content = this.content.slice(0, position) + this.content.slice(position + length);
+    return deleted;
+  }
+}
+
+// 2. Command Interface
 interface Command {
   execute(): void;
   undo(): void;
 }
 
-// Concrete commands
+// 3. Concrete Commands
 class InsertTextCommand implements Command {
   constructor(
-    private editor: TextEditor,
+    private doc: TextDocument,
     private position: number,
-    private text: string,
+    private text: string
   ) {}
 
   execute(): void {
-    this.editor.insertText(this.position, this.text);
+    this.doc.insert(this.position, this.text);
   }
 
   undo(): void {
-    this.editor.deleteText(this.position, this.text.length);
+    // Reverse of insert is delete
+    this.doc.delete(this.position, this.text.length);
   }
 }
 
-// Invoker
-class TextEditor {
-  private history: Command[] = [];
-  private undoStack: Command[] = [];
+class DeleteTextCommand implements Command {
+  private deletedText: string = "";
 
-  executeCommand(command: Command): void {
-    command.execute();
-    this.history.push(command);
-    this.undoStack = []; // Clear redo stack
+  constructor(
+    private doc: TextDocument,
+    private position: number,
+    private length: number
+  ) {}
+
+  execute(): void {
+    // Store the deleted text so we can undo it later
+    this.deletedText = this.doc.delete(this.position, this.length);
   }
 
   undo(): void {
-    const command = this.history.pop();
-    if (command) {
-      command.undo();
-      this.undoStack.push(command);
+    // Reverse of delete is insert
+    this.doc.insert(this.position, this.deletedText);
+  }
+}
+
+// 4. Invoker (History Manager)
+class CommandHistory {
+  private history: Command[] = [];
+  private redoStack: Command[] = [];
+
+  execute(cmd: Command): void {
+    cmd.execute();
+    this.history.push(cmd);
+    this.redoStack = []; // Clearing redo stack on new action
+  }
+
+  undo(): void {
+    const cmd = this.history.pop();
+    if (cmd) {
+      cmd.undo();
+      this.redoStack.push(cmd);
     }
   }
 
   redo(): void {
-    const command = this.undoStack.pop();
-    if (command) {
-      command.execute();
-      this.history.push(command);
+    const cmd = this.redoStack.pop();
+    if (cmd) {
+      cmd.execute();
+      this.history.push(cmd);
     }
   }
 }
+
+// 5. Client
+const doc = new TextDocument();
+const history = new CommandHistory();
+
+// "Type" some text
+history.execute(new InsertTextCommand(doc, 0, "Hello World"));
+console.log(doc.getContent()); // Output: Hello World
+
+// Insert more text
+history.execute(new InsertTextCommand(doc, 5, " Beautiful"));
+console.log(doc.getContent()); // Output: Hello Beautiful World
+
+// Undo the last insertion
+history.undo();
+console.log(doc.getContent()); // Output: Hello World
+
+// Redo it
+history.redo();
+console.log(doc.getContent()); // Output: Hello Beautiful World
+
+// Delete " Beautiful"
+history.execute(new DeleteTextCommand(doc, 5, 10));
+console.log(doc.getContent()); // Output: Hello World
 ```
 
-## Implementation
-
-::: code-group
-
-```typescript [typescript]
-// Command interface
-    interface Command {
-      execute(): void;
-      undo(): void;
-      getDescription(): string;
-    }
-
-    // Receiver class
-    class Document {
-      private text: string = '';
-
-      getText(): string {
-        return this.text;
-      }
-
-      addText(position: number, text: string): void {
-        this.text = this.text.slice(0, position) + text + this.text.slice(position);
-      }
-
-      deleteText(position: number, length: number): void {
-        this.text = this.text.slice(0, position) + this.text.slice(position + length);
-      }
-
-      replaceText(position: number, length: number, text: string): void {
-        this.text = this.text.slice(0, position) + text + this.text.slice(position + length);
-      }
-
-      format(position: number, length: number, style: string): void {
-        // Apply formatting
-        console.log(`Applied ${style} to text at position ${position}`);
-      }
-    }
-
-    // Concrete command 1
-    class AddTextCommand implements Command {
-      private previousText: string = '';
-
-      constructor(
-        private document: Document,
-        private position: number,
-        private text: string
-      ) {}
-
-      execute(): void {
-        this.previousText = this.document.getText();
-        this.document.addText(this.position, this.text);
-      }
-
-      undo(): void {
-        this.document.deleteText(this.position, this.text.length);
-      }
-
-      getDescription(): string {
-        return `Added "${this.text}" at position ${this.position}`;
-      }
-    }
-
-    // Concrete command 2
-    class DeleteTextCommand implements Command {
-      private deletedText: string = '';
-
-      constructor(
-        private document: Document,
-        private position: number,
-        private length: number
-      ) {}
-
-      execute(): void {
-        const text = this.document.getText();
-        this.deletedText = text.slice(this.position, this.position + this.length);
-        this.document.deleteText(this.position, this.length);
-      }
-
-      undo(): void {
-        this.document.addText(this.position, this.deletedText);
-      }
-
-      getDescription(): string {
-        return `Deleted ${this.length} characters at position ${this.position}`;
-      }
-    }
-
-    // Concrete command 3 - Macro command
-    class FormatTextCommand implements Command {
-      constructor(
-        private document: Document,
-        private position: number,
-        private length: number,
-        private style: string
-      ) {}
-
-      execute(): void {
-        this.document.format(this.position, this.length, this.style);
-      }
-
-      undo(): void {
-        this.document.format(this.position, this.length, 'normal');
-      }
-
-      getDescription(): string {
-        return `Applied ${this.style} formatting to text`;
-      }
-    }
-
-    // Invoker class
-    class CommandHistory {
-      private history: Command[] = [];
-      private undoStack: Command[] = [];
-
-      executeCommand(command: Command): void {
-        command.execute();
-        this.history.push(command);
-        this.undoStack = []; // Clear redo stack
-        console.log(`Executed: ${command.getDescription()}`);
-      }
-
-      undo(): boolean {
-        if (this.history.length === 0) return false;
-        const command = this.history.pop()!;
-        command.undo();
-        this.undoStack.push(command);
-        console.log(`Undone: ${command.getDescription()}`);
-        return true;
-      }
-
-      redo(): boolean {
-        if (this.undoStack.length === 0) return false;
-        const command = this.undoStack.pop()!;
-        command.execute();
-        this.history.push(command);
-        console.log(`Redone: ${command.getDescription()}`);
-        return true;
-      }
-
-      getHistory(): string {
-        return this.history.map(cmd => cmd.getDescription()).join('\n');
-      }
-    }
-
-    // Usage
-    const document = new Document();
-    const editor = new CommandHistory();
-
-    const cmd1 = new AddTextCommand(document, 0, 'Hello');
-    editor.executeCommand(cmd1);
-
-    const cmd2 = new AddTextCommand(document, 5, ' World');
-    editor.executeCommand(cmd2);
-
-    console.log(document.getText()); // "Hello World"
-
-    editor.undo(); // Removes " World"
-    console.log(document.getText()); // "Hello"
-
-    editor.redo(); // Adds " World" back
-    console.log(document.getText()); // "Hello World"
-```
-
-
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
-    from typing import List
+from typing import List
 
-    class Document:
-        def __init__(self):
-            self.text = ""
+# 1. Receiver
+class TextDocument:
+    def __init__(self):
+        self._content = ""
 
-        def get_text(self) -> str:
-            return self.text
+    def get_content(self) -> str:
+        return self._content
 
-        def add_text(self, position: int, text: str) -> None:
-            self.text = self.text[:position] + text + self.text[position:]
+    def insert(self, position: int, text: str):
+        self._content = self._content[:position] + text + self._content[position:]
 
-        def delete_text(self, position: int, length: int) -> None:
-            self.text = self.text[:position] + self.text[position + length:]
+    def delete(self, position: int, length: int) -> str:
+        deleted = self._content[position:position + length]
+        self._content = self._content[:position] + self._content[position + length:]
+        return deleted
 
-        def format(self, position: int, length: int, style: str) -> None:
-            print(f"Applied {style} to text at position {position}")
+# 2. Command Interface
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
 
-    class Command(ABC):
-        @abstractmethod
-        def execute(self) -> None:
-            pass
+    @abstractmethod
+    def undo(self):
+        pass
 
-        @abstractmethod
-        def undo(self) -> None:
-            pass
+# 3. Concrete Commands
+class InsertTextCommand(Command):
+    def __init__(self, doc: TextDocument, position: int, text: str):
+        self.doc = doc
+        self.position = position
+        self.text = text
 
-        @abstractmethod
-        def get_description(self) -> str:
-            pass
+    def execute(self):
+        self.doc.insert(self.position, self.text)
 
-    class AddTextCommand(Command):
-        def __init__(self, document: Document, position: int, text: str):
-            self.document = document
-            self.position = position
-            self.text = text
+    def undo(self):
+        self.doc.delete(self.position, len(self.text))
 
-        def execute(self) -> None:
-            self.document.add_text(self.position, self.text)
 
-        def undo(self) -> None:
-            self.document.delete_text(self.position, len(self.text))
+class DeleteTextCommand(Command):
+    def __init__(self, doc: TextDocument, position: int, length: int):
+        self.doc = doc
+        self.position = position
+        self.length = length
+        self.deleted_text = ""
 
-        def get_description(self) -> str:
-            return f'Added "{self.text}" at position {self.position}'
+    def execute(self):
+        self.deleted_text = self.doc.delete(self.position, self.length)
 
-    class DeleteTextCommand(Command):
-        def __init__(self, document: Document, position: int, length: int):
-            self.document = document
-            self.position = position
-            self.length = length
-            self.deleted_text = ""
+    def undo(self):
+        self.doc.insert(self.position, self.deleted_text)
 
-        def execute(self) -> None:
-            text = self.document.get_text()
-            self.deleted_text = text[self.position:self.position + self.length]
-            self.document.delete_text(self.position, self.length)
+# 4. Invoker
+class CommandHistory:
+    def __init__(self):
+        self.history: List[Command] = []
+        self.redo_stack: List[Command] = []
 
-        def undo(self) -> None:
-            self.document.add_text(self.position, self.deleted_text)
+    def execute(self, cmd: Command):
+        cmd.execute()
+        self.history.append(cmd)
+        self.redo_stack.clear()
 
-        def get_description(self) -> str:
-            return f"Deleted {self.length} characters at position {self.position}"
+    def undo(self):
+        if self.history:
+            cmd = self.history.pop()
+            cmd.undo()
+            self.redo_stack.append(cmd)
 
-    class CommandHistory:
-        def __init__(self):
-            self.history: List[Command] = []
-            self.undo_stack: List[Command] = []
+    def redo(self):
+        if self.redo_stack:
+            cmd = self.redo_stack.pop()
+            cmd.execute()
+            self.history.append(cmd)
 
-        def execute_command(self, command: Command) -> None:
-            command.execute()
-            self.history.append(command)
-            self.undo_stack = []  # Clear redo stack
-            print(f"Executed: {command.get_description()}")
+# 5. Client
+if __name__ == "__main__":
+    doc = TextDocument()
+    invoker = CommandHistory()
 
-        def undo(self) -> bool:
-            if not self.history:
-                return False
-            command = self.history.pop()
-            command.undo()
-            self.undo_stack.append(command)
-            print(f"Undone: {command.get_description()}")
-            return True
+    invoker.execute(InsertTextCommand(doc, 0, "Hello World"))
+    print(doc.get_content())  # Hello World
 
-        def redo(self) -> bool:
-            if not self.undo_stack:
-                return False
-            command = self.undo_stack.pop()
-            command.execute()
-            self.history.append(command)
-            print(f"Redone: {command.get_description()}")
-            return True
+    invoker.execute(InsertTextCommand(doc, 5, " Beautiful"))
+    print(doc.get_content())  # Hello Beautiful World
 
-    # Usage
-    document = Document()
-    editor = CommandHistory()
+    invoker.undo()
+    print(doc.get_content())  # Hello World
 
-    cmd1 = AddTextCommand(document, 0, "Hello")
-    editor.execute_command(cmd1)
+    invoker.redo()
+    print(doc.get_content())  # Hello Beautiful World
+```
 
-    cmd2 = AddTextCommand(document, 5, " World")
-    editor.execute_command(cmd2)
+```java [Java]
+import java.util.Stack;
 
-    print(document.get_text())  # Hello World
+// 1. Receiver
+class TextDocument {
+    private StringBuilder content = new StringBuilder();
 
-    editor.undo()  # Removes " World"
-    print(document.get_text())  # Hello
+    public String getContent() {
+        return content.toString();
+    }
 
-    editor.redo()  # Adds " World" back
-    print(document.get_text())  # Hello World
+    public void insert(int position, String text) {
+        content.insert(position, text);
+    }
+
+    public String delete(int position, int length) {
+        String deleted = content.substring(position, position + length);
+        content.delete(position, position + length);
+        return deleted;
+    }
+}
+
+// 2. Command Interface
+interface Command {
+    void execute();
+    void undo();
+}
+
+// 3. Concrete Commands
+class InsertTextCommand implements Command {
+    private TextDocument doc;
+    private int position;
+    private String text;
+
+    public InsertTextCommand(TextDocument doc, int position, String text) {
+        this.doc = doc;
+        this.position = position;
+        this.text = text;
+    }
+
+    @Override
+    public void execute() {
+        doc.insert(position, text);
+    }
+
+    @Override
+    public void undo() {
+        doc.delete(position, text.length());
+    }
+}
+
+class DeleteTextCommand implements Command {
+    private TextDocument doc;
+    private int position;
+    private int length;
+    private String deletedText;
+
+    public DeleteTextCommand(TextDocument doc, int position, int length) {
+        this.doc = doc;
+        this.position = position;
+        this.length = length;
+    }
+
+    @Override
+    public void execute() {
+        deletedText = doc.delete(position, length);
+    }
+
+    @Override
+    public void undo() {
+        doc.insert(position, deletedText);
+    }
+}
+
+// 4. Invoker
+class CommandHistory {
+    private Stack<Command> history = new Stack<>();
+    private Stack<Command> redoStack = new Stack<>();
+
+    public void execute(Command cmd) {
+        cmd.execute();
+        history.push(cmd);
+        redoStack.clear();
+    }
+
+    public void undo() {
+        if (!history.isEmpty()) {
+            Command cmd = history.pop();
+            cmd.undo();
+            redoStack.push(cmd);
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Command cmd = redoStack.pop();
+            cmd.execute();
+            history.push(cmd);
+        }
+    }
+}
+
+// 5. Client
+public class CommandDemo {
+    public static void main(String[] args) {
+        TextDocument doc = new TextDocument();
+        CommandHistory invoker = new CommandHistory();
+
+        invoker.execute(new InsertTextCommand(doc, 0, "Hello World"));
+        System.out.println(doc.getContent()); // Hello World
+
+        invoker.execute(new InsertTextCommand(doc, 5, " Beautiful"));
+        System.out.println(doc.getContent()); // Hello Beautiful World
+
+        invoker.undo();
+        System.out.println(doc.getContent()); // Hello World
+
+        invoker.redo();
+        System.out.println(doc.getContent()); // Hello Beautiful World
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. Receiver
+type TextDocument struct {
+	content string
+}
+
+func (d *TextDocument) Insert(position int, text string) {
+	d.content = d.content[:position] + text + d.content[position:]
+}
+
+func (d *TextDocument) Delete(position int, length int) string {
+	deleted := d.content[position : position+length]
+	d.content = d.content[:position] + d.content[position+length:]
+	return deleted
+}
+
+// 2. Command Interface
+type Command interface {
+	Execute()
+	Undo()
+}
+
+// 3. Concrete Commands
+type InsertTextCommand struct {
+	doc      *TextDocument
+	position int
+	text     string
+}
+
+func (c *InsertTextCommand) Execute() {
+	c.doc.Insert(c.position, c.text)
+}
+
+func (c *InsertTextCommand) Undo() {
+	c.doc.Delete(c.position, len(c.text))
+}
+
+type DeleteTextCommand struct {
+	doc         *TextDocument
+	position    int
+	length      int
+	deletedText string
+}
+
+func (c *DeleteTextCommand) Execute() {
+	c.deletedText = c.doc.Delete(c.position, c.length)
+}
+
+func (c *DeleteTextCommand) Undo() {
+	c.doc.Insert(c.position, c.deletedText)
+}
+
+// 4. Invoker
+type CommandHistory struct {
+	history   []Command
+	redoStack []Command
+}
+
+func (h *CommandHistory) Execute(cmd Command) {
+	cmd.Execute()
+	h.history = append(h.history, cmd)
+	h.redoStack = []Command{} // clear redo stack
+}
+
+func (h *CommandHistory) Undo() {
+	if len(h.history) > 0 {
+		lastIdx := len(h.history) - 1
+		cmd := h.history[lastIdx]
+		h.history = h.history[:lastIdx] // pop
+
+		cmd.Undo()
+		h.redoStack = append(h.redoStack, cmd)
+	}
+}
+
+func (h *CommandHistory) Redo() {
+	if len(h.redoStack) > 0 {
+		lastIdx := len(h.redoStack) - 1
+		cmd := h.redoStack[lastIdx]
+		h.redoStack = h.redoStack[:lastIdx] // pop
+
+		cmd.Execute()
+		h.history = append(h.history, cmd)
+	}
+}
+
+// 5. Client
+func main() {
+	doc := &TextDocument{}
+	invoker := &CommandHistory{}
+
+	invoker.Execute(&InsertTextCommand{doc, 0, "Hello World"})
+	fmt.Println(doc.content) // Hello World
+
+	invoker.Execute(&InsertTextCommand{doc, 5, " Beautiful"})
+	fmt.Println(doc.content) // Hello Beautiful World
+
+	invoker.Undo()
+	fmt.Println(doc.content) // Hello World
+
+	invoker.Redo()
+	fmt.Println(doc.content) // Hello Beautiful World
+}
+```
+
+```rust [Rust]
+// 1. Receiver
+struct TextDocument {
+    content: String,
+}
+
+impl TextDocument {
+    fn new() -> Self {
+        Self { content: String::new() }
+    }
+
+    fn insert(&mut self, position: usize, text: &str) {
+        self.content.insert_str(position, text);
+    }
+
+    fn delete(&mut self, position: usize, length: usize) -> String {
+        let deleted: String = self.content.chars().skip(position).take(length).collect();
+        // Delete byte range requires careful char boundaries in Rust, 
+        // simplified here assuming ASCII for demonstration
+        self.content.drain(position..position + length);
+        deleted
+    }
+}
+
+// 2. Command Trait
+trait Command {
+    fn execute(&mut self, doc: &mut TextDocument);
+    fn undo(&mut self, doc: &mut TextDocument);
+}
+
+// 3. Concrete Commands
+struct InsertTextCommand {
+    position: usize,
+    text: String,
+}
+
+impl Command for InsertTextCommand {
+    fn execute(&mut self, doc: &mut TextDocument) {
+        doc.insert(self.position, &self.text);
+    }
+
+    fn undo(&mut self, doc: &mut TextDocument) {
+        doc.delete(self.position, self.text.len());
+    }
+}
+
+struct DeleteTextCommand {
+    position: usize,
+    length: usize,
+    deleted_text: String,
+}
+
+impl Command for DeleteTextCommand {
+    fn execute(&mut self, doc: &mut TextDocument) {
+        self.deleted_text = doc.delete(self.position, self.length);
+    }
+
+    fn undo(&mut self, doc: &mut TextDocument) {
+        doc.insert(self.position, &self.deleted_text);
+    }
+}
+
+// 4. Invoker
+struct CommandHistory {
+    history: Vec<Box<dyn Command>>,
+    redo_stack: Vec<Box<dyn Command>>,
+}
+
+impl CommandHistory {
+    fn new() -> Self {
+        Self {
+            history: Vec::new(),
+            redo_stack: Vec::new(),
+        }
+    }
+
+    fn execute(&mut self, mut cmd: Box<dyn Command>, doc: &mut TextDocument) {
+        cmd.execute(doc);
+        self.history.push(cmd);
+        self.redo_stack.clear();
+    }
+
+    fn undo(&mut self, doc: &mut TextDocument) {
+        if let Some(mut cmd) = self.history.pop() {
+            cmd.undo(doc);
+            self.redo_stack.push(cmd);
+        }
+    }
+
+    fn redo(&mut self, doc: &mut TextDocument) {
+        if let Some(mut cmd) = self.redo_stack.pop() {
+            cmd.execute(doc);
+            self.history.push(cmd);
+        }
+    }
+}
+
+// 5. Client
+fn main() {
+    let mut doc = TextDocument::new();
+    let mut invoker = CommandHistory::new();
+
+    invoker.execute(Box::new(InsertTextCommand { position: 0, text: "Hello World".to_string() }), &mut doc);
+    println!("{}", doc.content);
+
+    invoker.execute(Box::new(InsertTextCommand { position: 5, text: " Beautiful".to_string() }), &mut doc);
+    println!("{}", doc.content);
+
+    invoker.undo(&mut doc);
+    println!("{}", doc.content);
+
+    invoker.redo(&mut doc);
+    println!("{}", doc.content);
+}
 ```
 
 :::
 
-## Real-World Example
+## Pros and Cons
 
-### Task Scheduler and Batch Processing
+### Advantages
+- **Single Responsibility Principle**: Decouples classes that invoke operations from classes that perform them.
+- **Open/Closed Principle**: You can introduce new commands without breaking existing client code.
+- **Undo/Redo**: By storing commands, you natively support traversing back and forth through history.
+- **Delayed Execution**: You can queue, schedule, or serialize commands for later execution (perfect for Job Queues).
+- **Macro Commands**: You can assemble simple commands into complex macro commands (e.g., Composite pattern combined with Command).
 
-```typescript
-interface Task extends Command {
-  getPriority(): number;
-  getEstimatedTime(): number;
-}
-
-class EmailTask implements Task {
-  constructor(
-    private recipient: string,
-    private subject: string,
-    private body: string,
-  ) {}
-
-  execute(): void {
-    console.log(`Sending email to ${this.recipient}: ${this.subject}`);
-    // Send email logic
-  }
-
-  undo(): void {
-    console.log(`Email to ${this.recipient} marked as unsent`);
-  }
-
-  getPriority(): number {
-    return 1;
-  }
-
-  getEstimatedTime(): number {
-    return 100; // milliseconds
-  }
-
-  getDescription(): string {
-    return `Email to ${this.recipient}`;
-  }
-}
-
-class TaskScheduler {
-  private queue: Task[] = [];
-
-  schedule(task: Task): void {
-    this.queue.push(task);
-    this.queue.sort((a, b) => b.getPriority() - a.getPriority());
-  }
-
-  processAll(): void {
-    while (this.queue.length > 0) {
-      const task = this.queue.shift()!;
-      task.execute();
-    }
-  }
-
-  executeLater(task: Task, delay: number): void {
-    setTimeout(() => task.execute(), delay);
-  }
-}
-
-// Usage
-const scheduler = new TaskScheduler();
-scheduler.schedule(new EmailTask("user@example.com", "Welcome", "Welcome aboard!"));
-scheduler.processAll();
-```
-
-## Advantages
-
-✅ **Decoupling** - Decouples objects that invoke operations from those that perform them
-✅ **Undo/Redo Support** - Easy to implement undo and redo functionality
-✅ **Queuing Operations** - Commands can be queued, logged, and executed later
-✅ **Macro Commands** - Support for composite commands (macro operations)
-✅ **Flexible Execution** - Commands can be executed immediately or scheduled
-✅ **Auditing** - Easy to track and log all operations performed
-✅ **Transactional Support** - Easier to implement atomic operations
-
-## Disadvantages
-
-❌ **Memory Overhead** - Each command object requires memory allocation
-❌ **Complexity** - Increased number of classes for each command type
-❌ **Undo Storage** - Storing large command histories can consume significant memory
-❌ **Error Handling** - Complex to handle errors in command chains
-❌ **Performance** - Extra layer of indirection can impact performance
+### Disadvantages
+- **Class Explosion**: For every possible action, you create a new concrete command class. This can severely bloat the codebase.
+- **Added Complexity**: Instead of a simple function call, you introduce an entirely new layer of indirection (Invoker -> Command -> Receiver).
+- **Memory Overhead**: Storing a long history of stateful objects (for undo/redo) can consume significant RAM.
 
 ## When to Use
 
-- You need to parameterize objects with operations
-- You need to queue operations, schedule their execution, or execute them remotely
-- You need to support undo/redo operations
-- You need to support logging changes or transaction support
-- You need to structure a system around high-level operations built on primitive operations
-- You want to avoid tight coupling between clients and service objects
+- **Undo/Redo functionality**: When building applications where users expect to reverse their actions (text editors, graphic software, CAD systems).
+- **Job Queues / Task Scheduling**: When you need to parameterize an object with an action, serialize it to a database/Redis, and execute it later inside a worker thread.
+- **GUI Buttons and Shortcuts**: When you want multiple UI elements (a menu item, a button, a shortcut) to trigger the exact same action without duplicating logic.
+- **Transactions / Sagas**: When building distributed systems where a failure in Step C requires you to run compensating transactions for Steps B and A. (You call `.undo()` on the commands).
 
 ## When NOT to Use
 
-- Operations are simple and don't require undo/redo
-- You need real-time execution without any delay
-- Memory is extremely limited and command history is large
-- The system is already using asynchronous events
-- Simple function calls would be more appropriate
+- **Simple CRUD applications**: If an operation is a simple database write and will never need to be undone or scheduled, creating command objects is massive overkill. Direct method calls are better.
+- **High-performance loops**: Allocating command objects inside a tight loop or real-time simulation (like game physics) can cause garbage collection spikes.
+
+## Common Mistakes
+
+### 1. Putting Business Logic Inside the Command
+Commands should *delegate* to the Receiver, not do the heavy lifting themselves.
+
+```typescript
+// ❌ Bad: Command handles database writing, validation, and email sending
+class ProcessOrderCommand implements Command {
+  execute() {
+     // 100 lines of complex business logic here...
+  }
+}
+
+// ✅ Good: Command merely calls the OrderService
+class ProcessOrderCommand implements Command {
+  constructor(private orderService: OrderService) {}
+  execute() {
+     this.orderService.process();
+  }
+}
+```
+
+### 2. Forgetting State for Undo
+An `undo()` method must restore the exact state prior to `execute()`. If you don't save the overwritten state inside the Command object during `execute()`, undo becomes impossible.
 
 ## Related Patterns
 
-- **Memento** - Often used with Command for storing state snapshots for undo
-- **Observer** - Can be used to notify objects about command execution
-- **Strategy** - Similar but Strategy encapsulates algorithms while Command encapsulates requests
-- **Composite** - Can be used to create macro commands
-- **Iterator** - Can be used to iterate through command history
+- **Memento**: Often used *with* Command. If a command modifies a massive object, instead of trying to figure out the reverse operation, the Command just saves a Memento (snapshot) of the object before execution, and restores the Memento during undo.
+- **Composite**: You can compose multiple commands into a `MacroCommand` which itself implements the Command interface.
+- **Strategy**: Similar in that both parameterize an object with behavior. But a Strategy specifies *how* to do something (algorithm), while a Command specifies *what* to do (action).
+
+## Interview Insights
+
+- **Question**: "How do you implement Undo functionality using the Command pattern?"
+  - **Answer**: "You keep a Stack of executed Command objects. Each command implements an `undo()` method. When the user clicks Undo, you pop the top command off the stack and call its `undo()` method, optionally pushing it onto a Redo stack."
+- **Question**: "What is CQRS, and how does it relate to the Command pattern?"
+  - **Answer**: "CQRS (Command Query Responsibility Segregation) separates read operations (Queries) from write operations (Commands). While related in naming and philosophy—both treat writes as distinct intention objects—CQRS is an architectural pattern for scaling databases and microservices, whereas the Command design pattern is a behavioral pattern for object-oriented memory structures."
+
+## Modern Alternatives
+
+- **Functional Closures**: In languages with first-class functions (JS/TS, Python, Go, Rust), you don't necessarily need an entire `Command` interface. A simple callback or closure `() => { ... }` can encapsulate an action and its closure scope acts as the stored parameters. (Though closures make undo/redo harder to standardise than objects).
+- **Redux / Flux Architecture**: In frontend frameworks, "Actions" and "Reducers" serve the exact same purpose as the Command pattern. An Action is a command payload, the Dispatcher is the Invoker, and the Reducer is the Receiver.

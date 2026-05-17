@@ -1,660 +1,635 @@
 ---
 title: Flyweight Pattern
-description: Uses sharing to efficiently support large numbers of similar objects with minimal memory overhead
+description: Uses sharing to efficiently support large numbers of similar objects with minimal memory overhead.
 icon: Minimize2
 ---
 
 # Flyweight Pattern
 
-
-
 ## Overview
 
-The Flyweight Pattern is a structural design pattern that uses object sharing to support large numbers of similar objects efficiently. It externalizes the intrinsic (unchanging) state while keeping the extrinsic (changing) state separate, drastically reducing memory consumption.
+The **Flyweight** pattern is a structural design pattern that reduces memory usage by sharing common object state across many instances. Instead of storing everything in each object, Flyweight splits state into:
 
-## Purpose
+- **Intrinsic state**: shared, stable, reusable data
+- **Extrinsic state**: context-specific data passed in when needed
 
-- **Reduce memory consumption** when dealing with large numbers of similar objects
-- **Share common state** between objects to minimize duplication
-- **Improve performance** through efficient object reuse
-- **Support large-scale applications** that would otherwise use excessive memory
-- **Decouple object state** into intrinsic and extrinsic components
+**Key advantage**: It makes massive collections of similar objects practical by sharing the expensive, repeated part.
 
-## Problem
+**Modern perspective**: Flyweight is still important in graphics engines, text rendering, games, and high-volume UI systems. Any workload that creates many similar objects benefits from shared immutable state.
 
-Consider a text editor displaying a document with 100,000 characters. Each character might have properties like:
+Flyweight is not about controlling access. It is about sharing data efficiently.
 
-- Font type
-- Font size
-- Font color
-- Font style (bold, italic)
+## Real-World Analogy
 
-Creating individual character objects, each holding all these properties, would consume massive amounts of memory. In a typical scenario:
+Think of a **font glyph library**. The shape of the letter `A` in a given font and size is shared. Every place that uses that glyph does not need a brand-new copy of the shape. Only its position, color, and line context change.
 
-- 1 character object = ~100 bytes
-- 100,000 characters = 10 MB just for objects!
+That is Flyweight in practice: one shared shape, many placements.
 
-Most importantly, characters often share identical formatting. The letter 'a' in Arial 12pt might appear 5,000 times in the document, but they all have identical intrinsic state.
+## The Problem
 
-## Solution
+Imagine a game that renders 100,000 particles, or a document editor that renders hundreds of thousands of styled characters. If each object stores all of its formatting or mesh data independently, memory usage balloons quickly.
 
-The Flyweight Pattern provides a solution by:
+### Problem Example
 
-1. **Identifying Intrinsic State**: Properties that don't change (font, size, color)
-2. **Identifying Extrinsic State**: Properties that do change (position, content)
-3. **Creating Flyweight Objects**: Immutable objects containing only intrinsic state
-4. **Using a Flyweight Factory**: Reuses existing flyweights instead of creating new ones
-5. **Managing Extrinsic State**: Storing separately or passing as context
+```typescript
+// ❌ Bad: every particle stores identical texture metadata
+class Particle {
+  constructor(
+    public texture: string,
+    public width: number,
+    public height: number,
+    public color: string,
+    public x: number,
+    public y: number,
+  ) {}
+}
+```
+
+If thousands of particles share the same texture and dimensions, that repeated data should not be duplicated in every object.
+
+## The Solution
+
+Flyweight solves this by:
+
+1. Identifying the shared part of the object state
+2. Storing that shared state in immutable flyweight objects
+3. Keeping changing context outside the flyweight
+4. Reusing flyweights through a factory or cache
+5. Passing extrinsic state when rendering or processing
 
 ## Implementation
 
 ::: code-group
 
 ```typescript [typescript]
-// ========== Flyweight (Intrinsic State) ==========
-
-interface CharacterFlyweight {
-getFont(): string;
-getSize(): number;
-getColor(): string;
-render(extrinsicState: CharacterContext): string;
+interface SpriteFlyweight {
+  render(x: number, y: number, color: string): void;
 }
 
-class Character implements CharacterFlyweight {
-constructor(
-private font: string,
-private size: number,
-private color: string
-) {}
+class Sprite implements SpriteFlyweight {
+  constructor(
+    private readonly texture: string,
+    private readonly width: number,
+    private readonly height: number,
+  ) {}
 
-getFont(): string {
-return this.font;
+  render(x: number, y: number, color: string): void {
+    console.log(
+      `Rendering ${this.texture} at (${x}, ${y}) with ${this.width}x${this.height} and color ${color}`,
+    );
+  }
 }
 
-getSize(): number {
-return this.size;
-}
+class SpriteFactory {
+  private readonly sprites = new Map<string, Sprite>();
 
-getColor(): string {
-return this.color;
-}
-
-render(extrinsicState: CharacterContext): string {
-return `<span style="font: ${this.size}px ${this.font}; color: ${this.color}; position: ${extrinsicState.position};">${extrinsicState.character}</span>`;
-}
-}
-
-// ========== Context (Extrinsic State) ==========
-
-interface CharacterContext {
-character: string;
-position: number;
-row: number;
-column: number;
-}
-
-// ========== Flyweight Factory ==========
-
-class CharacterFactory {
-private flyweights: Map<string, Character> = new Map();
-
-getCharacter(font: string, size: number, color: string): Character {
-const key = `${font}_${size}_${color}`;
-
-    // Return existing flyweight or create a new one
-    if (!this.flyweights.has(key)) {
-      console.log(`Creating new character flyweight: ${key}`);
-      this.flyweights.set(key, new Character(font, size, color));
-    } else {
-      console.log(`Reusing character flyweight: ${key}`);
+  getSprite(texture: string, width: number, height: number): Sprite {
+    const key = `${texture}:${width}:${height}`;
+    const existing = this.sprites.get(key);
+    if (existing) {
+      return existing;
     }
 
-    return this.flyweights.get(key)!;
+    const sprite = new Sprite(texture, width, height);
+    this.sprites.set(key, sprite);
+    return sprite;
+  }
 
-}
-
-getFlyweightCount(): number {
-return this.flyweights.size;
-}
-
-displayFlyweights(): void {
-console.log(`\nTotal unique flyweights: ${this.flyweights.size}`);
-for (const [key] of this.flyweights) {
-console.log(`  - ${key}`);
-}
-}
-}
-
-// ========== Document / Client ==========
-
-class Document {
-private characters: Array<{ flyweight: Character; context: CharacterContext }> =
-[];
-private factory: CharacterFactory;
-
-constructor(factory: CharacterFactory) {
-this.factory = factory;
-}
-
-addCharacter(char: string, font: string, size: number, color: string, row: number, col: number): void {
-const flyweight = this.factory.getCharacter(font, size, color);
-const context: CharacterContext = {
-character: char,
-position: row \* 100 + col,
-row,
-column: col,
-};
-
-    this.characters.push({ flyweight, context });
-
-}
-
-render(): string {
-let html = '<div>';
-for (const { flyweight, context } of this.characters) {
-html += flyweight.render(context);
-}
-html += '</div>';
-return html;
-}
-
-getCharacterCount(): number {
-return this.characters.length;
-}
-
-displayMemoryOptimization(): void {
-const totalObjects = this.characters.length;
-const uniqueFlyweights = this.factory.getFlyweightCount();
-const savings = totalObjects - uniqueFlyweights;
-const savingsPercent = ((savings / totalObjects) \* 100).toFixed(2);
-
-    console.log(`\n=== Memory Optimization ===`);
-    console.log(`Total characters: ${totalObjects}`);
-    console.log(`Unique flyweights: ${uniqueFlyweights}`);
-    console.log(`Shared instances: ${savings} (${savingsPercent}% reduction)`);
-
-}
-}
-
-// ========== Usage ==========
-
-const factory = new CharacterFactory();
-const document = new Document(factory);
-
-// Add characters with various formatting
-document.addCharacter('H', 'Arial', 12, 'black', 0, 0);
-document.addCharacter('e', 'Arial', 12, 'black', 0, 1);
-document.addCharacter('l', 'Arial', 12, 'black', 0, 2);
-document.addCharacter('l', 'Arial', 12, 'black', 0, 3);
-document.addCharacter('o', 'Arial', 12, 'black', 0, 4);
-
-// Space with different formatting
-document.addCharacter(' ', 'Arial', 12, 'black', 0, 5);
-
-// Different formatting
-document.addCharacter('W', 'Times', 14, 'blue', 0, 6);
-document.addCharacter('o', 'Times', 14, 'blue', 0, 7);
-document.addCharacter('r', 'Times', 14, 'blue', 0, 8);
-document.addCharacter('l', 'Times', 14, 'blue', 0, 9);
-document.addCharacter('d', 'Times', 14, 'blue', 0, 10);
-
-// Add more Arial 12 black (reuses existing flyweight)
-document.addCharacter('!', 'Arial', 12, 'black', 0, 11);
-
-factory.displayFlyweights();
-document.displayMemoryOptimization();
-
-// ========== Real-world example: Game Particles ==========
-
-interface ParticleFlyweight {
-getTexture(): string;
-getMass(): number;
-render(context: ParticleContext): void;
-}
-
-class Particle implements ParticleFlyweight {
-constructor(
-private texture: string,
-private mass: number
-) {}
-
-getTexture(): string {
-return this.texture;
-}
-
-getMass(): number {
-return this.mass;
-}
-
-render(context: ParticleContext): void {
-const acceleration = 9.8 / this.mass;
-console.log(
-`Rendering particle: texture=${this.texture}, x=${context.x}, y=${context.y}, vx=${context.velocityX}, vy=${context.velocityY}`
-);
-}
+  count(): number {
+    return this.sprites.size;
+  }
 }
 
 interface ParticleContext {
-x: number;
-y: number;
-velocityX: number;
-velocityY: number;
-lifetime: number;
+  x: number;
+  y: number;
+  color: string;
+  velocityX: number;
+  velocityY: number;
 }
 
-class ParticleFactory {
-private particles: Map<string, Particle> = new Map();
+class Particle {
+  constructor(
+    private readonly sprite: SpriteFlyweight,
+    private readonly context: ParticleContext,
+  ) {}
 
-getParticle(texture: string, mass: number): Particle {
-const key = `${texture}_${mass}`;
-
-    if (!this.particles.has(key)) {
-      console.log(`Creating particle flyweight: ${key}`);
-      this.particles.set(key, new Particle(texture, mass));
-    }
-
-    return this.particles.get(key)!;
-
-}
-
-getPoolSize(): number {
-return this.particles.size;
-}
+  draw(): void {
+    this.sprite.render(this.context.x, this.context.y, this.context.color);
+  }
 }
 
 class ParticleSystem {
-private particles: Array<{ flyweight: Particle; context: ParticleContext }> = [];
-private factory: ParticleFactory;
+  private readonly particles: Particle[] = [];
 
-constructor(factory: ParticleFactory) {
-this.factory = factory;
-}
+  constructor(private readonly factory: SpriteFactory) {}
 
-emitExplosion(x: number, y: number, count: number): void {
-console.log(`\nEmitting ${count} particles at (${x}, ${y})`);
+  emit(
+    texture: string,
+    width: number,
+    height: number,
+    context: ParticleContext,
+  ): void {
+    const sprite = this.factory.getSprite(texture, width, height);
+    this.particles.push(new Particle(sprite, context));
+  }
 
-    for (let i = 0; i < count; i++) {
-      const texture = i % 3 === 0 ? 'spark.png' : 'smoke.png';
-      const mass = i % 2 === 0 ? 1 : 0.5;
-
-      const flyweight = this.factory.getParticle(texture, mass);
-      const context: ParticleContext = {
-        x: x + Math.random() * 10,
-        y: y + Math.random() * 10,
-        velocityX: (Math.random() - 0.5) * 5,
-        velocityY: (Math.random() - 0.5) * 5,
-        lifetime: 2,
-      };
-
-      this.particles.push({ flyweight, context });
+  renderAll(): void {
+    for (const particle of this.particles) {
+      particle.draw();
     }
-
+  }
 }
 
-render(): void {
-console.log(`\nRendering ${this.particles.length} particles`);
-for (const { flyweight, context } of this.particles) {
-flyweight.render(context);
+const factory = new SpriteFactory();
+const system = new ParticleSystem(factory);
+
+for (let i = 0; i < 3; i++) {
+  system.emit("spark.png", 32, 32, {
+    x: 100 + i * 5,
+    y: 200 + i * 3,
+    color: "orange",
+    velocityX: 1.5,
+    velocityY: -0.2,
+  });
 }
-}
 
-getStatistics(): void {
-console.log(`\n=== Particle System Statistics ===`);
-console.log(`Total active particles: ${this.particles.length}`);
-console.log(`Unique particle types: ${this.factory.getPoolSize()}`);
-}
-}
+system.emit("smoke.png", 64, 64, {
+  x: 140,
+  y: 240,
+  color: "gray",
+  velocityX: 0.2,
+  velocityY: 0.8,
+});
 
-// ========== Game Usage ==========
-
-const particleFactory = new ParticleFactory();
-const particleSystem = new ParticleSystem(particleFactory);
-
-// Create explosions
-particleSystem.emitExplosion(100, 100, 1000);
-particleSystem.emitExplosion(200, 200, 1000);
-
-particleSystem.render();
-particleSystem.getStatistics();
+system.renderAll();
+console.log(`Unique flyweights: ${factory.count()}`);
 ```
 
-
-  
 ```python [python]
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
 
-# ========== Flyweight (Intrinsic State) ==========
 
-class CharacterFlyweight(ABC):
+class SpriteFlyweight(ABC):
     @abstractmethod
-    def get_font(self) -> str:
+    def render(self, x: int, y: int, color: str) -> None:
         pass
 
-    @abstractmethod
-    def get_size(self) -> int:
-        pass
 
-    @abstractmethod
-    def get_color(self) -> str:
-        pass
-
-    @abstractmethod
-    def render(self, extrinsic_state: 'CharacterContext') -> str:
-        pass
-
-class Character(CharacterFlyweight):
-    def __init__(self, font: str, size: int, color: str):
-        self._font = font
-        self._size = size
-        self._color = color
-
-    def get_font(self) -> str:
-        return self._font
-
-    def get_size(self) -> int:
-        return self._size
-
-    def get_color(self) -> str:
-        return self._color
-
-    def render(self, extrinsic_state: 'CharacterContext') -> str:
-        return f'<span style="font: {self._size}px {self._font}; color: {self._color}; position: {extrinsic_state.position};">{extrinsic_state.character}</span>'
-
-# ========== Context (Extrinsic State) ==========
-
-class CharacterContext:
-    def __init__(self, character: str, position: int, row: int, column: int):
-        self.character = character
-        self.position = position
-        self.row = row
-        self.column = column
-
-# ========== Flyweight Factory ==========
-
-class CharacterFactory:
-    def __init__(self):
-        self._flyweights: Dict[str, Character] = {}
-
-    def get_character(self, font: str, size: int, color: str) -> Character:
-        key = f"{font}_{size}_{color}"
-
-        if key not in self._flyweights:
-            print(f"Creating new character flyweight: {key}")
-            self._flyweights[key] = Character(font, size, color)
-        else:
-            print(f"Reusing character flyweight: {key}")
-
-        return self._flyweights[key]
-
-    def get_flyweight_count(self) -> int:
-        return len(self._flyweights)
-
-    def display_flyweights(self) -> None:
-        print(f"\nTotal unique flyweights: {len(self._flyweights)}")
-        for key in self._flyweights:
-            print(f"  - {key}")
-
-# ========== Document / Client ==========
-
-class Document:
-    def __init__(self, factory: CharacterFactory):
-        self._characters = []
-        self._factory = factory
-
-    def add_character(self, char: str, font: str, size: int, color: str, row: int, col: int) -> None:
-        flyweight = self._factory.get_character(font, size, color)
-        context = CharacterContext(
-            character=char,
-            position=row * 100 + col,
-            row=row,
-            column=col
-        )
-        self._characters.append({'flyweight': flyweight, 'context': context})
-
-    def render(self) -> str:
-        html = '<div>'
-        for item in self._characters:
-            html += item['flyweight'].render(item['context'])
-        html += '</div>'
-        return html
-
-    def get_character_count(self) -> int:
-        return len(self._characters)
-
-    def display_memory_optimization(self) -> None:
-        total_objects = len(self._characters)
-        unique_flyweights = self._factory.get_flyweight_count()
-        savings = total_objects - unique_flyweights
-        savings_percent = (savings / total_objects * 100) if total_objects > 0 else 0
-
-        print(f"\n=== Memory Optimization ===")
-        print(f"Total characters: {total_objects}")
-        print(f"Unique flyweights: {unique_flyweights}")
-        print(f"Shared instances: {savings} ({savings_percent:.2f}% reduction)")
-
-# ========== Usage ==========
-
-factory = CharacterFactory()
-document = Document(factory)
-
-# Add characters with various formatting
-document.add_character('H', 'Arial', 12, 'black', 0, 0)
-document.add_character('e', 'Arial', 12, 'black', 0, 1)
-document.add_character('l', 'Arial', 12, 'black', 0, 2)
-document.add_character('l', 'Arial', 12, 'black', 0, 3)
-document.add_character('o', 'Arial', 12, 'black', 0, 4)
-
-# Space with different formatting
-document.add_character(' ', 'Arial', 12, 'black', 0, 5)
-
-# Different formatting
-document.add_character('W', 'Times', 14, 'blue', 0, 6)
-document.add_character('o', 'Times', 14, 'blue', 0, 7)
-document.add_character('r', 'Times', 14, 'blue', 0, 8)
-document.add_character('l', 'Times', 14, 'blue', 0, 9)
-document.add_character('d', 'Times', 14, 'blue', 0, 10)
-
-# Add more Arial 12 black (reuses existing flyweight)
-document.add_character('!', 'Arial', 12, 'black', 0, 11)
-
-factory.display_flyweights()
-document.display_memory_optimization()
-
-# ========== Real-world example: Game Particles ==========
-
-class ParticleFlyweight(ABC):
-    @abstractmethod
-    def get_texture(self) -> str:
-        pass
-
-    @abstractmethod
-    def get_mass(self) -> float:
-        pass
-
-    @abstractmethod
-    def render(self, context: 'ParticleContext') -> None:
-        pass
-
-class Particle(ParticleFlyweight):
-    def __init__(self, texture: str, mass: float):
+class Sprite(SpriteFlyweight):
+    def __init__(self, texture: str, width: int, height: int):
         self._texture = texture
-        self._mass = mass
+        self._width = width
+        self._height = height
 
-    def get_texture(self) -> str:
-        return self._texture
-
-    def get_mass(self) -> float:
-        return self._mass
-
-    def render(self, context: 'ParticleContext') -> None:
-        acceleration = 9.8 / self._mass
+    def render(self, x: int, y: int, color: str) -> None:
         print(
-            f"Rendering particle: texture={self._texture}, x={context.x}, y={context.y}, "
-            f"vx={context.velocity_x}, vy={context.velocity_y}"
+            f"Rendering {self._texture} at ({x}, {y}) with {self._width}x{self._height} and color {color}"
         )
 
-class ParticleContext:
-    def __init__(self, x: float, y: float, velocity_x: float, velocity_y: float, lifetime: float):
-        self.x = x
-        self.y = y
-        self.velocity_x = velocity_x
-        self.velocity_y = velocity_y
-        self.lifetime = lifetime
 
-class ParticleFactory:
+class SpriteFactory:
     def __init__(self):
-        self._particles: Dict[str, Particle] = {}
+        self._sprites = {}
 
-    def get_particle(self, texture: str, mass: float) -> Particle:
-        key = f"{texture}_{mass}"
+    def get_sprite(self, texture: str, width: int, height: int) -> Sprite:
+        key = f"{texture}:{width}:{height}"
+        if key not in self._sprites:
+            self._sprites[key] = Sprite(texture, width, height)
+        return self._sprites[key]
 
-        if key not in self._particles:
-            print(f"Creating particle flyweight: {key}")
-            self._particles[key] = Particle(texture, mass)
+    def count(self) -> int:
+        return len(self._sprites)
 
-        return self._particles[key]
 
-    def get_pool_size(self) -> int:
-        return len(self._particles)
+class Particle:
+    def __init__(self, sprite: SpriteFlyweight, context):
+        self._sprite = sprite
+        self._context = context
+
+    def draw(self) -> None:
+        self._sprite.render(self._context["x"], self._context["y"], self._context["color"])
+
 
 class ParticleSystem:
-    def __init__(self, factory: ParticleFactory):
-        self._particles = []
+    def __init__(self, factory: SpriteFactory):
         self._factory = factory
+        self._particles = []
 
-    def emit_explosion(self, x: float, y: float, count: int) -> None:
-        print(f"\nEmitting {count} particles at ({x}, {y})")
+    def emit(self, texture: str, width: int, height: int, context: dict) -> None:
+        sprite = self._factory.get_sprite(texture, width, height)
+        self._particles.append(Particle(sprite, context))
 
-        for i in range(count):
-            texture = 'spark.png' if i % 3 == 0 else 'smoke.png'
-            mass = 1 if i % 2 == 0 else 0.5
+    def render_all(self) -> None:
+        for particle in self._particles:
+            particle.draw()
 
-            flyweight = self._factory.get_particle(texture, mass)
-            import random
-            context = ParticleContext(
-                x=x + random.random() * 10,
-                y=y + random.random() * 10,
-                velocity_x=(random.random() - 0.5) * 5,
-                velocity_y=(random.random() - 0.5) * 5,
-                lifetime=2
-            )
 
-            self._particles.append({'flyweight': flyweight, 'context': context})
+factory = SpriteFactory()
+system = ParticleSystem(factory)
 
-    def render(self) -> None:
-        print(f"\nRendering {len(self._particles)} particles")
-        for item in self._particles[:5]:  # Show first 5 for brevity
-            item['flyweight'].render(item['context'])
-        if len(self._particles) > 5:
-            print(f"... and {len(self._particles) - 5} more particles")
+for i in range(3):
+    system.emit(
+        "spark.png",
+        32,
+        32,
+        {"x": 100 + i * 5, "y": 200 + i * 3, "color": "orange", "velocity_x": 1.5, "velocity_y": -0.2},
+    )
 
-    def get_statistics(self) -> None:
-        print(f"\n=== Particle System Statistics ===")
-        print(f"Total active particles: {len(self._particles)}")
-        print(f"Unique particle types: {self._factory.get_pool_size()}")
+system.emit(
+    "smoke.png",
+    64,
+    64,
+    {"x": 140, "y": 240, "color": "gray", "velocity_x": 0.2, "velocity_y": 0.8},
+)
 
-# ========== Game Usage ==========
+system.render_all()
+print(f"Unique flyweights: {factory.count()}")
+```
 
-particle_factory = ParticleFactory()
-particle_system = ParticleSystem(particle_factory)
+```java [java]
+interface SpriteFlyweight {
+    void render(int x, int y, String color);
+}
 
-# Create explosions
-particle_system.emit_explosion(100, 100, 1000)
-particle_system.emit_explosion(200, 200, 1000)
+class Sprite implements SpriteFlyweight {
+    private final String texture;
+    private final int width;
+    private final int height;
 
-particle_system.render()
-particle_system.get_statistics()
+    Sprite(String texture, int width, int height) {
+        this.texture = texture;
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public void render(int x, int y, String color) {
+        System.out.println(
+            "Rendering " + texture + " at (" + x + ", " + y + ") with " + width + "x" + height + " and color " + color
+        );
+    }
+}
+
+class SpriteFactory {
+    private final java.util.Map<String, Sprite> sprites = new java.util.HashMap<>();
+
+    Sprite getSprite(String texture, int width, int height) {
+        String key = texture + ":" + width + ":" + height;
+        return sprites.computeIfAbsent(key, ignored -> new Sprite(texture, width, height));
+    }
+
+    int count() {
+        return sprites.size();
+    }
+}
+
+class Particle {
+    private final SpriteFlyweight sprite;
+    private final int x;
+    private final int y;
+    private final String color;
+
+    Particle(SpriteFlyweight sprite, int x, int y, String color) {
+        this.sprite = sprite;
+        this.x = x;
+        this.y = y;
+        this.color = color;
+    }
+
+    void draw() {
+        sprite.render(x, y, color);
+    }
+}
+
+class ParticleSystem {
+    private final java.util.List<Particle> particles = new java.util.ArrayList<>();
+    private final SpriteFactory factory;
+
+    ParticleSystem(SpriteFactory factory) {
+        this.factory = factory;
+    }
+
+    void emit(String texture, int width, int height, int x, int y, String color) {
+        particles.add(new Particle(factory.getSprite(texture, width, height), x, y, color));
+    }
+
+    void renderAll() {
+        for (Particle particle : particles) {
+            particle.draw();
+        }
+    }
+}
+```
+
+```go [go]
+package main
+
+import "fmt"
+
+type SpriteFlyweight interface {
+	Render(x, y int, color string)
+}
+
+type Sprite struct {
+	texture string
+	width   int
+	height  int
+}
+
+func (s *Sprite) Render(x, y int, color string) {
+	fmt.Printf("Rendering %s at (%d, %d) with %dx%d and color %s\n", s.texture, x, y, s.width, s.height, color)
+}
+
+type SpriteFactory struct {
+	sprites map[string]*Sprite
+}
+
+func NewSpriteFactory() *SpriteFactory {
+	return &SpriteFactory{sprites: make(map[string]*Sprite)}
+}
+
+func (f *SpriteFactory) GetSprite(texture string, width, height int) *Sprite {
+	key := fmt.Sprintf("%s:%d:%d", texture, width, height)
+	if sprite, ok := f.sprites[key]; ok {
+		return sprite
+	}
+	created := &Sprite{texture: texture, width: width, height: height}
+	f.sprites[key] = created
+	return created
+}
+
+type Particle struct {
+	sprite SpriteFlyweight
+	x      int
+	y      int
+	color  string
+}
+
+func (p *Particle) Draw() {
+	p.sprite.Render(p.x, p.y, p.color)
+}
+
+type ParticleSystem struct {
+	factory   *SpriteFactory
+	particles []*Particle
+}
+
+func NewParticleSystem(factory *SpriteFactory) *ParticleSystem {
+	return &ParticleSystem{factory: factory}
+}
+
+func (s *ParticleSystem) Emit(texture string, width, height, x, y int, color string) {
+	sprite := s.factory.GetSprite(texture, width, height)
+	s.particles = append(s.particles, &Particle{sprite: sprite, x: x, y: y, color: color})
+}
+
+func (s *ParticleSystem) RenderAll() {
+	for _, particle := range s.particles {
+		particle.Draw()
+	}
+}
+```
+
+```rust [rust]
+use std::collections::HashMap;
+use std::sync::Arc;
+
+trait SpriteFlyweight {
+  fn render(&self, x: i32, y: i32, color: &str);
+}
+
+struct Sprite {
+  texture: String,
+  width: i32,
+  height: i32,
+}
+
+impl SpriteFlyweight for Sprite {
+  fn render(&self, x: i32, y: i32, color: &str) {
+    println!(
+      "Rendering {} at ({}, {}) with {}x{} and color {}",
+      self.texture, x, y, self.width, self.height, color
+    );
+  }
+}
+
+struct SpriteFactory {
+  sprites: HashMap<String, Arc<Sprite>>,
+}
+
+impl SpriteFactory {
+  fn new() -> Self {
+    Self {
+      sprites: HashMap::new(),
+    }
+  }
+
+  fn get_sprite(&mut self, texture: &str, width: i32, height: i32) -> Arc<Sprite> {
+    let key = format!("{}:{}:{}", texture, width, height);
+    self.sprites
+      .entry(key)
+      .or_insert_with(|| {
+        Arc::new(Sprite {
+          texture: texture.to_string(),
+          width,
+          height,
+        })
+      })
+      .clone()
+  }
+
+  fn count(&self) -> usize {
+    self.sprites.len()
+  }
+}
+
+struct Particle {
+  sprite: Arc<Sprite>,
+  x: i32,
+  y: i32,
+  color: String,
+}
+
+impl Particle {
+  fn draw(&self) {
+    self.sprite.render(self.x, self.y, &self.color);
+  }
+}
+
+struct ParticleSystem {
+  particles: Vec<Particle>,
+}
+
+impl ParticleSystem {
+  fn new() -> Self {
+    Self { particles: Vec::new() }
+  }
+
+  fn emit(&mut self, sprite: Arc<Sprite>, x: i32, y: i32, color: String) {
+    self.particles.push(Particle { sprite, x, y, color });
+  }
+
+  fn render_all(&self) {
+    for particle in &self.particles {
+      particle.draw();
+    }
+  }
+}
+
+fn main() {
+  let mut factory = SpriteFactory::new();
+  let mut system = ParticleSystem::new();
+
+  let spark = factory.get_sprite("spark.png", 32, 32);
+  let smoke = factory.get_sprite("smoke.png", 64, 64);
+
+  system.emit(spark.clone(), 100, 200, "orange".to_string());
+  system.emit(spark.clone(), 110, 210, "orange".to_string());
+  system.emit(smoke.clone(), 140, 240, "gray".to_string());
+
+  system.render_all();
+  println!("Unique flyweights: {}", factory.count());
+}
 ```
 
 :::
 
 ## Real-World Example
 
-**Game Development - Tree Forest**: Imagine a game rendering a forest with 100,000 trees. Each tree has:
+A sprite system is a good fit for Flyweight because many instances share the same texture metadata while differing in position, tint, or velocity. The shared sprite data stays in the factory, and the particle or entity keeps only the context.
 
-**Intrinsic State** (shared):
+That makes large scenes much more memory efficient.
 
-- Model geometry
-- Texture
-- Shader program
-- Animation data
+```typescript
+const factory = new SpriteFactory();
+const system = new ParticleSystem(factory);
 
-**Extrinsic State** (unique):
-
-- Position (x, y, z)
-- Scale
-- Rotation
-- Animation frame
-
-Using Flyweight Pattern, you might have:
-
-- 5 different tree models
-- 100,000 instances with different positions
-
-Instead of storing 100,000 complete tree objects (potentially 500+ MB), you store 5 models and 100,000 position/rotation sets (much smaller).
+system.emit("spark.png", 32, 32, {
+  x: 100,
+  y: 200,
+  color: "orange",
+  velocityX: 1.5,
+  velocityY: -0.2,
+});
+system.emit("spark.png", 32, 32, {
+  x: 110,
+  y: 210,
+  color: "orange",
+  velocityX: 1.2,
+  velocityY: -0.1,
+});
+```
 
 ## Advantages
 
-::: tip
-✅ **Dramatically Reduces Memory**: Share identical intrinsic state across objects
-
-✅ **Improves Performance**: Fewer objects to allocate, track, and garbage collect
-
-✅ **Scales to Large Numbers**: Handle millions of objects that would be impractical otherwise
-
-✅ **Transparent to Clients**: Works without changing client code
-
-✅ **Separates Concerns**: Clear distinction between intrinsic and extrinsic state
-
-✅ **Promotes Reusability**: Flyweights are naturally reusable
-
-✅ **Factory Pattern Integration**: Works well with factory for object management
-:::
+- Reduces memory usage for large object sets
+- Centralizes shared immutable state
+- Improves cache locality for repeated data
+- Makes large collections more practical
+- Encourages separation of shared and contextual data
+- Works well for rendering and simulation workloads
 
 ## Disadvantages
 
-::: warning
-❌ **Increased Complexity**: Complex state management and separation
-
-❌ **Thread Safety Issues**: Shared flyweights must be thread-safe
-
-❌ **Performance Tradeoff**: Lookup overhead might offset memory savings for small numbers
-
-❌ **Not Always Applicable**: Requires identifying shareable vs. contextual state
-
-❌ **Difficult Debugging**: Shared state can make debugging complex
-
-❌ **Mutability Issues**: Flyweights should be immutable; mutable shared objects are dangerous
-
-❌ **Learning Curve**: Developers must understand intrinsic vs. extrinsic state concepts
-:::
+- Adds complexity by splitting state into two parts
+- Makes APIs less convenient if overused
+- Requires a factory or cache layer
+- Can be awkward when extrinsic state is large
+- Debugging shared state can take extra care
 
 ## When to Use
 
-- You have many similar objects consuming significant memory
-- Memory optimization is critical for your application
-- Most of the object state can be shared (intrinsic)
-- You need to support large-scale simulations or games
-- Objects are immutable or rarely change
-- Extrinsic state can be computed or stored separately
-- You have clearly identifiable patterns in object similarities
+- You have huge numbers of similar objects
+- Most state can be shared safely
+- The varying part can be passed in as context
+- Memory usage is a real concern
+- You are building graphics, text rendering, or simulation systems
 
 ## When NOT to Use
 
-- You have only a few objects (memory optimization unnecessary)
-- Objects are frequently mutable
-- Extrinsic state is complex and cumbersome to manage
-- Thread safety concerns around shared objects
-- Performance profiling shows this isn't actually the bottleneck
-- The pattern makes code significantly more complex without clear benefit
-- Objects have mostly unique state with little to share
+- Objects are few and cheap to create
+- Most state is unique per object
+- The context is more complex than the shared state
+- Simplicity matters more than memory savings
+- The sharing logic would be harder to maintain than the savings justify
+
+## Common Mistakes
+
+### Mistake 1: Putting extrinsic state into the flyweight
+
+```typescript
+// ❌ Bad: every sprite stores x and y
+class BadSprite {
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
+}
+
+// ✅ Good: position belongs in context, not the shared object
+```
+
+### Mistake 2: Failing to reuse flyweights
+
+```typescript
+// ❌ Bad: always create a new sprite
+const sprite = new Sprite("spark.png", 32, 32);
+
+// ✅ Good: ask the factory for shared instances
+```
+
+### Mistake 3: Making flyweights mutable
+
+```typescript
+// ❌ Bad: shared state can be corrupted
+class BadFlyweight {
+  setTexture(texture: string) {}
+}
+
+// ✅ Good: keep flyweights immutable
+```
+
+### Mistake 4: Using Flyweight when objects are not repetitive
+
+```typescript
+// ❌ Bad: apply sharing when every object is unique
+// ✅ Good: reserve it for high-volume repeated shapes
+```
 
 ## Related Patterns
 
-- **Factory Pattern**: Flyweight Factory creates and manages flyweight instances
-- **Object Pool Pattern**: Similar goal of reusing objects, but Flyweight focuses on memory optimization
-- **Composite Pattern**: Can use Flyweights for leaf nodes to save memory
-- **Iterator Pattern**: Used to traverse collections of flyweights
-- **Strategy Pattern**: Can use Flyweights to store strategy instances
-- **Template Method Pattern**: Flyweight can implement template methods for shared behavior
+- **Factory Method**: Often used to create or retrieve flyweights
+- **Singleton**: Flyweight factories are sometimes singletons
+- **Composite**: Can hold flyweights in tree-like structures
+- **Proxy**: Similar wrapper shape, but different intent
+
+## Modern Alternatives
+
+- Immutable value objects with structural sharing
+- Engine-level resource caches
+- GPU instancing in graphics systems
+- Deduplicated text/glyph buffers
+- Arena allocators or object pools in performance-sensitive systems
+
+## Interview Insights
+
+**Q1: What is the core idea of Flyweight?**
+
+A: Share intrinsic state across many similar objects and keep extrinsic state outside the object.
+
+**Q2: What is the difference between intrinsic and extrinsic state?**
+
+A: Intrinsic state is shared and stable. Extrinsic state changes per use and is passed in as context.
+
+**Q3: When is Flyweight worth the complexity?**
+
+A: When you have many repeated objects and memory pressure is significant.
+
+**Q4: Why should flyweights be immutable?**
+
+A: Because they are shared. If one caller mutates them, every other caller sees the change.
+
+**Q5: How is Flyweight different from Object Pool?**
+
+A: Object Pool reuses whole objects for lifecycle and performance reasons. Flyweight shares the stable part of the state across many logical objects.

@@ -1,334 +1,477 @@
 ---
 title: Service Locator Pattern
-description: Centralized registry for locating services
+description: An architectural pattern that uses a centralized registry to provide instances of services to the objects that request them.
 icon: Settings
 ---
 
 # Service Locator Pattern
 
-
-
 ## Overview
 
-The **Service Locator** pattern is a centralized registry that provides a single point for obtaining service instances. It acts as a service factory, managing the lifecycle and access to services throughout the application.
+The **Service Locator** pattern introduces a centralized registry—the "Locator"—that knows how to create or retrieve all the services an application needs. Instead of classes having their dependencies handed to them (like in Dependency Injection), classes actively ask the Service Locator for the dependencies they need.
 
-Key concepts:
+**Modern perspective**: While it was popular in early enterprise software (like early J2EE), the Service Locator is now widely considered an **anti-pattern** in modern application development. It hides a class's dependencies, making code harder to test, harder to maintain, and prone to runtime errors. However, understanding it is crucial because it still appears in legacy systems, game development architectures, and occasionally as a fallback in modern DI containers.
 
-- **Service Registry**: Central location storing service instances
-- **Locator**: Responsible for retrieving services
-- **Lazy Initialization**: Services created on-demand
-- **Centralized Management**: Single point of control
+## The Problem
 
-## Purpose
+When you don't want components tightly coupled to concrete classes, you might try to centralize dependency management. 
 
-Service Locator aims to:
+```typescript
+// ❌ Bad: Tightly coupled to concrete classes
+class OrderService {
+  private paymentGateway = new StripeGateway(); // Hardcoded dependency
+  private logger = new ConsoleLogger();         // Hardcoded dependency
 
-- Provide centralized service access
-- Decouple service consumers from providers
-- Manage service lifecycle
-- Enable runtime service substitution
-- Simplify service management
-- Support service configuration
-
-## Problem
-
-Without centralization:
-
-- Services scattered throughout application
-- Hard to track which services exist
-- Difficult to switch implementations
-- Service creation logic duplicated
-- Unclear dependencies
-
-```
-❌ Scattered Service Creation
-const logger = new Logger();
-const db = new Database();
-const service = new UserService(logger, db);
-```
-
-## Solution
-
-Service Locator centralizes access:
-
-```
-✅ Service Locator
-class ServiceLocator {
-  register(name, instance) { /* store */ }
-  get(name) { /* retrieve */ }
+  public process() { ... }
 }
-
-const logger = locator.get('logger');
-const db = locator.get('database');
 ```
 
-## Implementation
+You want to decouple `OrderService` from `StripeGateway`, but perhaps you are working in a legacy codebase where implementing full Constructor Dependency Injection requires rewriting hundreds of files.
+
+## The Solution
+
+You create a global `ServiceLocator`. You register your services in one place, and the `OrderService` asks the Locator for them.
+
+```typescript
+// ⚠️ Service Locator (Often an anti-pattern, but solves the hardcoding issue)
+class OrderService {
+  private paymentGateway: IPaymentGateway;
+  private logger: ILogger;
+
+  constructor() {
+    // Actively asking a global registry for dependencies
+    this.paymentGateway = ServiceLocator.get("PaymentGateway");
+    this.logger = ServiceLocator.get("Logger");
+  }
+}
+```
+
+Now, `OrderService` doesn't know about `StripeGateway` or `ConsoleLogger`. It only knows about the `ServiceLocator`.
+
+## Structure
+
+```mermaid
+classDiagram
+    class ServiceLocator {
+        <<Singleton / Global>>
+        -services: Map
+        +register(name, service)
+        +get(name): Service
+    }
+
+    class Client {
+        +doWork()
+    }
+
+    class IService {
+        <<interface>>
+        +execute()
+    }
+
+    class ConcreteService {
+        +execute()
+    }
+
+    Client --> ServiceLocator : "asks for IService"
+    ServiceLocator --> ConcreteService : "returns instance"
+    ConcreteService ..|> IService : "implements"
+```
+
+## Flow
+
+1. **Registration phase**: At application startup, you register concrete instances or factory functions with the Service Locator.
+2. **Resolution phase**: During execution, a client class needs a service. It calls `ServiceLocator.get('ServiceName')`.
+3. **Execution phase**: The locator finds the service, instantiates it if necessary, and returns it to the client.
+
+## Real-World Analogy
+
+Think of a **Hotel Concierge**.
+When you stay at a hotel and you need a taxi, a restaurant reservation, or extra towels, you don't contact the taxi company or the laundry department directly. You pick up the phone, call the Concierge (the Service Locator), and ask them to provide what you need. The Concierge knows where to get the taxi and who handles the laundry.
+
+## Why is it considered an Anti-Pattern?
+
+1. **Hidden Dependencies**: If I look at the API of `OrderService`, the constructor takes *zero* arguments. It *looks* like I can just instantiate `new OrderService()` and use it. But if I run it, it crashes because I forgot to register a `Logger` globally first. With Dependency Injection, the constructor `constructor(logger: ILogger)` explicitly forces me to provide the dependency.
+2. **Global State**: The Service Locator is almost always implemented as a Singleton. This makes running tests in parallel extremely difficult because test A might overwrite the mocked Logger needed by test B.
+
+## Step-by-Step Implementation
+
+If you *must* implement one (e.g., in game dev or legacy code):
+1. **Create the Locator**: Create a Singleton class or a globally accessible object.
+2. **Add Registration**: Create a method to add an object or a factory to an internal Dictionary/Map.
+3. **Add Retrieval**: Create a method that looks up the key in the Dictionary and returns the object (or invokes the factory).
+4. **Use in Clients**: Have clients call the locator's retrieval method instead of using the `new` keyword.
+
+## Code Examples
 
 ::: code-group
 
-```typescript [typescript]
-// Service interfaces
-interface Logger {
-  log(message: string): void;
+```typescript [TypeScript]
+// 1. Interfaces
+interface ILogger { log(msg: string): void; }
+interface IDatabase { save(): void; }
+
+// 2. Concrete Classes
+class ConsoleLogger implements ILogger {
+  log(msg: string) { console.log(`[LOG] ${msg}`); }
+}
+class PostgresDatabase implements IDatabase {
+  save() { console.log(`[DB] Saving to Postgres`); }
 }
 
-interface Database {
-  query(sql: string): any[];
-}
-
-// Service implementations
-class ConsoleLogger implements Logger {
-  log(message: string): void {
-    console.log(`[LOG] ${message}`);
-  }
-}
-
-class MockDatabase implements Database {
-  query(sql: string): any[] {
-    console.log(`[DB] Executing: ${sql}`);
-    return [];
-  }
-}
-
-// Service Locator
+// 3. The Service Locator
 class ServiceLocator {
-  private static instance: ServiceLocator;
-  private services: Map<string, any> = new Map();
-  private factories: Map<string, () => any> = new Map();
+  private static services = new Map<string, any>();
 
-  private constructor() {}
-
-  static getInstance(): ServiceLocator {
-    if (!ServiceLocator.instance) {
-      ServiceLocator.instance = new ServiceLocator();
-    }
-    return ServiceLocator.instance;
-  }
-
-  register(name: string, service: any): void {
+  // Register an instance
+  public static register<T>(name: string, service: T): void {
     this.services.set(name, service);
-    console.log(`✅ Registered service: ${name}`);
   }
 
-  registerFactory(name: string, factory: () => any): void {
-    this.factories.set(name, factory);
-    console.log(`✅ Registered factory: ${name}`);
-  }
-
-  get<T>(name: string): T {
-    // Check if service exists
-    if (this.services.has(name)) {
-      return this.services.get(name);
+  // Retrieve an instance
+  public static get<T>(name: string): T {
+    if (!this.services.has(name)) {
+      throw new Error(`Service '${name}' not found in Locator!`);
     }
-
-    // Check if factory exists
-    if (this.factories.has(name)) {
-      const factory = this.factories.get(name);
-      const service = factory();
-      this.services.set(name, service);
-      return service;
-    }
-
-    throw new Error(`Service not found: ${name}`);
-  }
-
-  has(name: string): boolean {
-    return this.services.has(name) || this.factories.has(name);
-  }
-
-  unregister(name: string): void {
-    this.services.delete(name);
-    this.factories.delete(name);
-    console.log(`✅ Unregistered service: ${name}`);
+    return this.services.get(name) as T;
   }
 }
 
-// Usage
-const locator = ServiceLocator.getInstance();
-
-// Register services
-locator.register("logger", new ConsoleLogger());
-locator.registerFactory("database", () => new MockDatabase());
-
-// Usage in services
+// 4. The Client (Using the Locator)
 class UserService {
-  constructor(private locator: ServiceLocator) {}
+  private logger: ILogger;
+  private db: IDatabase;
 
-  createUser(name: string): void {
-    const logger = this.locator.get<Logger>("logger");
-    const db = this.locator.get<Database>("database");
-
-    logger.log(`Creating user: ${name}`);
-    db.query(`INSERT INTO users VALUES ('${name}')`);
+  constructor() {
+    // WARNING: Hidden dependencies!
+    this.logger = ServiceLocator.get<ILogger>("Logger");
+    this.db = ServiceLocator.get<IDatabase>("Database");
   }
 
-  getUsers(): void {
-    const logger = this.locator.get<Logger>("logger");
-    const db = this.locator.get<Database>("database");
-
-    logger.log("Fetching users");
-    db.query("SELECT * FROM users");
+  public registerUser(name: string) {
+    this.logger.log(`Registering ${name}`);
+    this.db.save();
   }
 }
 
-// Application
-const service = new UserService(locator);
-service.createUser("John Doe");
-service.getUsers();
+// Client Code
+console.log("--- Application Startup ---");
+ServiceLocator.register("Logger", new ConsoleLogger());
+ServiceLocator.register("Database", new PostgresDatabase());
+
+console.log("\n--- Application Runtime ---");
+// Looks like it requires no dependencies, but relies on global state
+const service = new UserService(); 
+service.registerUser("Alice");
 ```
 
+```python [Python]
+from abc import ABC, abstractmethod
+from typing import Dict, Any
 
+# 1. Interfaces
+class ILogger(ABC):
+    @abstractmethod
+    def log(self, msg: str) -> None: pass
 
-```python [python]
-from typing import Dict, Callable, Any, TypeVar, Generic
+class IDatabase(ABC):
+    @abstractmethod
+    def save(self) -> None: pass
 
-T = TypeVar('T')
+# 2. Concrete Classes
+class ConsoleLogger(ILogger):
+    def log(self, msg: str) -> None:
+        print(f"[LOG] {msg}")
 
-# Service interfaces
-class Logger:
-    def log(self, message: str) -> None:
-        pass
+class PostgresDatabase(IDatabase):
+    def save(self) -> None:
+        print(f"[DB] Saving to Postgres")
 
-class Database:
-    def query(self, sql: str) -> list:
-        pass
-
-# Service implementations
-class ConsoleLogger(Logger):
-    def log(self, message: str) -> None:
-        print(f"[LOG] {message}")
-
-class MockDatabase(Database):
-    def query(self, sql: str) -> list:
-        print(f"[DB] Executing: {sql}")
-        return []
-
-# Service Locator (Singleton)
+# 3. The Service Locator
 class ServiceLocator:
-    _instance = None
+    _services: Dict[str, Any] = {}
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance.services: Dict[str, Any] = {}
-            cls._instance.factories: Dict[str, Callable] = {}
-        return cls._instance
+    @classmethod
+    def register(cls, name: str, service: Any) -> None:
+        cls._services[name] = service
 
-    @staticmethod
-    def get_instance():
-        return ServiceLocator()
+    @classmethod
+    def get(cls, name: str) -> Any:
+        if name not in cls._services:
+            raise Exception(f"Service '{name}' not found in Locator!")
+        return cls._services[name]
 
-    def register(self, name: str, service: Any) -> None:
-        self.services[name] = service
-        print(f"✅ Registered service: {name}")
+# 4. The Client (Using the Locator)
+class UserService:
+    def __init__(self):
+        # WARNING: Hidden dependencies!
+        self.logger: ILogger = ServiceLocator.get("Logger")
+        self.db: IDatabase = ServiceLocator.get("Database")
 
-    def register_factory(self, name: str, factory: Callable) -> None:
-        self.factories[name] = factory
-        print(f"✅ Registered factory: {name}")
+    def register_user(self, name: str) -> None:
+        self.logger.log(f"Registering {name}")
+        self.db.save()
 
-    def get(self, name: str) -> Any:
-        # Check if service exists
-        if name in self.services:
-            return self.services[name]
-
-        # Check if factory exists
-        if name in self.factories:
-            factory = self.factories[name]
-            service = factory()
-            self.services[name] = service
-            return service
-
-        raise ValueError(f"Service not found: {name}")
-
-    def has(self, name: str) -> bool:
-        return name in self.services or name in self.factories
-
-    def unregister(self, name: str) -> None:
-        self.services.pop(name, None)
-        self.factories.pop(name, None)
-        print(f"✅ Unregistered service: {name}")
-
-# Usage
+# Client Code
 if __name__ == "__main__":
-    locator = ServiceLocator.get_instance()
+    print("--- Application Startup ---")
+    ServiceLocator.register("Logger", ConsoleLogger())
+    ServiceLocator.register("Database", PostgresDatabase())
 
-    # Register services
-    locator.register("logger", ConsoleLogger())
-    locator.register_factory("database", lambda: MockDatabase())
+    print("\n--- Application Runtime ---")
+    # Instantiation looks clean, but hides the global state requirement
+    service = UserService()
+    service.register_user("Alice")
+```
 
-    # Usage in services
-    class UserService:
-        def __init__(self, service_locator: ServiceLocator):
-            self.locator = service_locator
+```java [Java]
+import java.util.HashMap;
+import java.util.Map;
 
-        def create_user(self, name: str) -> None:
-            logger = self.locator.get("logger")
-            db = self.locator.get("database")
+// 1. Interfaces
+interface ILogger { void log(String msg); }
+interface IDatabase { void save(); }
 
-            logger.log(f"Creating user: {name}")
-            db.query(f"INSERT INTO users VALUES ('{name}')")
+// 2. Concrete Classes
+class ConsoleLogger implements ILogger {
+    public void log(String msg) { System.out.println("[LOG] " + msg); }
+}
+class PostgresDatabase implements IDatabase {
+    public void save() { System.out.println("[DB] Saving to Postgres"); }
+}
 
-        def get_users(self) -> None:
-            logger = self.locator.get("logger")
-            db = self.locator.get("database")
+// 3. The Service Locator
+class ServiceLocator {
+    private static Map<String, Object> services = new HashMap<>();
 
-            logger.log("Fetching users")
-            db.query("SELECT * FROM users")
+    public static void register(String name, Object service) {
+        services.put(name, service);
+    }
 
-    # Application
-    service = UserService(locator)
-    service.create_user("John Doe")
-    service.get_users()
+    public static Object get(String name) {
+        if (!services.containsKey(name)) {
+            throw new RuntimeException("Service '" + name + "' not found in Locator!");
+        }
+        return services.get(name);
+    }
+}
+
+// 4. The Client (Using the Locator)
+class UserService {
+    private ILogger logger;
+    private IDatabase db;
+
+    public UserService() {
+        // WARNING: Hidden dependencies!
+        this.logger = (ILogger) ServiceLocator.get("Logger");
+        this.db = (IDatabase) ServiceLocator.get("Database");
+    }
+
+    public void registerUser(String name) {
+        logger.log("Registering " + name);
+        db.save();
+    }
+}
+
+// Client Code
+public class ServiceLocatorDemo {
+    public static void main(String[] args) {
+        System.out.println("--- Application Startup ---");
+        ServiceLocator.register("Logger", new ConsoleLogger());
+        ServiceLocator.register("Database", new PostgresDatabase());
+
+        System.out.println("\n--- Application Runtime ---");
+        UserService service = new UserService();
+        service.registerUser("Alice");
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+)
+
+// 1. Interfaces
+type ILogger interface {
+	Log(msg string)
+}
+type IDatabase interface {
+	Save()
+}
+
+// 2. Concrete Classes
+type ConsoleLogger struct{}
+func (l *ConsoleLogger) Log(msg string) { fmt.Printf("[LOG] %s\n", msg) }
+
+type PostgresDatabase struct{}
+func (d *PostgresDatabase) Save() { fmt.Printf("[DB] Saving to Postgres\n") }
+
+// 3. The Service Locator
+var locatorRegistry = make(map[string]interface{})
+
+type ServiceLocator struct{}
+
+func (s *ServiceLocator) Register(name string, service interface{}) {
+	locatorRegistry[name] = service
+}
+
+func (s *ServiceLocator) Get(name string) interface{} {
+	if service, ok := locatorRegistry[name]; ok {
+		return service
+	}
+	panic(fmt.Sprintf("Service '%s' not found in Locator!", name))
+}
+
+// Global instance
+var Locator = &ServiceLocator{}
+
+// 4. The Client (Using the Locator)
+type UserService struct {
+	logger ILogger
+	db     IDatabase
+}
+
+func NewUserService() *UserService {
+	// WARNING: Hidden dependencies!
+	return &UserService{
+		logger: Locator.Get("Logger").(ILogger),
+		db:     Locator.Get("Database").(IDatabase),
+	}
+}
+
+func (s *UserService) RegisterUser(name string) {
+	s.logger.Log(fmt.Sprintf("Registering %s", name))
+	s.db.Save()
+}
+
+// Client Code
+func main() {
+	fmt.Println("--- Application Startup ---")
+	Locator.Register("Logger", &ConsoleLogger{})
+	Locator.Register("Database", &PostgresDatabase{})
+
+	fmt.Println("\n--- Application Runtime ---")
+	service := NewUserService()
+	service.RegisterUser("Alice")
+}
+```
+
+```rust [Rust]
+use std::any::Any;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use lazy_static::lazy_static; // Requires `lazy_static` crate
+
+// 1. Interfaces (Traits)
+pub trait ILogger: Send + Sync {
+    fn log(&self, msg: &str);
+}
+pub trait IDatabase: Send + Sync {
+    fn save(&self);
+}
+
+// 2. Concrete Classes
+pub struct ConsoleLogger;
+impl ILogger for ConsoleLogger {
+    fn log(&self, msg: &str) { println!("[LOG] {}", msg); }
+}
+
+pub struct PostgresDatabase;
+impl IDatabase for PostgresDatabase {
+    fn save(&self) { println!("[DB] Saving to Postgres"); }
+}
+
+// 3. The Service Locator (Using global state in Rust is intentionally difficult)
+lazy_static! {
+    static ref LOCATOR: Mutex<HashMap<&'static str, Box<dyn Any + Send + Sync>>> = Mutex::new(HashMap::new());
+}
+
+pub struct ServiceLocator;
+
+impl ServiceLocator {
+    pub fn register<T: Any + Send + Sync>(name: &'static str, service: T) {
+        let mut map = LOCATOR.lock().unwrap();
+        map.insert(name, Box::new(service));
+    }
+
+    // A simplified fetch for demonstration. In a real app, downcasting requires care.
+    pub fn execute_logger(name: &'static str, msg: &str) {
+        let map = LOCATOR.lock().unwrap();
+        if let Some(service) = map.get(name) {
+            if let Some(logger) = service.downcast_ref::<ConsoleLogger>() {
+                logger.log(msg);
+            }
+        } else {
+            panic!("Service not found");
+        }
+    }
+    
+    pub fn execute_db(name: &'static str) {
+        let map = LOCATOR.lock().unwrap();
+        if let Some(service) = map.get(name) {
+            if let Some(db) = service.downcast_ref::<PostgresDatabase>() {
+                db.save();
+            }
+        } else {
+            panic!("Service not found");
+        }
+    }
+}
+
+// 4. The Client (Using the Locator)
+pub struct UserService;
+
+impl UserService {
+    pub fn new() -> Self {
+        // Dependencies are entirely hidden
+        Self {}
+    }
+
+    pub fn register_user(&self, name: &str) {
+        ServiceLocator::execute_logger("Logger", &format!("Registering {}", name));
+        ServiceLocator::execute_db("Database");
+    }
+}
+
+// Client Code
+fn main() {
+    println!("--- Application Startup ---");
+    ServiceLocator::register("Logger", ConsoleLogger);
+    ServiceLocator::register("Database", PostgresDatabase);
+
+    println!("\n--- Application Runtime ---");
+    let service = UserService::new();
+    service.register_user("Alice");
+}
 ```
 
 :::
 
-## Advantages ✅
+## Pros and Cons
 
-- **Centralization**: Single point for service management
-- **Flexibility**: Easy to swap implementations
-- **Lazy Loading**: Services created on demand
-- **Singleton Support**: Natural for singleton management
-- **Configuration**: Centralized service configuration
-- **Decoupling**: Services don't know about each other
+### Advantages
+- **Decoupling**: Like Dependency Injection, it decouples the client from concrete implementations. You can swap out the registered Logger for a MockLogger.
+- **Convenience in Legacy Systems**: If you have a deep component tree (e.g., Component A creates B, which creates C, which creates D), passing a Logger through constructors A, B, and C just so D can use it is tedious. A Service Locator allows D to grab the Logger directly.
 
-## Disadvantages ❌
+### Disadvantages
+- **Hidden Dependencies (Liar API)**: The class API doesn't tell you what it needs to function. You only find out it needs a database when it throws a runtime exception.
+- **Global State**: It introduces a global Singleton, which makes testing difficult, causes race conditions in concurrent environments, and makes application state unpredictable.
+- **Maintenance Nightmare**: Refactoring is dangerous. If you remove a service from the locator, the compiler won't warn you. The app will just crash at runtime when a class tries to retrieve it.
 
-- **Hidden Dependencies**: Hard to see what services are needed
-- **Testing**: Difficult to test in isolation (use mocks carefully)
-- **Tight Coupling**: Couples code to locator
-- **Anti-Pattern**: Often considered an anti-pattern
-- **Runtime Discovery**: Services found at runtime
-- **Global State**: Creates implicit global dependencies
-- **Debugging**: Hard to trace service access
-- **Poor Testability**: Complicates unit testing
+## When to Use
 
-## When to Use ✅
+- **Game Development**: Game engines (like Unity or Godot) often use Service Locators (like `Locator.getAudioService()`) because the extreme performance and deeply nested scene graphs make standard Constructor Injection impractical.
+- **Refactoring Legacy Code**: When breaking apart a massive monolithic application, temporarily introducing a Service Locator is a valid stepping stone before fully implementing Dependency Injection.
 
-- **Legacy Systems**: Retrofitting dependency injection difficult
-- **Plugin Architecture**: Dynamic service loading
-- **Rapid Prototyping**: Quick service management
-- **Simple Projects**: Lightweight service management
-- **Configuration-Heavy**: Complex service configuration
-- **Runtime Substitution**: Frequently swapping implementations
-- **Existing Frameworks**: Framework already uses pattern
-- **Startup Code**: Initializing many services
+## When NOT to Use
 
-## When NOT to Use ❌
-
-- **New Projects**: Use Dependency Injection instead
-- **Testable Code**: Use Dependency Injection
-- **Long-Term**: Dependency Injection scales better
-- **Team Development**: Clear dependencies preferred
-- **Performance-Critical**: Hidden performance costs
-- **Microservices**: Each service already isolated
-- **Complex Logic**: Hard to debug
-- **Code Quality**: Reduces code clarity
+- **Modern Web / Enterprise Applications**: Use Dependency Injection instead. There is almost zero reason to use a Service Locator in modern Java, C#, Python, or TypeScript web backends.
+- **Libraries/Packages**: If you are writing an open-source library, do not force consumers to use a Service Locator. Require dependencies via constructors.
 
 ## Related Patterns
 
-- **Dependency Injection**: Better alternative
-- **Factory Pattern**: For service creation
-- **Singleton Pattern**: Often combined
-- **Registry Pattern**: Similar concept
-- **Façade Pattern**: Simplifies complex services
+- **Dependency Injection (DI)**: The "correct" modern alternative to Service Locator. Instead of classes *asking* for dependencies, the framework *gives* them via constructors.
+- **Singleton**: The Service Locator itself is almost always implemented as a Singleton.
+- **Factory**: The Service Locator acts as a generalized Factory for the entire application.

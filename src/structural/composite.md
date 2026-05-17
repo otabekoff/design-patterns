@@ -1,6 +1,6 @@
 ---
 title: Composite Pattern
-description: Composes objects into tree structures to represent part-whole hierarchies, letting clients treat individual objects and compositions uniformly
+description: Composes objects into tree structures and lets clients treat individual objects and compositions uniformly.
 icon: GitBranch
 ---
 
@@ -8,659 +8,641 @@ icon: GitBranch
 
 ## Overview
 
-The Composite Pattern is a structural design pattern that allows you to compose objects into tree structures to represent part-whole hierarchies. It lets clients treat individual objects and compositions of objects uniformly, creating recursive tree structures.
+The **Composite** pattern is a structural design pattern that lets you build tree structures of objects and treat individual objects and groups of objects through the same interface. The client code does not need to know whether it is dealing with a leaf node or a container node.
 
-## Purpose
+**Key advantage**: It makes recursive hierarchies easy to work with and hides tree traversal details from clients.
 
-- **Represent hierarchical structures** using tree compositions
-- **Treat individual and composite objects uniformly** through a common interface
-- **Simplify client code** by hiding the structure complexity
-- **Support tree traversal** and manipulation operations
-- **Build flexible hierarchies** that can grow dynamically
+**Modern perspective**: Composite shows up in document editors, UI trees, DOM-like structures, menu systems, permission trees, ASTs, and CMS content models. Any time a leaf and a container should expose the same operations, Composite is a strong fit.
 
-## Problem
+Composite is about uniform treatment of part and whole.
 
-Consider a GUI framework where you need to represent nested components:
+## Real-World Analogy
 
-- A `Window` contains `Buttons`, `TextBoxes`, and `Panels`
-- A `Panel` contains other `Panels`, `Buttons`, and `TextBoxes`
-- A `Toolbar` contains `Icons`, `Separators`, and `DropdownMenus`
+Think of a **company organization chart**. An individual employee can be a leaf. A manager is also an employee, but that manager can contain reports. The same questions still make sense for both: who is your manager, what is your name, and what is your role?
 
-Without the Composite Pattern, client code must know:
+That shared shape is what Composite models.
 
-- Whether an object is a leaf (like a Button) or a container (like a Panel)
-- How to iterate through container children
-- Different operations for containers vs leaves
+## The Problem
 
-This creates complex, error-prone client code filled with type checks and conditional logic.
+Suppose you are building a content management system where content can be:
 
-## Solution
+- text blocks
+- images
+- callout boxes
+- sections
+- pages
+- nested subpages
 
-The Composite Pattern provides a solution by:
+If every client has to special-case leaf nodes and container nodes, the code becomes full of `if` statements, type checks, and recursion logic.
 
-1. **Common Interface**: Both leaf and composite objects implement the same interface
-2. **Uniform Treatment**: Clients treat all objects uniformly through the interface
-3. **Tree Structure**: Composite objects contain collections of child components
-4. **Recursive Composition**: Composites can contain other composites, forming trees
-5. **Operation Delegation**: Operations recurse through the tree structure
+### Problem Example
+
+```typescript
+// ❌ Bad: client code knows too much about the hierarchy
+function renderNode(node: Page | TextBlock | ImageBlock | Section): string {
+  if (node instanceof Section) {
+    return node.children.map(renderNode).join("");
+  }
+
+  if (node instanceof TextBlock) {
+    return `<p>${node.text}</p>`;
+  }
+
+  if (node instanceof ImageBlock) {
+    return `<img src="${node.src}" />`;
+  }
+
+  return "";
+}
+```
+
+That approach does not scale as the tree grows.
+
+## The Solution
+
+Composite solves this by giving both leaf and container objects the same interface.
+
+1. Define a component interface
+2. Implement leaf nodes with simple behavior
+3. Implement composite nodes that store children
+4. Delegate recursive work to child nodes
+5. Let clients call the same method on any node
 
 ## Implementation
 
 ::: code-group
 
 ```typescript [typescript]
-// ========== Component Interface ==========
-interface Component {
-  getName(): string;
+interface ContentNode {
+  getTitle(): string;
   render(): string;
-  add?(component: Component): void;
-  remove?(component: Component): void;
-  getChild?(index: number): Component | undefined;
 }
 
-// ========== Leaf Classes ==========
-class Button implements Component {
-  constructor(private name: string) {}
-
-  getName(): string {
-    return this.name;
-  }
-
-  render(): string {
-    return `<button>${this.name}</button>`;
-  }
-}
-
-class TextBox implements Component {
+class TextBlock implements ContentNode {
   constructor(
-    private name: string,
-    private placeholder: string,
+    private readonly title: string,
+    private readonly text: string,
   ) {}
 
-  getName(): string {
-    return this.name;
+  getTitle(): string {
+    return this.title;
   }
 
   render(): string {
-    return `<input type="text" placeholder="${this.placeholder}" />`;
+    return `<p>${this.text}</p>`;
   }
 }
 
-class Label implements Component {
+class ImageBlock implements ContentNode {
   constructor(
-    private name: string,
-    private text: string,
+    private readonly title: string,
+    private readonly src: string,
   ) {}
 
-  getName(): string {
-    return this.name;
+  getTitle(): string {
+    return this.title;
   }
 
   render(): string {
-    return `<label>${this.text}</label>`;
+    return `<img alt="${this.title}" src="${this.src}" />`;
   }
 }
 
-// ========== Composite Classes ==========
-class Panel implements Component {
-  private children: Component[] = [];
+class Section implements ContentNode {
+  private children: ContentNode[] = [];
 
-  constructor(private name: string) {}
+  constructor(private readonly title: string) {}
 
-  getName(): string {
-    return this.name;
+  getTitle(): string {
+    return this.title;
   }
 
-  add(component: Component): void {
-    this.children.push(component);
+  add(child: ContentNode): void {
+    this.children.push(child);
   }
 
-  remove(component: Component): void {
-    this.children = this.children.filter((child) => child !== component);
-  }
-
-  getChild(index: number): Component | undefined {
-    return this.children[index];
+  remove(child: ContentNode): void {
+    this.children = this.children.filter((node) => node !== child);
   }
 
   render(): string {
-    const childrenHtml = this.children
-      .map((child) => child.render())
-      .join("\n");
-    return `<div class="panel" id="${this.name}">\n${childrenHtml}\n</div>`;
+    const body = this.children.map((child) => child.render()).join("\n");
+    return `<section><h2>${this.title}</h2>${body}</section>`;
   }
 
-  // Additional composite operations
-  renderWithIndentation(indent: number = 0): string {
-    const spacing = " ".repeat(indent);
-    let result = `${spacing}<Panel: ${this.name}>\n`;
+  listTitles(): string[] {
+    const titles = [this.title];
     for (const child of this.children) {
-      if ("renderWithIndentation" in child) {
-        result += (child as Panel).renderWithIndentation(indent + 2);
-      } else {
-        result += `${spacing}  <${child.getName()}>\n`;
+      titles.push(child.getTitle());
+      if (child instanceof Section) {
+        titles.push(...child.listTitles().slice(1));
       }
     }
-    return result;
-  }
-
-  getChildrenCount(): number {
-    return this.children.length;
-  }
-
-  getAllDescendants(): Component[] {
-    let descendants: Component[] = [];
-    for (const child of this.children) {
-      descendants.push(child);
-      if ("getAllDescendants" in child) {
-        descendants = descendants.concat((child as Panel).getAllDescendants());
-      }
-    }
-    return descendants;
+    return titles;
   }
 }
 
-class Window implements Component {
-  private children: Component[] = [];
+class Page implements ContentNode {
+  private children: ContentNode[] = [];
 
-  constructor(
-    private name: string,
-    private title: string,
-  ) {}
+  constructor(private readonly title: string) {}
 
-  getName(): string {
-    return this.name;
+  getTitle(): string {
+    return this.title;
   }
 
-  add(component: Component): void {
-    this.children.push(component);
-  }
-
-  remove(component: Component): void {
-    this.children = this.children.filter((child) => child !== component);
-  }
-
-  getChild(index: number): Component | undefined {
-    return this.children[index];
+  add(child: ContentNode): void {
+    this.children.push(child);
   }
 
   render(): string {
-    const childrenHtml = this.children
-      .map((child) => child.render())
-      .join("\n");
-    return `<html>\n<head><title>${this.title}</title></head>\n<body>\n${childrenHtml}\n</body>\n</html>`;
+    const body = this.children.map((child) => child.render()).join("\n");
+    return `<!doctype html><html><body><main><h1>${this.title}</h1>${body}</main></body></html>`;
   }
 }
 
-// ========== Usage ==========
-// Create a complex UI structure
-const window = new Window("mainWindow", "My Application");
+const page = new Page("Design Patterns Handbook");
+const intro = new Section("Introduction");
+intro.add(new TextBlock("Overview", "Composite models tree structures."));
+intro.add(new ImageBlock("Diagram", "/images/composite.png"));
 
-// Create header panel
-const headerPanel = new Panel("header");
-headerPanel.add(new Label("title", "Welcome to My App"));
+const guide = new Section("Guide");
+guide.add(new TextBlock("Leaf", "A leaf has no children."));
+guide.add(new TextBlock("Composite", "A composite contains children."));
 
-// Create form panel
-const formPanel = new Panel("form");
-formPanel.add(new Label("nameLabel", "Name:"));
-formPanel.add(new TextBox("nameInput", "Enter your name"));
-formPanel.add(new Label("emailLabel", "Email:"));
-formPanel.add(new TextBox("emailInput", "Enter your email"));
-
-// Create button panel
-const buttonPanel = new Panel("buttons");
-buttonPanel.add(new Button("Submit"));
-buttonPanel.add(new Button("Cancel"));
-
-// Compose the structure
-window.add(headerPanel);
-window.add(formPanel);
-window.add(buttonPanel);
-
-// Render the entire structure
-console.log(window.render());
-
-// Show tree structure
-console.log("\n--- Tree Structure ---");
-console.log((window as any).renderWithIndentation());
-
-// Get all descendants
-console.log("\n--- All Descendants ---");
-console.log(
-  (window as any).getAllDescendants().map((c: Component) => c.getName()),
-);
-
-// ========== Real-world example: File System ==========
-
-interface FileSystemItem {
-  getName(): string;
-  getSize(): number;
-  display(indent: number): void;
-}
-
-class File implements FileSystemItem {
-  constructor(
-    private name: string,
-    private size: number,
-  ) {}
-
-  getName(): string {
-    return this.name;
-  }
-
-  getSize(): number {
-    return this.size;
-  }
-
-  display(indent: number = 0): void {
-    console.log(`${"  ".repeat(indent)}📄 ${this.name} (${this.size} KB)`);
-  }
-}
-
-class Directory implements FileSystemItem {
-  private items: FileSystemItem[] = [];
-
-  constructor(private name: string) {}
-
-  add(item: FileSystemItem): void {
-    this.items.push(item);
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
-  getSize(): number {
-    return this.items.reduce((sum, item) => sum + item.getSize(), 0);
-  }
-
-  display(indent: number = 0): void {
-    console.log(`${"  ".repeat(indent)}📁 ${this.name}/`);
-    for (const item of this.items) {
-      item.display(indent + 1);
-    }
-  }
-
-  getItemCount(): number {
-    return this.items.length;
-  }
-
-  findByName(name: string): FileSystemItem | undefined {
-    for (const item of this.items) {
-      if (item.getName() === name) {
-        return item;
-      }
-      if (item instanceof Directory) {
-        const found = item.findByName(name);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  }
-}
-
-// ========== File System Usage ==========
-const root = new Directory("root");
-
-const documents = new Directory("Documents");
-documents.add(new File("Resume.pdf", 250));
-documents.add(new File("CoverLetter.docx", 180));
-
-const photos = new Directory("Photos");
-const vacation = new Directory("Vacation");
-vacation.add(new File("beach01.jpg", 2400));
-vacation.add(new File("beach02.jpg", 2200));
-photos.add(vacation);
-
-const projects = new Directory("Projects");
-const project1 = new Directory("WebApp");
-project1.add(new File("index.html", 45));
-project1.add(new File("style.css", 120));
-project1.add(new File("script.js", 350));
-projects.add(project1);
-
-root.add(documents);
-root.add(photos);
-root.add(projects);
-
-root.display();
-console.log(`\nTotal size: ${root.getSize()} KB`);
-console.log(`Total items in projects: ${projects.getItemCount()}`);
-
-// Find a file
-const found = root.findByName("script.js");
-console.log(`\nFound: ${found?.getName()}`);
+page.add(intro);
+page.add(guide);
+console.log(page.render());
 ```
 
 ```python [python]
 from abc import ABC, abstractmethod
-from typing import List, Optional
 
-# ========== Component Interface ==========
 
-class Component(ABC):
+class ContentNode(ABC):
     @abstractmethod
-    def get_name(self) -> str:
+    def get_title(self) -> str:
         pass
 
     @abstractmethod
     def render(self) -> str:
         pass
 
-    def add(self, component: 'Component') -> None:
-        raise NotImplementedError("add() is not supported for leaf components")
 
-    def remove(self, component: 'Component') -> None:
-        raise NotImplementedError("remove() is not supported for leaf components")
-
-    def get_child(self, index: int) -> Optional['Component']:
-        raise NotImplementedError("get_child() is not supported for leaf components")
-
-# ========== Leaf Classes ==========
-
-class Button(Component):
-    def __init__(self, name: str):
-        self._name = name
-
-    def get_name(self) -> str:
-        return self._name
-
-    def render(self) -> str:
-        return f"<button>{self._name}</button>"
-
-class TextBox(Component):
-    def __init__(self, name: str, placeholder: str):
-        self._name = name
-        self._placeholder = placeholder
-
-    def get_name(self) -> str:
-        return self._name
-
-    def render(self) -> str:
-        return f'<input type="text" placeholder="{self._placeholder}" />'
-
-class Label(Component):
-    def __init__(self, name: str, text: str):
-        self._name = name
+class TextBlock(ContentNode):
+    def __init__(self, title: str, text: str):
+        self._title = title
         self._text = text
 
-    def get_name(self) -> str:
-        return self._name
+    def get_title(self) -> str:
+        return self._title
 
     def render(self) -> str:
-        return f"<label>{self._text}</label>"
+        return f"<p>{self._text}</p>"
 
-# ========== Composite Classes ==========
 
-class Panel(Component):
-    def __init__(self, name: str):
-        self._name = name
-        self._children: List[Component] = []
-
-    def get_name(self) -> str:
-        return self._name
-
-    def add(self, component: Component) -> None:
-        self._children.append(component)
-
-    def remove(self, component: Component) -> None:
-        if component in self._children:
-            self._children.remove(component)
-
-    def get_child(self, index: int) -> Optional[Component]:
-        return self._children[index] if index < len(self._children) else None
-
-    def render(self) -> str:
-        children_html = '\n'.join(child.render() for child in self._children)
-        return f'<div class="panel" id="{self._name}">\n{children_html}\n</div>'
-
-    def render_with_indentation(self, indent: int = 0) -> str:
-        spacing = ' ' * indent
-        result = f"{spacing}<Panel: {self._name}>\n"
-        for child in self._children:
-            if isinstance(child, Panel):
-                result += child.render_with_indentation(indent + 2)
-            else:
-                result += f"{spacing}  <{child.get_name()}>\n"
-        return result
-
-    def get_children_count(self) -> int:
-        return len(self._children)
-
-    def get_all_descendants(self) -> List[Component]:
-        descendants = []
-        for child in self._children:
-            descendants.append(child)
-            if isinstance(child, Panel):
-                descendants.extend(child.get_all_descendants())
-        return descendants
-
-class Window(Component):
-    def __init__(self, name: str, title: str):
-        self._name = name
+class ImageBlock(ContentNode):
+    def __init__(self, title: str, src: str):
         self._title = title
-        self._children: List[Component] = []
+        self._src = src
 
-    def get_name(self) -> str:
-        return self._name
-
-    def add(self, component: Component) -> None:
-        self._children.append(component)
-
-    def remove(self, component: Component) -> None:
-        if component in self._children:
-            self._children.remove(component)
-
-    def get_child(self, index: int) -> Optional[Component]:
-        return self._children[index] if index < len(self._children) else None
+    def get_title(self) -> str:
+        return self._title
 
     def render(self) -> str:
-        children_html = '\n'.join(child.render() for child in self._children)
-        return f"<html>\n<head><title>{self._title}</title></head>\n<body>\n{children_html}\n</body>\n</html>"
+        return f'<img alt="{self._title}" src="{self._src}" />'
 
-# ========== Usage ==========
 
-window = Window('mainWindow', 'My Application')
+class Section(ContentNode):
+    def __init__(self, title: str):
+        self._title = title
+        self._children = []
 
-# Create header panel
-header_panel = Panel('header')
-header_panel.add(Label('title', 'Welcome to My App'))
+    def get_title(self) -> str:
+        return self._title
 
-# Create form panel
-form_panel = Panel('form')
-form_panel.add(Label('nameLabel', 'Name:'))
-form_panel.add(TextBox('nameInput', 'Enter your name'))
-form_panel.add(Label('emailLabel', 'Email:'))
-form_panel.add(TextBox('emailInput', 'Enter your email'))
+    def add(self, child: ContentNode) -> None:
+        self._children.append(child)
 
-# Create button panel
-button_panel = Panel('buttons')
-button_panel.add(Button('Submit'))
-button_panel.add(Button('Cancel'))
+    def remove(self, child: ContentNode) -> None:
+        if child in self._children:
+            self._children.remove(child)
 
-# Compose the structure
-window.add(header_panel)
-window.add(form_panel)
-window.add(button_panel)
+    def render(self) -> str:
+        body = "\n".join(child.render() for child in self._children)
+        return f"<section><h2>{self._title}</h2>{body}</section>"
 
-# Render the entire structure
-print(window.render())
+    def list_titles(self):
+        titles = [self._title]
+        for child in self._children:
+            titles.append(child.get_title())
+            if isinstance(child, Section):
+                titles.extend(child.list_titles()[1:])
+        return titles
 
-# Show tree structure
-print('\n--- Tree Structure ---')
-print(header_panel.render_with_indentation())
 
-# Get all descendants
-print('\n--- All Descendants ---')
-descendants = header_panel.get_all_descendants()
-print([c.get_name() for c in descendants])
+class Page(ContentNode):
+    def __init__(self, title: str):
+        self._title = title
+        self._children = []
 
-# ========== Real-world example: File System ==========
+    def get_title(self) -> str:
+        return self._title
 
-class FileSystemItem(ABC):
-    @abstractmethod
-    def get_name(self) -> str:
-        pass
+    def add(self, child: ContentNode) -> None:
+        self._children.append(child)
 
-    @abstractmethod
-    def get_size(self) -> int:
-        pass
+    def render(self) -> str:
+        body = "\n".join(child.render() for child in self._children)
+        return f"<!doctype html><html><body><main><h1>{self._title}</h1>{body}</main></body></html>"
 
-    @abstractmethod
-    def display(self, indent: int = 0) -> None:
-        pass
 
-class File(FileSystemItem):
-    def __init__(self, name: str, size: int):
-        self._name = name
-        self._size = size
+page = Page("Design Patterns Handbook")
+intro = Section("Introduction")
+intro.add(TextBlock("Overview", "Composite models tree structures."))
+intro.add(ImageBlock("Diagram", "/images/composite.png"))
 
-    def get_name(self) -> str:
-        return self._name
+guide = Section("Guide")
+guide.add(TextBlock("Leaf", "A leaf has no children."))
+guide.add(TextBlock("Composite", "A composite contains children."))
 
-    def get_size(self) -> int:
-        return self._size
+page.add(intro)
+page.add(guide)
+print(page.render())
+```
 
-    def display(self, indent: int = 0) -> None:
-        print(f"{'  ' * indent}📄 {self._name} ({self._size} KB)")
+```java [java]
+interface ContentNode {
+    String getTitle();
+    String render();
+}
 
-class Directory(FileSystemItem):
-    def __init__(self, name: str):
-        self._name = name
-        self._items: List[FileSystemItem] = []
+class TextBlock implements ContentNode {
+    private final String title;
+    private final String text;
 
-    def add(self, item: FileSystemItem) -> None:
-        self._items.append(item)
+    TextBlock(String title, String text) {
+        this.title = title;
+        this.text = text;
+    }
 
-    def get_name(self) -> str:
-        return self._name
+    @Override
+    public String getTitle() {
+        return title;
+    }
 
-    def get_size(self) -> int:
-        return sum(item.get_size() for item in self._items)
+    @Override
+    public String render() {
+        return "<p>" + text + "</p>";
+    }
+}
 
-    def display(self, indent: int = 0) -> None:
-        print(f"{'  ' * indent}📁 {self._name}/")
-        for item in self._items:
-            item.display(indent + 1)
+class ImageBlock implements ContentNode {
+    private final String title;
+    private final String src;
 
-    def get_item_count(self) -> int:
-        return len(self._items)
+    ImageBlock(String title, String src) {
+        this.title = title;
+        this.src = src;
+    }
 
-    def find_by_name(self, name: str) -> Optional[FileSystemItem]:
-        for item in self._items:
-            if item.get_name() == name:
-                return item
-            if isinstance(item, Directory):
-                found = item.find_by_name(name)
-                if found:
-                    return found
-        return None
+    @Override
+    public String getTitle() {
+        return title;
+    }
 
-# ========== File System Usage ==========
+    @Override
+    public String render() {
+        return "<img alt=\"" + title + "\" src=\"" + src + "\" />";
+    }
+}
 
-root = Directory('root')
+class Section implements ContentNode {
+    private final String title;
+    private final java.util.List<ContentNode> children = new java.util.ArrayList<>();
 
-documents = Directory('Documents')
-documents.add(File('Resume.pdf', 250))
-documents.add(File('CoverLetter.docx', 180))
+    Section(String title) {
+        this.title = title;
+    }
 
-photos = Directory('Photos')
-vacation = Directory('Vacation')
-vacation.add(File('beach01.jpg', 2400))
-vacation.add(File('beach02.jpg', 2200))
-photos.add(vacation)
+    @Override
+    public String getTitle() {
+        return title;
+    }
 
-projects = Directory('Projects')
-project1 = Directory('WebApp')
-project1.add(File('index.html', 45))
-project1.add(File('style.css', 120))
-project1.add(File('script.js', 350))
-projects.add(project1)
+    void add(ContentNode child) {
+        children.add(child);
+    }
 
-root.add(documents)
-root.add(photos)
-root.add(projects)
+    void remove(ContentNode child) {
+        children.remove(child);
+    }
 
-root.display()
-print(f"\nTotal size: {root.get_size()} KB")
-print(f"Total items in projects: {projects.get_item_count()}")
+    @Override
+    public String render() {
+        StringBuilder body = new StringBuilder();
+        for (ContentNode child : children) {
+            body.append(child.render()).append("\n");
+        }
+        return "<section><h2>" + title + "</h2>" + body + "</section>";
+    }
+}
 
-# Find a file
-found = root.find_by_name('script.js')
-print(f"\nFound: {found.get_name() if found else 'Not found'}")
+class Page implements ContentNode {
+    private final String title;
+    private final java.util.List<ContentNode> children = new java.util.ArrayList<>();
+
+    Page(String title) {
+        this.title = title;
+    }
+
+    @Override
+    public String getTitle() {
+        return title;
+    }
+
+    void add(ContentNode child) {
+        children.add(child);
+    }
+
+    @Override
+    public String render() {
+        StringBuilder body = new StringBuilder();
+        for (ContentNode child : children) {
+            body.append(child.render()).append("\n");
+        }
+        return "<!doctype html><html><body><main><h1>" + title + "</h1>" + body + "</main></body></html>";
+    }
+}
+```
+
+```go [go]
+package main
+
+import "fmt"
+
+type ContentNode interface {
+	GetTitle() string
+	Render() string
+}
+
+type TextBlock struct {
+	title string
+	text  string
+}
+
+func (t *TextBlock) GetTitle() string { return t.title }
+func (t *TextBlock) Render() string    { return "<p>" + t.text + "</p>" }
+
+type ImageBlock struct {
+	title string
+	src   string
+}
+
+func (i *ImageBlock) GetTitle() string { return i.title }
+func (i *ImageBlock) Render() string {
+	return fmt.Sprintf("<img alt=\"%s\" src=\"%s\" />", i.title, i.src)
+}
+
+type Section struct {
+	title    string
+	children []ContentNode
+}
+
+func NewSection(title string) *Section { return &Section{title: title} }
+func (s *Section) GetTitle() string    { return s.title }
+func (s *Section) Add(child ContentNode) { s.children = append(s.children, child) }
+
+func (s *Section) Render() string {
+	body := ""
+	for _, child := range s.children {
+		body += child.Render() + "\n"
+	}
+	return "<section><h2>" + s.title + "</h2>" + body + "</section>"
+}
+
+type Page struct {
+	title    string
+	children []ContentNode
+}
+
+func NewPage(title string) *Page { return &Page{title: title} }
+func (p *Page) GetTitle() string { return p.title }
+func (p *Page) Add(child ContentNode) { p.children = append(p.children, child) }
+
+func (p *Page) Render() string {
+	body := ""
+	for _, child := range p.children {
+		body += child.Render() + "\n"
+	}
+	return "<!doctype html><html><body><main><h1>" + p.title + "</h1>" + body + "</main></body></html>"
+}
+```
+
+```rust [rust]
+trait ContentNode {
+    fn get_title(&self) -> &str;
+    fn render(&self) -> String;
+}
+
+struct TextBlock {
+    title: String,
+    text: String,
+}
+
+impl ContentNode for TextBlock {
+    fn get_title(&self) -> &str { &self.title }
+    fn render(&self) -> String { format!("<p>{}</p>", self.text) }
+}
+
+struct ImageBlock {
+    title: String,
+    src: String,
+}
+
+impl ContentNode for ImageBlock {
+    fn get_title(&self) -> &str { &self.title }
+    fn render(&self) -> String {
+        format!("<img alt=\"{}\" src=\"{}\" />", self.title, self.src)
+    }
+}
+
+struct Section {
+    title: String,
+    children: Vec<Box<dyn ContentNode>>,
+}
+
+impl Section {
+    fn new(title: String) -> Self {
+        Self { title, children: Vec::new() }
+    }
+
+    fn add(&mut self, child: Box<dyn ContentNode>) {
+        self.children.push(child);
+    }
+}
+
+impl ContentNode for Section {
+    fn get_title(&self) -> &str { &self.title }
+
+    fn render(&self) -> String {
+        let body: String = self.children.iter().map(|c| c.render() + "\n").collect();
+        format!("<section><h2>{}</h2>{}</section>", self.title, body)
+    }
+}
+
+struct Page {
+    title: String,
+    children: Vec<Box<dyn ContentNode>>,
+}
+
+impl Page {
+    fn new(title: String) -> Self {
+        Self { title, children: Vec::new() }
+    }
+
+    fn add(&mut self, child: Box<dyn ContentNode>) {
+        self.children.push(child);
+    }
+}
+
+impl ContentNode for Page {
+    fn get_title(&self) -> &str { &self.title }
+
+    fn render(&self) -> String {
+        let body: String = self.children.iter().map(|c| c.render() + "\n").collect();
+        format!("<!doctype html><html><body><main><h1>{}</h1>{}</main></body></html>", self.title, body)
+    }
+}
 ```
 
 :::
 
 ## Real-World Example
 
-**Organization Hierarchy**: Represent a company structure where:
+A content management system is a natural fit for Composite because pages contain sections, sections contain blocks, and blocks may themselves contain nested content.
 
-- An **Organization** contains **Departments**
-- A **Department** contains **Teams** and **Employees**
-- A **Team** contains **Employees**
-- An **Employee** is a leaf node
+A single render operation can work on any node in the tree, while recursive delegation handles the rest.
 
-Both departments and teams can contain employees, and departments can contain both teams and employees. You can perform operations like calculating total headcount, salary expenses, or generating organization charts uniformly across all levels.
+```typescript
+const page = new Page("Design Patterns Handbook");
+const intro = new Section("Introduction");
+intro.add(new TextBlock("Overview", "Composite models tree structures."));
+intro.add(new ImageBlock("Diagram", "/images/composite.png"));
+
+page.add(intro);
+console.log(page.render());
+```
+
+That same pattern applies to menus, outlines, permission trees, and UI component trees.
 
 ## Advantages
 
-::: tip
-✅ **Simplified Client Code**: Clients treat individual and composite objects uniformly
-
-✅ **Natural Hierarchy Representation**: Easily represents tree structures in problem domain
-
-✅ **Easy to Add New Components**: Add new leaf or composite types without changing existing code
-
-✅ **Flexible Structure**: Build and modify hierarchies dynamically at runtime
-
-✅ **Recursive Operations**: Operations naturally work recursively through the tree
-
-✅ **Single Responsibility**: Each class has a clear, focused responsibility
-
-✅ **Open/Closed Principle**: Open for extension, closed for modification
-:::
+- Models part-whole hierarchies naturally
+- Treats leaf and composite nodes uniformly
+- Makes recursive traversal simpler for clients
+- Supports dynamic tree growth
+- Reduces client-side type checking and branching
+- Fits document and UI structures well
 
 ## Disadvantages
 
-::: warning
-❌ **Overly General Design**: May oversimplify by treating unrelated objects uniformly
-
-❌ **Difficult Type Safety**: Can't enforce type constraints (e.g., preventing certain children)
-
-❌ **Performance Issues**: Recursive operations on deep trees can be slow
-
-❌ **Memory Overhead**: Tree structures consume more memory than alternatives
-
-❌ **Complex Traversal**: Some tree operations can become complex and inefficient
-
-❌ **Difficult Debugging**: Deep recursion makes debugging challenging
-
-❌ **Not Always Appropriate**: Not all hierarchies need this level of uniformity
-:::
+- Can make the model harder to understand at first
+- Leaf and composite nodes may not have identical capabilities
+- Can become too generic if the interface is overloaded
+- Recursive operations may be expensive on large trees
+- Debugging deep hierarchies can take more effort
 
 ## When to Use
 
-- You need to represent part-whole hierarchies as tree structures
-- You want clients to treat individual and composite objects uniformly
-- You need to perform operations recursively on all components
-- You're building file systems, DOM trees, organization structures
-- You want to add new types without modifying existing client code
-- You need to build flexible hierarchies dynamically
+- You need a tree or recursive hierarchy
+- Leaves and containers should expose the same operations
+- You want clients to ignore whether they are handling a leaf or a composite
+- You expect the hierarchy to grow dynamically
+- You are modeling documents, menus, UI trees, or ASTs
 
 ## When NOT to Use
 
-- You need strong type safety and different handling for different types
-- The hierarchy is simple and doesn't benefit from uniform treatment
-- Performance is critical and recursion overhead is unacceptable
-- Leaf and composite objects need significantly different interfaces
-- You rarely perform operations on the entire tree
-- The hierarchy is very deep and recursion isn't suitable
+- Your structure is flat, not recursive
+- Leaf and container operations are too different to unify cleanly
+- The hierarchy is tiny and unlikely to grow
+- A simple list or map is enough
+- Uniform treatment would hide important distinctions
+
+## Common Mistakes
+
+### Mistake 1: Forcing every leaf to support container methods
+
+```typescript
+// ❌ Bad: meaningless add() on a leaf
+class TextBlock {
+  add() {}
+}
+
+// ✅ Good: keep leaf behavior minimal and clear
+```
+
+### Mistake 2: Making the interface too broad
+
+```typescript
+// ❌ Bad: huge interface with unrelated methods
+interface ContentNode {
+  render(): string;
+  add(): void;
+  saveToDb(): void;
+  sendEmail(): void;
+}
+
+// ✅ Good: keep the shared contract focused
+```
+
+### Mistake 3: Putting traversal in clients
+
+```typescript
+// ❌ Bad: every caller recursively walks the tree
+// ✅ Good: put recursion in the composite itself
+```
+
+### Mistake 4: Treating Composite like Adapter
+
+```typescript
+// ❌ Bad: using Composite to fix mismatched interfaces
+// ✅ Good: use Composite for tree structures, Adapter for compatibility
+```
 
 ## Related Patterns
 
-- **Iterator Pattern**: Use to traverse composite structures sequentially
-- **Visitor Pattern**: Use to perform complex operations on composite structures
-- **Factory Pattern**: Often used with Composite to create complex hierarchies
-- **Decorator Pattern**: Both use recursive composition, but Decorator adds functionality while Composite represents hierarchies
-- **Observer Pattern**: Can be combined with Composite to notify observers of tree changes
+- **Iterator**: Can traverse composite trees
+- **Visitor**: Often used to perform operations across composite hierarchies
+- **Decorator**: Adds behavior to nodes without changing the tree structure
+- **Command**: Can represent tree operations as commands
+
+## Modern Alternatives
+
+- JSON document models
+- React/Vue component trees
+- AST libraries and syntax trees
+- Graph-based content editors
+- Recursive data structures with visitor utilities
+
+## Interview Insights
+
+**Q1: What problem does Composite solve?**
+
+A: It lets clients treat individual objects and groups of objects uniformly in a tree structure.
+
+**Q2: How is Composite different from Decorator?**
+
+A: Composite represents whole-part hierarchies. Decorator adds behavior to one object.
+
+**Q3: Why is Composite useful for UI trees?**
+
+A: UI trees naturally mix containers and leaves, but many operations such as render or measure should work on both.
+
+**Q4: What is the biggest design risk with Composite?**
+
+A: Making the shared interface too broad or too vague.
+
+**Q5: When should you avoid Composite?**
+
+A: When the structure is not really recursive or when leaves and containers have too different a shape to share one contract cleanly.

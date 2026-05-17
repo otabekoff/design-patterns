@@ -1,6 +1,6 @@
 ---
 title: Proxy Pattern
-description: Provides a surrogate or placeholder for another object to control access to it
+description: Provides a surrogate or placeholder for another object to control access to it.
 icon: Shield
 ---
 
@@ -8,340 +8,154 @@ icon: Shield
 
 ## Overview
 
-The Proxy Pattern is a structural design pattern that provides a surrogate or placeholder for another object to control access to it. A proxy is a wrapper or agent object that acts as an intermediary between clients and the real subject, allowing you to enhance, restrict, or modify access to the subject.
+The **Proxy** pattern is a structural design pattern that provides a stand-in object for another object so access can be controlled, delayed, monitored, or modified. The proxy implements the same interface as the real object, but adds an extra layer around it.
 
-## Purpose
+**Key advantage**: It lets you manage expensive or sensitive objects without changing the client code that uses them.
 
-- **Control access** to another object
-- **Defer expensive object creation** until needed (lazy initialization)
-- **Add logging, caching, or monitoring** without modifying the real subject
-- **Implement access control** and authentication
-- **Provide a simplified interface** to complex objects
-- **Handle remote objects** or network communication
+**Modern perspective**: Proxy is still common in remote services, lazy-loaded resources, authorization gates, caching layers, and SDK wrappers. It is one of the most practical patterns for infrastructure code.
 
-## Problem
+Proxy is about control of access, not interface translation.
 
-Consider a scenario where you have:
+## Real-World Analogy
 
-- **Document Loading**: Documents are expensive to load from disk (heavy I/O)
-- **Access Control**: Only authorized users should access certain documents
-- **Performance**: You want to load documents only when needed, not when created
-- **Monitoring**: You want to track who accesses what document and when
-- **Caching**: You want to cache frequently accessed documents
+Think of a **security guard at a private archive**. Visitors do not walk directly to the vault. The guard checks permissions, decides whether to unlock the door, and only then lets the visitor see the archive.
 
-Modifying the `Document` class to add all these features would violate Single Responsibility and create a bloated, hard-to-maintain class.
+The guard is the proxy. The archive is the real object.
 
-## Solution
+## The Problem
 
-The Proxy Pattern provides a solution by:
+Some objects are expensive, sensitive, or both:
 
-1. **Creating a Proxy Class**: Implements the same interface as the real subject
-2. **Controlling Access**: The proxy controls when and how the real subject is accessed
-3. **Lazy Initialization**: Creates the real subject only when needed
-4. **Adding Features**: Adds logging, caching, access control without modifying the subject
-5. **Transparency**: From the client's perspective, proxy and subject are interchangeable
+- large documents that should be loaded only when needed
+- records that require permissions before reading
+- remote objects that should be accessed through a network boundary
+- resources that need monitoring or caching
+
+If the client instantiates and talks to these objects directly, you lose control over when they are loaded and who is allowed to access them.
+
+### Problem Example
+
+```typescript
+// ❌ Bad: client directly handles loading and authorization
+const document = new RealDocument("annual-report.pdf");
+if (user.role !== "admin") {
+  throw new Error("Access denied");
+}
+console.log(document.getContent());
+```
+
+That spreads policy and loading concerns into every caller.
+
+## The Solution
+
+Proxy solves this by placing a controlled object in front of the real one.
+
+1. Define a shared interface
+2. Implement the real object separately
+3. Implement a proxy that holds the real object lazily
+4. Put authorization, caching, logging, or remote access logic in the proxy
+5. Keep the client unaware of the difference
 
 ## Implementation
 
 ::: code-group
 
-
-  
 ```typescript [typescript]
-// ========== Common Interface ==========
-
-interface Document {
-getContent(): string;
-display(): void;
+interface DocumentSource {
+  getContent(): string;
+  display(): void;
 }
 
-// ========== Real Subject ==========
+class RealDocument implements DocumentSource {
+  private content: string;
 
-class RealDocument implements Document {
-private content: string = '';
+  constructor(private readonly filename: string) {
+    this.content = this.loadFromDisk();
+  }
 
-constructor(private filename: string) {
-// Simulate expensive document loading
-this.loadFromDisk();
+  private loadFromDisk(): string {
+    console.log(`Loading document from disk: ${this.filename}`);
+    return `Content of ${this.filename}`;
+  }
+
+  getContent(): string {
+    return this.content;
+  }
+
+  display(): void {
+    console.log(this.content);
+  }
 }
 
-private loadFromDisk(): void {
-console.log(`⏳ Loading document: ${this.filename}...`);
-// Simulate heavy I/O operation
-this.content = `Content of ${this.filename}`;
-console.log(`✅ Document loaded: ${this.filename}`);
-}
-
-getContent(): string {
-return this.content;
-}
-
-display(): void {
-console.log(`📄 Displaying: ${this.content}`);
-}
-}
-
-// ========== Protection Proxy ==========
-// Controls access based on user permissions
+type UserRole = "guest" | "user" | "admin";
 
 interface User {
-name: string;
-role: 'admin' | 'user' | 'guest';
+  name: string;
+  role: UserRole;
 }
 
-class DocumentProtectionProxy implements Document {
-private realDocument: RealDocument | null = null;
+class ProtectedDocumentProxy implements DocumentSource {
+  private realDocument: RealDocument | null = null;
 
-constructor(
-private filename: string,
-private currentUser: User,
-private requiredRole: 'admin' | 'user' | 'guest'
-) {}
+  constructor(
+    private readonly filename: string,
+    private readonly currentUser: User,
+    private readonly requiredRole: UserRole,
+  ) {}
 
-private hasAccess(): boolean {
-const roleHierarchy = { admin: 3, user: 2, guest: 1 };
-return roleHierarchy[this.currentUser.role] >= roleHierarchy[this.requiredRole];
-}
+  private hasAccess(): boolean {
+    const rank: Record<UserRole, number> = { guest: 1, user: 2, admin: 3 };
+    return rank[this.currentUser.role] >= rank[this.requiredRole];
+  }
 
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
+  private ensureLoaded(): void {
+    if (!this.realDocument) {
+      this.realDocument = new RealDocument(this.filename);
+    }
+  }
 
-getContent(): string {
-if (!this.hasAccess()) {
-console.log(`❌ Access denied for user: ${this.currentUser.name}. Required role: ${this.requiredRole}`);
-return 'ACCESS DENIED';
-}
-
-    this.initializeDocument();
-    return this.realDocument!.getContent();
-
-}
-
-display(): void {
-if (!this.hasAccess()) {
-console.log(`❌ Access denied for user: ${this.currentUser.name}`);
-return;
-}
-
-    this.initializeDocument();
-    this.realDocument!.display();
-
-}
-}
-
-// ========== Caching Proxy ==========
-// Caches document content to improve performance
-
-class DocumentCachingProxy implements Document {
-private realDocument: RealDocument | null = null;
-private cachedContent: string | null = null;
-private accessCount: number = 0;
-
-constructor(private filename: string) {}
-
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
-
-getContent(): string {
-this.accessCount++;
-
-    if (this.cachedContent === null) {
-      console.log(`📦 Cache miss, loading document...`);
-      this.initializeDocument();
-      this.cachedContent = this.realDocument!.getContent();
-    } else {
-      console.log(`⚡ Cache hit! (Access #${this.accessCount})`);
+  getContent(): string {
+    if (!this.hasAccess()) {
+      throw new Error(`Access denied for ${this.currentUser.name}`);
     }
 
-    return this.cachedContent;
+    this.ensureLoaded();
+    return this.realDocument.getContent();
+  }
 
+  display(): void {
+    if (!this.hasAccess()) {
+      throw new Error(`Access denied for ${this.currentUser.name}`);
+    }
+
+    this.ensureLoaded();
+    this.realDocument.display();
+  }
 }
 
-display(): void {
-const content = this.getContent();
-console.log(`📄 Displaying (cached): ${content}`);
-}
+const admin: User = { name: "Alice", role: "admin" };
+const guest: User = { name: "Bob", role: "guest" };
 
-getAccessCount(): number {
-return this.accessCount;
-}
+const protectedDoc = new ProtectedDocumentProxy(
+  "annual-report.pdf",
+  admin,
+  "admin",
+);
+console.log(protectedDoc.getContent());
 
-invalidateCache(): void {
-console.log(`🔄 Invalidating cache for ${this.filename}`);
-this.cachedContent = null;
-this.realDocument = null;
-}
-}
-
-// ========== Logging Proxy ==========
-// Logs all access to the document
-
-class DocumentLoggingProxy implements Document {
-private realDocument: RealDocument | null = null;
-private logs: string[] = [];
-
-constructor(private filename: string, private userId: string) {}
-
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
-
-private log(action: string): void {
-const timestamp = new Date().toISOString();
-const logEntry = `[${timestamp}] User ${this.userId} - ${action} on ${this.filename}`;
-this.logs.push(logEntry);
-console.log(`📝 ${logEntry}`);
-}
-
-getContent(): string {
-this.log('getContent()');
-this.initializeDocument();
-return this.realDocument!.getContent();
-}
-
-display(): void {
-this.log('display()');
-this.initializeDocument();
-this.realDocument!.display();
-}
-
-getLogs(): string[] {
-return this.logs;
-}
-}
-
-// ========== Usage Examples ==========
-
-console.log('=== Protection Proxy Example ===\n');
-
-const adminUser: User = { name: 'Alice', role: 'admin' };
-const regularUser: User = { name: 'Bob', role: 'user' };
-const guestUser: User = { name: 'Charlie', role: 'guest' };
-
-// Admin can access everything
-const adminDoc = new DocumentProtectionProxy('secret.txt', adminUser, 'admin');
-adminDoc.getContent();
-adminDoc.display();
-
-console.log('\n');
-
-// Guest cannot access
-const guestDoc = new DocumentProtectionProxy('secret.txt', guestUser, 'admin');
-guestDoc.getContent();
-
-console.log('\n=== Caching Proxy Example ===\n');
-
-const cachedDoc = new DocumentCachingProxy('report.pdf');
-cachedDoc.getContent();
-cachedDoc.getContent();
-cachedDoc.getContent();
-console.log(`Total accesses: ${cachedDoc.getAccessCount()}`);
-
-console.log('\n=== Logging Proxy Example ===\n');
-
-const loggedDoc = new DocumentLoggingProxy('data.csv', 'user123');
-loggedDoc.getContent();
-loggedDoc.display();
-console.log(`\nAccess logs: ${loggedDoc.getLogs().length} entries`);
-
-// ========== Real-world example: Virtual Proxy ==========
-
-interface Image {
-render(): void;
-getWidth(): number;
-getHeight(): number;
-}
-
-class RealImage implements Image {
-constructor(private filename: string, private width: number, private height: number) {
-this.loadImage();
-}
-
-private loadImage(): void {
-console.log(`🖼️  Loading image: ${this.filename}...`);
-}
-
-render(): void {
-console.log(`📸 Rendering image: ${this.filename} (${this.width}x${this.height})`);
-}
-
-getWidth(): number {
-return this.width;
-}
-
-getHeight(): number {
-return this.height;
-}
-}
-
-class ImageProxy implements Image {
-private realImage: RealImage | null = null;
-private width: number;
-private height: number;
-
-constructor(filename: string, width: number, height: number) {
-this.width = width;
-this.height = height;
-console.log(`✏️  Created proxy for image: ${filename} (${width}x${height})`);
-}
-
-private ensureLoaded(): void {
-if (!this.realImage) {
-// In real scenario, we'd pass filename but for simplicity...
-this.realImage = new RealImage('image.jpg', this.width, this.height);
-}
-}
-
-render(): void {
-this.ensureLoaded();
-this.realImage!.render();
-}
-
-getWidth(): number {
-return this.width;
-}
-
-getHeight(): number {
-return this.height;
-}
-}
-
-console.log('\n=== Virtual Proxy Example (Lazy Loading) ===\n');
-
-const images: Image[] = [
-new ImageProxy('image1.jpg', 800, 600),
-new ImageProxy('image2.jpg', 1024, 768),
-new ImageProxy('image3.jpg', 640, 480),
-];
-
-console.log(`\n✅ Created ${images.length} image proxies without loading`);
-
-console.log(`\nGetting dimensions (no loading needed):`);
-for (const img of images) {
-console.log(`  ${img.getWidth()}x${img.getHeight()}`);
-}
-
-console.log(`\nRendering specific image (triggers loading):`);
-images[1].render();
+const deniedDoc = new ProtectedDocumentProxy(
+  "annual-report.pdf",
+  guest,
+  "admin",
+);
+// deniedDoc.getContent(); // throws access denied
 ```
 
-
-  
 ```python [python]
 from abc import ABC, abstractmethod
-from datetime import datetime
 
-# ========== Common Interface ==========
 
-class Document(ABC):
+class DocumentSource(ABC):
     @abstractmethod
     def get_content(self) -> str:
         pass
@@ -350,35 +164,30 @@ class Document(ABC):
     def display(self) -> None:
         pass
 
-# ========== Real Subject ==========
 
-class RealDocument(Document):
+class RealDocument(DocumentSource):
     def __init__(self, filename: str):
         self._filename = filename
-        self._content = ""
-        self._load_from_disk()
+        self._content = self._load_from_disk()
 
-    def _load_from_disk(self) -> None:
-        print(f"⏳ Loading document: {self._filename}...")
-        # Simulate heavy I/O operation
-        self._content = f"Content of {self._filename}"
-        print(f"✅ Document loaded: {self._filename}")
+    def _load_from_disk(self) -> str:
+        print(f"Loading document from disk: {self._filename}")
+        return f"Content of {self._filename}"
 
     def get_content(self) -> str:
         return self._content
 
     def display(self) -> None:
-        print(f"📄 Displaying: {self._content}")
+        print(self._content)
 
-# ========== Protection Proxy ==========
-# Controls access based on user permissions
 
 class User:
     def __init__(self, name: str, role: str):
         self.name = name
-        self.role = role  # 'admin', 'user', 'guest'
+        self.role = role
 
-class DocumentProtectionProxy(Document):
+
+class ProtectedDocumentProxy(DocumentSource):
     def __init__(self, filename: str, current_user: User, required_role: str):
         self._filename = filename
         self._current_user = current_user
@@ -386,283 +195,428 @@ class DocumentProtectionProxy(Document):
         self._real_document = None
 
     def _has_access(self) -> bool:
-        role_hierarchy = {'admin': 3, 'user': 2, 'guest': 1}
-        return role_hierarchy.get(self._current_user.role, 0) >= role_hierarchy.get(self._required_role, 0)
-
-    def _initialize_document(self) -> None:
-        if self._real_document is None:
-            self._real_document = RealDocument(self._filename)
-
-    def get_content(self) -> str:
-        if not self._has_access():
-            print(f"❌ Access denied for user: {self._current_user.name}. Required role: {self._required_role}")
-            return "ACCESS DENIED"
-
-        self._initialize_document()
-        return self._real_document.get_content()
-
-    def display(self) -> None:
-        if not self._has_access():
-            print(f"❌ Access denied for user: {self._current_user.name}")
-            return
-
-        self._initialize_document()
-        self._real_document.display()
-
-# ========== Caching Proxy ==========
-# Caches document content to improve performance
-
-class DocumentCachingProxy(Document):
-    def __init__(self, filename: str):
-        self._filename = filename
-        self._real_document = None
-        self._cached_content = None
-        self._access_count = 0
-
-    def _initialize_document(self) -> None:
-        if self._real_document is None:
-            self._real_document = RealDocument(self._filename)
-
-    def get_content(self) -> str:
-        self._access_count += 1
-
-        if self._cached_content is None:
-            print(f"📦 Cache miss, loading document...")
-            self._initialize_document()
-            self._cached_content = self._real_document.get_content()
-        else:
-            print(f"⚡ Cache hit! (Access #{self._access_count})")
-
-        return self._cached_content
-
-    def display(self) -> None:
-        content = self.get_content()
-        print(f"📄 Displaying (cached): {content}")
-
-    def get_access_count(self) -> int:
-        return self._access_count
-
-    def invalidate_cache(self) -> None:
-        print(f"🔄 Invalidating cache for {self._filename}")
-        self._cached_content = None
-        self._real_document = None
-
-# ========== Logging Proxy ==========
-# Logs all access to the document
-
-class DocumentLoggingProxy(Document):
-    def __init__(self, filename: str, user_id: str):
-        self._filename = filename
-        self._user_id = user_id
-        self._real_document = None
-        self._logs = []
-
-    def _initialize_document(self) -> None:
-        if self._real_document is None:
-            self._real_document = RealDocument(self._filename)
-
-    def _log(self, action: str) -> None:
-        timestamp = datetime.now().isoformat()
-        log_entry = f"[{timestamp}] User {self._user_id} - {action} on {self._filename}"
-        self._logs.append(log_entry)
-        print(f"📝 {log_entry}")
-
-    def get_content(self) -> str:
-        self._log("get_content()")
-        self._initialize_document()
-        return self._real_document.get_content()
-
-    def display(self) -> None:
-        self._log("display()")
-        self._initialize_document()
-        self._real_document.display()
-
-    def get_logs(self) -> list:
-        return self._logs
-
-# ========== Usage Examples ==========
-
-print("=== Protection Proxy Example ===\n")
-
-admin_user = User("Alice", "admin")
-regular_user = User("Bob", "user")
-guest_user = User("Charlie", "guest")
-
-# Admin can access everything
-admin_doc = DocumentProtectionProxy("secret.txt", admin_user, "admin")
-admin_doc.get_content()
-admin_doc.display()
-
-print("\n")
-
-# Guest cannot access
-guest_doc = DocumentProtectionProxy("secret.txt", guest_user, "admin")
-guest_doc.get_content()
-
-print("\n=== Caching Proxy Example ===\n")
-
-cached_doc = DocumentCachingProxy("report.pdf")
-cached_doc.get_content()
-cached_doc.get_content()
-cached_doc.get_content()
-print(f"Total accesses: {cached_doc.get_access_count()}")
-
-print("\n=== Logging Proxy Example ===\n")
-
-logged_doc = DocumentLoggingProxy("data.csv", "user123")
-logged_doc.get_content()
-logged_doc.display()
-print(f"\nAccess logs: {len(logged_doc.get_logs())} entries")
-
-# ========== Real-world example: Virtual Proxy ==========
-
-class Image(ABC):
-    @abstractmethod
-    def render(self) -> None:
-        pass
-
-    @abstractmethod
-    def get_width(self) -> int:
-        pass
-
-    @abstractmethod
-    def get_height(self) -> int:
-        pass
-
-class RealImage(Image):
-    def __init__(self, filename: str, width: int, height: int):
-        self._filename = filename
-        self._width = width
-        self._height = height
-        self._load_image()
-
-    def _load_image(self) -> None:
-        print(f"🖼️  Loading image: {self._filename}...")
-
-    def render(self) -> None:
-        print(f"📸 Rendering image: {self._filename} ({self._width}x{self._height})")
-
-    def get_width(self) -> int:
-        return self._width
-
-    def get_height(self) -> int:
-        return self._height
-
-class ImageProxy(Image):
-    def __init__(self, filename: str, width: int, height: int):
-        self._filename = filename
-        self._width = width
-        self._height = height
-        self._real_image = None
-        print(f"✏️  Created proxy for image: {filename} ({width}x{height})")
+        rank = {"guest": 1, "user": 2, "admin": 3}
+        return rank.get(self._current_user.role, 0) >= rank.get(self._required_role, 0)
 
     def _ensure_loaded(self) -> None:
-        if self._real_image is None:
-            self._real_image = RealImage(self._filename, self._width, self._height)
+        if self._real_document is None:
+            self._real_document = RealDocument(self._filename)
 
-    def render(self) -> None:
+    def get_content(self) -> str:
+        if not self._has_access():
+            raise PermissionError(f"Access denied for {self._current_user.name}")
+
         self._ensure_loaded()
-        self._real_image.render()
+        return self._real_document.get_content()
 
-    def get_width(self) -> int:
-        return self._width
+    def display(self) -> None:
+        if not self._has_access():
+            raise PermissionError(f"Access denied for {self._current_user.name}")
 
-    def get_height(self) -> int:
-        return self._height
+        self._ensure_loaded()
+        self._real_document.display()
 
-print("\n=== Virtual Proxy Example (Lazy Loading) ===\n")
 
-images = [
-    ImageProxy("image1.jpg", 800, 600),
-    ImageProxy("image2.jpg", 1024, 768),
-    ImageProxy("image3.jpg", 640, 480),
-]
+admin = User("Alice", "admin")
+guest = User("Bob", "guest")
 
-print(f"\n✅ Created {len(images)} image proxies without loading")
+protected_doc = ProtectedDocumentProxy("annual-report.pdf", admin, "admin")
+print(protected_doc.get_content())
 
-print(f"\nGetting dimensions (no loading needed):")
-for img in images:
-    print(f"  {img.get_width()}x{img.get_height()}")
+# denied_doc = ProtectedDocumentProxy("annual-report.pdf", guest, "admin")
+# denied_doc.get_content()
+```
 
-print(f"\nRendering specific image (triggers loading):")
-images[1].render()
+```java [java]
+interface DocumentSource {
+    String getContent();
+    void display();
+}
+
+class RealDocument implements DocumentSource {
+    private final String filename;
+    private final String content;
+
+    RealDocument(String filename) {
+        this.filename = filename;
+        this.content = loadFromDisk();
+    }
+
+    private String loadFromDisk() {
+        System.out.println("Loading document from disk: " + filename);
+        return "Content of " + filename;
+    }
+
+    @Override
+    public String getContent() {
+        return content;
+    }
+
+    @Override
+    public void display() {
+        System.out.println(content);
+    }
+}
+
+enum Role {
+    GUEST, USER, ADMIN
+}
+
+class User {
+    final String name;
+    final Role role;
+
+    User(String name, Role role) {
+        this.name = name;
+        this.role = role;
+    }
+}
+
+class ProtectedDocumentProxy implements DocumentSource {
+    private final String filename;
+    private final User currentUser;
+    private final Role requiredRole;
+    private RealDocument realDocument;
+
+    ProtectedDocumentProxy(String filename, User currentUser, Role requiredRole) {
+        this.filename = filename;
+        this.currentUser = currentUser;
+        this.requiredRole = requiredRole;
+    }
+
+    private boolean hasAccess() {
+        return currentUser.role.ordinal() >= requiredRole.ordinal();
+    }
+
+    private void ensureLoaded() {
+        if (realDocument == null) {
+            realDocument = new RealDocument(filename);
+        }
+    }
+
+    @Override
+    public String getContent() {
+        if (!hasAccess()) {
+            throw new SecurityException("Access denied for " + currentUser.name);
+        }
+
+        ensureLoaded();
+        return realDocument.getContent();
+    }
+
+    @Override
+    public void display() {
+        if (!hasAccess()) {
+            throw new SecurityException("Access denied for " + currentUser.name);
+        }
+
+        ensureLoaded();
+        realDocument.display();
+    }
+}
+```
+
+```go [go]
+package main
+
+import "fmt"
+
+type DocumentSource interface {
+	GetContent() string
+	Display()
+}
+
+type RealDocument struct {
+	filename string
+	content  string
+}
+
+func NewRealDocument(filename string) *RealDocument {
+	return &RealDocument{
+		filename: filename,
+		content:  loadFromDisk(filename),
+	}
+}
+
+func loadFromDisk(filename string) string {
+	fmt.Println("Loading document from disk:", filename)
+	return "Content of " + filename
+}
+
+func (d *RealDocument) GetContent() string { return d.content }
+func (d *RealDocument) Display()           { fmt.Println(d.content) }
+
+type User struct {
+	Name string
+	Role string
+}
+
+type ProtectedDocumentProxy struct {
+	filename     string
+	currentUser  User
+	requiredRole string
+	realDocument *RealDocument
+}
+
+func NewProtectedDocumentProxy(filename string, currentUser User, requiredRole string) *ProtectedDocumentProxy {
+	return &ProtectedDocumentProxy{filename: filename, currentUser: currentUser, requiredRole: requiredRole}
+}
+
+func roleRank(role string) int {
+	ranks := map[string]int{"guest": 1, "user": 2, "admin": 3}
+	return ranks[role]
+}
+
+func (p *ProtectedDocumentProxy) hasAccess() bool {
+	return roleRank(p.currentUser.Role) >= roleRank(p.requiredRole)
+}
+
+func (p *ProtectedDocumentProxy) ensureLoaded() {
+	if p.realDocument == nil {
+		p.realDocument = NewRealDocument(p.filename)
+	}
+}
+
+func (p *ProtectedDocumentProxy) GetContent() string {
+	if !p.hasAccess() {
+		panic("access denied for " + p.currentUser.Name)
+	}
+	p.ensureLoaded()
+	return p.realDocument.GetContent()
+}
+
+func (p *ProtectedDocumentProxy) Display() {
+	if !p.hasAccess() {
+		panic("access denied for " + p.currentUser.Name)
+	}
+	p.ensureLoaded()
+	p.realDocument.Display()
+}
+```
+
+```rust [rust]
+trait DocumentSource {
+    fn get_content(&mut self) -> String;
+    fn display(&mut self);
+}
+
+struct RealDocument {
+    filename: String,
+    content: String,
+}
+
+impl RealDocument {
+    fn new(filename: String) -> Self {
+        let content = Self::load_from_disk(&filename);
+        Self { filename, content }
+    }
+
+    fn load_from_disk(filename: &str) -> String {
+        println!("Loading document from disk: {}", filename);
+        format!("Content of {}", filename)
+    }
+}
+
+impl DocumentSource for RealDocument {
+    fn get_content(&mut self) -> String {
+        self.content.clone()
+    }
+
+    fn display(&mut self) {
+        println!("{}", self.content);
+    }
+}
+
+#[derive(Clone)]
+struct User {
+    name: String,
+    role: String,
+}
+
+struct ProtectedDocumentProxy {
+    filename: String,
+    current_user: User,
+    required_role: String,
+    real_document: Option<RealDocument>,
+}
+
+impl ProtectedDocumentProxy {
+    fn new(filename: String, current_user: User, required_role: String) -> Self {
+        Self {
+            filename,
+            current_user,
+            required_role,
+            real_document: None,
+        }
+    }
+
+    fn rank(role: &str) -> i32 {
+        match role {
+            "guest" => 1,
+            "user" => 2,
+            "admin" => 3,
+            _ => 0,
+        }
+    }
+
+    fn has_access(&self) -> bool {
+        Self::rank(&self.current_user.role) >= Self::rank(&self.required_role)
+    }
+
+    fn ensure_loaded(&mut self) {
+        if self.real_document.is_none() {
+            self.real_document = Some(RealDocument::new(self.filename.clone()));
+        }
+    }
+}
+
+impl DocumentSource for ProtectedDocumentProxy {
+    fn get_content(&mut self) -> String {
+        if !self.has_access() {
+            panic!("access denied for {}", self.current_user.name);
+        }
+
+        self.ensure_loaded();
+        self.real_document.as_mut().unwrap().get_content()
+    }
+
+    fn display(&mut self) {
+        if !self.has_access() {
+            panic!("access denied for {}", self.current_user.name);
+        }
+
+        self.ensure_loaded();
+        self.real_document.as_mut().unwrap().display();
+    }
+}
 ```
 
 :::
 
 ## Real-World Example
 
-**Remote Service Proxy**: When working with remote services (databases, APIs), a proxy can:
+A practical proxy in a document platform can guard access to sensitive files while loading them only when needed. The client just asks for a document source; the proxy checks permissions and initializes the real document lazily.
 
-- **Buffer requests**: Batch multiple requests to reduce network calls
-- **Handle failures**: Implement retry logic and fallbacks
-- **Cache results**: Store responses to avoid repeated calls
-- **Throttle access**: Implement rate limiting
-- **Convert formats**: Translate between local and remote data formats
+```typescript
+const doc = new ProtectedDocumentProxy(
+  "annual-report.pdf",
+  { name: "Alice", role: "admin" },
+  "admin",
+);
 
-Example: A `DatabaseProxy` wraps a remote database connection, implementing caching, connection pooling, and retry logic transparently.
+console.log(doc.getContent());
+```
+
+That is useful when the real object is expensive, remote, or sensitive.
 
 ## Advantages
 
-::: tip
-✅ **Lazy Initialization**: Create expensive objects only when needed
-
-✅ **Access Control**: Restrict or control how objects are accessed
-
-✅ **Enhanced Functionality**: Add logging, caching, or monitoring without modifying the subject
-
-✅ **Separation of Concerns**: Keep access control logic separate from business logic
-
-✅ **Network Optimization**: Reduce network traffic with caching and batching
-
-✅ **Transparency**: Proxy and subject share the same interface
-
-✅ **Single Responsibility**: Each proxy handles one specific concern
-:::
+- Controls access without changing client code
+- Supports lazy loading of expensive objects
+- Centralizes authorization or validation
+- Can add caching, logging, or monitoring
+- Keeps the real object focused on its core work
+- Works well for remote or heavyweight resources
 
 ## Disadvantages
 
-::: warning
-❌ **Added Complexity**: Additional layer of indirection
-
-❌ **Performance Overhead**: Extra method calls add latency
-
-❌ **Maintenance Burden**: Multiple proxies need to be maintained
-
-❌ **Difficult Debugging**: Indirection makes tracing execution harder
-
-❌ **Thread Safety**: Shared proxies require careful synchronization
-
-❌ **Memory Overhead**: Proxy objects consume additional memory
-
-❌ **Unexpected Behavior**: Lazy loading or caching can cause surprising behavior
-:::
+- Adds another layer of indirection
+- Can hide behavior and make debugging harder
+- Requires careful synchronization for shared proxies
+- Can become complex if it handles too many concerns
+- Extra wrapper code is unnecessary for cheap objects
 
 ## When to Use
 
-- You need lazy initialization (defer expensive object creation)
-- You need access control (authentication, authorization)
-- You want logging or monitoring without modifying the subject
-- You're implementing remote object access (RPC, network services)
-- You need caching to improve performance
-- You want to implement copy-on-write semantics
-- You're building a plugin system with security restrictions
-- You need to throttle or rate-limit access
+- The real object is expensive to create
+- Access must be controlled or validated
+- You want lazy loading
+- You need a remote object boundary
+- You want to add logging or caching transparently
 
 ## When NOT to Use
 
-- The real object is lightweight and always needed
-- Performance is critical and overhead is unacceptable
-- Simplicity is more important than added features
-- The proxy logic becomes too complex
-- Thread synchronization becomes a major concern
-- The proxy makes behavior unpredictable or unclear
-- The shared interface doesn't fit both proxy and subject well
+- The object is lightweight and always needed
+- The proxy would duplicate too much business logic
+- Simplicity matters more than access control
+- The extra indirection hurts readability
+- The proxy and real object would diverge too much
+
+## Common Mistakes
+
+### Mistake 1: Putting business logic in the proxy
+
+```typescript
+// ❌ Bad: proxy owns domain rules
+class BadProxy {
+  getContent() {
+    // pricing, formatting, and policy here
+  }
+}
+
+// ✅ Good: proxy controls access, real object owns behavior
+```
+
+### Mistake 2: Eagerly loading expensive objects
+
+```typescript
+// ❌ Bad: no lazy loading
+const doc = new RealDocument("big.pdf");
+
+// ✅ Good: defer creation until needed
+```
+
+### Mistake 3: Leaking direct access to the real object
+
+```typescript
+// ❌ Bad: clients bypass the proxy
+class BadProxy {
+  getRealDocument() {}
+}
+
+// ✅ Good: keep the proxy as the boundary
+```
+
+### Mistake 4: Treating Proxy like Decorator
+
+```typescript
+// ❌ Bad: adding behavior without access control intent
+// ✅ Good: use Proxy when the main goal is control of access
+```
 
 ## Related Patterns
 
-- **Decorator Pattern**: Similar structure, but Decorator adds responsibilities while Proxy controls access
-- **Facade Pattern**: Both provide simplified interfaces, but Facade simplifies subsystems while Proxy controls access
-- **Adapter Pattern**: Both involve wrapping, but Adapter converts interfaces while Proxy controls access
-- **Factory Pattern**: Often used with Proxy to create proxies for created objects
-- **Strategy Pattern**: Both involve object composition, but Strategy encapsulates algorithms while Proxy controls access
+- **Decorator**: Adds responsibilities; Proxy controls access
+- **Adapter**: Converts one interface to another
+- **Facade**: Simplifies a subsystem instead of gating access
+- **Singleton**: Sometimes used to share a proxy instance, but not required
+
+## Modern Alternatives
+
+- ORM lazy-loading entities
+- HTTP client interceptors and middleware
+- API gateways and BFFs
+- Service meshes and sidecars
+- Cloud IAM / policy enforcement layers
+
+## Interview Insights
+
+**Q1: What is the main purpose of Proxy?**
+
+A: To control access to another object through a stand-in that implements the same interface.
+
+**Q2: How is Proxy different from Decorator?**
+
+A: Proxy is about access control, lazy loading, or remote access. Decorator is about adding behavior.
+
+**Q3: Why is lazy loading a common Proxy use case?**
+
+A: It delays expensive object creation until the object is actually needed, which improves startup cost and memory usage.
+
+**Q4: Can Proxy be used for security?**
+
+A: Yes. Protection proxies are a standard way to centralize authorization checks.
+
+**Q5: What is the biggest risk with Proxy?**
+
+A: Overloading it with extra concerns until it becomes harder to reason about than the real object itself.

@@ -1,653 +1,636 @@
 ---
 title: Model-View-ViewModel (MVVM)
-description: Separates UI from business logic with data binding
+description: The modern standard for declarative UIs, separating logic from UI using automated Data Binding and Observables.
 icon: Box
 ---
 
 # Model-View-ViewModel (MVVM)
 
-
-
 ## Overview
 
-The **Model-View-ViewModel (MVVM)** pattern is an architectural pattern designed for applications with complex UI requirements. It divides an application into:
+The **Model-View-ViewModel (MVVM)** pattern is the architectural standard for modern, reactive user interfaces. It was originally created by Microsoft for WPF (Windows Presentation Foundation) but has since become the underlying philosophy for almost all modern frontend frameworks (Vue.js, Angular, SwiftUI, Jetpack Compose).
 
-- **Model**: Contains data and business logic
-- **View**: The UI layer (markup and minimal code-behind)
-- **ViewModel**: Exposes data and commands for the view via data binding
+It divides an application into:
+- **Model**: Contains the domain data and business logic.
+- **View**: The declarative UI layout (HTML, XAML, JSX). It has no logic of its own.
+- **ViewModel**: A state-holding class/object that sits between the View and the Model. It exposes "Observable" data streams and Commands.
 
-MVVM is ideal for frameworks that support declarative UI and data binding like WPF, Angular, and Vue.js.
+**The Magic of MVVM**: Unlike MVP or MVC, where a Controller/Presenter must *manually* push updates to the UI (e.g., `textField.setText("Hello")`), MVVM uses **Data Binding**. The View automatically listens to the ViewModel. When the ViewModel's state changes, the View updates itself instantly and automatically.
 
-## Purpose
+## The Problem
 
-The MVVM pattern aims to:
+In MVC/MVP, the programmer is responsible for manually synchronizing the UI with the data. 
 
-- Enable clear separation between UI and business logic
-- Support two-way data binding
-- Make the view completely testable through the ViewModel
-- Allow designers and developers to work independently
-- Reduce code-behind complexity
-- Enable reactive UI updates
-
-## Problem
-
-Traditional UI development often suffers from:
-
-- Code-behind containing business logic mixed with UI updates
-- Hard to test UI interactions
-- Tight coupling between view and logic
-- UI updates scattered throughout the codebase
-- Designers cannot work independently from developers
-- Difficult to reuse UI logic
-
-```
-❌ Traditional UI Code-Behind
-┌──────────────────────┐
-│   View + Code-Behind │
-├──────────────────────┤
-│ • UI Markup          │
-│ • Event Handlers     │
-│ • Business Logic ❌  │
-│ • Data Binding       │
-│ • Validation         │
-└──────────────────────┘
+```javascript
+// ❌ Bad: Manual DOM manipulation (JQuery/Vanilla JS style)
+function updateUserName(newName) {
+    user.name = newName; // Update data
+    // Manually find the DOM element and update it
+    document.getElementById("name-display").innerText = newName;
+    document.getElementById("name-input").value = newName;
+}
 ```
 
-## Solution
+This causes massive bugs:
+1. **Desync**: If you update the data but forget to update the DOM element, the UI shows stale data.
+2. **Spaghetti Updates**: When 5 different buttons can change the User's name, you end up duplicating the DOM manipulation code 5 times.
+3. **Boilerplate**: Manually reading from inputs and writing to labels accounts for 80% of UI code.
 
-MVVM separates concerns and enables data binding:
+## The Solution
 
+MVVM introduces a **Binder** (provided by frameworks like Vue, Angular, or React). The View *binds* directly to properties on the ViewModel.
+
+```html
+<!-- ✅ Good: Declarative Data Binding (Vue.js style) -->
+<template>
+  <!-- The View automatically updates when ViewModel.userName changes -->
+  <h1>{{ userName }}</h1>
+  
+  <!-- Two-way binding: Typing in the input automatically updates the ViewModel -->
+  <input v-model="userName" />
+</template>
 ```
-✅ MVVM Architecture
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│    Model     │      │    View      │      │  ViewModel   │
-├──────────────┤      ├──────────────┤      ├──────────────┤
-│ • Data       │◄─────│ • Markup     │◄────→│ • Properties │
-│ • Business   │      │ • Minimal    │  ◄───│ • Commands   │
-│   Logic      │      │   Code       │  Data│ • Logic      │
-│ • Events     │      │              │ Bind │ • Validation │
-└──────────────┘      └──────────────┘      └──────────────┘
-      ▲                                              ▲
-      └──────────────────────────────────────────────┘
-        Two-way Data Binding & Notifications
+
+When the user types in the input, the ViewModel updates automatically. When the ViewModel updates, the `<h1>` updates automatically. No manual DOM manipulation is required.
+
+## Structure
+
+```mermaid
+classDiagram
+    class View {
+        <<Declarative UI>>
+        +DataBinding
+    }
+
+    class ViewModel {
+        +ObservableState
+        +Commands()
+    }
+
+    class Model {
+        +BusinessLogic()
+    }
+
+    View <..> ViewModel : "Two-Way Data Binding"
+    ViewModel --> Model : "Reads/Writes Data"
+    Model --> ViewModel : "Emits Events/Data"
 ```
 
-**Flow:**
+## Flow
 
-1. User interacts with View
-2. View triggers ViewModel command
-3. ViewModel updates Model or notifies View
-4. Data binding automatically updates View
-5. ViewModel notifies View of changes
+1. **User Action**: The user types in a text box.
+2. **Two-Way Binding**: The Framework's binder automatically updates the variable inside the `ViewModel`.
+3. **Logic Execution**: A button is clicked, triggering a Command on the `ViewModel`. The `ViewModel` processes the command and updates the `Model`.
+4. **State Change**: The `ViewModel` updates its own Observable properties (e.g., `isLoading = false`).
+5. **Auto-Render**: The Framework detects the property change and automatically re-renders the specific parts of the `View` that are bound to that property.
 
-## Implementation
+## Real-World Analogy
+
+Think of a **Spreadsheet (like Excel)**.
+- **The View**: The cell you see on the screen displaying the number "50".
+- **The ViewModel**: The formula behind the cell `=A1+B1`.
+- **The Model**: The actual data in cells A1 and B1.
+
+If you change cell A1, you don't have to write a script commanding the total cell to redraw. Because the total cell is *bound* to the formula, it updates automatically.
+
+## Step-by-Step Implementation
+
+Because MVVM relies heavily on a "Binder" engine, it is rarely built from scratch. You typically use a framework (Vue, Angular, Knockout, WPF, SwiftUI). However, we can simulate the pattern using modern proxies or simple observable classes to understand how it works under the hood.
+
+## Code Examples
+
+We will build a simple counter application. To demonstrate how MVVM works, we will implement the **Observable** pattern manually across our languages.
 
 ::: code-group
 
-```typescript [typescript]
-// Model - Contains data and business logic
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  age: number;
+```typescript [TypeScript]
+// 1. Model: Core business rules
+class CounterModel {
+  public value: number = 0;
+  
+  public increment() { this.value++; }
+  public decrement() { this.value--; }
 }
 
-class UserModel {
-  private users: Map<number, User> = new Map();
-  private nextId: number = 1;
-
-  addUser(name: string, email: string, age: number): User {
-    if (!name || !email || age < 0) {
-      throw new Error("Invalid user data");
-    }
-
-    const user: User = {
-      id: this.nextId++,
-      name,
-      email,
-      age,
-    };
-    this.users.set(user.id, user);
-    return user;
-  }
-
-  getUser(id: number): User | undefined {
-    return this.users.get(id);
-  }
-
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
-  }
-
-  updateUser(id: number, updates: Partial<User>): User | null {
-    const user = this.users.get(id);
-    if (!user) return null;
-
-    Object.assign(user, updates);
-    return user;
-  }
-
-  deleteUser(id: number): boolean {
-    return this.users.delete(id);
-  }
-}
-
-// ViewModel - Exposes model data and commands with Observable pattern
-interface ObserverCallback {
-  (): void;
-}
-
+// Helper: A simple Observable wrapper (This is what Vue/React do under the hood)
 class Observable<T> {
-  private value: T;
-  private observers: ObserverCallback[] = [];
+  private listeners: ((val: T) => void)[] = [];
+  constructor(private _val: T) {}
 
-  constructor(initialValue: T) {
-    this.value = initialValue;
+  get value(): T { return this._val; }
+  set value(v: T) {
+    this._val = v;
+    this.listeners.forEach(l => l(v)); // Notify all bound UI elements
   }
 
-  get(): T {
-    return this.value;
-  }
-
-  set(newValue: T): void {
-    this.value = newValue;
-    this.notifyObservers();
-  }
-
-  subscribe(callback: ObserverCallback): () => void {
-    this.observers.push(callback);
-    return () => {
-      this.observers = this.observers.filter((obs) => obs !== callback);
-    };
-  }
-
-  private notifyObservers(): void {
-    this.observers.forEach((callback) => callback());
+  bind(listener: (val: T) => void) {
+    this.listeners.push(listener);
+    listener(this._val); // Initial sync
   }
 }
 
-class UserViewModel {
-  private model: UserModel;
-  private users: Observable<User[]>;
-  private selectedUser: Observable<User | null>;
-  private isLoading: Observable<boolean>;
-  private errorMessage: Observable<string>;
+// 2. ViewModel: Exposes observable state and commands
+class CounterViewModel {
+  // State is wrapped in Observables
+  public count = new Observable<number>(0);
+  public isNegative = new Observable<boolean>(false);
 
-  // Form data
-  private formName: Observable<string>;
-  private formEmail: Observable<string>;
-  private formAge: Observable<number>;
+  constructor(private model: CounterModel) {}
 
-  constructor(model: UserModel) {
-    this.model = model;
-    this.users = new Observable(this.model.getAllUsers());
-    this.selectedUser = new Observable<User | null>(null);
-    this.isLoading = new Observable(false);
-    this.errorMessage = new Observable("");
-    this.formName = new Observable("");
-    this.formEmail = new Observable("");
-    this.formAge = new Observable(0);
+  // Commands (triggered by the View)
+  public onIncrement() {
+    this.model.increment();
+    this.syncState();
   }
 
-  // Properties for data binding
-  get users$() {
-    return this.users;
+  public onDecrement() {
+    this.model.decrement();
+    this.syncState();
   }
 
-  get selectedUser$() {
-    return this.selectedUser;
-  }
-
-  get isLoading$() {
-    return this.isLoading;
-  }
-
-  get errorMessage$() {
-    return this.errorMessage;
-  }
-
-  get formName$() {
-    return this.formName;
-  }
-
-  get formEmail$() {
-    return this.formEmail;
-  }
-
-  get formAge$() {
-    return this.formAge;
-  }
-
-  // Commands
-  addUserCommand(): void {
-    try {
-      this.isLoading.set(true);
-      this.errorMessage.set("");
-
-      const user = this.model.addUser(
-        this.formName.get(),
-        this.formEmail.get(),
-        this.formAge.get(),
-      );
-
-      this.users.set(this.model.getAllUsers());
-      this.clearForm();
-      console.log(`✅ User added with ID: ${user.id}`);
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  updateUserCommand(id: number): void {
-    try {
-      this.isLoading.set(true);
-      this.errorMessage.set("");
-
-      const updated = this.model.updateUser(id, {
-        name: this.formName.get(),
-        email: this.formEmail.get(),
-        age: this.formAge.get(),
-      });
-
-      if (updated) {
-        this.users.set(this.model.getAllUsers());
-        this.selectedUser.set(updated);
-        this.clearForm();
-        console.log(`✅ User ${id} updated`);
-      } else {
-        this.errorMessage.set(`User ${id} not found`);
-      }
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  deleteUserCommand(id: number): void {
-    try {
-      const deleted = this.model.deleteUser(id);
-      if (deleted) {
-        this.users.set(this.model.getAllUsers());
-        this.selectedUser.set(null);
-        console.log(`✅ User ${id} deleted`);
-      } else {
-        this.errorMessage.set(`User ${id} not found`);
-      }
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    }
-  }
-
-  selectUserCommand(user: User): void {
-    this.selectedUser.set(user);
-    this.formName.set(user.name);
-    this.formEmail.set(user.email);
-    this.formAge.set(user.age);
-  }
-
-  private clearForm(): void {
-    this.formName.set("");
-    this.formEmail.set("");
-    this.formAge.set(0);
+  private syncState() {
+    // Update Observables. The View will react automatically.
+    this.count.value = this.model.value;
+    this.isNegative.value = this.model.value < 0;
   }
 }
 
-// View - Simple UI layer
-class UserView {
-  constructor(private viewModel: UserViewModel) {
-    this.bindData();
-  }
+// 3. View: Pure UI that binds to the ViewModel
+class CounterView {
+  constructor(private viewModel: CounterViewModel) {
+    // Declarative Binding
+    
+    // Bind to the "count" state
+    this.viewModel.count.bind((newVal) => {
+      console.log(`UI Update: Counter text changed to -> ${newVal}`);
+    });
 
-  private bindData(): void {
-    // Subscribe to ViewModel observable properties
-    this.viewModel.users$.subscribe(() => this.renderUserList());
-    this.viewModel.errorMessage$.subscribe(() => this.renderErrors());
-    this.viewModel.isLoading$.subscribe(() => this.renderLoadingState());
-  }
-
-  private renderUserList(): void {
-    const users = this.viewModel.users$.get();
-    console.log("=== User List ===");
-    users.forEach((user) => {
-      console.log(`ID: ${user.id} | ${user.name} (${user.email}) - Age: ${user.age}`);
+    // Bind to the "isNegative" state
+    this.viewModel.isNegative.bind((isNeg) => {
+      if (isNeg) console.log("UI Update: Text turned RED");
+      else console.log("UI Update: Text turned BLACK");
     });
   }
 
-  private renderErrors(): void {
-    const error = this.viewModel.errorMessage$.get();
-    if (error) {
-      console.error(`❌ ${error}`);
-    }
-  }
-
-  private renderLoadingState(): void {
-    const loading = this.viewModel.isLoading$.get();
-    if (loading) {
-      console.log("⏳ Loading...");
-    }
-  }
-
-  // User interactions
-  onAddUserFormSubmit(name: string, email: string, age: number): void {
-    this.viewModel.formName$.set(name);
-    this.viewModel.formEmail$.set(email);
-    this.viewModel.formAge$.set(age);
-    this.viewModel.addUserCommand();
-  }
-
-  onSelectUser(user: User): void {
-    this.viewModel.selectUserCommand(user);
-  }
-
-  onDeleteUser(id: number): void {
-    this.viewModel.deleteUserCommand(id);
-  }
-
-  displayUserList(): void {
-    this.renderUserList();
-  }
+  // Simulating user clicking buttons in the UI
+  public simulateClickPlus() { this.viewModel.onIncrement(); }
+  public simulateClickMinus() { this.viewModel.onDecrement(); }
 }
 
-// Usage
-const model = new UserModel();
-const viewModel = new UserViewModel(model);
-const view = new UserView(viewModel);
+// Execution
+const vm = new CounterViewModel(new CounterModel());
+const view = new CounterView(vm);
 
-view.onAddUserFormSubmit("John Doe", "john@example.com", 30);
-view.displayUserList();
+console.log("\n--- User clicks plus ---");
+view.simulateClickPlus();
 
-view.onAddUserFormSubmit("Jane Smith", "jane@example.com", 28);
-view.displayUserList();
+console.log("\n--- User clicks minus twice ---");
+view.simulateClickMinus();
+view.simulateClickMinus();
 ```
 
-
-
-```python [python]
-from typing import Dict, List, Optional, Callable, TypeVar
-from dataclasses import dataclass
+```python [Python]
+from typing import Callable, Generic, TypeVar
 
 T = TypeVar('T')
 
-# Model - Contains data and business logic
-@dataclass
-class User:
-    id: int
-    name: str
-    email: str
-    age: int
+# Helper: Observable wrapper
+class Observable(Generic[T]):
+    def __init__(self, initial_value: T):
+        self._value = initial_value
+        self._listeners = []
 
-class UserModel:
+    @property
+    def value(self) -> T:
+        return self._value
+
+    @value.setter
+    def value(self, new_val: T):
+        self._value = new_val
+        for listener in self._listeners:
+            listener(new_val)
+
+    def bind(self, listener: Callable[[T], None]):
+        self._listeners.append(listener)
+        listener(self._value) # initial sync
+
+# 1. Model
+class CounterModel:
     def __init__(self):
-        self.users: Dict[int, User] = {}
-        self.next_id: int = 1
+        self.value = 0
+        
+    def increment(self):
+        self.value += 1
+        
+    def decrement(self):
+        self.value -= 1
 
-    def add_user(self, name: str, email: str, age: int) -> User:
-        if not name or not email or age < 0:
-            raise ValueError("Invalid user data")
-
-        user = User(id=self.next_id, name=name, email=email, age=age)
-        self.next_id += 1
-        self.users[user.id] = user
-        return user
-
-    def get_user(self, user_id: int) -> Optional[User]:
-        return self.users.get(user_id)
-
-    def get_all_users(self) -> List[User]:
-        return list(self.users.values())
-
-    def update_user(self, user_id: int, **updates) -> Optional[User]:
-        user = self.users.get(user_id)
-        if not user:
-            return None
-
-        for key, value in updates.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
-
-        return user
-
-    def delete_user(self, user_id: int) -> bool:
-        return bool(self.users.pop(user_id, None))
-
-# Observable - Data binding support
-class Observable:
-    def __init__(self, initial_value):
-        self.value = initial_value
-        self.observers: List[Callable] = []
-
-    def get(self):
-        return self.value
-
-    def set(self, new_value):
-        self.value = new_value
-        self.notify_observers()
-
-    def subscribe(self, callback: Callable) -> Callable:
-        self.observers.append(callback)
-        return lambda: self.observers.remove(callback) if callback in self.observers else None
-
-    def notify_observers(self) -> None:
-        for observer in self.observers:
-            observer()
-
-# ViewModel - Exposes model data and commands
-class UserViewModel:
-    def __init__(self, model: UserModel):
+# 2. ViewModel
+class CounterViewModel:
+    def __init__(self, model: CounterModel):
         self.model = model
-        self.users = Observable(self.model.get_all_users())
-        self.selected_user = Observable(None)
-        self.is_loading = Observable(False)
-        self.error_message = Observable("")
-        self.form_name = Observable("")
-        self.form_email = Observable("")
-        self.form_age = Observable(0)
+        self.count = Observable(0)
+        self.is_negative = Observable(False)
 
-    def add_user_command(self) -> None:
-        try:
-            self.is_loading.set(True)
-            self.error_message.set("")
+    def on_increment(self):
+        self.model.increment()
+        self._sync_state()
 
-            user = self.model.add_user(
-                self.form_name.get(),
-                self.form_email.get(),
-                self.form_age.get()
-            )
+    def on_decrement(self):
+        self.model.decrement()
+        self._sync_state()
 
-            self.users.set(self.model.get_all_users())
-            self.clear_form()
-            print(f"✅ User added with ID: {user.id}")
-        except ValueError as e:
-            self.error_message.set(str(e))
-        finally:
-            self.is_loading.set(False)
+    def _sync_state(self):
+        self.count.value = self.model.value
+        self.is_negative.value = self.model.value < 0
 
-    def update_user_command(self, user_id: int) -> None:
-        try:
-            self.is_loading.set(True)
-            self.error_message.set("")
+# 3. View
+class CounterView:
+    def __init__(self, viewmodel: CounterViewModel):
+        self.viewmodel = viewmodel
+        
+        # Bind UI to ViewModel state
+        self.viewmodel.count.bind(self.render_count)
+        self.viewmodel.is_negative.bind(self.render_color)
+        
+    def render_count(self, new_val):
+        print(f"UI Update: Counter text -> {new_val}")
+        
+    def render_color(self, is_neg):
+        color = "RED" if is_neg else "BLACK"
+        print(f"UI Update: Text turned {color}")
 
-            updated = self.model.update_user(
-                user_id,
-                name=self.form_name.get(),
-                email=self.form_email.get(),
-                age=self.form_age.get()
-            )
+    def simulate_click_plus(self):
+        self.viewmodel.on_increment()
 
-            if updated:
-                self.users.set(self.model.get_all_users())
-                self.selected_user.set(updated)
-                self.clear_form()
-                print(f"✅ User {user_id} updated")
-            else:
-                self.error_message.set(f"User {user_id} not found")
-        except ValueError as e:
-            self.error_message.set(str(e))
-        finally:
-            self.is_loading.set(False)
+    def simulate_click_minus(self):
+        self.viewmodel.on_decrement()
 
-    def delete_user_command(self, user_id: int) -> None:
-        try:
-            if self.model.delete_user(user_id):
-                self.users.set(self.model.get_all_users())
-                self.selected_user.set(None)
-                print(f"✅ User {user_id} deleted")
-            else:
-                self.error_message.set(f"User {user_id} not found")
-        except Exception as e:
-            self.error_message.set(str(e))
+if __name__ == "__main__":
+    vm = CounterViewModel(CounterModel())
+    view = CounterView(vm)
+    print("\n--- User clicks plus ---")
+    view.simulate_click_plus()
+    print("\n--- User clicks minus twice ---")
+    view.simulate_click_minus()
+    view.simulate_click_minus()
+```
 
-    def select_user_command(self, user: User) -> None:
-        self.selected_user.set(user)
-        self.form_name.set(user.name)
-        self.form_email.set(user.email)
-        self.form_age.set(user.age)
+```java [Java]
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
-    def clear_form(self) -> None:
-        self.form_name.set("")
-        self.form_email.set("")
-        self.form_age.set(0)
+// Helper: Observable Wrapper
+class Observable<T> {
+    private T value;
+    private List<Consumer<T>> listeners = new ArrayList<>();
 
-# View - UI layer
-class UserView:
-    def __init__(self, view_model: UserViewModel):
-        self.view_model = view_model
-        self.bind_data()
+    public Observable(T initialValue) {
+        this.value = initialValue;
+    }
 
-    def bind_data(self) -> None:
-        self.view_model.users.subscribe(self.render_user_list)
-        self.view_model.error_message.subscribe(self.render_errors)
-        self.view_model.is_loading.subscribe(self.render_loading_state)
+    public T getValue() { return value; }
 
-    def render_user_list(self) -> None:
-        users = self.view_model.users.get()
-        print("=== User List ===")
-        for user in users:
-            print(f"ID: {user.id} | {user.name} ({user.email}) - Age: {user.age}")
+    public void setValue(T value) {
+        this.value = value;
+        for (Consumer<T> listener : listeners) {
+            listener.accept(value);
+        }
+    }
 
-    def render_errors(self) -> None:
-        error = self.view_model.error_message.get()
-        if error:
-            print(f"❌ {error}")
+    public void bind(Consumer<T> listener) {
+        listeners.add(listener);
+        listener.accept(value); // Initial sync
+    }
+}
 
-    def render_loading_state(self) -> None:
-        if self.view_model.is_loading.get():
-            print("⏳ Loading...")
+// 1. Model
+class CounterModel {
+    public int value = 0;
+    public void increment() { value++; }
+    public void decrement() { value--; }
+}
 
-    def on_add_user_form_submit(self, name: str, email: str, age: int) -> None:
-        self.view_model.form_name.set(name)
-        self.view_model.form_email.set(email)
-        self.view_model.form_age.set(age)
-        self.view_model.add_user_command()
+// 2. ViewModel
+class CounterViewModel {
+    private CounterModel model;
+    
+    public Observable<Integer> count = new Observable<>(0);
+    public Observable<Boolean> isNegative = new Observable<>(false);
 
-    def on_select_user(self, user: User) -> None:
-        self.view_model.select_user_command(user)
+    public CounterViewModel(CounterModel model) {
+        this.model = model;
+    }
 
-    def on_delete_user(self, user_id: int) -> None:
-        self.view_model.delete_user_command(user_id)
+    public void onIncrement() {
+        model.increment();
+        syncState();
+    }
 
-    def display_user_list(self) -> None:
-        self.render_user_list()
+    public void onDecrement() {
+        model.decrement();
+        syncState();
+    }
 
-# Usage
-model = UserModel()
-view_model = UserViewModel(model)
-view = UserView(view_model)
+    private void syncState() {
+        count.setValue(model.value);
+        isNegative.setValue(model.value < 0);
+    }
+}
 
-view.on_add_user_form_submit("John Doe", "john@example.com", 30)
-view.display_user_list()
+// 3. View
+class CounterView {
+    private CounterViewModel viewModel;
 
-view.on_add_user_form_submit("Jane Smith", "jane@example.com", 28)
-view.display_user_list()
+    public CounterView(CounterViewModel viewModel) {
+        this.viewModel = viewModel;
+
+        // Data binding!
+        viewModel.count.bind(val -> {
+            System.out.println("UI Update: Counter text -> " + val);
+        });
+
+        viewModel.isNegative.bind(isNeg -> {
+            System.out.println("UI Update: Text turned " + (isNeg ? "RED" : "BLACK"));
+        });
+    }
+
+    public void simulateClickPlus() { viewModel.onIncrement(); }
+    public void simulateClickMinus() { viewModel.onDecrement(); }
+}
+
+public class MVVMDemo {
+    public static void main(String[] args) {
+        CounterViewModel vm = new CounterViewModel(new CounterModel());
+        CounterView view = new CounterView(vm);
+
+        System.out.println("\n--- User clicks plus ---");
+        view.simulateClickPlus();
+
+        System.out.println("\n--- User clicks minus twice ---");
+        view.simulateClickMinus();
+        view.simulateClickMinus();
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// Helper: Observable
+type Observer func(interface{})
+
+type Observable struct {
+	value     interface{}
+	observers []Observer
+}
+
+func NewObservable(initVal interface{}) *Observable {
+	return &Observable{value: initVal}
+}
+
+func (o *Observable) SetValue(val interface{}) {
+	o.value = val
+	for _, obs := range o.observers {
+		obs(val)
+	}
+}
+
+func (o *Observable) Bind(obs Observer) {
+	o.observers = append(o.observers, obs)
+	obs(o.value)
+}
+
+// 1. Model
+type CounterModel struct {
+	Value int
+}
+
+func (m *CounterModel) Increment() { m.Value++ }
+func (m *CounterModel) Decrement() { m.Value-- }
+
+// 2. ViewModel
+type CounterViewModel struct {
+	model      *CounterModel
+	Count      *Observable
+	IsNegative *Observable
+}
+
+func NewCounterViewModel(model *CounterModel) *CounterViewModel {
+	return &CounterViewModel{
+		model:      model,
+		Count:      NewObservable(0),
+		IsNegative: NewObservable(false),
+	}
+}
+
+func (vm *CounterViewModel) OnIncrement() {
+	vm.model.Increment()
+	vm.syncState()
+}
+
+func (vm *CounterViewModel) OnDecrement() {
+	vm.model.Decrement()
+	vm.syncState()
+}
+
+func (vm *CounterViewModel) syncState() {
+	vm.Count.SetValue(vm.model.Value)
+	vm.IsNegative.SetValue(vm.model.Value < 0)
+}
+
+// 3. View
+type CounterView struct {
+	vm *CounterViewModel
+}
+
+func NewCounterView(vm *CounterViewModel) *CounterView {
+	v := &CounterView{vm: vm}
+
+	// Data Binding
+	vm.Count.Bind(func(val interface{}) {
+		fmt.Printf("UI Update: Counter text -> %v\n", val)
+	})
+
+	vm.IsNegative.Bind(func(val interface{}) {
+		isNeg := val.(bool)
+		if isNeg {
+			fmt.Println("UI Update: Text turned RED")
+		} else {
+			fmt.Println("UI Update: Text turned BLACK")
+		}
+	})
+	return v
+}
+
+func (v *CounterView) SimulateClickPlus()  { v.vm.OnIncrement() }
+func (v *CounterView) SimulateClickMinus() { v.vm.OnDecrement() }
+
+func main() {
+	vm := NewCounterViewModel(&CounterModel{})
+	view := NewCounterView(vm)
+
+	fmt.Println("\n--- User clicks plus ---")
+	view.SimulateClickPlus()
+
+	fmt.Println("\n--- User clicks minus twice ---")
+	view.SimulateClickMinus()
+	view.SimulateClickMinus()
+}
+```
+
+```rust [Rust]
+use std::rc::Rc;
+use std::cell::RefCell;
+
+// Helper: Observable
+struct Observable<T> {
+    value: T,
+    listeners: Vec<Box<dyn Fn(&T)>>,
+}
+
+impl<T: Clone> Observable<T> {
+    fn new(initial: T) -> Self {
+        Observable { value: initial, listeners: Vec::new() }
+    }
+
+    fn set_value(&mut self, new_val: T) {
+        self.value = new_val.clone();
+        for listener in &self.listeners {
+            listener(&self.value);
+        }
+    }
+
+    fn bind<F>(&mut self, listener: F)
+    where
+        F: Fn(&T) + 'static,
+    {
+        listener(&self.value);
+        self.listeners.push(Box::new(listener));
+    }
+}
+
+// 1. Model
+struct CounterModel {
+    value: i32,
+}
+
+impl CounterModel {
+    fn increment(&mut self) { self.value += 1; }
+    fn decrement(&mut self) { self.value -= 1; }
+}
+
+// 2. ViewModel
+struct CounterViewModel {
+    model: CounterModel,
+    pub count: Observable<i32>,
+    pub is_negative: Observable<bool>,
+}
+
+impl CounterViewModel {
+    fn new(model: CounterModel) -> Self {
+        CounterViewModel {
+            model,
+            count: Observable::new(0),
+            is_negative: Observable::new(false),
+        }
+    }
+
+    fn on_increment(&mut self) {
+        self.model.increment();
+        self.sync_state();
+    }
+
+    fn on_decrement(&mut self) {
+        self.model.decrement();
+        self.sync_state();
+    }
+
+    fn sync_state(&mut self) {
+        self.count.set_value(self.model.value);
+        self.is_negative.set_value(self.model.value < 0);
+    }
+}
+
+// 3. View
+struct CounterView {
+    // We use Rc/RefCell because the View needs mutable access to trigger VM commands,
+    // while also needing to setup initial bindings.
+    vm: Rc<RefCell<CounterViewModel>>,
+}
+
+impl CounterView {
+    fn new(vm: Rc<RefCell<CounterViewModel>>) -> Self {
+        let view = CounterView { vm: Rc::clone(&vm) };
+        
+        // Setup data bindings
+        let mut vm_mut = vm.borrow_mut();
+        
+        vm_mut.count.bind(|val| {
+            println!("UI Update: Counter text -> {}", val);
+        });
+
+        vm_mut.is_negative.bind(|is_neg| {
+            let color = if *is_neg { "RED" } else { "BLACK" };
+            println!("UI Update: Text turned {}", color);
+        });
+        
+        view
+    }
+
+    fn simulate_click_plus(&self) { self.vm.borrow_mut().on_increment(); }
+    fn simulate_click_minus(&self) { self.vm.borrow_mut().on_decrement(); }
+}
+
+fn main() {
+    let model = CounterModel { value: 0 };
+    let vm = Rc::new(RefCell::new(CounterViewModel::new(model)));
+    let view = CounterView::new(vm);
+
+    println!("\n--- User clicks plus ---");
+    view.simulate_click_plus();
+
+    println!("\n--- User clicks minus twice ---");
+    view.simulate_click_minus();
+    view.simulate_click_minus();
+}
 ```
 
 :::
 
-## Real-World Examples
+## Pros and Cons
 
-### WPF (Windows Presentation Foundation)
+### Advantages
+- **Zero DOM Manipulation**: Developers no longer write `getElementById()` or deal with tracking which UI elements need updating. State changes automatically cascade to the UI.
+- **Incredible Testability**: The ViewModel contains 100% of the UI state and logic, but has absolutely no reference to the DOM/View. You can test a React Hook or Vue composable instantly in a pure Node environment.
+- **Designer/Developer Split**: A UX designer can write HTML/CSS (the View) while the developer writes the state logic (the ViewModel), and they just agree on variable names to bind.
 
-MVVM is the standard for WPF applications:
+### Disadvantages
+- **Framework Dependent**: Implementing MVVM without a framework engine (Vue/React/Angular/WPF) is exhausting and requires writing tons of boilerplate Observable classes.
+- **Memory Leaks (Ghost Listeners)**: If a View is destroyed but forgets to unsubscribe from the ViewModel's data streams, the ViewModel will keep a reference to the View, preventing Garbage Collection.
+- **Debugging Magic**: Because data binding happens invisibly via the framework, if an input suddenly changes to an unexpected value, tracing exactly *which* part of the code triggered the binding update can be difficult.
 
-```xml
-<TextBlock Text="{Binding FirstName, Mode=TwoWay}" />
-<Button Command="{Binding SaveCommand}" />
-```
+## When to Use
 
-### Angular Framework
+- **Modern Web Frontend**: Anytime you are building a Single Page Application (SPA). React (Component State), Vue, and Svelte are all variations of MVVM.
+- **Modern Mobile**: Jetpack Compose (Android) and SwiftUI (iOS) are deeply rooted in MVVM principles.
+- **Desktop Apps**: WPF, UWP, and .NET MAUI.
 
-Angular uses MVVM principles:
+## When NOT to Use
 
-- **Model**: Services and data models
-- **View**: Component templates
-- **ViewModel**: Component class with `@Input` and `@Output`
+- **Backend Development**: MVVM is purely a frontend/UI pattern. Backends should stick to MVC, Layered Architectures, or DDD.
+- **Static Websites**: If you are building a simple landing page or blog using standard HTML/CSS, loading a 100kb Vue/React engine just to handle a hamburger menu is massive overkill.
 
-### Vue.js
+## Common Mistakes
 
-Vue naturally follows MVVM:
-
-```javascript
-data() {
-  return { message: '' }
-}
-methods: {
-  updateMessage() { /* ... */ }
-}
-```
-
-## Advantages ✅
-
-- **Two-Way Data Binding**: Automatic synchronization between View and ViewModel
-- **Testable**: ViewModel can be thoroughly tested without UI
-- **Separation of Concerns**: UI is completely separate from logic
-- **Designer-Developer Separation**: Designers can work on View independently
-- **Declarative Binding**: UI changes automatically with data
-- **Reusable ViewModels**: Same logic can serve multiple views
-- **Reactive Updates**: Changes propagate automatically
-- **Clean Code-Behind**: Views have minimal code-behind
-
-## Disadvantages ❌
-
-- **Complexity**: Requires understanding of data binding
-- **Learning Curve**: Developers new to MVVM need training
-- **Performance**: Data binding can add overhead
-- **Debugging**: Two-way binding can make debugging harder
-- **Memory Leaks**: Improper subscription management can leak memory
-- **Over-Engineering**: May be excessive for simple applications
-- **Framework Lock-In**: Often tied to specific frameworks
-- **Binding Issues**: Circular bindings or binding errors can be hard to trace
-
-## When to Use ✅
-
-- **WPF Applications**: Native Windows applications
-- **Angular Applications**: Single-page web applications
-- **Vue.js Projects**: Reactive web frameworks
-- **Complex UI Logic**: Applications with sophisticated UI
-- **Data-Heavy Interfaces**: When binding multiple data sources
-- **Designer-Developer Workflow**: When UI design is separate from development
-- **Reactive Systems**: Applications needing reactive updates
-- **Long-Term Maintenance**: Projects with complex UI requirements
-
-## When NOT to Use ❌
-
-- **Simple Web Pages**: Static content or minimal interactivity
-- **Real-Time Systems**: Where binding overhead matters
-- **Server-Side Rendering**: Traditional server-side applications
-- **Simple Scripts**: Command-line tools or utilities
-- **Performance-Critical**: Latency-sensitive applications
-- **Legacy Systems**: Where MVVM framework support is absent
-- **Rapid Prototypes**: Quick throwaway projects
-- **Microservices**: Where UI is already decoupled
+- **Fat ViewModels**: Creating massive ViewModels that do database connections and heavy HTTP requests instead of delegating to proper Service/Repository classes.
+- **Binding to Models directly**: Exposing the raw Model directly to the View instead of mapping it through the ViewModel. This prevents you from adding UI-specific computed properties (like `isNegative = value < 0`).
 
 ## Related Patterns
 
-- **Model-View-Controller (MVC)**: The original three-tier pattern
-- **Model-View-Presenter (MVP)**: Similar but without automatic binding
-- **Observer Pattern**: Foundation for reactive data binding
-- **Command Pattern**: Used for ViewModel commands
-- **Property Pattern**: Used for observable properties
-- **Mediator Pattern**: ViewModel mediates between View and Model
+- **MVC / MVP**: The predecessors. MVVM solves their "manual view update" problem by introducing automated Data Binding.
+- **Observer Pattern**: The core mechanical pattern that makes MVVM work. The View *observes* the ViewModel.
+- **Command Pattern**: Used in MVVM to wrap UI interactions (like button clicks) into objects that the ViewModel can process without knowing about UI events.

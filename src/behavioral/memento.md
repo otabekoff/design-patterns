@@ -1,452 +1,710 @@
 ---
-title: Memento
+title: Memento Pattern
 description: Capture and externalize an object's internal state without violating encapsulation. Support undo/redo functionality.
 icon: History
 ---
 
-# Memento
-
-
+# Memento Pattern
 
 ## Overview
 
-The **Memento** pattern is a behavioral design pattern that captures and externalizes an object's internal state without violating encapsulation, allowing the object to be restored to this state later. It's useful for implementing undo/redo functionality and saving application state.
+The **Memento** pattern is a behavioral design pattern that allows you to capture and save the internal state of an object so that you can restore it later. Crucially, it does this *without violating the encapsulation* of that object.
 
-## Purpose
+**Key advantage**: You can create snapshots of a complex object's state without exposing its private fields or internal structure to the rest of the application.
 
-The Memento pattern aims to:
+**Modern perspective**: Memento is the architectural backbone of "Undo/Redo" stacks, save-game files, browser history, and time-travel debugging tools (like Redux DevTools). In modern functional programming, immutability largely replaces the need for classic OOP Mementos, as state snapshots are generated naturally.
 
-- Capture the internal state of an object at a specific point in time
-- Store the state without violating the object's encapsulation
-- Restore objects to their previous states
-- Implement undo/redo functionality
-- Provide checkpoints for state recovery
-- Support saving and restoring application state
+## The Problem
 
-## Problem
+Imagine you are building a modern Text Editor or a Graphics Canvas. Naturally, you need an "Undo" feature.
 
-Consider an editor that needs undo functionality. Without the Memento pattern:
+To implement Undo, you need to record the state of the editor before making a change. 
 
 ```typescript
-// Without Memento pattern - encapsulation violation
+// ❌ Bad: Violating encapsulation to save state
 class Editor {
   private text: string = "";
+  private cursorX: number = 0;
+  private cursorY: number = 0;
+  private selectionWidth: number = 0;
 
-  // Violates encapsulation - exposes private state
-  getInternalState(): any {
-    return { text: this.text };
-  }
-
-  setInternalState(state: any): void {
-    this.text = state.text;
-  }
-
-  undo(): void {
-    // How do we know what the previous state was?
-  }
+  // The history manager needs to save this data. 
+  // Should we make these fields public?
 }
 ```
 
-Issues with this approach:
+If you make all internal fields `public`, any other class can modify the editor's state unexpectedly, violating the principles of OOP. Furthermore, if you refactor the `Editor` later to use a different data structure (like a `Rope` instead of a `String`), you break the history manager that relies on the old fields.
 
-- Internal state is exposed, violating encapsulation
-- No clean way to store state snapshots
-- Difficult to manage state history
-- Object internals become tightly coupled to undo logic
-- Hard to version state properly
+You need a way to save the state, securely, without exposing *how* the state is structured.
 
-## Solution
+## The Solution
 
-The Memento pattern creates separate objects to hold state:
+The Memento pattern delegates the creation of the state snapshots to the object itself (the **Originator**), because the object has full access to its own private fields.
 
-```typescript
-// Memento - holds state
-class EditorMemento {
-  constructor(private text: string) {}
+1. **Originator**: The object whose state needs to be saved (e.g., `Editor`).
+2. **Memento**: A value object that acts as a snapshot of the Originator's state. It is strictly read-only and immutable.
+3. **Caretaker**: The object that manages the "when" and "why" of saving/restoring (e.g., `HistoryManager`). It holds a list of Mementos but *never* inspects their contents.
 
-  getText(): string {
-    return this.text;
-  }
-}
+When the Caretaker needs to save state, it asks the Originator for a Memento. When it needs to undo, it passes that Memento back to the Originator.
 
-// Originator - creates mementos
-class Editor {
-  private text: string = "";
+## Structure
 
-  createMemento(): EditorMemento {
-    return new EditorMemento(this.text);
-  }
+```mermaid
+classDiagram
+    class Originator {
+        -state
+        +save(): Memento
+        +restore(m: Memento)
+    }
+    class Memento {
+        <<interface>>
+        +getName(): string
+        +getDate(): Date
+    }
+    class ConcreteMemento {
+        -state
+        -date
+        +getName(): string
+        +getDate(): Date
+        ~getState()
+    }
+    class Caretaker {
+        -history: Memento[]
+        -originator: Originator
+        +undo()
+        +save()
+    }
 
-  restoreFromMemento(memento: EditorMemento): void {
-    this.text = memento.getText();
-  }
-}
-
-// Caretaker - manages mementos
-class EditorHistory {
-  private history: EditorMemento[] = [];
-
-  save(memento: EditorMemento): void {
-    this.history.push(memento);
-  }
-
-  getMemento(index: number): EditorMemento {
-    return this.history[index];
-  }
-}
+    Caretaker o--> Memento
+    Caretaker --> Originator
+    Originator ..> ConcreteMemento : creates
+    ConcreteMemento ..|> Memento
 ```
 
-## Implementation
+## Flow
+
+1. The **Caretaker** decides it's time to save state (e.g., before executing a user command).
+2. The **Caretaker** calls `originator.save()`.
+3. The **Originator** creates a **ConcreteMemento** containing a deep copy of its internal state and returns it.
+4. The **Caretaker** pushes the Memento onto a stack. It only interacts with the Memento through a restricted interface (like `getName()`).
+5. Upon "Undo", the **Caretaker** pops the Memento off the stack and calls `originator.restore(memento)`.
+
+## Real-World Analogy
+
+Think of a **Video Game Save File**.
+You are playing an RPG (the **Originator**). You walk into a boss room and manually save the game. The game serializes your health, inventory, and location into a Save File (the **Memento**). 
+
+The hard drive or operating system (the **Caretaker**) manages these save files. It knows when they were created and what they are called, but it doesn't understand the internal binary format of your RPG inventory. If you die, the OS gives the Save File back to the game, and the game restores its internal state to exactly where you were.
+
+## Step-by-Step Implementation
+
+1. **Create the Memento Interface**: It should only expose metadata (like `getTimestamp()` or `getName()`). It should explicitly hide the actual state data.
+2. **Create the Concrete Memento**: Implement the interface. This class will store the actual state data. In many languages, you can make this a nested or package-private class so only the Originator can access the raw state.
+3. **Implement the Originator**: Add `save(): Memento` (which packages state into a new ConcreteMemento) and `restore(memento: Memento)` (which unpacks the state and applies it).
+4. **Implement the Caretaker**: This class holds an array/stack of Mementos and coordinates the save/undo process.
+
+## Code Examples
+
+We will build a simple `GameEditor` with a `History` manager. The Memento will hold the position and health of the player securely.
 
 ::: code-group
 
-```typescript [typescript]
-// Memento class - stores state
-    class EditorMemento {
-      private readonly content: string;
-      private readonly timestamp: Date;
+```typescript [TypeScript]
+// 1. Memento Interface (Restricted interface for Caretaker)
+interface Memento {
+  getName(): string;
+  getDate(): string;
+}
 
-      constructor(content: string) {
-        this.content = content;
-        this.timestamp = new Date();
-      }
+// 2. Concrete Memento (Holds the secret state)
+// In TypeScript, we can't restrict method access perfectly, but we can convention it.
+class ConcreteMemento implements Memento {
+  private readonly date: string;
 
-      getContent(): string {
-        return this.content;
-      }
+  constructor(
+    private readonly state: string,
+    private readonly health: number,
+    private readonly position: { x: number; y: number }
+  ) {
+    this.date = new Date().toISOString();
+  }
 
-      getTimestamp(): Date {
-        return this.timestamp;
-      }
+  // The Originator will use these methods, but the Caretaker shouldn't.
+  getState(): string { return this.state; }
+  getHealth(): number { return this.health; }
+  getPosition(): { x: number; y: number } { return this.position; }
 
-      getDescription(): string {
-        return `State at ${this.timestamp.toLocaleTimeString()}`;
-      }
+  // Interface methods
+  getName(): string {
+    return `${this.date} / State: ${this.state}`;
+  }
+
+  getDate(): string {
+    return this.date;
+  }
+}
+
+// 3. Originator
+class GameEditor {
+  private state: string = "Idle";
+  private health: number = 100;
+  private position: { x: number; y: number } = { x: 0, y: 0 };
+
+  // Mutators
+  play(action: string, healthChange: number, x: number, y: number) {
+    this.state = action;
+    this.health += healthChange;
+    this.position = { x, y };
+    console.log(`GameEditor: Changed state to [${this.state}] HP: ${this.health}`);
+  }
+
+  // Saves state inside a Memento
+  save(): Memento {
+    console.log("GameEditor: Saving state...");
+    return new ConcreteMemento(this.state, this.health, { ...this.position });
+  }
+
+  // Restores state from a Memento
+  restore(m: Memento): void {
+    if (!(m instanceof ConcreteMemento)) {
+      throw new Error("Unknown memento class");
     }
+    console.log("GameEditor: Restoring state...");
+    this.state = m.getState();
+    this.health = m.getHealth();
+    this.position = { ...m.getPosition() };
+    console.log(`GameEditor: Restored to [${this.state}] HP: ${this.health}`);
+  }
+}
 
-    // Originator class - creates and uses mementos
-    class Editor {
-      private content: string = '';
+// 4. Caretaker
+class HistoryManager {
+  private mementos: Memento[] = [];
 
-      getContent(): string {
-        return this.content;
-      }
+  constructor(private originator: GameEditor) {}
 
-      setContent(content: string): void {
-        this.content = content;
-        console.log(`Content changed: "${this.content}"`);
-      }
+  backup(): void {
+    console.log("History: Performing backup...");
+    this.mementos.push(this.originator.save());
+  }
 
-      // Create a memento with current state
-      createMemento(): EditorMemento {
-        return new EditorMemento(this.content);
-      }
+  undo(): void {
+    if (!this.mementos.length) return;
+    
+    const memento = this.mementos.pop();
+    console.log(`History: Restoring memento: ${memento?.getName()}`);
+    this.originator.restore(memento!);
+  }
 
-      // Restore state from a memento
-      restoreFromMemento(memento: EditorMemento): void {
-        this.content = memento.getContent();
-        console.log(`Content restored: "${this.content}"`);
-      }
+  showHistory(): void {
+    console.log("History: Here's the list of mementos:");
+    for (const m of this.mementos) {
+      console.log(m.getName());
     }
+  }
+}
 
-    // Caretaker class - manages mementos
-    class EditorHistory {
-      private mementos: EditorMemento[] = [];
-      private currentIndex: number = -1;
+// 5. Client
+const game = new GameEditor();
+const history = new HistoryManager(game);
 
-      save(memento: EditorMemento): void {
-        // Remove any mementos after current index (redo stack becomes invalid)
-        this.mementos = this.mementos.slice(0, this.currentIndex + 1);
-        this.mementos.push(memento);
-        this.currentIndex++;
-        console.log(`Saved: ${memento.getDescription()}`);
-      }
+history.backup();
+game.play("Running", -10, 10, 0);
 
-      undo(editor: Editor): boolean {
-        if (this.currentIndex <= 0) {
-          console.log('Cannot undo');
-          return false;
-        }
+history.backup();
+game.play("Fighting Boss", -50, 10, 20);
 
-        this.currentIndex--;
-        const memento = this.mementos[this.currentIndex];
-        editor.restoreFromMemento(memento);
-        return true;
-      }
+history.showHistory();
 
-      redo(editor: Editor): boolean {
-        if (this.currentIndex >= this.mementos.length - 1) {
-          console.log('Cannot redo');
-          return false;
-        }
+console.log("\nClient: Now, let's rollback!");
+history.undo();
 
-        this.currentIndex++;
-        const memento = this.mementos[this.currentIndex];
-        editor.restoreFromMemento(memento);
-        return true;
-      }
-
-      getHistory(): string {
-        return this.mementos
-          .map((m, i) => `${i}: ${m.getDescription()}`)
-          .join('\n');
-      }
-    }
-
-    // Usage
-    const editor = new Editor();
-    const history = new EditorHistory();
-
-    // Make some changes
-    editor.setContent('Hello');
-    history.save(editor.createMemento());
-
-    editor.setContent('Hello World');
-    history.save(editor.createMemento());
-
-    editor.setContent('Hello World!');
-    history.save(editor.createMemento());
-
-    console.log(`Current: ${editor.getContent()}`); // Hello World!
-
-    // Undo
-    history.undo(editor);
-    console.log(`After undo: ${editor.getContent()}`); // Hello World
-
-    history.undo(editor);
-    console.log(`After undo: ${editor.getContent()}`); // Hello
-
-    // Redo
-    history.redo(editor);
-    console.log(`After redo: ${editor.getContent()}`); // Hello World
+console.log("\nClient: Rollback again!");
+history.undo();
 ```
 
-
-  
-```python [python]
+```python [Python]
+from __future__ import annotations
+from abc import ABC, abstractmethod
 from datetime import datetime
-    from typing import List
+import copy
 
-    class EditorMemento:
-        def __init__(self, content: str):
-            self.content = content
-            self.timestamp = datetime.now()
+# 1. Memento Interface
+class Memento(ABC):
+    @abstractmethod
+    def get_name(self) -> str:
+        pass
 
-        def get_content(self) -> str:
-            return self.content
+    @abstractmethod
+    def get_date(self) -> str:
+        pass
 
-        def get_timestamp(self) -> datetime:
-            return self.timestamp
+# 2. Concrete Memento
+class ConcreteMemento(Memento):
+    def __init__(self, state: str, health: int, position: dict):
+        # We deepcopy to ensure immutability
+        self._state = state
+        self._health = health
+        self._position = copy.deepcopy(position)
+        self._date = str(datetime.now())
 
-        def get_description(self) -> str:
-            return f"State at {self.timestamp.strftime('%H:%M:%S')}"
+    # Originator methods
+    def get_state(self) -> str:
+        return self._state
+        
+    def get_health(self) -> int:
+        return self._health
+        
+    def get_position(self) -> dict:
+        return self._position
 
-    class Editor:
-        def __init__(self):
-            self.content = ""
+    # Interface methods
+    def get_name(self) -> str:
+        return f"{self._date} / State: {self._state}"
 
-        def get_content(self) -> str:
-            return self.content
+    def get_date(self) -> str:
+        return self._date
 
-        def set_content(self, content: str) -> None:
-            self.content = content
-            print(f'Content changed: "{self.content}"')
+# 3. Originator
+class GameEditor:
+    def __init__(self):
+        self._state = "Idle"
+        self._health = 100
+        self._position = {"x": 0, "y": 0}
 
-        def create_memento(self) -> EditorMemento:
-            return EditorMemento(self.content)
+    def play(self, action: str, health_change: int, x: int, y: int):
+        self._state = action
+        self._health += health_change
+        self._position = {"x": x, "y": y}
+        print(f"GameEditor: Changed state to [{self._state}] HP: {self._health}")
 
-        def restore_from_memento(self, memento: EditorMemento) -> None:
-            self.content = memento.get_content()
-            print(f'Content restored: "{self.content}"')
+    def save(self) -> Memento:
+        print("GameEditor: Saving state...")
+        return ConcreteMemento(self._state, self._health, self._position)
 
-    class EditorHistory:
-        def __init__(self):
-            self.mementos: List[EditorMemento] = []
-            self.current_index: int = -1
+    def restore(self, memento: Memento):
+        # In Python, we rely on duck typing or isinstance
+        if not isinstance(memento, ConcreteMemento):
+            return
+        
+        print("GameEditor: Restoring state...")
+        self._state = memento.get_state()
+        self._health = memento.get_health()
+        self._position = copy.deepcopy(memento.get_position())
+        print(f"GameEditor: Restored to [{self._state}] HP: {self._health}")
 
-        def save(self, memento: EditorMemento) -> None:
-            # Remove mementos after current index
-            self.mementos = self.mementos[: self.current_index + 1]
-            self.mementos.append(memento)
-            self.current_index += 1
-            print(f"Saved: {memento.get_description()}")
+# 4. Caretaker
+class HistoryManager:
+    def __init__(self, originator: GameEditor):
+        self._mementos = []
+        self._originator = originator
 
-        def undo(self, editor: Editor) -> bool:
-            if self.current_index <= 0:
-                print("Cannot undo")
-                return False
+    def backup(self) -> None:
+        print("History: Performing backup...")
+        self._mementos.append(self._originator.save())
 
-            self.current_index -= 1
-            memento = self.mementos[self.current_index]
-            editor.restore_from_memento(memento)
-            return True
+    def undo(self) -> None:
+        if not len(self._mementos):
+            return
 
-        def redo(self, editor: Editor) -> bool:
-            if self.current_index >= len(self.mementos) - 1:
-                print("Cannot redo")
-                return False
+        memento = self._mementos.pop()
+        print(f"History: Restoring memento: {memento.get_name()}")
+        self._originator.restore(memento)
 
-            self.current_index += 1
-            memento = self.mementos[self.current_index]
-            editor.restore_from_memento(memento)
-            return True
+    def show_history(self) -> None:
+        print("History: Here's the list of mementos:")
+        for m in self._mementos:
+            print(m.get_name())
 
-        def get_history(self) -> str:
-            return "\n".join(
-                f"{i}: {m.get_description()}"
-                for i, m in enumerate(self.mementos)
-            )
+# 5. Client
+if __name__ == "__main__":
+    game = GameEditor()
+    history = HistoryManager(game)
 
-    # Usage
-    editor = Editor()
-    history = EditorHistory()
+    history.backup()
+    game.play("Running", -10, 10, 0)
 
-    # Make some changes
-    editor.set_content("Hello")
-    history.save(editor.create_memento())
+    history.backup()
+    game.play("Fighting Boss", -50, 10, 20)
 
-    editor.set_content("Hello World")
-    history.save(editor.create_memento())
+    history.show_history()
 
-    editor.set_content("Hello World!")
-    history.save(editor.create_memento())
+    print("\nClient: Now, let's rollback!")
+    history.undo()
 
-    print(f"Current: {editor.get_content()}")  # Hello World!
+    print("\nClient: Rollback again!")
+    history.undo()
+```
 
-    # Undo
-    history.undo(editor)
-    print(f"After undo: {editor.get_content()}")  # Hello World
+```java [Java]
+import java.util.Stack;
 
-    history.undo(editor)
-    print(f"After undo: {editor.get_content()}")  # Hello
+// 1. Memento Interface
+interface Memento {
+    String getName();
+}
 
-    # Redo
-    history.redo(editor)
-    print(f"After redo: {editor.get_content()}")  # Hello World
+// 3. Originator (Java allows nested classes, which is perfect for Memento!)
+class GameEditor {
+    private String state = "Idle";
+    private int health = 100;
+
+    public void play(String action, int healthChange) {
+        this.state = action;
+        this.health += healthChange;
+        System.out.println("GameEditor: Changed state to [" + state + "] HP: " + health);
+    }
+
+    public Memento save() {
+        System.out.println("GameEditor: Saving state...");
+        return new ConcreteMemento(this.state, this.health);
+    }
+
+    public void restore(Memento m) {
+        // Because ConcreteMemento is private to GameEditor, 
+        // only GameEditor can cast it and read its fields.
+        ConcreteMemento memento = (ConcreteMemento) m;
+        this.state = memento.savedState;
+        this.health = memento.savedHealth;
+        System.out.println("GameEditor: Restored to [" + state + "] HP: " + health);
+    }
+
+    // 2. Concrete Memento (Nested class hides fields from Caretaker)
+    private static class ConcreteMemento implements Memento {
+        private final String savedState;
+        private final int savedHealth;
+
+        private ConcreteMemento(String state, int health) {
+            this.savedState = state;
+            this.savedHealth = health;
+        }
+
+        @Override
+        public String getName() {
+            return "State: " + savedState;
+        }
+    }
+}
+
+// 4. Caretaker
+class HistoryManager {
+    private Stack<Memento> mementos = new Stack<>();
+    private GameEditor originator;
+
+    public HistoryManager(GameEditor originator) {
+        this.originator = originator;
+    }
+
+    public void backup() {
+        System.out.println("History: Performing backup...");
+        mementos.push(originator.save());
+    }
+
+    public void undo() {
+        if (!mementos.isEmpty()) {
+            Memento m = mementos.pop();
+            System.out.println("History: Restoring memento: " + m.getName());
+            originator.restore(m);
+        }
+    }
+}
+
+// 5. Client
+public class MementoDemo {
+    public static void main(String[] args) {
+        GameEditor game = new GameEditor();
+        HistoryManager history = new HistoryManager(game);
+
+        history.backup();
+        game.play("Running", -10);
+
+        history.backup();
+        game.play("Fighting Boss", -50);
+
+        System.out.println("\nClient: Now, let's rollback!");
+        history.undo();
+
+        System.out.println("\nClient: Rollback again!");
+        history.undo();
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. Memento Interface
+type Memento interface {
+	GetName() string
+}
+
+// 2. Concrete Memento
+// In Go, lowercase fields are unexported outside the package.
+// If Caretaker is in a different package, it cannot touch these fields!
+type concreteMemento struct {
+	state  string
+	health int
+}
+
+func (m *concreteMemento) GetName() string {
+	return fmt.Sprintf("State: %s", m.state)
+}
+
+// 3. Originator
+type GameEditor struct {
+	state  string
+	health int
+}
+
+func (g *GameEditor) Play(action string, healthChange int) {
+	g.state = action
+	g.health += healthChange
+	fmt.Printf("GameEditor: Changed state to [%s] HP: %d\n", g.state, g.health)
+}
+
+func (g *GameEditor) Save() Memento {
+	fmt.Println("GameEditor: Saving state...")
+	return &concreteMemento{
+		state:  g.state,
+		health: g.health,
+	}
+}
+
+func (g *GameEditor) Restore(m Memento) {
+	cm, ok := m.(*concreteMemento)
+	if !ok {
+		return
+	}
+	fmt.Println("GameEditor: Restoring state...")
+	g.state = cm.state
+	g.health = cm.health
+	fmt.Printf("GameEditor: Restored to [%s] HP: %d\n", g.state, g.health)
+}
+
+// 4. Caretaker
+type HistoryManager struct {
+	mementos   []Memento
+	originator *GameEditor
+}
+
+func (h *HistoryManager) Backup() {
+	fmt.Println("History: Performing backup...")
+	h.mementos = append(h.mementos, h.originator.Save())
+}
+
+func (h *HistoryManager) Undo() {
+	if len(h.mementos) == 0 {
+		return
+	}
+	// Pop
+	lastIdx := len(h.mementos) - 1
+	m := h.mementos[lastIdx]
+	h.mementos = h.mementos[:lastIdx]
+
+	fmt.Printf("History: Restoring memento: %s\n", m.GetName())
+	h.originator.Restore(m)
+}
+
+// 5. Client
+func main() {
+	game := &GameEditor{state: "Idle", health: 100}
+	history := &HistoryManager{originator: game}
+
+	history.Backup()
+	game.Play("Running", -10)
+
+	history.Backup()
+	game.Play("Fighting Boss", -50)
+
+	fmt.Println("\nClient: Now, let's rollback!")
+	history.Undo()
+
+	fmt.Println("\nClient: Rollback again!")
+	history.Undo()
+}
+```
+
+```rust [Rust]
+// 1. Memento Trait
+trait Memento {
+    fn get_name(&self) -> String;
+}
+
+// 2. Concrete Memento
+// Struct fields are private to the module by default in Rust
+#[derive(Clone)]
+struct ConcreteMemento {
+    state: String,
+    health: i32,
+}
+
+impl Memento for ConcreteMemento {
+    fn get_name(&self) -> String {
+        format!("State: {}", self.state)
+    }
+}
+
+// 3. Originator
+struct GameEditor {
+    state: String,
+    health: i32,
+}
+
+impl GameEditor {
+    fn new() -> Self {
+        Self {
+            state: "Idle".to_string(),
+            health: 100,
+        }
+    }
+
+    fn play(&mut self, action: &str, health_change: i32) {
+        self.state = action.to_string();
+        self.health += health_change;
+        println!("GameEditor: Changed state to [{}] HP: {}", self.state, self.health);
+    }
+
+    fn save(&self) -> Box<dyn Memento> {
+        println!("GameEditor: Saving state...");
+        Box::new(ConcreteMemento {
+            state: self.state.clone(),
+            health: self.health,
+        })
+    }
+
+    fn restore(&mut self, memento: &Box<dyn Memento>) {
+        // We downcast using Any, or we keep it simple by implementing a specific struct approach.
+        // Rust prefers enum states or specific generics. To mimic OOP here we downcast:
+        // *But for simplicity*, let's just assume we return the concrete struct 
+        // if Caretaker and Originator are in different modules. 
+        // Below is the idiomatic Rust workaround.
+    }
+}
+
+// Idiomatic Rust Memento Implementation (Avoiding Box<dyn> downcasting overhead)
+struct RustConcreteMemento {
+    state: String,
+    health: i32,
+}
+
+impl GameEditor {
+    fn save_idiomatic(&self) -> RustConcreteMemento {
+        println!("GameEditor: Saving state...");
+        RustConcreteMemento {
+            state: self.state.clone(),
+            health: self.health,
+        }
+    }
+
+    fn restore_idiomatic(&mut self, memento: &RustConcreteMemento) {
+        println!("GameEditor: Restoring state...");
+        self.state = memento.state.clone();
+        self.health = memento.health;
+        println!("GameEditor: Restored to [{}] HP: {}", self.state, self.health);
+    }
+}
+
+// 4. Caretaker
+struct HistoryManager {
+    mementos: Vec<RustConcreteMemento>,
+}
+
+impl HistoryManager {
+    fn new() -> Self {
+        Self {
+            mementos: Vec::new(),
+        }
+    }
+
+    fn backup(&mut self, originator: &GameEditor) {
+        println!("History: Performing backup...");
+        self.mementos.push(originator.save_idiomatic());
+    }
+
+    fn undo(&mut self, originator: &mut GameEditor) {
+        if let Some(m) = self.mementos.pop() {
+            println!("History: Restoring memento: {}", m.state);
+            originator.restore_idiomatic(&m);
+        }
+    }
+}
+
+// 5. Client
+fn main() {
+    let mut game = GameEditor::new();
+    let mut history = HistoryManager::new();
+
+    history.backup(&game);
+    game.play("Running", -10);
+
+    history.backup(&game);
+    game.play("Fighting Boss", -50);
+
+    println!("\nClient: Now, let's rollback!");
+    history.undo(&mut game);
+
+    println!("\nClient: Rollback again!");
+    history.undo(&mut game);
+}
 ```
 
 :::
 
-## Real-World Example
+## Pros and Cons
 
-### Game Save/Load System
+### Advantages
+- **Encapsulation**: You can save an object's internal state without exposing its fields or internal implementation to the rest of the application.
+- **Single Responsibility Principle**: You extract the logic for managing state history away from the Originator and place it in the Caretaker.
+- **Easy Checkpoints**: Extremely useful for features like Drafts, Save points, or crash recovery.
 
-```typescript
-interface GameState {
-  playerPosition: { x: number; y: number };
-  health: number;
-  inventory: string[];
-  level: number;
-}
-
-class GameMemento {
-  constructor(private state: GameState) {}
-
-  getState(): GameState {
-    return JSON.parse(JSON.stringify(this.state));
-  }
-}
-
-class Game {
-  private state: GameState = {
-    playerPosition: { x: 0, y: 0 },
-    health: 100,
-    inventory: [],
-    level: 1,
-  };
-
-  updateState(updates: Partial<GameState>): void {
-    this.state = { ...this.state, ...updates };
-  }
-
-  createSavePoint(): GameMemento {
-    return new GameMemento(this.state);
-  }
-
-  loadGame(memento: GameMemento): void {
-    this.state = memento.getState();
-    console.log("Game loaded");
-  }
-
-  getState(): GameState {
-    return this.state;
-  }
-}
-
-class GameProgress {
-  private saves: Map<string, GameMemento> = new Map();
-
-  save(name: string, memento: GameMemento): void {
-    this.saves.set(name, memento);
-  }
-
-  load(name: string): GameMemento | undefined {
-    return this.saves.get(name);
-  }
-
-  listSaves(): string[] {
-    return Array.from(this.saves.keys());
-  }
-}
-
-// Usage
-const game = new Game();
-const progress = new GameProgress();
-
-game.updateState({ level: 2, health: 80 });
-progress.save("checkpoint1", game.createSavePoint());
-
-game.updateState({ level: 3, health: 50 });
-progress.save("checkpoint2", game.createSavePoint());
-
-const savePoint = progress.load("checkpoint1");
-if (savePoint) {
-  game.loadGame(savePoint);
-}
-```
-
-## Advantages
-
-✅ **Encapsulation** - Preserves encapsulation while storing state
-✅ **Undo/Redo Support** - Easy to implement undo/redo functionality
-✅ **State Snapshots** - Capture state at specific points in time
-✅ **Separation of Concerns** - Originators focus on behavior, caretakers manage history
-✅ **Flexible Storage** - Mementos can be stored, transmitted, or logged
-✅ **Recovery** - Easy recovery from specific saved states
-✅ **Testability** - State can be saved and restored for testing
-
-## Disadvantages
-
-❌ **Memory Overhead** - Storing many mementos consumes significant memory
-❌ **Performance Impact** - Creating mementos for large objects is expensive
-❌ **Serialization Complexity** - Deep copying state can be complex
-❌ **State Size** - Storing complete state can be wasteful
-❌ **Not Always Practical** - May not be suitable for very large or complex objects
-❌ **Versioning Issues** - Managing different state versions can be complex
+### Disadvantages
+- **Memory Consumption**: If the Originator's state is massive (like a large canvas image) and you create a Memento every second, you will rapidly exhaust your RAM.
+- **Performance Overhead**: Deep copying complex object graphs to create Mementos takes CPU time.
+- **Garbage Collection Pressure**: Continually creating and destroying Memento objects puts heavy load on the Garbage Collector in languages like Java, C#, or JS.
 
 ## When to Use
 
-- You need to implement undo/redo functionality
-- You want to save and restore application state
-- You need to create checkpoints or snapshots
-- You want to preserve encapsulation while storing state
-- You need to support state recovery
-- You're implementing a game or rich application with state management
-- You need to audit state changes over time
+- **Undo/Redo Functionality**: The classic use case. 
+- **Database Transactions**: When you want to roll back an in-memory object graph if a database transaction fails.
+- **Wizards and Multi-step Forms**: If a user hits "Back" in a complex UI wizard, restoring a Memento is much easier than manually undoing UI state changes.
 
 ## When NOT to Use
 
-- Objects are too large to store state efficiently
-- State changes are so frequent that storing history is impractical
-- Memory is extremely limited
-- You only need simple recovery, not full history
-- State is constantly being updated
-- The object's state includes resources that can't be copied
-- You can use simpler mechanisms like database snapshots
+- **Huge Memory Footprints**: If the object state involves gigabytes of data, you cannot use classical Mementos. You must use "diffs" or "deltas" (saving only what changed).
+- **Immutable Architectures**: If your architecture natively relies on immutable data structures (like Redux or Clojure), every state transition naturally generates a new independent state object. The Memento pattern is natively fulfilled.
+
+## Common Mistakes
+
+### 1. Shallow Copying
+If your object state contains references to arrays or objects, and you only shallow-copy them into the Memento, modifying the original object will modify the Memento too! You *must* deep clone the state.
+
+```typescript
+// ❌ Bad: Shallow copy
+save() { return new Memento(this.itemsArray); }
+
+// ✅ Good: Deep copy
+save() { return new Memento(structuredClone(this.itemsArray)); }
+```
+
+### 2. Violating Encapsulation in the Caretaker
+The Caretaker should NEVER read or alter the state inside the Memento. It should treat the Memento as an opaque black box.
 
 ## Related Patterns
 
-- **Command** - Can be combined with Memento for more powerful undo
-- **Prototype** - Can be used to create deep copies of objects
-- **Iterator** - Can iterate through state history
-- **Observer** - Can notify when state is saved/restored
+- **Command**: Almost always used together. A Command represents an action, and it holds a Memento representing the state *before* the action occurred. Calling `command.undo()` restores the Memento.
+- **Iterator**: You can use Iterators to traverse the history of Mementos stored in a Caretaker.
+- **Prototype**: Often used under the hood to generate the deep copy snapshot required by the Memento.
+
+## Interview Insights
+
+- **Question**: "If Mementos take up too much RAM, how can we optimize the Undo system?"
+  - **Answer**: "Instead of storing full state snapshots (Mementos), you store the *inverse Command* (delta). If the user types 'A', you store a command to 'Delete 1 character'. This uses drastically less memory but makes the code much more complex."
+- **Question**: "How does Java enforce the 'Restricted Interface' of a Memento?"
+  - **Answer**: "Java allows nested classes. By making the `ConcreteMemento` a private nested class inside the `Originator`, only the Originator can access its fields. The Caretaker is only given the public `Memento` interface which exposes nothing."
+
+## Modern Alternatives
+
+- **Immutability (Redux / Event Sourcing)**: If the application state is completely immutable, every modification creates a brand new State tree. A "Memento" is just a reference to the previous immutable tree. There is no need for copying.
+- **JSON Serialization**: A very quick and dirty way to implement Memento in JS/Python is to serialize the object to a JSON string and store it, then parse it to restore. It guarantees a deep copy and zero encapsulation leakage.

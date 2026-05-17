@@ -1,415 +1,598 @@
 ---
-title: Visitor
-description: Represent an operation to be performed on elements of a structure. Visitor lets you define new operations without changing the classes.
+title: Visitor Pattern
+description: Represent an operation to be performed on elements of an object structure. Lets you define new operations without changing the classes.
 icon: GitBranch
 ---
 
-# Visitor
-
-
+# Visitor Pattern
 
 ## Overview
 
-The **Visitor** pattern is a behavioral design pattern that represents an operation to be performed on elements of an object structure. It lets you define new operations without changing the classes of the elements being operated on. This pattern separates an algorithm from the object structure it operates on.
+The **Visitor** pattern is a behavioral design pattern that allows you to add new operations to existing classes without modifying them. It achieves this by separating an algorithm from the object structure on which it operates.
 
-## Purpose
+**Key advantage**: It implements "Double Dispatch," allowing a program to execute different logic based on both the type of the receiver *and* the type of the argument.
 
-The Visitor pattern aims to:
+**Modern perspective**: The Visitor pattern was designed to solve a problem inherent to older Object-Oriented languages (Java, C++, C#): they only support *Single Dispatch* (polymorphism based purely on the object you call the method on). In modern languages that support **Pattern Matching** (Rust, Scala, Swift, modern C#, modern Java) or Union Types (TypeScript), the classic Visitor pattern is largely obsolete and considered overly verbose. However, understanding it is critical for legacy systems, Compiler design (AST traversal), and languages lacking advanced pattern matching.
 
-- Separate operations from the object structure
-- Define new operations without modifying object classes
-- Add behavior to complex object hierarchies
-- Simplify algorithms that operate on complex structures
-- Collect information across related objects
-- Avoid type casting and instanceof checks
+## The Problem
 
-## Problem
+Imagine you are building an application that works with a geographic map consisting of a complex graph of different nodes: `City`, `Industry`, and `Sightseeing`.
 
-Consider an abstract syntax tree (AST) representing a program. You need multiple operations (print, compile, optimize) on different node types:
+Your boss asks you to export the map data into an XML format.
 
 ```typescript
-// Without Visitor - scattered logic
-interface ASTNode {
-  print(): void;
-  compile(): void;
-  optimize(): void;
+// ❌ Bad: Violates Single Responsibility and Open/Closed principles
+class City implements MapNode {
+  exportToXML() { /* ... XML logic ... */ }
 }
 
-class BinaryOp implements ASTNode {
-  print(): void {}
-  compile(): void {}
-  optimize(): void {}
+class Industry implements MapNode {
+  exportToXML() { /* ... XML logic ... */ }
 }
 
-class Literal implements ASTNode {
-  print(): void {}
-  compile(): void {}
-  optimize(): void {}
+class Sightseeing implements MapNode {
+  exportToXML() { /* ... XML logic ... */ }
 }
 ```
 
-Issues with this approach:
+This seems fine at first. But what happens next week when the boss asks for JSON export? What about CSV export?
+Every time a new operation is needed, you have to modify *every single node class*. These classes are supposed to represent geographic data, not deal with parsing, formatting, or exporting. 
 
-- Each new operation requires modifying all node classes
-- Operations logic is scattered across multiple classes
-- Adding operations violates open/closed principle
-- Node classes become bloated with unrelated behavior
-- Hard to maintain and test operations
-
-## Solution
-
-The Visitor pattern encapsulates operations in visitor classes:
-
+If you try to move the logic outside the classes into an `Exporter` class, you hit a snag:
 ```typescript
-// Visitor interface
-interface Visitor {
-  visitBinaryOp(node: BinaryOp): void;
-  visitLiteral(node: Literal): void;
-}
-
-// Elements define accept method
-interface ASTNode {
-  accept(visitor: Visitor): void;
-}
-
-// Concrete visitors
-class PrintVisitor implements Visitor {
-  visitBinaryOp(node: BinaryOp): void {}
-  visitLiteral(node: Literal): void {}
-}
-
-class CompileVisitor implements Visitor {
-  visitBinaryOp(node: BinaryOp): void {}
-  visitLiteral(node: Literal): void {}
+class Exporter {
+  export(node: MapNode) {
+    // ❌ Bad: Huge instanceof chains (Code Smell)
+    if (node instanceof City) {
+      // export city
+    } else if (node instanceof Industry) {
+      // export industry
+    }
+  }
 }
 ```
 
-## Implementation
+## The Solution
+
+The Visitor pattern suggests placing the new behavior into a separate class called a `Visitor`, instead of integrating it into existing classes.
+
+The trick to making this work without `instanceof` checks is **Double Dispatch**. 
+1. We ask the `Visitor` to execute the operation, but how does the Visitor know which node it's dealing with?
+2. We add a single method `accept(visitor)` to the `MapNode` interface.
+3. Every concrete node implements `accept(visitor)` by simply calling `visitor.visit(this)`.
+
+Because the code is executed *inside* the concrete node (e.g., `City`), `this` is explicitly known to be of type `City`. The compiler binds the call to the correct overloaded method on the Visitor.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Visitor {
+        <<interface>>
+        +visitElementA(e: ElementA)
+        +visitElementB(e: ElementB)
+    }
+    class ConcreteVisitor1 {
+        +visitElementA(e: ElementA)
+        +visitElementB(e: ElementB)
+    }
+    
+    class Element {
+        <<interface>>
+        +accept(v: Visitor)
+    }
+    class ElementA {
+        +accept(v: Visitor)
+    }
+    class ElementB {
+        +accept(v: Visitor)
+    }
+
+    Visitor <|.. ConcreteVisitor1
+    Element <|.. ElementA
+    Element <|.. ElementB
+    
+    Client --> Visitor
+    Client --> Element
+```
+
+## Flow
+
+1. The client creates a `ConcreteVisitor` object.
+2. The client iterates over a complex object structure (e.g., an array of `Element`s).
+3. The client calls `element.accept(visitor)` on each item.
+4. Inside `accept`, the concrete `Element` calls back into the visitor: `visitor.visitElementA(this)`.
+5. The `Visitor` executes the logic specific to `ElementA`.
+
+## Real-World Analogy
+
+Think of an **Insurance Agent** visiting clients.
+The Agent (Visitor) visits a residential building, a bank, and a coffee shop (Elements).
+Depending on the building they visit, the Agent performs a different operation:
+- At the residential building, they pitch medical insurance.
+- At the bank, they pitch theft insurance.
+- At the coffee shop, they pitch fire insurance.
+The buildings don't care *how* the insurance is calculated; they just "accept" the agent into their building, and the agent does the appropriate work.
+
+## Step-by-Step Implementation
+
+1. **Declare the Visitor Interface**: Create an interface with a set of "visiting" methods, one for each concrete element class.
+2. **Declare the Element Interface**: Add an `accept(visitor)` method to the base interface of your element hierarchy.
+3. **Implement Acceptance**: In every concrete element, implement `accept(visitor)` by calling the visitor method that matches the element's class.
+4. **Create Concrete Visitors**: Create classes implementing the Visitor interface. Each visitor represents a different operation (Export, Render, Validate, etc.).
+5. **Client Execution**: The client creates visitor objects and passes them into the elements via the `accept` method.
+
+## Code Examples
+
+Let's implement a system for an **Abstract Syntax Tree (AST)** used in a compiler. We have different node types (`NumberNode`, `AdditionNode`). We want to be able to compile the AST, evaluate it, and print it—without stuffing all that logic into the nodes themselves.
 
 ::: code-group
 
-```typescript [typescript]
-// Element interface
-    interface Shape {
-      accept(visitor: ShapeVisitor): void;
-    }
+```typescript [TypeScript]
+// 1. Visitor Interface
+interface ASTVisitor {
+  visitNumber(node: NumberNode): void;
+  visitAddition(node: AdditionNode): void;
+}
 
-    // Concrete elements
-    class Circle implements Shape {
-      constructor(public radius: number) {}
+// 2. Element Interface
+interface ASTNode {
+  accept(visitor: ASTVisitor): void;
+}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitCircle(this);
-      }
-    }
+// 3. Concrete Elements
+class NumberNode implements ASTNode {
+  constructor(public value: number) {}
 
-    class Rectangle implements Shape {
-      constructor(
-        public width: number,
-        public height: number
-      ) {}
+  accept(visitor: ASTVisitor): void {
+    // Double dispatch: we pass 'this' (type NumberNode) back to the visitor
+    visitor.visitNumber(this);
+  }
+}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitRectangle(this);
-      }
-    }
+class AdditionNode implements ASTNode {
+  constructor(public left: ASTNode, public right: ASTNode) {}
 
-    class Triangle implements Shape {
-      constructor(
-        public side1: number,
-        public side2: number,
-        public side3: number
-      ) {}
+  accept(visitor: ASTVisitor): void {
+    // Double dispatch
+    visitor.visitAddition(this);
+  }
+}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitTriangle(this);
-      }
-    }
+// 4. Concrete Visitors
+class EvaluateVisitor implements ASTVisitor {
+  public result: number = 0;
 
-    // Visitor interface
-    interface ShapeVisitor {
-      visitCircle(circle: Circle): void;
-      visitRectangle(rectangle: Rectangle): void;
-      visitTriangle(triangle: Triangle): void;
-    }
+  visitNumber(node: NumberNode): void {
+    this.result = node.value;
+  }
 
-    // Concrete visitor 1 - Area calculator
-    class AreaCalculator implements ShapeVisitor {
-      private totalArea: number = 0;
+  visitAddition(node: AdditionNode): void {
+    // Evaluate left
+    node.left.accept(this);
+    const leftVal = this.result;
 
-      visitCircle(circle: Circle): void {
-        const area = Math.PI * circle.radius ** 2;
-        this.totalArea += area;
-        console.log(`Circle area: ${area.toFixed(2)}`);
-      }
+    // Evaluate right
+    node.right.accept(this);
+    const rightVal = this.result;
 
-      visitRectangle(rectangle: Rectangle): void {
-        const area = rectangle.width * rectangle.height;
-        this.totalArea += area;
-        console.log(`Rectangle area: ${area}`);
-      }
+    this.result = leftVal + rightVal;
+  }
+}
 
-      visitTriangle(triangle: Triangle): void {
-        const s = (triangle.side1 + triangle.side2 + triangle.side3) / 2;
-        const area = Math.sqrt(s * (s - triangle.side1) * (s - triangle.side2) * (s - triangle.side3));
-        this.totalArea += area;
-        console.log(`Triangle area: ${area.toFixed(2)}`);
-      }
+class PrintVisitor implements ASTVisitor {
+  public output: string = "";
 
-      getTotalArea(): number {
-        return this.totalArea;
-      }
-    }
+  visitNumber(node: NumberNode): void {
+    this.output += node.value.toString();
+  }
 
-    // Concrete visitor 2 - Perimeter calculator
-    class PerimeterCalculator implements ShapeVisitor {
-      private totalPerimeter: number = 0;
+  visitAddition(node: AdditionNode): void {
+    this.output += "(";
+    node.left.accept(this);
+    this.output += " + ";
+    node.right.accept(this);
+    this.output += ")";
+  }
+}
 
-      visitCircle(circle: Circle): void {
-        const perimeter = 2 * Math.PI * circle.radius;
-        this.totalPerimeter += perimeter;
-        console.log(`Circle perimeter: ${perimeter.toFixed(2)}`);
-      }
+// 5. Client Code
+const tree = new AdditionNode(
+  new NumberNode(5),
+  new AdditionNode(new NumberNode(2), new NumberNode(3))
+);
 
-      visitRectangle(rectangle: Rectangle): void {
-        const perimeter = 2 * (rectangle.width + rectangle.height);
-        this.totalPerimeter += perimeter;
-        console.log(`Rectangle perimeter: ${perimeter}`);
-      }
+console.log("=== Printing AST ===");
+const printer = new PrintVisitor();
+tree.accept(printer);
+console.log(printer.output); // Output: (5 + (2 + 3))
 
-      visitTriangle(triangle: Triangle): void {
-        const perimeter = triangle.side1 + triangle.side2 + triangle.side3;
-        this.totalPerimeter += perimeter;
-        console.log(`Triangle perimeter: ${perimeter}`);
-      }
-
-      getTotalPerimeter(): number {
-        return this.totalPerimeter;
-      }
-    }
-
-    // Usage
-    const shapes: Shape[] = [
-      new Circle(5),
-      new Rectangle(4, 6),
-      new Triangle(3, 4, 5)
-    ];
-
-    const areaCalculator = new AreaCalculator();
-    shapes.forEach(shape => shape.accept(areaCalculator));
-    console.log(`Total area: ${areaCalculator.getTotalArea().toFixed(2)}\n`);
-
-    const perimeterCalculator = new PerimeterCalculator();
-    shapes.forEach(shape => shape.accept(perimeterCalculator));
-    console.log(`Total perimeter: ${perimeterCalculator.getTotalPerimeter().toFixed(2)}`);
+console.log("=== Evaluating AST ===");
+const evaluator = new EvaluateVisitor();
+tree.accept(evaluator);
+console.log(evaluator.result); // Output: 10
 ```
 
-
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
-    import math
 
-    class Shape(ABC):
-        @abstractmethod
-        def accept(self, visitor: 'ShapeVisitor') -> None:
-            pass
+# 1. Visitor Interface
+class ASTVisitor(ABC):
+    @abstractmethod
+    def visit_number(self, node: 'NumberNode') -> None:
+        pass
 
-    class Circle(Shape):
-        def __init__(self, radius: float):
-            self.radius = radius
+    @abstractmethod
+    def visit_addition(self, node: 'AdditionNode') -> None:
+        pass
 
-        def accept(self, visitor: 'ShapeVisitor') -> None:
-            visitor.visit_circle(self)
+# 2. Element Interface
+class ASTNode(ABC):
+    @abstractmethod
+    def accept(self, visitor: ASTVisitor) -> None:
+        pass
 
-    class Rectangle(Shape):
-        def __init__(self, width: float, height: float):
-            self.width = width
-            self.height = height
+# 3. Concrete Elements
+class NumberNode(ASTNode):
+    def __init__(self, value: float):
+        self.value = value
 
-        def accept(self, visitor: 'ShapeVisitor') -> None:
-            visitor.visit_rectangle(self)
+    def accept(self, visitor: ASTVisitor) -> None:
+        visitor.visit_number(self)
 
-    class Triangle(Shape):
-        def __init__(self, side1: float, side2: float, side3: float):
-            self.side1 = side1
-            self.side2 = side2
-            self.side3 = side3
+class AdditionNode(ASTNode):
+    def __init__(self, left: ASTNode, right: ASTNode):
+        self.left = left
+        self.right = right
 
-        def accept(self, visitor: 'ShapeVisitor') -> None:
-            visitor.visit_triangle(self)
+    def accept(self, visitor: ASTVisitor) -> None:
+        visitor.visit_addition(self)
 
-    class ShapeVisitor(ABC):
-        @abstractmethod
-        def visit_circle(self, circle: Circle) -> None:
-            pass
+# 4. Concrete Visitors
+class EvaluateVisitor(ASTVisitor):
+    def __init__(self):
+        self.result: float = 0
 
-        @abstractmethod
-        def visit_rectangle(self, rectangle: Rectangle) -> None:
-            pass
+    def visit_number(self, node: NumberNode) -> None:
+        self.result = node.value
 
-        @abstractmethod
-        def visit_triangle(self, triangle: Triangle) -> None:
-            pass
+    def visit_addition(self, node: AdditionNode) -> None:
+        node.left.accept(self)
+        left_val = self.result
 
-    class AreaCalculator(ShapeVisitor):
-        def __init__(self):
-            self.total_area = 0
+        node.right.accept(self)
+        right_val = self.result
 
-        def visit_circle(self, circle: Circle) -> None:
-            area = math.pi * circle.radius ** 2
-            self.total_area += area
-            print(f"Circle area: {area:.2f}")
+        self.result = left_val + right_val
 
-        def visit_rectangle(self, rectangle: Rectangle) -> None:
-            area = rectangle.width * rectangle.height
-            self.total_area += area
-            print(f"Rectangle area: {area}")
+class PrintVisitor(ASTVisitor):
+    def __init__(self):
+        self.output: str = ""
 
-        def visit_triangle(self, triangle: Triangle) -> None:
-            s = (triangle.side1 + triangle.side2 + triangle.side3) / 2
-            area = math.sqrt(s * (s - triangle.side1) * (s - triangle.side2) * (s - triangle.side3))
-            self.total_area += area
-            print(f"Triangle area: {area:.2f}")
+    def visit_number(self, node: NumberNode) -> None:
+        self.output += str(node.value)
 
-        def get_total_area(self) -> float:
-            return self.total_area
+    def visit_addition(self, node: AdditionNode) -> None:
+        self.output += "("
+        node.left.accept(self)
+        self.output += " + "
+        node.right.accept(self)
+        self.output += ")"
 
-    class PerimeterCalculator(ShapeVisitor):
-        def __init__(self):
-            self.total_perimeter = 0
+# 5. Client Code
+if __name__ == "__main__":
+    # AST: 5 + (2 + 3)
+    tree = AdditionNode(
+        NumberNode(5),
+        AdditionNode(NumberNode(2), NumberNode(3))
+    )
 
-        def visit_circle(self, circle: Circle) -> None:
-            perimeter = 2 * math.pi * circle.radius
-            self.total_perimeter += perimeter
-            print(f"Circle perimeter: {perimeter:.2f}")
+    print("=== Printing AST ===")
+    printer = PrintVisitor()
+    tree.accept(printer)
+    print(printer.output)
 
-        def visit_rectangle(self, rectangle: Rectangle) -> None:
-            perimeter = 2 * (rectangle.width + rectangle.height)
-            self.total_perimeter += perimeter
-            print(f"Rectangle perimeter: {perimeter}")
+    print("=== Evaluating AST ===")
+    evaluator = EvaluateVisitor()
+    tree.accept(evaluator)
+    print(evaluator.result)
+```
 
-        def visit_triangle(self, triangle: Triangle) -> None:
-            perimeter = triangle.side1 + triangle.side2 + triangle.side3
-            self.total_perimeter += perimeter
-            print(f"Triangle perimeter: {perimeter}")
+```java [Java]
+// 1. Visitor Interface
+interface ASTVisitor {
+    void visit(NumberNode node);
+    void visit(AdditionNode node);
+}
 
-        def get_total_perimeter(self) -> float:
-            return self.total_perimeter
+// 2. Element Interface
+interface ASTNode {
+    void accept(ASTVisitor visitor);
+}
 
-    # Usage
-    shapes = [Circle(5), Rectangle(4, 6), Triangle(3, 4, 5)]
+// 3. Concrete Elements
+class NumberNode implements ASTNode {
+    final double value;
+    
+    NumberNode(double value) { this.value = value; }
 
-    area_calculator = AreaCalculator()
-    for shape in shapes:
-        shape.accept(area_calculator)
-    print(f"Total area: {area_calculator.get_total_area():.2f}\n")
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visit(this); // Resolves to visit(NumberNode)
+    }
+}
 
-    perimeter_calculator = PerimeterCalculator()
-    for shape in shapes:
-        shape.accept(perimeter_calculator)
-    print(f"Total perimeter: {perimeter_calculator.get_total_perimeter():.2f}")
+class AdditionNode implements ASTNode {
+    final ASTNode left;
+    final ASTNode right;
+
+    AdditionNode(ASTNode left, ASTNode right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visit(this); // Resolves to visit(AdditionNode)
+    }
+}
+
+// 4. Concrete Visitors
+class EvaluateVisitor implements ASTVisitor {
+    private double result = 0;
+    
+    public double getResult() { return result; }
+
+    @Override
+    public void visit(NumberNode node) {
+        this.result = node.value;
+    }
+
+    @Override
+    public void visit(AdditionNode node) {
+        node.left.accept(this);
+        double leftVal = this.result;
+
+        node.right.accept(this);
+        double rightVal = this.result;
+
+        this.result = leftVal + rightVal;
+    }
+}
+
+class PrintVisitor implements ASTVisitor {
+    private StringBuilder output = new StringBuilder();
+    
+    public String getOutput() { return output.toString(); }
+
+    @Override
+    public void visit(NumberNode node) {
+        output.append(node.value);
+    }
+
+    @Override
+    public void visit(AdditionNode node) {
+        output.append("(");
+        node.left.accept(this);
+        output.append(" + ");
+        node.right.accept(this);
+        output.append(")");
+    }
+}
+
+// 5. Client Code
+public class VisitorDemo {
+    public static void main(String[] args) {
+        ASTNode tree = new AdditionNode(
+            new NumberNode(5),
+            new AdditionNode(new NumberNode(2), new NumberNode(3))
+        );
+
+        System.out.println("=== Printing AST ===");
+        PrintVisitor printer = new PrintVisitor();
+        tree.accept(printer);
+        System.out.println(printer.getOutput());
+
+        System.out.println("=== Evaluating AST ===");
+        EvaluateVisitor evaluator = new EvaluateVisitor();
+        tree.accept(evaluator);
+        System.out.println(evaluator.getResult());
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// 1. Visitor Interface
+type ASTVisitor interface {
+	VisitNumber(node *NumberNode)
+	VisitAddition(node *AdditionNode)
+}
+
+// 2. Element Interface
+type ASTNode interface {
+	Accept(visitor ASTVisitor)
+}
+
+// 3. Concrete Elements
+type NumberNode struct {
+	Value float64
+}
+
+func (n *NumberNode) Accept(visitor ASTVisitor) {
+	visitor.VisitNumber(n)
+}
+
+type AdditionNode struct {
+	Left  ASTNode
+	Right ASTNode
+}
+
+func (a *AdditionNode) Accept(visitor ASTVisitor) {
+	visitor.VisitAddition(a)
+}
+
+// 4. Concrete Visitors
+type EvaluateVisitor struct {
+	Result float64
+}
+
+func (v *EvaluateVisitor) VisitNumber(node *NumberNode) {
+	v.Result = node.Value
+}
+
+func (v *EvaluateVisitor) VisitAddition(node *AdditionNode) {
+	node.Left.Accept(v)
+	leftVal := v.Result
+
+	node.Right.Accept(v)
+	rightVal := v.Result
+
+	v.Result = leftVal + rightVal
+}
+
+type PrintVisitor struct {
+	Output string
+}
+
+func (v *PrintVisitor) VisitNumber(node *NumberNode) {
+	v.Output += strconv.FormatFloat(node.Value, 'f', -1, 64)
+}
+
+func (v *PrintVisitor) VisitAddition(node *AdditionNode) {
+	v.Output += "("
+	node.Left.Accept(v)
+	v.Output += " + "
+	node.Right.Accept(v)
+	v.Output += ")"
+}
+
+// 5. Client
+func main() {
+	tree := &AdditionNode{
+		Left: &NumberNode{Value: 5},
+		Right: &AdditionNode{
+			Left:  &NumberNode{Value: 2},
+			Right: &NumberNode{Value: 3},
+		},
+	}
+
+	fmt.Println("=== Printing AST ===")
+	printer := &PrintVisitor{}
+	tree.Accept(printer)
+	fmt.Println(printer.Output)
+
+	fmt.Println("=== Evaluating AST ===")
+	evaluator := &EvaluateVisitor{}
+	tree.Accept(evaluator)
+	fmt.Println(evaluator.Result)
+}
+```
+
+```rust [Rust]
+// In Rust, Pattern Matching entirely replaces the classic OOP Visitor pattern.
+// Instead of creating Interfaces and Double Dispatch, we define an Enum 
+// representing the Node Types, and use `match` blocks. 
+// This is exactly what the Visitor Pattern tries (and struggles) to emulate in OOP.
+
+// 1. The "Elements" (An Algebraic Data Type / Enum)
+enum ASTNode {
+    Number(f64),
+    Addition(Box<ASTNode>, Box<ASTNode>),
+}
+
+// 2. The "Visitors" (Just normal functions using Pattern Matching)
+
+// "Print Visitor" equivalent
+fn print_ast(node: &ASTNode) -> String {
+    match node {
+        ASTNode::Number(val) => val.to_string(),
+        ASTNode::Addition(left, right) => {
+            format!("({} + {})", print_ast(left), print_ast(right))
+        }
+    }
+}
+
+// "Evaluate Visitor" equivalent
+fn evaluate_ast(node: &ASTNode) -> f64 {
+    match node {
+        ASTNode::Number(val) => *val,
+        ASTNode::Addition(left, right) => evaluate_ast(left) + evaluate_ast(right),
+    }
+}
+
+// 3. Client Code
+fn main() {
+    // AST: 5 + (2 + 3)
+    let tree = ASTNode::Addition(
+        Box::new(ASTNode::Number(5.0)),
+        Box::new(ASTNode::Addition(
+            Box::new(ASTNode::Number(2.0)),
+            Box::new(ASTNode::Number(3.0)),
+        )),
+    );
+
+    println!("=== Printing AST ===");
+    println!("{}", print_ast(&tree));
+
+    println!("=== Evaluating AST ===");
+    println!("{}", evaluate_ast(&tree));
+}
 ```
 
 :::
 
-## Real-World Example
+## Pros and Cons
 
-### Document Export System
+### Advantages
+- **Open/Closed Principle**: You can introduce a new behavior that can work with objects of different classes without changing those classes.
+- **Single Responsibility Principle**: You can gather multiple versions of the same behavior into a single class.
+- **Type Safety**: Unlike massive `if (node instanceof City)` blocks, double dispatch ensures at compile-time that every element type is handled.
+- **State Accumulation**: A visitor can accumulate state as it traverses various objects (useful for calculating totals or generating reports).
 
-```typescript
-interface Document {
-  accept(visitor: DocumentVisitor): void;
-}
-
-class Paragraph implements Document {
-  constructor(public text: string) {}
-  accept(visitor: DocumentVisitor): void {
-    visitor.visitParagraph(this);
-  }
-}
-
-class Image implements Document {
-  constructor(public url: string) {}
-  accept(visitor: DocumentVisitor): void {
-    visitor.visitImage(this);
-  }
-}
-
-interface DocumentVisitor {
-  visitParagraph(para: Paragraph): void;
-  visitImage(img: Image): void;
-}
-
-class HTMLExporter implements DocumentVisitor {
-  visitParagraph(para: Paragraph): void {
-    console.log(`<p>${para.text}</p>`);
-  }
-
-  visitImage(img: Image): void {
-    console.log(`<img src="${img.url}" />`);
-  }
-}
-
-class MarkdownExporter implements DocumentVisitor {
-  visitParagraph(para: Paragraph): void {
-    console.log(para.text);
-  }
-
-  visitImage(img: Image): void {
-    console.log(`![Image](${img.url})`);
-  }
-}
-
-// Usage
-const doc: Document[] = [new Paragraph("Hello World"), new Image("example.png")];
-
-const htmlExporter = new HTMLExporter();
-doc.forEach((d) => d.accept(htmlExporter));
-```
-
-## Advantages
-
-✅ **Easy to Add Operations** - New operations without changing element classes
-✅ **Separation of Concerns** - Operations separated from object structure
-✅ **Open/Closed Principle** - Open for extension, closed for modification
-✅ **Collects Data** - Visitors can gather information across structures
-✅ **Handles Complex Structures** - Works well with composite patterns
-✅ **Testability** - Operations can be tested independently
-✅ **Avoids Type Casting** - No need for instanceof checks
-
-## Disadvantages
-
-❌ **Adding Elements Difficult** - New element types require modifying all visitors
-❌ **Complexity** - Adds extra layer of abstraction
-❌ **Encapsulation Violation** - Visitors need access to element internals
-❌ **Double Dispatch Complexity** - Can be hard to understand
-❌ **Performance Overhead** - Extra method calls and object creation
-❌ **Not Suitable for Simple Cases** - Overkill if few operations needed
+### Disadvantages
+- **Fragile Base Class Hierarchy**: The biggest flaw of the Visitor pattern is that if a new class is added to the Element hierarchy (e.g., `SubtractionNode`), you MUST update the `Visitor` interface and EVERY SINGLE concrete visitor class. 
+- **Encapsulation Breakdown**: Visitors usually need access to the private or protected fields of the elements they visit. This forces you to expose internal state via public getters.
+- **Complexity**: The double-dispatch mechanism (`accept` calls `visit` which operates on the data) creates a mental loop that is notoriously difficult for junior developers to follow.
 
 ## When to Use
 
-- You need many different operations on object structure
-- Object structure is stable but operations change frequently
-- You want to avoid modifying element classes for new operations
-- You need to collect information across related objects
-- You have complex hierarchies with multiple element types
-- Operations are unrelated to element responsibilities
-- You want to follow open/closed principle
+- **Stable Hierarchy, Unstable Operations**: You have a complex object structure (like an Abstract Syntax Tree or Document Object Model) whose classes rarely change, but you need to frequently perform new and unrelated operations on them.
+- **Cleaning up Business Logic**: You want to extract auxiliary behaviors (like exporting, printing, or rendering) out of primary domain classes to respect the Single Responsibility Principle.
 
 ## When NOT to Use
 
-- Object structure changes frequently
-- Only a few operations are needed
-- Element classes need modification anyway
-- Operations are intrinsic to elements
-- Simpler patterns (Strategy, Template Method) would suffice
-- Performance is critical
-- Encapsulation is paramount
+- **Volatile Hierarchies**: If the classes making up the object structure change frequently (adding new node types), the Visitor pattern will cause infinite maintenance headaches.
+- **Languages with Pattern Matching**: If you are using Rust, Scala, F#, or even modern C#/TypeScript with Discriminated Unions, do not use the Visitor pattern. Use native pattern matching.
+
+## Common Mistakes
+
+### 1. Trying to Return Values directly from `visit()`
+In strongly typed languages, standardizing the return type of `visit()` across all visitors is difficult (some visitors might want to return `int`, others `string`). Typically, the Visitor interface returns `void`, and the concrete visitor accumulates the result in a local field which is queried later (as seen in our TS/Java examples).
+
+### 2. Confusing Visitor with Iterator
+Iterator simply walks through a collection. Visitor executes operations on the items. However, Visitor does *not* know how to traverse complex graphs (like trees) by itself. Traversal logic must either exist inside the Visitor (as seen in our AST example where `visitAddition` calls `accept` on children) or be handled by an external Iterator/Object Structure class.
 
 ## Related Patterns
 
-- **Composite** - Often used with Visitor to traverse tree structures
-- **Iterator** - Alternative for traversing structures
-- **Double Dispatch** - Core mechanism of Visitor
-- **Interpreter** - Similar structure for expression evaluation
+- **Composite**: Visitor is almost always used in conjunction with Composite. The Composite pattern builds the tree, and the Visitor walks it to perform operations.
+- **Iterator**: Can be used alongside Visitor to traverse the data structure while the Visitor applies the logic.
+- **Command**: Visitor can be seen as a powerful Command pattern that knows how to execute itself on different types of receivers.
+
+## Interview Insights
+
+- **Question**: "What is Double Dispatch?"
+  - **Answer**: "Double dispatch is a mechanism that dispatches a function call to different concrete functions depending on the runtime types of TWO objects involved in the call (the receiver and the argument). Visitor simulates this in languages that only support single dispatch by using `element.accept(visitor)` (dispatch 1) which immediately calls `visitor.visit(this)` (dispatch 2)."
+- **Question**: "What is the biggest drawback of the Visitor pattern?"
+  - **Answer**: "Adding a new element type. If I add a new node to my tree, I have to update the Visitor interface and literally every single Visitor implementation in my codebase to handle the new node. Visitor is only good if the element hierarchy is frozen."
+
+## Modern Alternatives
+
+- **Pattern Matching**: The ultimate replacement for Visitor. Found in Rust, Scala, Swift, F#, and increasingly in C# and Java (via switch expressions and record patterns). It allows you to match against the exact type and extract values in a single, readable block of code without touching the original classes.
+- **Discriminated Unions**: In TypeScript, you can define a union type of interfaces (each with a unique `type` literal string) and use a `switch` statement. TS will enforce exhaustiveness checking, giving you compile-time safety without the boilerplate of double dispatch.

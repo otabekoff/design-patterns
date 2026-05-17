@@ -1,565 +1,646 @@
 ---
 title: Repository Pattern
-description: Abstracts data source access and provides a data-like collection interface
+description: An architectural pattern that abstracts data source access and provides a collection-like interface to the business logic layer.
 icon: Database
 ---
 
 # Repository Pattern
 
-
-
 ## Overview
 
-The **Repository Pattern** is an architectural pattern that abstracts data source access logic and provides a more object-oriented view of the underlying data source. It acts as an in-memory collection of domain objects.
+The **Repository Pattern** is an architectural pattern that sits between the domain/business logic and the data mapping layer. It provides an abstraction of data access, allowing the business logic to treat the database as if it were a simple, in-memory collection of objects.
 
-Key concepts:
+**Key advantage**: It completely decouples business logic from data access technology (SQL, NoSQL, external APIs), making the application highly testable and agnostic to infrastructure changes.
 
-- **Repository**: Abstracts how data is fetched and persisted
-- **Data Source**: Could be a database, API, file system, or memory
-- **Domain Objects**: Business entities managed by the repository
+**Modern perspective**: The Repository pattern is arguably the most widely used architectural pattern in modern backend engineering (often paired with Data Mapper or Dependency Injection). It is the cornerstone of Clean Architecture, Hexagonal Architecture (Ports and Adapters), and Domain-Driven Design (DDD).
 
-This pattern decouples business logic from data access logic.
+## The Problem
 
-## Purpose
+When business logic directly queries the database or relies directly on an ORM's Active Record implementation, the system becomes deeply coupled to that specific data source.
 
-The Repository pattern aims to:
-
-- Separate data access logic from business logic
-- Provide a clean, consistent API for data operations
-- Enable easy testing through mock repositories
-- Support multiple data sources without affecting business logic
-- Centralize data access logic
-- Improve code maintainability and reusability
-
-## Problem
-
-Without proper abstraction, applications often suffer from:
-
-- Business logic mixed with database queries
-- Difficult to test code that depends on database
-- Hard to switch data sources (DB to API, etc.)
-- Data access logic duplicated throughout codebase
-- Tight coupling between business logic and persistence
-- Changes to database require changes to business logic
-
-```
-❌ Direct Database Access
+```typescript
+// ❌ Bad: Business logic coupled to the database technology (e.g., SQL/ORM)
 class UserService {
-  getUser(id) {
-    return database.query('SELECT * FROM users WHERE id = ?', id);
+  public async deactivateInactiveUsers() {
+    // Leaks SQL syntax into the business service
+    const users = await db.query('SELECT * FROM users WHERE last_login < ?', [thirtyDaysAgo]);
+    
+    for (const user of users) {
+      user.is_active = false;
+      await db.execute('UPDATE users SET is_active = false WHERE id = ?', [user.id]);
+    }
   }
 }
 ```
 
-## Solution
+This creates several issues:
+1. **Testing is difficult**: You cannot unit test `UserService` without a running database or complex SQL mocks.
+2. **Duplication**: The exact same SQL query might be written in `ReportService` and `AuthService`.
+3. **Rigidity**: If you decide to move `users` to an external microservice or a Redis cache, you have to rewrite the core business logic.
 
-Repository provides abstraction layer for data access:
+## The Solution
 
+The Repository pattern solves this by hiding the data access behind an interface (or a base class). The business logic only talks to the interface.
+
+```typescript
+// ✅ Good: Business logic uses a Repository interface
+class UserService {
+  constructor(private userRepository: IUserRepository) {} // Dependency Injection
+
+  public async deactivateInactiveUsers() {
+    // Pure domain logic, zero SQL
+    const users = await this.userRepository.findInactiveSince(thirtyDaysAgo);
+    
+    for (const user of users) {
+      user.deactivate();
+      await this.userRepository.save(user);
+    }
+  }
+}
 ```
-✅ Repository Pattern
-┌─────────────────────────────────────┐
-│      Business Logic (Domain)        │
-└────────────────────┬────────────────┘
-                     │
-┌────────────────────▼────────────────┐
-│   IRepository<T> (Interface)        │
-├─────────────────────────────────────┤
-│ • GetById(id)                       │
-│ • GetAll()                          │
-│ • Add(item)                         │
-│ • Update(item)                      │
-│ • Delete(id)                        │
-└────────────────────┬────────────────┘
-                     │
-        ┌────────────┼────────────┐
-        ▼            ▼            ▼
-    Database       API         Memory
-    Repository  Repository   Repository
+
+## Structure
+
+```mermaid
+classDiagram
+    class BusinessLogic {
+        +doWork()
+    }
+
+    class IUserRepository {
+        <<interface>>
+        +findById(id): User
+        +findAll(): List~User~
+        +save(user: User)
+        +delete(user: User)
+    }
+
+    class SqlUserRepository {
+        +findById(id): User
+        +save(user: User)
+    }
+
+    class InMemoryUserRepository {
+        +findById(id): User
+        +save(user: User)
+    }
+
+    class Database {
+        <<external>>
+    }
+
+    BusinessLogic --> IUserRepository : "depends on"
+    SqlUserRepository ..|> IUserRepository : "implements"
+    InMemoryUserRepository ..|> IUserRepository : "implements"
+    SqlUserRepository --> Database : "reads/writes"
 ```
 
-**Benefits:**
+## Flow
 
-- Decouples business logic from data source
-- Single responsibility: each repository handles one entity
-- Easy to test with mock repositories
-- Simple to switch implementations
+1. **Definition**: Define an interface `IRepository` with methods like `findById`, `save`, and `delete`.
+2. **Implementation**: Create concrete classes (e.g., `PostgresUserRepository`, `MongoUserRepository`, `MockUserRepository`) that implement the interface.
+3. **Injection**: Pass the concrete repository into the business service via Dependency Injection.
+4. **Execution**: The business service calls methods on the interface. The concrete implementation executes the actual data access logic.
 
-## Implementation
+## Real-World Analogy
+
+Think of a **Librarian**. 
+When you want a specific book, you don't go into the archives, figure out the Dewey Decimal System, and operate the mechanical shelves yourself. You go to the Librarian (the Repository). You say, "Find me books by George Orwell." 
+
+The Librarian might look in the physical stacks, check an off-site storage facility, or download an eBook. You (the Business Logic) don't care *where* or *how* the book is retrieved, as long as you get the Book object back.
+
+## Step-by-Step Implementation
+
+1. **Define the Domain Entity**: Create the core domain object (e.g., `User`).
+2. **Define the Interface**: Create an `IUserRepository` interface specifying the required operations.
+3. **Create a Concrete Database Repository**: Implement the interface using real database calls (SQL, ORM, etc.).
+4. **Create a Concrete In-Memory Repository**: Implement the interface using an array or Map (crucial for fast unit testing).
+5. **Inject into Services**: Pass the repository into your use cases/services.
+
+## Code Examples
 
 ::: code-group
 
-```typescript [typescript]
-// Domain Entity
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  createdAt: Date;
+```typescript [TypeScript]
+// 1. Domain Entity
+class User {
+  constructor(
+    public id: string,
+    public name: string,
+    public email: string
+  ) {}
 }
 
-// Repository Interface
-interface IRepository<T> {
-  getById(id: number): Promise<T | null>;
-  getAll(): Promise<T[]>;
-  add(item: T): Promise<T>;
-  update(item: T): Promise<T>;
-  delete(id: number): Promise<boolean>;
-  find(predicate: (item: T) => boolean): Promise<T[]>;
+// 2. Repository Interface
+interface IUserRepository {
+  findById(id: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  save(user: User): Promise<void>;
+  delete(id: string): Promise<void>;
 }
 
-// Database Repository Implementation
-class DatabaseUserRepository implements IRepository<User> {
-  async getById(id: number): Promise<User | null> {
-    console.log(`[DB] SELECT * FROM users WHERE id = ${id}`);
-    return {
-      id,
-      name: "John Doe",
-      email: "john@example.com",
-      createdAt: new Date(),
-    };
-  }
+// 3. Concrete Implementation (In-Memory for Testing)
+class InMemoryUserRepository implements IUserRepository {
+  private users: Map<string, User> = new Map();
 
-  async getAll(): Promise<User[]> {
-    console.log("[DB] SELECT * FROM users");
-    return [
-      { id: 1, name: "John", email: "john@example.com", createdAt: new Date() },
-      { id: 2, name: "Jane", email: "jane@example.com", createdAt: new Date() },
-    ];
-  }
-
-  async add(user: User): Promise<User> {
-    console.log(`[DB] INSERT INTO users VALUES (${JSON.stringify(user)})`);
-    return { ...user, id: Date.now() };
-  }
-
-  async update(user: User): Promise<User> {
-    console.log(`[DB] UPDATE users SET name = '${user.name}' WHERE id = ${user.id}`);
-    return user;
-  }
-
-  async delete(id: number): Promise<boolean> {
-    console.log(`[DB] DELETE FROM users WHERE id = ${id}`);
-    return true;
-  }
-
-  async find(predicate: (item: User) => boolean): Promise<User[]> {
-    const users = await this.getAll();
-    return users.filter(predicate);
-  }
-}
-
-// In-Memory Repository Implementation
-class InMemoryUserRepository implements IRepository<User> {
-  private users: Map<number, User> = new Map();
-  private nextId: number = 1;
-
-  async getById(id: number): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     return this.users.get(id) || null;
   }
 
-  async getAll(): Promise<User[]> {
-    return Array.from(this.users.values());
+  async findByEmail(email: string): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.email === email) return user;
+    }
+    return null;
   }
 
-  async add(user: User): Promise<User> {
-    const newUser = { ...user, id: this.nextId++ };
-    this.users.set(newUser.id, newUser);
-    console.log(`[Memory] Added user: ${newUser.name}`);
+  async save(user: User): Promise<void> {
+    this.users.set(user.id, user);
+    console.log(`[Mock DB] Saved user ${user.id}`);
+  }
+
+  async delete(id: string): Promise<void> {
+    this.users.delete(id);
+    console.log(`[Mock DB] Deleted user ${id}`);
+  }
+}
+
+// 4. Concrete Implementation (PostgreSQL)
+class PostgresUserRepository implements IUserRepository {
+  // In reality, this would be an actual DB connection or ORM instance
+  private db: any = { query: async () => [] }; 
+
+  async findById(id: string): Promise<User | null> {
+    console.log(`[Postgres DB] Executing: SELECT * FROM users WHERE id = ${id}`);
+    const rows = await this.db.query('SELECT * FROM users WHERE id = $1', [id]);
+    return rows.length ? new User(rows[0].id, rows[0].name, rows[0].email) : null;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    console.log(`[Postgres DB] Executing: SELECT * FROM users WHERE email = ${email}`);
+    return null; // Mock implementation
+  }
+
+  async save(user: User): Promise<void> {
+    console.log(`[Postgres DB] Executing: INSERT/UPDATE for user ${user.id}`);
+  }
+
+  async delete(id: string): Promise<void> {
+    console.log(`[Postgres DB] Executing: DELETE for user ${id}`);
+  }
+}
+
+// 5. Business Logic (Service) using the Interface
+class UserService {
+  // Depends on the INTERFACE, not the concrete class
+  constructor(private repo: IUserRepository) {}
+
+  async registerUser(id: string, name: string, email: string): Promise<User> {
+    const existing = await this.repo.findByEmail(email);
+    if (existing) throw new Error("Email already registered");
+
+    const newUser = new User(id, name, email);
+    await this.repo.save(newUser);
     return newUser;
   }
-
-  async update(user: User): Promise<User> {
-    this.users.set(user.id, user);
-    console.log(`[Memory] Updated user: ${user.name}`);
-    return user;
-  }
-
-  async delete(id: number): Promise<boolean> {
-    console.log(`[Memory] Deleted user with id: ${id}`);
-    return this.users.delete(id);
-  }
-
-  async find(predicate: (item: User) => boolean): Promise<User[]> {
-    return Array.from(this.users.values()).filter(predicate);
-  }
 }
 
-// API Repository Implementation
-class ApiUserRepository implements IRepository<User> {
-  constructor(private apiUrl: string = "https://api.example.com") {}
+// Client Code
+async function run() {
+  // We can easily swap out the Postgres repository for the InMemory one for testing!
+  const repo = new InMemoryUserRepository(); 
+  const service = new UserService(repo);
 
-  async getById(id: number): Promise<User | null> {
-    console.log(`[API] GET ${this.apiUrl}/users/${id}`);
-    // In real implementation: const response = await fetch(`${this.apiUrl}/users/${id}`);
-    return {
-      id,
-      name: "API User",
-      email: "api@example.com",
-      createdAt: new Date(),
-    };
-  }
-
-  async getAll(): Promise<User[]> {
-    console.log(`[API] GET ${this.apiUrl}/users`);
-    return [{ id: 1, name: "API User 1", email: "user1@example.com", createdAt: new Date() }];
-  }
-
-  async add(user: User): Promise<User> {
-    console.log(`[API] POST ${this.apiUrl}/users`);
-    return { ...user, id: Date.now() };
-  }
-
-  async update(user: User): Promise<User> {
-    console.log(`[API] PATCH ${this.apiUrl}/users/${user.id}`);
-    return user;
-  }
-
-  async delete(id: number): Promise<boolean> {
-    console.log(`[API] DELETE ${this.apiUrl}/users/${id}`);
-    return true;
-  }
-
-  async find(predicate: (item: User) => boolean): Promise<User[]> {
-    const users = await this.getAll();
-    return users.filter(predicate);
-  }
+  await service.registerUser("u1", "Alice", "alice@example.com");
+  
+  const user = await repo.findById("u1");
+  console.log("Found:", user);
 }
-
-// Business Logic using Repository
-class UserService {
-  constructor(private userRepository: IRepository<User>) {}
-
-  async getUserDetails(id: number): Promise<User | null> {
-    console.log(`Fetching user ${id}`);
-    return await this.userRepository.getById(id);
-  }
-
-  async createUser(name: string, email: string): Promise<User> {
-    console.log(`Creating user: ${name}`);
-    const user: User = {
-      id: 0,
-      name,
-      email,
-      createdAt: new Date(),
-    };
-    return await this.userRepository.add(user);
-  }
-
-  async getAllUsers(): Promise<User[]> {
-    return await this.userRepository.getAll();
-  }
-
-  async findUsersByDomain(domain: string): Promise<User[]> {
-    return await this.userRepository.find((user) => user.email.endsWith(`@${domain}`));
-  }
-
-  async removeUser(id: number): Promise<boolean> {
-    return await this.userRepository.delete(id);
-  }
-}
-
-// Usage - Can easily switch between implementations
-async function main() {
-  // Using in-memory repository
-  const memoryRepo = new InMemoryUserRepository();
-  let service = new UserService(memoryRepo);
-
-  await service.createUser("John", "john@example.com");
-  const users = await service.getAllUsers();
-  console.log("Memory users:", users);
-
-  // Switching to database repository
-  const dbRepo = new DatabaseUserRepository();
-  service = new UserService(dbRepo);
-
-  const user = await service.getUserDetails(1);
-  console.log("DB user:", user);
-
-  // Switching to API repository
-  const apiRepo = new ApiUserRepository();
-  service = new UserService(apiRepo);
-
-  const apiUsers = await service.getAllUsers();
-  console.log("API users:", apiUsers);
-}
-
-// main();
+run();
 ```
 
-
-
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
-from typing import List, Optional, Callable, TypeVar, Generic
-from dataclasses import dataclass
-from datetime import datetime
+from typing import Optional, Dict
 
-T = TypeVar('T')
-
-# Domain Entity
-@dataclass
+# 1. Domain Entity
 class User:
-    id: int
-    name: str
-    email: str
-    created_at: datetime
+    def __init__(self, user_id: str, name: str, email: str):
+        self.id = user_id
+        self.name = name
+        self.email = email
 
-# Repository Interface
-class IRepository(ABC, Generic[T]):
+# 2. Repository Interface
+class UserRepository(ABC):
     @abstractmethod
-    def get_by_id(self, id: int) -> Optional[T]:
-        pass
-
-    @abstractmethod
-    def get_all(self) -> List[T]:
-        pass
+    def find_by_id(self, user_id: str) -> Optional[User]: pass
 
     @abstractmethod
-    def add(self, item: T) -> T:
-        pass
+    def find_by_email(self, email: str) -> Optional[User]: pass
 
     @abstractmethod
-    def update(self, item: T) -> T:
-        pass
+    def save(self, user: User) -> None: pass
 
     @abstractmethod
-    def delete(self, id: int) -> bool:
-        pass
+    def delete(self, user_id: str) -> None: pass
 
-    @abstractmethod
-    def find(self, predicate: Callable[[T], bool]) -> List[T]:
-        pass
-
-# Database Repository Implementation
-class DatabaseUserRepository(IRepository):
-    def get_by_id(self, user_id: int) -> Optional[User]:
-        print(f"[DB] SELECT * FROM users WHERE id = {user_id}")
-        return User(
-            id=user_id,
-            name="John Doe",
-            email="john@example.com",
-            created_at=datetime.now()
-        )
-
-    def get_all(self) -> List[User]:
-        print("[DB] SELECT * FROM users")
-        return [
-            User(1, "John", "john@example.com", datetime.now()),
-            User(2, "Jane", "jane@example.com", datetime.now())
-        ]
-
-    def add(self, user: User) -> User:
-        print(f"[DB] INSERT INTO users VALUES ({user})")
-        return user
-
-    def update(self, user: User) -> User:
-        print(f"[DB] UPDATE users SET name = '{user.name}' WHERE id = {user.id}")
-        return user
-
-    def delete(self, user_id: int) -> bool:
-        print(f"[DB] DELETE FROM users WHERE id = {user_id}")
-        return True
-
-    def find(self, predicate: Callable[[User], bool]) -> List[User]:
-        users = self.get_all()
-        return [u for u in users if predicate(u)]
-
-# In-Memory Repository Implementation
-class InMemoryUserRepository(IRepository):
+# 3. Concrete Implementation (In-Memory for Testing)
+class InMemoryUserRepository(UserRepository):
     def __init__(self):
-        self.users: dict[int, User] = {}
-        self.next_id: int = 1
+        self.users: Dict[str, User] = {}
 
-    def get_by_id(self, user_id: int) -> Optional[User]:
+    def find_by_id(self, user_id: str) -> Optional[User]:
         return self.users.get(user_id)
 
-    def get_all(self) -> List[User]:
-        return list(self.users.values())
+    def find_by_email(self, email: str) -> Optional[User]:
+        for user in self.users.values():
+            if user.email == email:
+                return user
+        return None
 
-    def add(self, user: User) -> User:
-        new_user = User(
-            id=self.next_id,
-            name=user.name,
-            email=user.email,
-            created_at=user.created_at
-        )
-        self.next_id += 1
-        self.users[new_user.id] = new_user
-        print(f"[Memory] Added user: {new_user.name}")
-        return new_user
-
-    def update(self, user: User) -> User:
+    def save(self, user: User) -> None:
         self.users[user.id] = user
-        print(f"[Memory] Updated user: {user.name}")
-        return user
+        print(f"[Mock DB] Saved user {user.id}")
 
-    def delete(self, user_id: int) -> bool:
+    def delete(self, user_id: str) -> None:
         if user_id in self.users:
             del self.users[user_id]
-            print(f"[Memory] Deleted user with id: {user_id}")
-            return True
-        return False
+            print(f"[Mock DB] Deleted user {user_id}")
 
-    def find(self, predicate: Callable[[User], bool]) -> List[User]:
-        return [u for u in self.users.values() if predicate(u)]
+# 4. Concrete Implementation (SQL Database mock)
+class SqlUserRepository(UserRepository):
+    def find_by_id(self, user_id: str) -> Optional[User]:
+        print(f"[SQL DB] Executing: SELECT * FROM users WHERE id = {user_id}")
+        return None
 
-# API Repository Implementation
-class ApiUserRepository(IRepository):
-    def __init__(self, api_url: str = "https://api.example.com"):
-        self.api_url = api_url
+    def find_by_email(self, email: str) -> Optional[User]:
+        print(f"[SQL DB] Executing: SELECT * FROM users WHERE email = {email}")
+        return None
 
-    def get_by_id(self, user_id: int) -> Optional[User]:
-        print(f"[API] GET {self.api_url}/users/{user_id}")
-        return User(
-            id=user_id,
-            name="API User",
-            email="api@example.com",
-            created_at=datetime.now()
-        )
+    def save(self, user: User) -> None:
+        print(f"[SQL DB] Executing: INSERT/UPDATE for user {user.id}")
 
-    def get_all(self) -> List[User]:
-        print(f"[API] GET {self.api_url}/users")
-        return [User(1, "API User 1", "user1@example.com", datetime.now())]
+    def delete(self, user_id: str) -> None:
+        print(f"[SQL DB] Executing: DELETE for user {user_id}")
 
-    def add(self, user: User) -> User:
-        print(f"[API] POST {self.api_url}/users")
-        return user
-
-    def update(self, user: User) -> User:
-        print(f"[API] PATCH {self.api_url}/users/{user.id}")
-        return user
-
-    def delete(self, user_id: int) -> bool:
-        print(f"[API] DELETE {self.api_url}/users/{user_id}")
-        return True
-
-    def find(self, predicate: Callable[[User], bool]) -> List[User]:
-        users = self.get_all()
-        return [u for u in users if predicate(u)]
-
-# Business Logic using Repository
+# 5. Business Logic (Service)
 class UserService:
-    def __init__(self, user_repository: IRepository):
-        self.repository = user_repository
+    def __init__(self, repo: UserRepository):
+        self.repo = repo
 
-    def get_user_details(self, user_id: int) -> Optional[User]:
-        print(f"Fetching user {user_id}")
-        return self.repository.get_by_id(user_id)
+    def register_user(self, user_id: str, name: str, email: str) -> User:
+        if self.repo.find_by_email(email):
+            raise ValueError("Email already registered")
+        
+        new_user = User(user_id, name, email)
+        self.repo.save(new_user)
+        return new_user
 
-    def create_user(self, name: str, email: str) -> User:
-        print(f"Creating user: {name}")
-        user = User(id=0, name=name, email=email, created_at=datetime.now())
-        return self.repository.add(user)
-
-    def get_all_users(self) -> List[User]:
-        return self.repository.get_all()
-
-    def find_users_by_domain(self, domain: str) -> List[User]:
-        return self.repository.find(lambda u: u.email.endswith(f"@{domain}"))
-
-    def remove_user(self, user_id: int) -> bool:
-        return self.repository.delete(user_id)
-
-# Usage
+# Client Code
 if __name__ == "__main__":
-    # Using in-memory repository
-    memory_repo = InMemoryUserRepository()
-    service = UserService(memory_repo)
+    # Swap out SqlUserRepository for InMemoryUserRepository instantly
+    repo = InMemoryUserRepository()
+    service = UserService(repo)
 
-    service.create_user("John", "john@example.com")
-    users = service.get_all_users()
-    print("Memory users:", users)
+    service.register_user("u1", "Alice", "alice@example.com")
+    user = repo.find_by_id("u1")
+    print(f"Found: {user.name}")
+```
 
-    # Switching to database repository
-    db_repo = DatabaseUserRepository()
-    service = UserService(db_repo)
-    user = service.get_user_details(1)
-    print("DB user:", user)
+```java [Java]
+import java.util.*;
 
-    # Switching to API repository
-    api_repo = ApiUserRepository()
-    service = UserService(api_repo)
-    api_users = service.get_all_users()
-    print("API users:", api_users)
+// 1. Domain Entity
+class User {
+    private String id;
+    private String name;
+    private String email;
+
+    public User(String id, String name, String email) {
+        this.id = id; this.name = name; this.email = email;
+    }
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+}
+
+// 2. Repository Interface
+interface UserRepository {
+    Optional<User> findById(String id);
+    Optional<User> findByEmail(String email);
+    void save(User user);
+    void delete(String id);
+}
+
+// 3. Concrete Implementation (In-Memory)
+class InMemoryUserRepository implements UserRepository {
+    private Map<String, User> users = new HashMap<>();
+
+    @Override
+    public Optional<User> findById(String id) {
+        return Optional.ofNullable(users.get(id));
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return users.values().stream()
+                .filter(u -> u.getEmail().equals(email))
+                .findFirst();
+    }
+
+    @Override
+    public void save(User user) {
+        users.put(user.getId(), user);
+        System.out.println("[Mock DB] Saved user " + user.getId());
+    }
+
+    @Override
+    public void delete(String id) {
+        users.remove(id);
+        System.out.println("[Mock DB] Deleted user " + id);
+    }
+}
+
+// 4. Concrete Implementation (SQL)
+class SqlUserRepository implements UserRepository {
+    @Override
+    public Optional<User> findById(String id) {
+        System.out.println("[SQL DB] SELECT * FROM users WHERE id = " + id);
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        System.out.println("[SQL DB] SELECT * FROM users WHERE email = " + email);
+        return Optional.empty();
+    }
+
+    @Override
+    public void save(User user) {
+        System.out.println("[SQL DB] INSERT/UPDATE user " + user.getId());
+    }
+
+    @Override
+    public void delete(String id) {
+        System.out.println("[SQL DB] DELETE user " + id);
+    }
+}
+
+// 5. Business Logic
+class UserService {
+    private final UserRepository repo;
+
+    public UserService(UserRepository repo) {
+        this.repo = repo;
+    }
+
+    public User registerUser(String id, String name, String email) {
+        if (repo.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        User newUser = new User(id, name, email);
+        repo.save(newUser);
+        return newUser;
+    }
+}
+
+// Client Code
+public class RepositoryDemo {
+    public static void main(String[] args) {
+        // We can inject either SqlUserRepository or InMemoryUserRepository
+        UserRepository repo = new InMemoryUserRepository();
+        UserService service = new UserService(repo);
+
+        service.registerUser("u1", "Alice", "alice@example.com");
+        repo.findById("u1").ifPresent(u -> System.out.println("Found: " + u.getName()));
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+// 1. Domain Entity
+type User struct {
+	ID    string
+	Name  string
+	Email string
+}
+
+// 2. Repository Interface
+type UserRepository interface {
+	FindByID(id string) (*User, error)
+	FindByEmail(email string) (*User, error)
+	Save(user *User) error
+	Delete(id string) error
+}
+
+// 3. Concrete Implementation (In-Memory)
+type InMemoryUserRepository struct {
+	users map[string]*User
+}
+
+func NewInMemoryUserRepository() *InMemoryUserRepository {
+	return &InMemoryUserRepository{users: make(map[string]*User)}
+}
+
+func (r *InMemoryUserRepository) FindByID(id string) (*User, error) {
+	if user, ok := r.users[id]; ok {
+		return user, nil
+	}
+	return nil, nil // Not found
+}
+
+func (r *InMemoryUserRepository) FindByEmail(email string) (*User, error) {
+	for _, user := range r.users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+	return nil, nil // Not found
+}
+
+func (r *InMemoryUserRepository) Save(user *User) error {
+	r.users[user.ID] = user
+	fmt.Printf("[Mock DB] Saved user %s\n", user.ID)
+	return nil
+}
+
+func (r *InMemoryUserRepository) Delete(id string) error {
+	delete(r.users, id)
+	fmt.Printf("[Mock DB] Deleted user %s\n", id)
+	return nil
+}
+
+// 4. Business Logic
+type UserService struct {
+	repo UserRepository
+}
+
+func NewUserService(repo UserRepository) *UserService {
+	return &UserService{repo: repo}
+}
+
+func (s *UserService) RegisterUser(id, name, email string) (*User, error) {
+	existing, _ := s.repo.FindByEmail(email)
+	if existing != nil {
+		return nil, errors.New("email already registered")
+	}
+
+	newUser := &User{ID: id, Name: name, Email: email}
+	s.repo.Save(newUser)
+	return newUser, nil
+}
+
+// Client Code
+func main() {
+	repo := NewInMemoryUserRepository()
+	service := NewUserService(repo)
+
+	service.RegisterUser("u1", "Alice", "alice@example.com")
+	
+	user, _ := repo.FindByID("u1")
+	if user != nil {
+		fmt.Printf("Found: %s\n", user.Name)
+	}
+}
+```
+
+```rust [Rust]
+use std::collections::HashMap;
+
+// 1. Domain Entity
+#[derive(Clone)]
+pub struct User {
+    pub id: String,
+    pub name: String,
+    pub email: String,
+}
+
+// 2. Repository Trait (Interface)
+pub trait UserRepository {
+    fn find_by_id(&self, id: &str) -> Option<User>;
+    fn find_by_email(&self, email: &str) -> Option<User>;
+    fn save(&mut self, user: User);
+    fn delete(&mut self, id: &str);
+}
+
+// 3. Concrete Implementation (In-Memory)
+pub struct InMemoryUserRepository {
+    users: HashMap<String, User>,
+}
+
+impl InMemoryUserRepository {
+    pub fn new() -> Self {
+        Self { users: HashMap::new() }
+    }
+}
+
+impl UserRepository for InMemoryUserRepository {
+    fn find_by_id(&self, id: &str) -> Option<User> {
+        self.users.get(id).cloned()
+    }
+
+    fn find_by_email(&self, email: &str) -> Option<User> {
+        self.users.values().find(|u| u.email == email).cloned()
+    }
+
+    fn save(&mut self, user: User) {
+        println!("[Mock DB] Saved user {}", user.id);
+        self.users.insert(user.id.clone(), user);
+    }
+
+    fn delete(&mut self, id: &str) {
+        println!("[Mock DB] Deleted user {}", id);
+        self.users.remove(id);
+    }
+}
+
+// 4. Business Logic
+pub struct UserService<T: UserRepository> {
+    repo: T,
+}
+
+impl<T: UserRepository> UserService<T> {
+    pub fn new(repo: T) -> Self {
+        Self { repo }
+    }
+
+    pub fn register_user(&mut self, id: &str, name: &str, email: &str) -> Result<User, &'static str> {
+        if self.repo.find_by_email(email).is_some() {
+            return Err("Email already registered");
+        }
+
+        let new_user = User {
+            id: id.to_string(),
+            name: name.to_string(),
+            email: email.to_string(),
+        };
+
+        self.repo.save(new_user.clone());
+        Ok(new_user)
+    }
+}
+
+// Client Code
+fn main() {
+    let repo = InMemoryUserRepository::new();
+    let mut service = UserService::new(repo);
+
+    let _ = service.register_user("u1", "Alice", "alice@example.com");
+
+    if let Some(user) = service.repo.find_by_id("u1") {
+        println!("Found: {}", user.name);
+    }
+}
 ```
 
 :::
 
-## Real-World Examples
+## Pros and Cons
 
-### Entity Framework (C#)
+### Advantages
+- **Ultimate Testability**: By mocking the repository, you can unit test your business logic at lightning speed without spinning up a real database.
+- **Data Source Agnosticism**: You can easily migrate from MongoDB to PostgreSQL. As long as the new `PostgresRepository` conforms to the `IRepository` interface, the business logic will not change.
+- **Centralized Query Logic**: Common queries (e.g., `findActiveAdmins`) exist in one place, reducing SQL string duplication across the codebase.
+- **Clean Architecture Foundation**: It forms the hard boundary between the "Application Core" and the "Infrastructure/Persistence" layers.
 
-```csharp
-using (var context = new DbContext())
-{
-  var user = context.Users.FirstOrDefault(u => u.Id == 1);
-}
-```
+### Disadvantages
+- **Over-Engineering for Small Apps**: If you are building a simple 3-page CRUD app, writing Interfaces, Concrete Repositories, and Dependency Injectors is incredibly verbose compared to just using an Active Record ORM.
+- **The "Generic Repository" Anti-Pattern**: Developers sometimes try to create a single `BaseRepository<T>` for all entities. While it saves code, it often becomes a bloated God Class that leaks complex ORM query objects (like Entity Framework `IQueryable`) into the business logic.
+- **N+1 Performance Issues**: If the repository only returns single aggregates, attempting to do complex joins or bulk reporting can be inefficient. (Repositories are for transactional data, not reporting/analytics).
 
-### Spring Data Repository (Java)
+## When to Use
 
-```java
-public interface UserRepository extends JpaRepository<User, Long> {
-  List<User> findByEmail(String email);
-}
-```
+- **Enterprise Systems**: Where business logic is complex and must be heavily unit tested.
+- **Domain-Driven Design (DDD)**: Repositories are mandatory in DDD to load and save Domain Aggregates.
+- **Microservices**: To isolate the internal logic of the service from whatever data store it happens to use.
+- **Applications requiring multiple data sources**: When you need to transparently fetch data from a Database, fall back to a Redis cache, or call an external REST API.
 
-### SQLAlchemy (Python)
+## When NOT to Use
 
-```python
-session.query(User).filter(User.email == 'user@example.com').first()
-```
+- **Simple CRUD Applications**: Use Active Record instead.
+- **Analytics / Reporting / CQRS**: If you are just querying massive amounts of data for a dashboard, bypass the Repository entirely and run raw optimized SQL. Repositories are for *transactional* business logic, not reporting.
 
-## Advantages ✅
+## Common Mistakes
 
-- **Abstraction**: Decouples business logic from data access
-- **Testability**: Easy to mock for unit testing
-- **Flexibility**: Simple to switch data sources
-- **Code Reuse**: Repository logic can be shared
-- **Maintainability**: Changes to data access don't affect business logic
-- **Single Responsibility**: Each repository handles one entity
-- **Centralized Logic**: Data access logic in one place
-- **Consistency**: Uniform data access interface
+### 1. Leaking Infrastructure Details
+If your repository interface looks like this: `findById(id: string, includeRelations: boolean, transactionContext: PostgresTx)`, you have failed. The interface is now coupled to Postgres. The interface must speak the language of the Domain, not the Database.
 
-## Disadvantages ❌
-
-- **Additional Abstraction**: More code to write and maintain
-- **Performance**: Extra layer can add overhead
-- **Learning Curve**: Developers need to understand the pattern
-- **Complexity**: Overkill for simple CRUD operations
-- **Leaky Abstractions**: May not hide all data source specifics
-- **Limited Features**: Some database features hard to abstract
-- **Over-Engineering**: May be unnecessary for simple applications
-- **Query Optimization**: Harder to optimize complex queries
-
-## When to Use ✅
-
-- **Complex Applications**: With multiple data sources
-- **Testable Code**: When unit testing is important
-- **Multiple Data Sources**: API, database, cache combinations
-- **Team Development**: When code reuse is valued
-- **Long-Term Projects**: Where maintainability matters
-- **SOLID Principles**: Following interface segregation
-- **Domain-Driven Design**: Separating domain from infrastructure
-- **Enterprise Applications**: Large-scale business applications
-
-## When NOT to Use ❌
-
-- **Simple CRUD Apps**: Over-engineering small applications
-- **Simple Scripts**: Quick utilities or tools
-- **Rapid Prototyping**: Quick throwaway code
-- **Performance-Critical**: Where latency matters
-- **ORM Already Used**: Entity Framework, Hibernate handle this
-- **Single Data Source**: When data source is fixed
-- **Microservices**: Each service is already isolated
-- **Prototype Phase**: Before architecture is determined
+### 2. The God Repository
+Putting hundreds of query methods in one repository (`findUserByAge`, `findUserByAgeAndName`, `findUserBy...`). *Solution: Use the Specification Pattern or a robust Query Object for complex filtering.*
 
 ## Related Patterns
 
-- **Data Mapper**: Similar concept for mapping objects to database
-- **Active Record**: Alternative data persistence pattern
-- **Unit of Work**: Often used with Repository
-- **Dependency Injection**: Used to inject repositories
-- **Factory Pattern**: For creating repository instances
-- **Strategy Pattern**: Different repository implementations
-- **Adapter Pattern**: Adapting different data sources
+- **Data Mapper**: The Repository pattern often uses a Data Mapper internally to map the SQL rows into the Domain Objects before returning them.
+- **Unit of Work**: Repositories are often coordinated by a Unit of Work, which tracks changes across multiple repositories and commits them in a single database transaction.
+- **Active Record**: The simpler alternative to the Repository/Data Mapper combination.
+
+## Modern Alternatives
+
+- **CQRS (Command Query Responsibility Segregation)**: In modern high-scale architectures, the Repository is often kept *only* for Writes (Commands). For Reads (Queries), developers bypass the repository entirely and use a thin Data Access Layer (like Dapper or raw SQL) to map directly to lightweight Data Transfer Objects (DTOs), optimizing performance.

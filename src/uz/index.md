@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "Dizayn namunalari"
-  text: "To'liq Ma'lumotnoma"
+  text: "To'liq ma'lumotnoma"
   tagline: "Dasturiy ta'minotni loyihalashdagi umumiy muammolarga qayta ishlatiladigan yechimlarni o'rganing"
   image:
     light: /logo-light.svg

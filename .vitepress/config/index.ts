@@ -5,11 +5,11 @@ import { addOgImage } from 'vitepress-plugin-og'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { en } from './langs/en'
 import { uz } from './langs/uz'
-import { ru } from './langs/ru'
-import { tr } from './langs/tr'
-import { de } from './langs/de'
-import { es } from './langs/es'
-import { ar } from './langs/ar'
+// import { ru } from './langs/ru'
+// import { tr } from './langs/tr'
+// import { de } from './langs/de'
+// import { es } from './langs/es'
+// import { ar } from './langs/ar'
 import { injectSidebarIcons } from './icon-injector'
 
 function processLocale(localeObj: any) {
@@ -113,21 +113,23 @@ export default defineConfig({
       ]
     )
 
-    await addOgImage(pageData, context, {
-      domain: 'https://otabekoff.github.io/design-patterns',
-      outDir: '../../public/og',
-      ogTemplate: '.vitepress/og-template.svg',
-      maxTitleSizePerLine: 20,
-    })
+    if (process.env.NODE_ENV === 'production') {
+      await addOgImage(pageData, context, {
+        domain: 'https://otabekoff.github.io/design-patterns',
+        outDir: '../../public/og',
+        ogTemplate: '.vitepress/og-template.svg',
+        maxTitleSizePerLine: 20,
+      })
+    }
   },
   locales: {
     root: processLocale(en),
     uz: processLocale(uz),
-    ru: processLocale(ru),
-    tr: processLocale(tr),
-    de: processLocale(de),
-    es: processLocale(es),
-    ar: processLocale(ar)
+    // ru: processLocale(ru),
+    // tr: processLocale(tr),
+    // de: processLocale(de),
+    // es: processLocale(es),
+    // ar: processLocale(ar)
   },
   cleanUrls: true,
   themeConfig: {
@@ -140,11 +142,11 @@ export default defineConfig({
         locales: {
           root: (en as any).search || {},
           uz: (uz as any).search || {},
-          ru: (ru as any).search || {},
-          tr: (tr as any).search || {},
-          de: (de as any).search || {},
-          es: (es as any).search || {},
-          ar: (ar as any).search || {}
+          // ru: (ru as any).search || {},
+          // tr: (tr as any).search || {},
+          // de: (de as any).search || {},
+          // es: (es as any).search || {},
+          // ar: (ar as any).search || {}
         }
       }
     },

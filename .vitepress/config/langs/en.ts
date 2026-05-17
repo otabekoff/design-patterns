@@ -68,6 +68,7 @@ export const en = {
         collapsed: false,
         items: [
           { text: 'Introduction', link: '/introduction' },
+          { text: 'What is a Design Pattern?', link: '/what-is-design-pattern' },
           { text: 'Tour', link: '/tour' },
           { text: 'Quick Reference', link: '/quick-reference' }
         ]

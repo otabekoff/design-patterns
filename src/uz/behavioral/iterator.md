@@ -6,7 +6,10 @@ icon: BookOpen
 
 # Iterator
 
-![Cover](/covers/behavioral/iterator.png)
+<CoverImage src="/covers/behavioral/iterator.png" alt="Cover">
+  <h1>Iterator</h1>
+  <p>A playful conveyor belt where a scanner arm inspects a box of assorted donuts (round, square, sprinkled) one by one in order, without caring about how they are baked.</p>
+</CoverImage>
 
 ## Overview
 

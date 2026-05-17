@@ -6,7 +6,10 @@ icon: BookMarked
 
 # Template Method
 
-![Cover](/covers/behavioral/template-method.png)
+<CoverImage src="/covers/behavioral/template-method.png" alt="Cover">
+  <h1>Template Method</h1>
+  <p>A cookie baking pan with rigid heart-shaped molds; a chef robot pours different types of dough (chocolate, vanilla, strawberry) into the molds, showing a fixed structure with custom steps.</p>
+</CoverImage>
 
 ## Overview
 

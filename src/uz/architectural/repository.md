@@ -6,7 +6,10 @@ icon: Database
 
 # Repository (Ombor)
 
-![Cover](/covers/architectural/repository.png)
+<CoverImage src="/covers/architectural/repository.png" alt="Cover">
+  <h1>Repository</h1>
+  <p>A beautiful marble temple entrance labeled "Data" with a clean catalog desk; behind the desk, the database query monster and the API monster are kept completely out of sight.</p>
+</CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 

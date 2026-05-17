@@ -6,7 +6,10 @@ icon: Shield
 
 # Proxy Pattern
 
-![Cover](/covers/structural/proxy.png)
+<CoverImage src="/covers/structural/proxy.png" alt="Cover">
+  <h1>Proxy</h1>
+  <p>A massive, intimidating bouncer robot wearing sunglasses and a tuxedo, blocking a gate, checking the credentials of a tiny nervous robot before letting it talk to the main supercomputer behind it.</p>
+</CoverImage>
 
 ## Overview
 

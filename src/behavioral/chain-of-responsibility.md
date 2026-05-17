@@ -6,7 +6,10 @@ icon: Link
 
 # Chain of Responsibility Pattern
 
-![Cover](/covers/behavioral/chain-of-responsibility.png)
+<CoverImage src="/covers/behavioral/chain-of-responsibility.png" alt="Cover">
+  <h1>Chain of Responsibility</h1>
+  <p>A row of cute office robots sitting at desks; a giant, complex package is passed down the line, with each robot shrugging and passing it along until the last robot happily solves it.</p>
+</CoverImage>
 
 ## Overview
 

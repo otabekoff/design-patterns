@@ -6,7 +6,10 @@ icon: Layers
 
 # Bridge Pattern
 
-![Cover](/covers/structural/bridge.png)
+<CoverImage src="/covers/structural/bridge.png" alt="Cover">
+  <h1>Bridge</h1>
+  <p>A beautiful futuristic bridge separating a floating "Control Room" sphere (Abstraction) from various interchangeable "Engine/Power" docks below (Implementations) connected by flexible glowing tubes.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: Package
 
 # Adapter Pattern
 
-![Cover](/covers/structural/adapter.png)
+<CoverImage src="/covers/structural/adapter.png" alt="Cover">
+  <h1>Adapter</h1>
+  <p>A comical, over-engineered travel adapter trying to connect a standard US 3-pin plug to a ridiculous triangle-shaped socket using small colorful gears.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: Minimize2
 
 # Flyweight Pattern
 
-![Cover](/covers/structural/flyweight.png)
+<CoverImage src="/covers/structural/flyweight.png" alt="Cover">
+  <h1>Flyweight</h1>
+  <p>A swarm of a thousand tiny glowing firefly robots, but they are all sharing a single massive central battery pack at the center via thin glowing lines, rather than having individual heavy batteries.</p>
+</CoverImage>
 
 ## Overview
 

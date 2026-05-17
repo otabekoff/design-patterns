@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { Lightbulb, X } from "@lucide/vue";
+import { withBase } from "vitepress";
 
 const props = defineProps({
   src: {
@@ -18,7 +19,7 @@ const showOverlay = ref(false);
 
 <template>
   <div class="cover-image-container">
-    <img :src="src" :alt="alt" class="cover-image" />
+    <img :src="withBase(src)" :alt="alt" class="cover-image" />
     
     <button 
       class="info-btn" 

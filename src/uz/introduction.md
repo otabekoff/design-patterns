@@ -6,7 +6,10 @@ icon: Palette
 
 # Dasturlashda dizayn patternlari
 
-![Cover](/covers/getting-started/introduction.png)
+<CoverImage src="/covers/getting-started/introduction.png" alt="Cover">
+  <h1>Introduction</h1>
+  <p>A charming, tiny white robot holding a giant glowing "Hello World" handbook, standing excitedly at the grand stone entrance of a beautiful, shimmering maze of futuristic geometric architecture.</p>
+</CoverImage>
 
 Dizayn patternlari — dasturiy ta'minotni loyihalashda ko'p uchraydigan muammolarning qayta ishlatilishi mumkin bo'lgan yechimlaridir. Ular eng yaxshi tajribalarni (best practices) ifodalaydi va sinovdan o'tgan rivojlanish paradigmalarini taqdim etish orqali ishlab chiqish jarayonini tezlashtirishi mumkin.
 

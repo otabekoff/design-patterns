@@ -6,7 +6,10 @@ icon: BookOpen
 
 # 📚 Qo'llanma bo'ylab sayohat
 
-![Cover](/covers/getting-started/tour.png)
+<CoverImage src="/covers/getting-started/tour.png" alt="Cover">
+  <h1>Tour</h1>
+  <p>A cheerful robot tour guide driving a tiny, sleek futuristic hover-bus filled with little curious baby robots peering out of the windows at grand, floating monuments representing Creational, Structural, and Behavioral patterns.</p>
+</CoverImage>
 
 Dizayn patternlari bo'yicha keng qamrovli qo'llanmaga xush kelibsiz! Keling, sizga nimalar mavjudligi va ulardan qanday samarali foydalanish bo'yicha sayohat uyushtiramiz.
 

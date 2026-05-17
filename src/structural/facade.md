@@ -6,7 +6,10 @@ icon: Zap
 
 # Facade Pattern
 
-![Cover](/covers/structural/facade.png)
+<CoverImage src="/covers/structural/facade.png" alt="Cover">
+  <h1>Facade</h1>
+  <p>A beautiful, pristine castle wall facade with a welcoming red carpet and a friendly robot butler standing in front of it, completely hiding the absolute chaotic mess of wild wires, spinning gears, and smoke behind the wall.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: ScrollText
 
 # Strategy Pattern
 
-![Cover](/covers/behavioral/strategy.png)
+<CoverImage src="/covers/behavioral/strategy.png" alt="Cover">
+  <h1>Strategy</h1>
+  <p>A cartoon backpack with three interchangeable power cores next to it: a jetpack core, a drill core, and a propeller core, letting the user swap them depending on the terrain.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: BookMarked
 
 # Dizayn Namunalari: Tezkor Ma'lumotnoma
 
-![Cover](/covers/getting-started/quick-reference.png)
+<CoverImage src="/covers/getting-started/quick-reference.png" alt="Cover">
+  <h1>Quick Reference</h1>
+  <p>A massive, clean control panel containing a beautiful array of color-coded glowing buttons, each with a mini graphic icon representing a design pattern, with a tiny operator robot happily sliding a slider.</p>
+</CoverImage>
 
 Ushbu sahifa ushbu hujjatda keltirilgan barcha 41 ta dizayn namunasi haqida qisqacha ma'lumot beradi.
 

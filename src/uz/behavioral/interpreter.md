@@ -6,7 +6,10 @@ icon: Brackets
 
 # Interpreter
 
-![Cover](/covers/behavioral/interpreter.png)
+<CoverImage src="/covers/behavioral/interpreter.png" alt="Cover">
+  <h1>Interpreter</h1>
+  <p>A cute translator robot sitting between an alien speaking in star-shaped speech bubbles and a human, translating the star bubbles into standard geometric math equations on a chalkboard.</p>
+</CoverImage>
 
 ## Overview
 

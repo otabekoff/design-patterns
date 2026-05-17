@@ -6,7 +6,10 @@ icon: Wand
 
 # Decorator Pattern
 
-![Cover](/covers/structural/decorator.png)
+<CoverImage src="/covers/structural/decorator.png" alt="Cover">
+  <h1>Decorator</h1>
+  <p>A funny little white robot wearing way too many layers of winter clothing: a scarf, a hat, glowing earmuffs, a heavy jacket, and snowshoes, adding features without changing the core robot.</p>
+</CoverImage>
 
 ## Overview
 

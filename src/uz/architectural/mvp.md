@@ -6,7 +6,10 @@ icon: Users
 
 # Model-View-Presenter (MVP)
 
-![Cover](/covers/architectural/mvp.png)
+<CoverImage src="/covers/architectural/mvp.png" alt="Cover">
+  <h1>MVP</h1>
+  <p>A theatrical stage where a flashy Presenter robot stands in the middle, actively passing script sheets back and forth between a shy Model robot behind the curtain and a blank View canvas facing the audience.</p>
+</CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 

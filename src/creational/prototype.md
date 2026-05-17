@@ -6,7 +6,10 @@ icon: Copy
 
 # Prototype Pattern
 
-![Cover](/covers/creational/prototype.png)
+<CoverImage src="/covers/creational/prototype.png" alt="Cover">
+  <h1>Prototype</h1>
+  <p>A playful futuristic cloning machine with one original green slime monster going in, and a row of identical, freshly popped-out green slime clones coming out of the chutes.</p>
+</CoverImage>
 
 ## Overview
 

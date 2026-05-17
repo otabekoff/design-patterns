@@ -6,7 +6,10 @@ icon: Lock
 
 # Read-Write Lock Pattern
 
-![Cover](/covers/architectural/read-write-lock.png)
+<CoverImage src="/covers/architectural/read-write-lock.png" alt="Cover">
+  <h1>Read Write Lock</h1>
+  <p>A giant library door with a lock that allows twenty scholar robots with books to enter simultaneously, but slams shut and turns bright red when a single construction robot with a paintbrush wants to enter.</p>
+</CoverImage>
 
 ## Overview
 

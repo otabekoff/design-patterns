@@ -6,7 +6,10 @@ icon: GitBranch
 
 # Composite Pattern
 
-![Cover](/covers/structural/composite.png)
+<CoverImage src="/covers/structural/composite.png" alt="Cover">
+  <h1>Composite</h1>
+  <p>A high-tech modular Matryoshka doll structure made of geometric boxes, where opening a large box reveals smaller boxes, some containing actual microchips (leafs) and some containing even smaller boxes.</p>
+</CoverImage>
 
 ## Overview
 

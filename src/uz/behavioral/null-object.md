@@ -6,7 +6,10 @@ icon: Circle
 
 # Null Object
 
-![Cover](/covers/behavioral/null-object.png)
+<CoverImage src="/covers/behavioral/null-object.png" alt="Cover">
+  <h1>Null Object</h1>
+  <p>A toolbox where one slot holds a transparent "Null Hammer" (a clear block of solid plastic) that does absolutely nothing when swung but fits perfectly in the slot and doesn't crash the system.</p>
+</CoverImage>
 
 ## Overview
 

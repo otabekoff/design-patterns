@@ -6,7 +6,10 @@ icon: Package
 
 # Factory Method Pattern
 
-![Cover](/covers/creational/factory-method.png)
+<CoverImage src="/covers/creational/factory-method.png" alt="Cover">
+  <h1>Factory Method</h1>
+  <p>A quirky assembly line with a single mechanical arm stamping out different shapes of little toy cars (sedan, truck) depending on which blueprint card is fed into it.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: Settings
 
 # Service Locator Pattern
 
-![Cover](/covers/architectural/service-locator.png)
+<CoverImage src="/covers/architectural/service-locator.png" alt="Cover">
+  <h1>Service Locator</h1>
+  <p>A bright yellow "Information Desk" kiosk in a futuristic city where robots go to ask: "Where is the Database?" and the locator robot hands them a glowing card.</p>
+</CoverImage>
 
 ## Overview
 

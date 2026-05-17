@@ -6,7 +6,10 @@ icon: Zap
 
 # State
 
-![Cover](/covers/behavioral/state.png)
+<CoverImage src="/covers/behavioral/state.png" alt="Cover">
+  <h1>State</h1>
+  <p>A quirky robot whose facial screen and body color changes dynamically: when fed a "battery" it turns yellow (happy), when fed a "broken gear" it turns red (angry), and when left idle it turns blue (sleeping).</p>
+</CoverImage>
 
 ## Overview
 

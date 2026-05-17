@@ -6,7 +6,10 @@ icon: GitBranch
 
 # Visitor
 
-![Cover](/covers/behavioral/visitor.png)
+<CoverImage src="/covers/behavioral/visitor.png" alt="Cover">
+  <h1>Visitor</h1>
+  <p>A humorous museum gallery where a cute tourist robot ("Visitor") walks around and interacts with different geometric statues (Circle, Square), adding new behaviors to them without modifying their structures.</p>
+</CoverImage>
 
 ## Overview
 

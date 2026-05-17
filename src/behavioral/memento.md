@@ -6,7 +6,10 @@ icon: History
 
 # Memento Pattern
 
-![Cover](/covers/behavioral/memento.png)
+<CoverImage src="/covers/behavioral/memento.png" alt="Cover">
+  <h1>Memento</h1>
+  <p>A cute little retro camera taking a snapshot of a sandcastle; next to it, the sandcastle is destroyed, but the robot has the photo and is effortlessly rebuilding it to look exactly like the snapshot.</p>
+</CoverImage>
 
 ## Overview
 

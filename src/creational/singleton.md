@@ -6,7 +6,10 @@ icon: CircleDot
 
 # Singleton Pattern
 
-![Cover](/covers/creational/singleton.png)
+<CoverImage src="/covers/creational/singleton.png" alt="Cover">
+  <h1>Singleton</h1>
+  <p>One single, giant golden egg sitting in a carton of regular white eggs, guarded by a cute tiny security-guard robot with a flashlight.</p>
+</CoverImage>
 
 ![Singleton Concept](/images/patterns/singleton-2x.png)
 

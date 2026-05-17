@@ -6,7 +6,10 @@ icon: Hammer
 
 # Builder Pattern
 
-![Cover](/covers/creational/builder.png)
+<CoverImage src="/covers/creational/builder.png" alt="Cover">
+  <h1>Builder</h1>
+  <p>A tiny mechanical chef robot carefully stacking ingredients of a gigantic, premium multi-layered hamburger step-by-step using a detailed architectural blueprint.</p>
+</CoverImage>
 
 ## Overview
 

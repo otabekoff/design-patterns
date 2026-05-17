@@ -6,7 +6,10 @@ icon: Users
 
 # Mediator
 
-![Cover](/covers/behavioral/mediator.png)
+<CoverImage src="/covers/behavioral/mediator.png" alt="Cover">
+  <h1>Mediator</h1>
+  <p>A round table with a calm mediator robot (wearing a referee shirt) at the center, using red and green glowing lanes to coordinate communication between five chaotic, shouting robots around the table.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: Bell
 
 # Observer
 
-![Cover](/covers/behavioral/observer.png)
+<CoverImage src="/covers/behavioral/observer.png" alt="Cover">
+  <h1>Observer</h1>
+  <p>A superstar robot walking down a red carpet, while dozens of tiny paparazzi-robot observers with massive cameras flash and sync their movements in perfect coordination.</p>
+</CoverImage>
 
 ## Overview
 

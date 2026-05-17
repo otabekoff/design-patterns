@@ -6,7 +6,10 @@ icon: Layers
 
 # Model-View-Controller (MVC)
 
-![Cover](/covers/architectural/mvc.png)
+<CoverImage src="/covers/architectural/mvc.png" alt="Cover">
+  <h1>MVC</h1>
+  <p>A three-station game: a cute Controller robot receiving a coin, directing a heavy Model robot (holding a database safe), which then projects data onto a View robot's colorful screen.</p>
+</CoverImage>
 
 ## Overview
 

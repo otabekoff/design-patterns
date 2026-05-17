@@ -6,7 +6,10 @@ icon: Split
 
 # Command Query Responsibility Segregation (CQRS)
 
-![Cover](/covers/architectural/cqrs.png)
+<CoverImage src="/covers/architectural/cqrs.png" alt="Cover">
+  <h1>CQRS</h1>
+  <p>A double-sided workstation: the left side is a heavy-duty mechanical workshop with a giant hammer building objects (Write), and the right side is a clean, glass desk with a glowing magnifying glass displaying neat, pre-read sheets (Read).</p>
+</CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 

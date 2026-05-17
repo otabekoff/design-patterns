@@ -6,7 +6,10 @@ icon: Boxes
 
 # Abstract Factory Pattern
 
-![Cover](/covers/creational/abstract-factory.png)
+<CoverImage src="/covers/creational/abstract-factory.png" alt="Cover">
+  <h1>Abstract Factory</h1>
+  <p>A high-tech mega-factory with two distinct assembly lines: one producing "Cute Pastel Pink Cyber-Gears and Buttons" and the other producing "Sleek Dark Cyberpunk Gears and Buttons", illustrating families of related products.</p>
+</CoverImage>
 
 ## Overview
 

@@ -6,7 +6,10 @@ icon: Fingerprint
 
 # Identity Map Pattern
 
-![Cover](/covers/architectural/identity-map.png)
+<CoverImage src="/covers/architectural/identity-map.png" alt="Cover">
+  <h1>Identity Map</h1>
+  <p>A smart librarian robot sitting at a desk; when a patron asks for a book, the librarian checks a small desk organizer (cache) first to see if it's already there before running to the deep shelves.</p>
+</CoverImage>
 
 ## Overview
 

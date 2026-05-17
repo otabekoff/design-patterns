@@ -6,7 +6,10 @@ icon: Database
 
 # Object Pool Pattern
 
-![Cover](/covers/creational/object-pool.png)
+<CoverImage src="/covers/creational/object-pool.png" alt="Cover">
+  <h1>Object Pool</h1>
+  <p>A luxury swimming pool where cute, tired little robot workers are resting on floaties, while a manager robot stands at the edge with a clipboard, sending one out to work and welcoming another back to rest.</p>
+</CoverImage>
 
 ## Overview
 

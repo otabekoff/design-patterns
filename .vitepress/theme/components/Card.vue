@@ -93,6 +93,8 @@ const localizedHref = computed(() => {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
 .is-link:hover .card-image {

@@ -4,7 +4,7 @@ description: Passes a request through a chain of handlers until one handles it o
 icon: Link
 ---
 
-![Chain of Responsibility Concept](/images/patterns/chain-of-responsibility-mini.png)
+![Chain of Responsibility Concept](/images/patterns/chain-of-responsibility-mini-2x.png)
 
 # Chain of Responsibility Pattern
 
@@ -87,7 +87,7 @@ classDiagram
     class ValidationHandler {
         +handle(request)
     }
-    
+
     Client --> Handler : sends request
     Handler <|.. BaseHandler
     BaseHandler <|-- AuthHandler
@@ -106,7 +106,7 @@ classDiagram
 
 ## Real-World Analogy
 
-Think of **Customer Support** via phone. 
+Think of **Customer Support** via phone.
 You call a company with an issue. First, an automated voice assistant (Handler 1) tries to answer common questions. If your issue is complex, it forwards you to a Level 1 Support Agent (Handler 2). If they can't solve it, they forward you to a Level 2 Technician (Handler 3), and finally to a specialized Engineer (Handler 4). Each person in the chain either handles the request completely or passes it along.
 
 ## Step-by-Step Implementation
@@ -157,7 +157,10 @@ abstract class BaseRequestHandler implements RequestHandler {
 class AuthenticationHandler extends BaseRequestHandler {
   handle(request: RequestContext): void {
     if (!request.userId) {
-      console.error("AuthenticationHandler: Unauthenticated request from", request.ip);
+      console.error(
+        "AuthenticationHandler: Unauthenticated request from",
+        request.ip,
+      );
       return; // Short-circuit the chain
     }
     console.log("AuthenticationHandler: User verified. Passing to next.");
@@ -190,7 +193,9 @@ class ModerationHandler extends BaseRequestHandler {
 class FinalProcessingHandler extends BaseRequestHandler {
   handle(request: RequestContext): void {
     // This is typically the terminal node
-    console.log(`FinalProcessingHandler: Successfully processed request for ${request.userId}: ${request.body}`);
+    console.log(
+      `FinalProcessingHandler: Successfully processed request for ${request.userId}: ${request.body}`,
+    );
   }
 }
 
@@ -603,12 +608,14 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Single Responsibility Principle**: Each handler is responsible for exactly one condition.
 - **Open/Closed Principle**: You can add or remove handlers without breaking existing client code.
 - **Loose Coupling**: The client sending the request doesn't need to know how the chain is structured or who ultimately handles it.
 - **Dynamic Chains**: Handlers can be rearranged dynamically at runtime.
 
 ### Disadvantages
+
 - **Uncertain Guarantee**: Since the request drops off the end of the chain if no one handles it, an unhandled request might silently disappear (if no terminal fallback exists).
 - **Hard to Trace**: Debugging a long chain can be difficult. Stack traces can become deep and confusing, especially in asynchronous chains.
 - **Performance Overhead**: In highly sensitive performance paths, traversing a deep chain of objects might introduce unnecessary indirection.
@@ -627,6 +634,7 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Forgetting to Terminate the Chain
+
 If a request is meant to be handled, failing to provide a default/terminal handler means the request falls into the void.
 
 ```typescript
@@ -644,21 +652,23 @@ chain.setNext(new FallbackHandler());
 ```
 
 ### 2. Handlers Doing Too Much
+
 If one handler checks authentication, authorization, and rate limiting, the pattern is defeated.
 
 ```typescript
 // ❌ Bad: God-handler
 class SecurityHandler extends BaseRequestHandler {
-    handle(req) {
-        if (!req.user) return;
-        if (!req.user.isAdmin) return;
-        if (req.isBanned) return;
-        super.handle(req);
-    }
+  handle(req) {
+    if (!req.user) return;
+    if (!req.user.isAdmin) return;
+    if (req.isBanned) return;
+    super.handle(req);
+  }
 }
 ```
 
 ### 3. Modifying Request State Unpredictably
+
 If handlers mutate the request payload in unpredictable ways, subsequent handlers will be hard to debug. Prefer immutability or clearly defined context mutations (like appending a `userId` to a `Context` object after authentication).
 
 ## Related Patterns
@@ -670,7 +680,7 @@ If handlers mutate the request payload in unpredictable ways, subsequent handler
 ## Interview Insights
 
 - **Question**: "How is Chain of Responsibility different from Decorator?"
-  - **Answer**: "A Decorator executes its behavior and *always* delegates to the wrapped object to aggregate functionality. A Chain of Responsibility can *short-circuit* and completely stop the chain from executing if a condition is met."
+  - **Answer**: "A Decorator executes its behavior and _always_ delegates to the wrapped object to aggregate functionality. A Chain of Responsibility can _short-circuit_ and completely stop the chain from executing if a condition is met."
 - **Question**: "What happens if no handler in the chain processes the request?"
   - **Answer**: "The request silently drops off the end of the chain. To prevent this, it's best practice to implement a 'catch-all' or terminal handler at the end of the chain that throws an exception or returns a default response."
 

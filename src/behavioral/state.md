@@ -4,13 +4,13 @@ description: Allow an object to alter its behavior when its internal state chang
 icon: Zap
 ---
 
-![State Concept](/images/patterns/state-mini.png)
+![State Concept](/images/patterns/state-mini-2x.png)
 
 # State Pattern
 
 ## Overview
 
-The **State** pattern is a behavioral design pattern that allows an object to alter its behavior when its internal state changes. It appears as if the object has changed its class. 
+The **State** pattern is a behavioral design pattern that allows an object to alter its behavior when its internal state changes. It appears as if the object has changed its class.
 
 **Key advantage**: It extracts state-specific behaviors from massive `switch/case` or `if/else` conditionals into separate, dedicated State classes.
 
@@ -18,10 +18,11 @@ The **State** pattern is a behavioral design pattern that allows an object to al
 
 ## The Problem
 
-Imagine you are building the software for a **Vending Machine**. 
+Imagine you are building the software for a **Vending Machine**.
 
 A Vending Machine has distinct states: `Idle`, `HasCoin`, `Dispensing`, and `OutOfStock`.
 When a user presses the "Dispense" button, the machine's behavior depends entirely on its state:
+
 - If `Idle`: "Please insert a coin."
 - If `HasCoin`: "Dispensing your item."
 - If `Dispensing`: "Please wait, already dispensing."
@@ -108,7 +109,7 @@ classDiagram
 
 ## Real-World Analogy
 
-Think of a **Smartphone**. 
+Think of a **Smartphone**.
 If your phone is in the **Unlocked** state, pressing the Home button goes to the home screen.
 If your phone is in the **Locked** state, pressing the Home button wakes up the screen to show the unlock prompt.
 If your phone is in the **Camera** state, pressing the Home button exits the camera.
@@ -116,7 +117,7 @@ The hardware button (the action) is exactly the same, but the behavior changes c
 
 ## Step-by-Step Implementation
 
-1. **Define the State Interface**: Mirror the methods of the Context that depend on state. 
+1. **Define the State Interface**: Mirror the methods of the Context that depend on state.
 2. **Create Concrete State Classes**: Implement the interface for every specific state.
 3. **Modify the Context**: Add a private field to hold the current State. Add a `changeState(State)` method.
 4. **Delegate to the State**: In the Context's methods, delegate execution to `this.state.method(this)`.
@@ -223,7 +224,7 @@ doc.publish(); // Fails: Only admins can approve
 
 doc.currentUserRole = "admin";
 console.log("\n--- Admin Actions ---");
-doc.reject();  // Moderation -> Draft
+doc.reject(); // Moderation -> Draft
 doc.publish(); // Draft -> Published (Admin override)
 ```
 
@@ -637,13 +638,15 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Single Responsibility Principle**: Organizes code related to particular states into separate classes.
 - **Open/Closed Principle**: Introduce new states without changing existing state classes or the context.
 - **Simplifies Context**: Eliminates massive `switch/case` or `if/else` conditional logic in the Context class.
 
 ### Disadvantages
+
 - **Class Explosion**: If you only have two simple states that rarely change, creating a full State hierarchy is severe overengineering.
-- **State Transition Logic**: Deciding *where* state transitions occur (in Context vs. State classes) can lead to tightly coupled State classes if they are forced to know about each other.
+- **State Transition Logic**: Deciding _where_ state transitions occur (in Context vs. State classes) can lead to tightly coupled State classes if they are forced to know about each other.
 
 ## When to Use
 
@@ -658,14 +661,16 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Hardcoding Transitions in the Context
+
 If the Context determines the next state (using conditionals), you haven't fully utilized the pattern. Transitions are usually best managed by the Concrete States themselves.
 
 ### 2. Creating State Instances Repeatedly
+
 If state objects have no fields (they rely entirely on the Context for data), they can be implemented as Singletons or static instances to avoid excessive memory allocation during transitions. (Note: Our Rust example moves states to avoid allocations entirely).
 
 ## Related Patterns
 
-- **Strategy**: Strategy and State share an identical class structure. The difference is intent: Strategy provides completely different ways to do the *same* thing, while State allows an object to do *different* things depending on its state. Strategies usually don't know about each other; States often instantiate other states to transition.
+- **Strategy**: Strategy and State share an identical class structure. The difference is intent: Strategy provides completely different ways to do the _same_ thing, while State allows an object to do _different_ things depending on its state. Strategies usually don't know about each other; States often instantiate other states to transition.
 - **Singleton**: Concrete states are often implemented as Singletons if they carry no instance data.
 - **State Machine**: The State pattern is an object-oriented way to implement a Finite State Machine (FSM).
 

@@ -4,7 +4,7 @@ description: Centralizes complex communication between objects so they do not ne
 icon: Users
 ---
 
-![Mediator Concept](/images/patterns/mediator-mini.png)
+![Mediator Concept](/images/patterns/mediator-mini-2x.png)
 
 # Mediator Pattern
 
@@ -19,18 +19,19 @@ The **Mediator** pattern is a behavioral design pattern that reduces chaotic dep
 ## The Problem
 
 Imagine building a complex user interface for a flight booking system. You have various UI components:
+
 - A dropdown for selecting departure dates.
 - A checkbox for "Flexible Dates".
 - A text field for the return date.
 - A "Search" button.
 
-When the user checks the "Flexible Dates" checkbox, the return date text field needs to be disabled. When the departure date is cleared, the "Search" button must be disabled. 
+When the user checks the "Flexible Dates" checkbox, the return date text field needs to be disabled. When the departure date is cleared, the "Search" button must be disabled.
 
 ```typescript
 // ❌ Bad: Components depend directly on each other
 class Checkbox {
   constructor(private returnDateField: TextField) {}
-  
+
   onCheck() {
     this.returnDateField.disable();
   }
@@ -38,7 +39,7 @@ class Checkbox {
 
 class DateDropdown {
   constructor(private searchButton: Button) {}
-  
+
   onChange() {
     if (this.isEmpty()) this.searchButton.disable();
   }
@@ -53,7 +54,7 @@ The Mediator pattern suggests that components (called **Colleagues**) should not
 
 1. **The Mediator** knows about all the components.
 2. **The Colleagues** only know about the Mediator.
-3. When a Colleague's state changes, it notifies the Mediator. The Mediator contains the business logic to decide which *other* Colleagues need to be updated.
+3. When a Colleague's state changes, it notifies the Mediator. The Mediator contains the business logic to decide which _other_ Colleagues need to be updated.
 
 By extracting the interaction logic into a single class, you make the components independent, reusable, and much easier to test.
 
@@ -123,7 +124,10 @@ interface IncidentMediator {
 
 // 2. Colleague Base Class
 abstract class Colleague {
-  constructor(protected mediator: IncidentMediator, public readonly name: string) {}
+  constructor(
+    protected mediator: IncidentMediator,
+    public readonly name: string,
+  ) {}
 }
 
 // 3. Concrete Colleagues
@@ -166,7 +170,12 @@ class IncidentRoom implements IncidentMediator {
   private pager!: PagerService;
 
   // Registration
-  register(monitor: AlertMonitor, commander: IncidentCommander, status: StatusPageUpdater, pager: PagerService) {
+  register(
+    monitor: AlertMonitor,
+    commander: IncidentCommander,
+    status: StatusPageUpdater,
+    pager: PagerService,
+  ) {
     this.monitor = monitor;
     this.commander = commander;
     this.statusPage = status;
@@ -177,11 +186,11 @@ class IncidentRoom implements IncidentMediator {
     if (event === "issue_detected") {
       this.statusPage.updateStatus(`Investigating issues with ${payload}`);
       this.pager.pageEngineer("BackendOps");
-    } 
-    else if (event === "incident_acknowledged") {
-      this.statusPage.updateStatus("Engineers are currently investigating the issue.");
-    } 
-    else if (event === "incident_resolved") {
+    } else if (event === "incident_acknowledged") {
+      this.statusPage.updateStatus(
+        "Engineers are currently investigating the issue.",
+      );
+    } else if (event === "incident_resolved") {
       this.statusPage.updateStatus("All systems operational.");
     }
   }
@@ -269,14 +278,14 @@ class IncidentRoom(IncidentMediator):
 # 5. Client
 if __name__ == "__main__":
     room = IncidentRoom()
-    
+
     monitor = AlertMonitor(room, "Datadog")
     commander = IncidentCommander(room, "Alice")
     status_page = StatusPageUpdater(room, "StatusIO")
     pager = PagerService(room, "PagerDuty")
-    
+
     room.register(monitor, commander, status_page, pager)
-    
+
     monitor.detect_issue("Payments API")
     print("---")
     commander.acknowledge()
@@ -459,7 +468,7 @@ func (r *IncidentRoom) Notify(sender string, event string, payload string) {
 func main() {
 	statusPage := &StatusPageUpdater{name: "StatusIO"}
 	pager := &PagerService{name: "PagerDuty"}
-	
+
 	room := &IncidentRoom{statusPage: statusPage, pager: pager}
 
 	monitor := &AlertMonitor{mediator: room, name: "Datadog"}
@@ -552,7 +561,7 @@ impl IncidentCommander {
         println!("[{}] acknowledged the incident.", self.name);
         self.mediator.notify(&self.name, "incident_acknowledged", "");
     }
-    
+
     fn declare_resolved(&self) {
         println!("[{}] declared the incident resolved.", self.name);
         self.mediator.notify(&self.name, "incident_resolved", "");
@@ -592,12 +601,14 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Single Responsibility Principle**: You can extract the communication logic into a single place, making it easier to comprehend and maintain.
 - **Open/Closed Principle**: You can introduce new mediators or colleagues without having to change the actual components.
 - **Loose Coupling**: It drastically reduces coupling between various components. Components can be reused in different parts of the application.
 - **Centralized Control**: Makes the overarching workflow of a complex system visible in one class, rather than scattered across dozens.
 
 ### Disadvantages
+
 - **God Object Risk**: The Mediator class can easily become a "God Object" (a massive, all-knowing class) if you stuff too much business logic into it.
 - **Performance bottleneck**: If the mediator is handling high-frequency events, it can become a performance bottleneck.
 - **Hard to trace**: In heavy event-driven systems, tracing the source of a state change back through a mediator can be tricky.
@@ -616,7 +627,9 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Putting Data Logic in the Mediator
-The Mediator should *coordinate* behavior, not *store* the core business state.
+
+The Mediator should _coordinate_ behavior, not _store_ the core business state.
+
 ```typescript
 // ❌ Bad: Mediator owns the database logic
 class BadMediator {
@@ -629,6 +642,7 @@ class BadMediator {
 ```
 
 ### 2. Creating a God Object
+
 If your Mediator is 3,000 lines long and imports every file in your project, you've gone too far. Split the Mediator into smaller, domain-specific coordinators.
 
 ## Related Patterns
@@ -647,5 +661,5 @@ If your Mediator is 3,000 lines long and imports every file in your project, you
 ## Modern Alternatives
 
 - **Pub/Sub (Event Bus)**: Tools like Kafka, RabbitMQ, or simple Node.js `EventEmitter` are decoupled, purely reactive alternatives to strict Mediators.
-- **Redux / State Management**: In frontend engineering, global state stores (like Redux, Vuex, or Zustand) act as Mediators. Components dispatch actions, and the Store updates and triggers re-renders. 
+- **Redux / State Management**: In frontend engineering, global state stores (like Redux, Vuex, or Zustand) act as Mediators. Components dispatch actions, and the Store updates and triggers re-renders.
 - **MediatR (C#)**: A hugely popular library that implements the Mediator pattern to decouple HTTP Controllers from business logic Handlers.

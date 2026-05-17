@@ -4,7 +4,7 @@ description: Define a one-to-many dependency between objects. When one object ch
 icon: Bell
 ---
 
-![Observer Concept](/images/patterns/observer-mini.png)
+![Observer Concept](/images/patterns/observer-mini-2x.png)
 
 # Observer Pattern
 
@@ -14,11 +14,11 @@ The **Observer** pattern is a behavioral design pattern that establishes a one-t
 
 **Key advantage**: It enables dynamic, loose coupling. The Subject doesn't need to know anything about the classes that observe it, allowing you to add or remove listeners at runtime without altering the core logic.
 
-**Modern perspective**: The Observer pattern is the undisputed foundation of modern reactive programming, UI frameworks (React, Vue, Swift UI), Event Buses, WebSockets, and Pub/Sub messaging systems (Kafka, RabbitMQ). 
+**Modern perspective**: The Observer pattern is the undisputed foundation of modern reactive programming, UI frameworks (React, Vue, Swift UI), Event Buses, WebSockets, and Pub/Sub messaging systems (Kafka, RabbitMQ).
 
 ## The Problem
 
-Imagine you are building a Stock Market application. You have a `Stock` object representing the price of Apple (AAPL). 
+Imagine you are building a Stock Market application. You have a `Stock` object representing the price of Apple (AAPL).
 You also have several UI components: a Portfolio Dashboard, a Line Chart, and an Email Alert system.
 
 How do the UI components know when the stock price changes?
@@ -37,12 +37,15 @@ class LineChart {
 class Stock {
   private price: number;
   // If we try to push data, we tightly couple to specific classes
-  constructor(private chart: LineChart, private emailer: EmailAlert) {}
+  constructor(
+    private chart: LineChart,
+    private emailer: EmailAlert,
+  ) {}
 
   updatePrice(newPrice: number) {
     this.price = newPrice;
-    this.chart.draw(this.price);    // Hardcoded!
-    this.emailer.send(this.price);  // Hardcoded!
+    this.chart.draw(this.price); // Hardcoded!
+    this.emailer.send(this.price); // Hardcoded!
     // Every time we add a new feature, we must modify the Stock class.
   }
 }
@@ -103,7 +106,7 @@ classDiagram
 ## Real-World Analogy
 
 Think of a **YouTube Channel Subscription**.
-When a creator (the **Subject**) uploads a new video, they do not manually send a personal email to every single viewer. Instead, viewers (the **Observers**) click the "Subscribe" button. 
+When a creator (the **Subject**) uploads a new video, they do not manually send a personal email to every single viewer. Instead, viewers (the **Observers**) click the "Subscribe" button.
 YouTube maintains the list of subscribers. When a new video is published, the system automatically sends a notification to everyone on that list. Viewers can unsubscribe at any time if they no longer wish to receive updates.
 
 ## Step-by-Step Implementation
@@ -173,13 +176,17 @@ class EmailSubscriber implements Subscriber {
   constructor(private email: string) {}
 
   update(publisher: Newsletter): void {
-    console.log(`[Email to ${this.email}]: Read our new article "${publisher.getLatestArticle()}"`);
+    console.log(
+      `[Email to ${this.email}]: Read our new article "${publisher.getLatestArticle()}"`,
+    );
   }
 }
 
 class CorporateArchive implements Subscriber {
   update(publisher: Newsletter): void {
-    console.log(`[Archive System]: Saving "${publisher.getLatestArticle()}" to database.`);
+    console.log(
+      `[Archive System]: Saving "${publisher.getLatestArticle()}" to database.`,
+    );
   }
 }
 
@@ -494,7 +501,7 @@ impl Newsletter {
     }
 
     // Unsubscribing in Rust via pointers requires unique IDs or Rc::ptr_eq
-    // For simplicity, we omit unsubscribe in this basic trait setup, 
+    // For simplicity, we omit unsubscribe in this basic trait setup,
     // but in production you would hand out subscription IDs.
 
     fn notify_subscribers(&self) {
@@ -552,11 +559,13 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Open/Closed Principle**: You can introduce new subscriber classes without having to change the publisher's code.
 - **Loose Coupling**: The publisher only knows that an observer implements a specific interface. It doesn't know the concrete class.
 - **Dynamic Subscriptions**: You can establish relations between objects at runtime.
 
 ### Disadvantages
+
 - **Memory Leaks (The Lapsed Listener Problem)**: If an observer is subscribed but never unsubscribed, the publisher holds a strong reference to it, preventing garbage collection. This is a notorious cause of memory leaks in Java/C#/UI programming.
 - **Unpredictable Order**: Observers are notified in a random/sequential order. If observers depend on each other, this leads to chaos.
 - **Cascade Updates**: If an observer updates the subject in response to an update, you can easily trigger an infinite loop of notifications.
@@ -575,10 +584,12 @@ fn main() {
 ## Common Mistakes
 
 ### 1. The Lapsed Listener Problem (Memory Leak)
-Failing to unsubscribe an observer when it is destroyed. 
+
+Failing to unsubscribe an observer when it is destroyed.
 **Fix**: Use Weak References (like `WeakReference` in Java or `WeakMap`/`WeakRef` in JS) for storing observers, or ensure components explicitly unsubscribe in their teardown/destructor lifecycle methods (e.g., `useEffect` cleanup in React).
 
 ### 2. Pushing Too Much Data (or Too Little)
+
 - **Push Model**: The subject passes all its data to the observer (`update(data)`). This couples the observer to the exact data structure.
 - **Pull Model**: The subject passes a reference to itself (`update(this)`), and the observer queries what it needs. This is usually preferred, but requires the subject to expose public getter methods.
 

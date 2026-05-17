@@ -4,7 +4,7 @@ description: Represent an operation to be performed on elements of an object str
 icon: GitBranch
 ---
 
-![Visitor Concept](/images/patterns/visitor-mini.png)
+![Visitor Concept](/images/patterns/visitor-mini-2x.png)
 
 # Visitor Pattern
 
@@ -12,9 +12,9 @@ icon: GitBranch
 
 The **Visitor** pattern is a behavioral design pattern that allows you to add new operations to existing classes without modifying them. It achieves this by separating an algorithm from the object structure on which it operates.
 
-**Key advantage**: It implements "Double Dispatch," allowing a program to execute different logic based on both the type of the receiver *and* the type of the argument.
+**Key advantage**: It implements "Double Dispatch," allowing a program to execute different logic based on both the type of the receiver _and_ the type of the argument.
 
-**Modern perspective**: The Visitor pattern was designed to solve a problem inherent to older Object-Oriented languages (Java, C++, C#): they only support *Single Dispatch* (polymorphism based purely on the object you call the method on). In modern languages that support **Pattern Matching** (Rust, Scala, Swift, modern C#, modern Java) or Union Types (TypeScript), the classic Visitor pattern is largely obsolete and considered overly verbose. However, understanding it is critical for legacy systems, Compiler design (AST traversal), and languages lacking advanced pattern matching.
+**Modern perspective**: The Visitor pattern was designed to solve a problem inherent to older Object-Oriented languages (Java, C++, C#): they only support _Single Dispatch_ (polymorphism based purely on the object you call the method on). In modern languages that support **Pattern Matching** (Rust, Scala, Swift, modern C#, modern Java) or Union Types (TypeScript), the classic Visitor pattern is largely obsolete and considered overly verbose. However, understanding it is critical for legacy systems, Compiler design (AST traversal), and languages lacking advanced pattern matching.
 
 ## The Problem
 
@@ -25,22 +25,29 @@ Your boss asks you to export the map data into an XML format.
 ```typescript
 // ❌ Bad: Violates Single Responsibility and Open/Closed principles
 class City implements MapNode {
-  exportToXML() { /* ... XML logic ... */ }
+  exportToXML() {
+    /* ... XML logic ... */
+  }
 }
 
 class Industry implements MapNode {
-  exportToXML() { /* ... XML logic ... */ }
+  exportToXML() {
+    /* ... XML logic ... */
+  }
 }
 
 class Sightseeing implements MapNode {
-  exportToXML() { /* ... XML logic ... */ }
+  exportToXML() {
+    /* ... XML logic ... */
+  }
 }
 ```
 
 This seems fine at first. But what happens next week when the boss asks for JSON export? What about CSV export?
-Every time a new operation is needed, you have to modify *every single node class*. These classes are supposed to represent geographic data, not deal with parsing, formatting, or exporting. 
+Every time a new operation is needed, you have to modify _every single node class_. These classes are supposed to represent geographic data, not deal with parsing, formatting, or exporting.
 
 If you try to move the logic outside the classes into an `Exporter` class, you hit a snag:
+
 ```typescript
 class Exporter {
   export(node: MapNode) {
@@ -58,12 +65,13 @@ class Exporter {
 
 The Visitor pattern suggests placing the new behavior into a separate class called a `Visitor`, instead of integrating it into existing classes.
 
-The trick to making this work without `instanceof` checks is **Double Dispatch**. 
+The trick to making this work without `instanceof` checks is **Double Dispatch**.
+
 1. We ask the `Visitor` to execute the operation, but how does the Visitor know which node it's dealing with?
 2. We add a single method `accept(visitor)` to the `MapNode` interface.
 3. Every concrete node implements `accept(visitor)` by simply calling `visitor.visit(this)`.
 
-Because the code is executed *inside* the concrete node (e.g., `City`), `this` is explicitly known to be of type `City`. The compiler binds the call to the correct overloaded method on the Visitor.
+Because the code is executed _inside_ the concrete node (e.g., `City`), `this` is explicitly known to be of type `City`. The compiler binds the call to the correct overloaded method on the Visitor.
 
 ## Structure
 
@@ -78,7 +86,7 @@ classDiagram
         +visitElementA(e: ElementA)
         +visitElementB(e: ElementB)
     }
-    
+
     class Element {
         <<interface>>
         +accept(v: Visitor)
@@ -93,7 +101,7 @@ classDiagram
     Visitor <|.. ConcreteVisitor1
     Element <|.. ElementA
     Element <|.. ElementB
-    
+
     Client --> Visitor
     Client --> Element
 ```
@@ -111,10 +119,11 @@ classDiagram
 Think of an **Insurance Agent** visiting clients.
 The Agent (Visitor) visits a residential building, a bank, and a coffee shop (Elements).
 Depending on the building they visit, the Agent performs a different operation:
+
 - At the residential building, they pitch medical insurance.
 - At the bank, they pitch theft insurance.
 - At the coffee shop, they pitch fire insurance.
-The buildings don't care *how* the insurance is calculated; they just "accept" the agent into their building, and the agent does the appropriate work.
+  The buildings don't care _how_ the insurance is calculated; they just "accept" the agent into their building, and the agent does the appropriate work.
 
 ## Step-by-Step Implementation
 
@@ -153,7 +162,10 @@ class NumberNode implements ASTNode {
 }
 
 class AdditionNode implements ASTNode {
-  constructor(public left: ASTNode, public right: ASTNode) {}
+  constructor(
+    public left: ASTNode,
+    public right: ASTNode,
+  ) {}
 
   accept(visitor: ASTVisitor): void {
     // Double dispatch
@@ -201,7 +213,7 @@ class PrintVisitor implements ASTVisitor {
 // 5. Client Code
 const tree = new AdditionNode(
   new NumberNode(5),
-  new AdditionNode(new NumberNode(2), new NumberNode(3))
+  new AdditionNode(new NumberNode(2), new NumberNode(3)),
 );
 
 console.log("=== Printing AST ===");
@@ -315,7 +327,7 @@ interface ASTNode {
 // 3. Concrete Elements
 class NumberNode implements ASTNode {
     final double value;
-    
+
     NumberNode(double value) { this.value = value; }
 
     @Override
@@ -342,7 +354,7 @@ class AdditionNode implements ASTNode {
 // 4. Concrete Visitors
 class EvaluateVisitor implements ASTVisitor {
     private double result = 0;
-    
+
     public double getResult() { return result; }
 
     @Override
@@ -364,7 +376,7 @@ class EvaluateVisitor implements ASTVisitor {
 
 class PrintVisitor implements ASTVisitor {
     private StringBuilder output = new StringBuilder();
-    
+
     public String getOutput() { return output.toString(); }
 
     @Override
@@ -499,8 +511,8 @@ func main() {
 
 ```rust [Rust]
 // In Rust, Pattern Matching entirely replaces the classic OOP Visitor pattern.
-// Instead of creating Interfaces and Double Dispatch, we define an Enum 
-// representing the Node Types, and use `match` blocks. 
+// Instead of creating Interfaces and Double Dispatch, we define an Enum
+// representing the Node Types, and use `match` blocks.
 // This is exactly what the Visitor Pattern tries (and struggles) to emulate in OOP.
 
 // 1. The "Elements" (An Algebraic Data Type / Enum)
@@ -553,13 +565,15 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Open/Closed Principle**: You can introduce a new behavior that can work with objects of different classes without changing those classes.
 - **Single Responsibility Principle**: You can gather multiple versions of the same behavior into a single class.
 - **Type Safety**: Unlike massive `if (node instanceof City)` blocks, double dispatch ensures at compile-time that every element type is handled.
 - **State Accumulation**: A visitor can accumulate state as it traverses various objects (useful for calculating totals or generating reports).
 
 ### Disadvantages
-- **Fragile Base Class Hierarchy**: The biggest flaw of the Visitor pattern is that if a new class is added to the Element hierarchy (e.g., `SubtractionNode`), you MUST update the `Visitor` interface and EVERY SINGLE concrete visitor class. 
+
+- **Fragile Base Class Hierarchy**: The biggest flaw of the Visitor pattern is that if a new class is added to the Element hierarchy (e.g., `SubtractionNode`), you MUST update the `Visitor` interface and EVERY SINGLE concrete visitor class.
 - **Encapsulation Breakdown**: Visitors usually need access to the private or protected fields of the elements they visit. This forces you to expose internal state via public getters.
 - **Complexity**: The double-dispatch mechanism (`accept` calls `visit` which operates on the data) creates a mental loop that is notoriously difficult for junior developers to follow.
 
@@ -576,10 +590,12 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Trying to Return Values directly from `visit()`
+
 In strongly typed languages, standardizing the return type of `visit()` across all visitors is difficult (some visitors might want to return `int`, others `string`). Typically, the Visitor interface returns `void`, and the concrete visitor accumulates the result in a local field which is queried later (as seen in our TS/Java examples).
 
 ### 2. Confusing Visitor with Iterator
-Iterator simply walks through a collection. Visitor executes operations on the items. However, Visitor does *not* know how to traverse complex graphs (like trees) by itself. Traversal logic must either exist inside the Visitor (as seen in our AST example where `visitAddition` calls `accept` on children) or be handled by an external Iterator/Object Structure class.
+
+Iterator simply walks through a collection. Visitor executes operations on the items. However, Visitor does _not_ know how to traverse complex graphs (like trees) by itself. Traversal logic must either exist inside the Visitor (as seen in our AST example where `visitAddition` calls `accept` on children) or be handled by an external Iterator/Object Structure class.
 
 ## Related Patterns
 

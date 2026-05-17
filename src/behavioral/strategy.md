@@ -4,13 +4,13 @@ description: Define a family of algorithms, encapsulate each one, and make them 
 icon: ScrollText
 ---
 
-![Strategy Concept](/images/patterns/strategy-mini.png)
+![Strategy Concept](/images/patterns/strategy-mini-2x.png)
 
 # Strategy Pattern
 
 ## Overview
 
-The **Strategy** pattern is a behavioral design pattern that lets you define a family of algorithms, put each of them into a separate class, and make their objects interchangeable. 
+The **Strategy** pattern is a behavioral design pattern that lets you define a family of algorithms, put each of them into a separate class, and make their objects interchangeable.
 
 **Key advantage**: It isolates the business logic of a class from the implementation details of algorithms that may not be that important in the context of that logic.
 
@@ -93,6 +93,7 @@ classDiagram
 
 Think of **Traveling to the Airport**.
 You need to get to the airport (the Context). You have several strategies to get there:
+
 1. Drive your own car.
 2. Order a Taxi / Uber.
 3. Take the city bus.
@@ -145,7 +146,7 @@ class FixedDiscount implements DiscountStrategy {
 // 3. Context
 class ShoppingCart {
   private items: { name: string; price: number }[] = [];
-  
+
   // Context maintains a reference to a Strategy
   constructor(private discountStrategy: DiscountStrategy = new NoDiscount()) {}
 
@@ -160,10 +161,10 @@ class ShoppingCart {
 
   checkout(): void {
     const subtotal = this.items.reduce((sum, item) => sum + item.price, 0);
-    
+
     // Context delegates the complex calculation to the Strategy
     const discount = this.discountStrategy.calculateDiscount(subtotal);
-    
+
     const total = subtotal - discount;
 
     console.log(`Subtotal: $${subtotal.toFixed(2)}`);
@@ -174,8 +175,8 @@ class ShoppingCart {
 
 // 4. Client
 const cart = new ShoppingCart();
-cart.addItem("Mechanical Keyboard", 120.00);
-cart.addItem("Mousepad", 30.00);
+cart.addItem("Mechanical Keyboard", 120.0);
+cart.addItem("Mousepad", 30.0);
 
 console.log("--- Normal Checkout ---");
 cart.checkout();
@@ -545,12 +546,14 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Open/Closed Principle**: You can introduce new strategies without having to change the Context class.
 - **Isolates Algorithm Internals**: The complicated math/logic of an algorithm is hidden from the Context.
 - **Swapping Algorithms at Runtime**: The strategy can be easily changed at runtime based on user input or environmental conditions.
 - **Composition over Inheritance**: Replaces rigid inheritance hierarchies with flexible object composition.
 
 ### Disadvantages
+
 - **Client Must Be Aware of Strategies**: The client code must understand the differences between the strategies so that it can select the correct one.
 - **Increased Object Count**: Introduces many new classes/interfaces into the codebase. If the algorithms are simple, this is overkill.
 - **Data Passing**: The Context must either pass a lot of data to the Strategy, or pass a reference to itself. If the Context passes itself, the Strategy is suddenly tightly coupled to the Context's interface.
@@ -574,13 +577,18 @@ In modern TypeScript/JavaScript, Python, or Go, passing a function is usually su
 type DiscountStrategy = (amount: number) => number;
 
 const noDiscount: DiscountStrategy = () => 0;
-const percentDiscount = (pct: number): DiscountStrategy => (amt) => amt * (pct / 100);
+const percentDiscount =
+  (pct: number): DiscountStrategy =>
+  (amt) =>
+    amt * (pct / 100);
 
 class ShoppingCart {
   constructor(private discountFn: DiscountStrategy = noDiscount) {}
-  
-  setDiscount(fn: DiscountStrategy) { this.discountFn = fn; }
-  
+
+  setDiscount(fn: DiscountStrategy) {
+    this.discountFn = fn;
+  }
+
   checkout(subtotal: number) {
     const total = subtotal - this.discountFn(subtotal);
   }
@@ -592,9 +600,9 @@ cart.setDiscount(percentDiscount(20)); // Extremely clean
 
 ## Related Patterns
 
-- **State**: The twin of Strategy. Structure is identical. Intent is different. Strategy handles completely different ways to do the *same* thing. State handles *different* behaviors entirely based on the object's life cycle.
+- **State**: The twin of Strategy. Structure is identical. Intent is different. Strategy handles completely different ways to do the _same_ thing. State handles _different_ behaviors entirely based on the object's life cycle.
 - **Template Method**: Strategy is based on Composition (swapping out the whole algorithm object). Template Method is based on Inheritance (overriding specific steps of a base algorithm).
-- **Command**: Strategy provides *how* an action is performed. Command encapsulates *the action itself* (what, who, when).
+- **Command**: Strategy provides _how_ an action is performed. Command encapsulates _the action itself_ (what, who, when).
 
 ## Interview Insights
 

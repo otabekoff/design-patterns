@@ -4,7 +4,7 @@ description: Decouples an abstraction from its implementation so the two can var
 icon: Layers
 ---
 
-![Bridge Concept](/images/patterns/bridge-mini.png)
+![Bridge Concept](/images/patterns/bridge-mini-2x.png)
 
 # Bridge Pattern
 

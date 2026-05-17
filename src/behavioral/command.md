@@ -4,7 +4,7 @@ description: Encapsulate a request as an object, thereby letting you parameteriz
 icon: Command
 ---
 
-![Command Concept](/images/patterns/command-mini.png)
+![Command Concept](/images/patterns/command-mini-2x.png)
 
 # Command Pattern
 
@@ -12,13 +12,13 @@ icon: Command
 
 The **Command** pattern is a behavioral design pattern that turns a request or an action into a standalone object. This transformation lets you parameterize methods with different requests, delay or queue a request's execution, and support undoable operations.
 
-**Key advantage**: It decouples the object that *invokes* the operation from the object that *performs* the operation.
+**Key advantage**: It decouples the object that _invokes_ the operation from the object that _performs_ the operation.
 
 **Modern perspective**: The Command pattern is heavily used in modern GUI applications (undo/redo stacks), job queues (Redis/Celery workers), transactional systems (compensating transactions in distributed architectures), and CQRS (Command Query Responsibility Segregation).
 
 ## The Problem
 
-Imagine you are building a modern Text Editor. You want to implement a toolbar with buttons for operations like `Copy`, `Paste`, `Undo`, and `Save`. 
+Imagine you are building a modern Text Editor. You want to implement a toolbar with buttons for operations like `Copy`, `Paste`, `Undo`, and `Save`.
 
 Initially, you might just write event listeners for each button that directly call methods on the `Document` object:
 
@@ -34,6 +34,7 @@ class SaveButton {
 ```
 
 This seems fine until you realize:
+
 1. You also want a keyboard shortcut (Ctrl+S) to save the document. Now you have to duplicate the save logic or awkwardly link the shortcut to the button.
 2. You want to implement an "Undo" feature. But `onClick` executes immediately and leaves no trace. How do you remember what was changed?
 3. You want to add macro support (recording a sequence of actions and playing them back).
@@ -93,8 +94,9 @@ classDiagram
 ## Real-World Analogy
 
 Think of ordering food at a **Restaurant**.
+
 1. You (the **Client**) tell the Waiter what you want.
-2. The Waiter (the **Invoker**) writes your request on an order ticket (the **Command**). 
+2. The Waiter (the **Invoker**) writes your request on an order ticket (the **Command**).
 3. The Waiter places the ticket on the kitchen counter. They don't cook the food; they just pass the ticket.
 4. The Chef (the **Receiver**) picks up the ticket and reads the instructions to cook the meal.
 
@@ -118,15 +120,19 @@ Here is a full implementation of a simple Text Editor that supports formatting c
 class TextDocument {
   private content: string = "";
 
-  getContent(): string { return this.content; }
-  
+  getContent(): string {
+    return this.content;
+  }
+
   insert(position: number, text: string): void {
-    this.content = this.content.slice(0, position) + text + this.content.slice(position);
+    this.content =
+      this.content.slice(0, position) + text + this.content.slice(position);
   }
 
   delete(position: number, length: number): string {
     const deleted = this.content.slice(position, position + length);
-    this.content = this.content.slice(0, position) + this.content.slice(position + length);
+    this.content =
+      this.content.slice(0, position) + this.content.slice(position + length);
     return deleted;
   }
 }
@@ -142,7 +148,7 @@ class InsertTextCommand implements Command {
   constructor(
     private doc: TextDocument,
     private position: number,
-    private text: string
+    private text: string,
   ) {}
 
   execute(): void {
@@ -161,7 +167,7 @@ class DeleteTextCommand implements Command {
   constructor(
     private doc: TextDocument,
     private position: number,
-    private length: number
+    private length: number,
   ) {}
 
   execute(): void {
@@ -575,7 +581,7 @@ impl TextDocument {
 
     fn delete(&mut self, position: usize, length: usize) -> String {
         let deleted: String = self.content.chars().skip(position).take(length).collect();
-        // Delete byte range requires careful char boundaries in Rust, 
+        // Delete byte range requires careful char boundaries in Rust,
         // simplified here assuming ASCII for demonstration
         self.content.drain(position..position + length);
         deleted
@@ -679,6 +685,7 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Single Responsibility Principle**: Decouples classes that invoke operations from classes that perform them.
 - **Open/Closed Principle**: You can introduce new commands without breaking existing client code.
 - **Undo/Redo**: By storing commands, you natively support traversing back and forth through history.
@@ -686,6 +693,7 @@ fn main() {
 - **Macro Commands**: You can assemble simple commands into complex macro commands (e.g., Composite pattern combined with Command).
 
 ### Disadvantages
+
 - **Class Explosion**: For every possible action, you create a new concrete command class. This can severely bloat the codebase.
 - **Added Complexity**: Instead of a simple function call, you introduce an entirely new layer of indirection (Invoker -> Command -> Receiver).
 - **Memory Overhead**: Storing a long history of stateful objects (for undo/redo) can consume significant RAM.
@@ -705,13 +713,14 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Putting Business Logic Inside the Command
-Commands should *delegate* to the Receiver, not do the heavy lifting themselves.
+
+Commands should _delegate_ to the Receiver, not do the heavy lifting themselves.
 
 ```typescript
 // ❌ Bad: Command handles database writing, validation, and email sending
 class ProcessOrderCommand implements Command {
   execute() {
-     // 100 lines of complex business logic here...
+    // 100 lines of complex business logic here...
   }
 }
 
@@ -719,19 +728,20 @@ class ProcessOrderCommand implements Command {
 class ProcessOrderCommand implements Command {
   constructor(private orderService: OrderService) {}
   execute() {
-     this.orderService.process();
+    this.orderService.process();
   }
 }
 ```
 
 ### 2. Forgetting State for Undo
+
 An `undo()` method must restore the exact state prior to `execute()`. If you don't save the overwritten state inside the Command object during `execute()`, undo becomes impossible.
 
 ## Related Patterns
 
-- **Memento**: Often used *with* Command. If a command modifies a massive object, instead of trying to figure out the reverse operation, the Command just saves a Memento (snapshot) of the object before execution, and restores the Memento during undo.
+- **Memento**: Often used _with_ Command. If a command modifies a massive object, instead of trying to figure out the reverse operation, the Command just saves a Memento (snapshot) of the object before execution, and restores the Memento during undo.
 - **Composite**: You can compose multiple commands into a `MacroCommand` which itself implements the Command interface.
-- **Strategy**: Similar in that both parameterize an object with behavior. But a Strategy specifies *how* to do something (algorithm), while a Command specifies *what* to do (action).
+- **Strategy**: Similar in that both parameterize an object with behavior. But a Strategy specifies _how_ to do something (algorithm), while a Command specifies _what_ to do (action).
 
 ## Interview Insights
 

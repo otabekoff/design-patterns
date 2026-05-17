@@ -4,7 +4,7 @@ description: Sequentially access elements of a collection without exposing its u
 icon: BookOpen
 ---
 
-![Iterator Concept](/images/patterns/iterator-mini.png)
+![Iterator Concept](/images/patterns/iterator-mini-2x.png)
 
 # Iterator Pattern
 
@@ -20,7 +20,7 @@ The **Iterator** pattern is a behavioral design pattern that allows you to trave
 
 Collections store groups of objects. While an array is the most common collection, others include trees, graphs, lists, and hash maps.
 
-No matter how a collection is structured, it must provide a way for client code to access its elements sequentially. 
+No matter how a collection is structured, it must provide a way for client code to access its elements sequentially.
 
 ```typescript
 // ❌ Bad: The client must know the internal structure of every collection
@@ -39,12 +39,12 @@ If the client code needs to traverse an Array, a Linked List, and a Binary Tree,
 
 ## The Solution
 
-The Iterator pattern suggests encapsulating the traversal logic into a separate object. 
+The Iterator pattern suggests encapsulating the traversal logic into a separate object.
 
 1. **The Iterator Interface**: Defines operations for traversing a collection, like `next()`, `hasNext()`, and sometimes `current()`.
 2. **The Collection Interface**: Defines a factory method for producing an Iterator (e.g., `createIterator()`).
 
-Because all Iterators implement the same interface, client code can traverse *any* collection in the exact same way, without knowing if it's an array, a tree, or a remote API cursor.
+Because all Iterators implement the same interface, client code can traverse _any_ collection in the exact same way, without knowing if it's an array, a tree, or a remote API cursor.
 
 ## Structure
 
@@ -90,7 +90,7 @@ classDiagram
 
 Think of **exploring a new city**.
 You could grab a raw map and try to traverse every street yourself (direct collection access).
-Or, you could hire a **Tour Guide** (the Iterator). 
+Or, you could hire a **Tour Guide** (the Iterator).
 The Tour Guide handles the complex navigation. You simply tell the guide: "Take me to the next sight." You don't need to know the optimal path, the streets, or the bus routes; the Guide encapsulates all traversal logic. Different guides might traverse the city differently (e.g., Food Tour, History Tour), just like different iterators can traverse the same tree (e.g., Depth-First, Breadth-First).
 
 ## Step-by-Step Implementation
@@ -104,7 +104,7 @@ The Tour Guide handles the complex navigation. You simply tell the guide: "Take 
 
 We will implement a custom `SocialNetwork` (a Graph) and provide two different iterators: one for traversing friends directly, and another for iterating over an entire community.
 
-*Note: In modern languages, you often implement the language's native Iterable protocol instead of creating standalone interfaces. We show the classic OOP approach here, followed by idiomatic usage.*
+_Note: In modern languages, you often implement the language's native Iterable protocol instead of creating standalone interfaces. We show the classic OOP approach here, followed by idiomatic usage._
 
 ::: code-group
 
@@ -122,7 +122,10 @@ interface IterableCollection<T> {
 
 // 3. Concrete Collection
 class UserNode {
-  constructor(public id: string, public name: string) {}
+  constructor(
+    public id: string,
+    public name: string,
+  ) {}
 }
 
 class UserCollection implements IterableCollection<UserNode> {
@@ -155,8 +158,8 @@ class AlphabeticalIterator implements MyIterator<UserNode> {
   private lazyInit() {
     if (this.sortedCache === null) {
       // Create a sorted copy
-      this.sortedCache = [...this.collection.getUsers()].sort((a, b) => 
-        a.name.localeCompare(b.name)
+      this.sortedCache = [...this.collection.getUsers()].sort((a, b) =>
+        a.name.localeCompare(b.name),
       );
     }
   }
@@ -189,7 +192,6 @@ while (iterator.hasNext()) {
 }
 // Output: Alice, Bob, Charlie
 
-
 // --- MODERN TYPESCRIPT EQUIVALENT (Generators/Iterables) ---
 class ModernCollection {
   private users = ["Charlie", "Alice", "Bob"];
@@ -212,7 +214,7 @@ for (const user of modern) {
 ```python [Python]
 from typing import List, Iterator, Iterable
 
-# In Python, we rarely build custom Iterator interfaces because 
+# In Python, we rarely build custom Iterator interfaces because
 # the standard library provides __iter__ and __next__ magic methods.
 
 class UserNode:
@@ -250,7 +252,7 @@ class AlphabeticalIterator(Iterator):
         self._lazy_init()
         if self._position >= len(self._sorted_cache):
             raise StopIteration()
-        
+
         result = self._sorted_cache[self._position]
         self._position += 1
         return result
@@ -264,7 +266,7 @@ if __name__ == "__main__":
 
     # Because we implemented __iter__ and __next__, Python's for-loop works natively!
     for user in network:
-        print(user.name)  
+        print(user.name)
     # Output: Alice, Bob, Charlie
 
 
@@ -272,7 +274,7 @@ if __name__ == "__main__":
 class ModernCollection:
     def __init__(self):
         self.users = ["Charlie", "Alice", "Bob"]
-        
+
     def __iter__(self):
         # A generator function returns an iterator automatically
         for user in sorted(self.users):
@@ -459,7 +461,7 @@ func main() {
 ```
 
 ```rust [Rust]
-// Rust provides deep native support for Iterators. Building custom iterators 
+// Rust provides deep native support for Iterators. Building custom iterators
 // usually means implementing the standard `std::iter::Iterator` trait.
 
 #[derive(Clone, Debug)]
@@ -521,7 +523,7 @@ impl UserCollection {
     fn iter(&self) -> UserCollectionRefIterator {
         let mut cache: Vec<&UserNode> = self.users.iter().collect();
         cache.sort_by(|a, b| a.name.cmp(&b.name));
-        
+
         UserCollectionRefIterator {
             sorted_cache: cache,
             position: 0,
@@ -541,7 +543,7 @@ fn main() {
         println!("{}", user.name);
     }
     // Output: Alice, Bob, Charlie
-    
+
     // Using the consuming IntoIterator
     for user in network {
         println!("{}", user.name);
@@ -554,12 +556,14 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Single Responsibility Principle**: You can clean up the client code and the collections by extracting bulky traversal algorithms into separate classes.
 - **Open/Closed Principle**: You can implement new types of collections and iterators and pass them to existing code without breaking anything.
 - **Multiple Iterations**: You can iterate over the same collection in parallel because each iterator object contains its own iteration state.
 - **Different Traversals**: A single tree collection can offer Depth-First, Breadth-First, and Filtered iterators simultaneously.
 
 ### Disadvantages
+
 - **Overhead**: Applying the pattern to extremely simple collections (like basic arrays) is overkill.
 - **Inefficiency**: Custom iterators can sometimes be less efficient than traversing elements directly, especially when memory localization (CPU caching) is considered.
 - **Concurrent Modification**: Modifying a collection while an iterator is traversing it can cause catastrophic errors. Handling concurrent modification (e.g., throwing a `ConcurrentModificationException` in Java) adds complexity.
@@ -578,10 +582,12 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Re-implementing the Wheel
+
 Most modern languages have robust, standardized Iterator interfaces (`java.util.Iterator`, TS `Iterable`, Python `__iter__`, Rust `std::iter::Iterator`). Always implement the native language interface instead of creating custom `MyIterator` interfaces. Doing so allows your custom collections to work with the language's native `for...in` / `for...of` loops and standard library utilities.
 
 ### 2. Modifying Collections During Iteration
-If the underlying collection changes (an item is deleted) while an Iterator is traversing it, the Iterator's internal `index` or `pointer` may become invalid, leading to out-of-bounds errors or skipping elements. 
+
+If the underlying collection changes (an item is deleted) while an Iterator is traversing it, the Iterator's internal `index` or `pointer` may become invalid, leading to out-of-bounds errors or skipping elements.
 **Solution**: The Iterator should either work on a snapshot of the data, or the collection must track "modification counts" and make the iterator fail-fast if modifications occur.
 
 ## Related Patterns
@@ -594,7 +600,7 @@ If the underlying collection changes (an item is deleted) while an Iterator is t
 ## Interview Insights
 
 - **Question**: "What is the difference between an Iterator and a Generator?"
-  - **Answer**: "An Iterator is an object that implements a specific interface (`next()`). A Generator is a special language feature (like `yield` in Python/JS) that *automatically creates* an Iterator for you. Generators are syntactic sugar for writing Iterators without manually maintaining internal state."
+  - **Answer**: "An Iterator is an object that implements a specific interface (`next()`). A Generator is a special language feature (like `yield` in Python/JS) that _automatically creates_ an Iterator for you. Generators are syntactic sugar for writing Iterators without manually maintaining internal state."
 - **Question**: "How do you handle traversing a massive, infinitely scrolling API endpoint?"
   - **Answer**: "With a custom Iterator. Instead of reading an array from memory, the `next()` method makes an HTTP request to fetch the next page of data, completely hiding the pagination logic from the client."
 

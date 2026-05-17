@@ -4,13 +4,13 @@ description: Capture and externalize an object's internal state without violatin
 icon: History
 ---
 
-![Memento Concept](/images/patterns/memento-mini.png)
+![Memento Concept](/images/patterns/memento-mini-2x.png)
 
 # Memento Pattern
 
 ## Overview
 
-The **Memento** pattern is a behavioral design pattern that allows you to capture and save the internal state of an object so that you can restore it later. Crucially, it does this *without violating the encapsulation* of that object.
+The **Memento** pattern is a behavioral design pattern that allows you to capture and save the internal state of an object so that you can restore it later. Crucially, it does this _without violating the encapsulation_ of that object.
 
 **Key advantage**: You can create snapshots of a complex object's state without exposing its private fields or internal structure to the rest of the application.
 
@@ -20,7 +20,7 @@ The **Memento** pattern is a behavioral design pattern that allows you to captur
 
 Imagine you are building a modern Text Editor or a Graphics Canvas. Naturally, you need an "Undo" feature.
 
-To implement Undo, you need to record the state of the editor before making a change. 
+To implement Undo, you need to record the state of the editor before making a change.
 
 ```typescript
 // ❌ Bad: Violating encapsulation to save state
@@ -30,14 +30,14 @@ class Editor {
   private cursorY: number = 0;
   private selectionWidth: number = 0;
 
-  // The history manager needs to save this data. 
+  // The history manager needs to save this data.
   // Should we make these fields public?
 }
 ```
 
 If you make all internal fields `public`, any other class can modify the editor's state unexpectedly, violating the principles of OOP. Furthermore, if you refactor the `Editor` later to use a different data structure (like a `Rope` instead of a `String`), you break the history manager that relies on the old fields.
 
-You need a way to save the state, securely, without exposing *how* the state is structured.
+You need a way to save the state, securely, without exposing _how_ the state is structured.
 
 ## The Solution
 
@@ -45,7 +45,7 @@ The Memento pattern delegates the creation of the state snapshots to the object 
 
 1. **Originator**: The object whose state needs to be saved (e.g., `Editor`).
 2. **Memento**: A value object that acts as a snapshot of the Originator's state. It is strictly read-only and immutable.
-3. **Caretaker**: The object that manages the "when" and "why" of saving/restoring (e.g., `HistoryManager`). It holds a list of Mementos but *never* inspects their contents.
+3. **Caretaker**: The object that manages the "when" and "why" of saving/restoring (e.g., `HistoryManager`). It holds a list of Mementos but _never_ inspects their contents.
 
 When the Caretaker needs to save state, it asks the Originator for a Memento. When it needs to undo, it passes that Memento back to the Originator.
 
@@ -94,7 +94,7 @@ classDiagram
 ## Real-World Analogy
 
 Think of a **Video Game Save File**.
-You are playing an RPG (the **Originator**). You walk into a boss room and manually save the game. The game serializes your health, inventory, and location into a Save File (the **Memento**). 
+You are playing an RPG (the **Originator**). You walk into a boss room and manually save the game. The game serializes your health, inventory, and location into a Save File (the **Memento**).
 
 The hard drive or operating system (the **Caretaker**) manages these save files. It knows when they were created and what they are called, but it doesn't understand the internal binary format of your RPG inventory. If you die, the OS gives the Save File back to the game, and the game restores its internal state to exactly where you were.
 
@@ -126,15 +126,21 @@ class ConcreteMemento implements Memento {
   constructor(
     private readonly state: string,
     private readonly health: number,
-    private readonly position: { x: number; y: number }
+    private readonly position: { x: number; y: number },
   ) {
     this.date = new Date().toISOString();
   }
 
   // The Originator will use these methods, but the Caretaker shouldn't.
-  getState(): string { return this.state; }
-  getHealth(): number { return this.health; }
-  getPosition(): { x: number; y: number } { return this.position; }
+  getState(): string {
+    return this.state;
+  }
+  getHealth(): number {
+    return this.health;
+  }
+  getPosition(): { x: number; y: number } {
+    return this.position;
+  }
 
   // Interface methods
   getName(): string {
@@ -157,7 +163,9 @@ class GameEditor {
     this.state = action;
     this.health += healthChange;
     this.position = { x, y };
-    console.log(`GameEditor: Changed state to [${this.state}] HP: ${this.health}`);
+    console.log(
+      `GameEditor: Changed state to [${this.state}] HP: ${this.health}`,
+    );
   }
 
   // Saves state inside a Memento
@@ -192,7 +200,7 @@ class HistoryManager {
 
   undo(): void {
     if (!this.mementos.length) return;
-    
+
     const memento = this.mementos.pop();
     console.log(`History: Restoring memento: ${memento?.getName()}`);
     this.originator.restore(memento!);
@@ -253,10 +261,10 @@ class ConcreteMemento(Memento):
     # Originator methods
     def get_state(self) -> str:
         return self._state
-        
+
     def get_health(self) -> int:
         return self._health
-        
+
     def get_position(self) -> dict:
         return self._position
 
@@ -288,7 +296,7 @@ class GameEditor:
         # In Python, we rely on duck typing or isinstance
         if not isinstance(memento, ConcreteMemento):
             return
-        
+
         print("GameEditor: Restoring state...")
         self._state = memento.get_state()
         self._health = memento.get_health()
@@ -363,7 +371,7 @@ class GameEditor {
     }
 
     public void restore(Memento m) {
-        // Because ConcreteMemento is private to GameEditor, 
+        // Because ConcreteMemento is private to GameEditor,
         // only GameEditor can cast it and read its fields.
         ConcreteMemento memento = (ConcreteMemento) m;
         this.state = memento.savedState;
@@ -579,8 +587,8 @@ impl GameEditor {
     fn restore(&mut self, memento: &Box<dyn Memento>) {
         // We downcast using Any, or we keep it simple by implementing a specific struct approach.
         // Rust prefers enum states or specific generics. To mimic OOP here we downcast:
-        // *But for simplicity*, let's just assume we return the concrete struct 
-        // if Caretaker and Originator are in different modules. 
+        // *But for simplicity*, let's just assume we return the concrete struct
+        // if Caretaker and Originator are in different modules.
         // Below is the idiomatic Rust workaround.
     }
 }
@@ -657,18 +665,20 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Encapsulation**: You can save an object's internal state without exposing its fields or internal implementation to the rest of the application.
 - **Single Responsibility Principle**: You extract the logic for managing state history away from the Originator and place it in the Caretaker.
 - **Easy Checkpoints**: Extremely useful for features like Drafts, Save points, or crash recovery.
 
 ### Disadvantages
+
 - **Memory Consumption**: If the Originator's state is massive (like a large canvas image) and you create a Memento every second, you will rapidly exhaust your RAM.
 - **Performance Overhead**: Deep copying complex object graphs to create Mementos takes CPU time.
 - **Garbage Collection Pressure**: Continually creating and destroying Memento objects puts heavy load on the Garbage Collector in languages like Java, C#, or JS.
 
 ## When to Use
 
-- **Undo/Redo Functionality**: The classic use case. 
+- **Undo/Redo Functionality**: The classic use case.
 - **Database Transactions**: When you want to roll back an in-memory object graph if a database transaction fails.
 - **Wizards and Multi-step Forms**: If a user hits "Back" in a complex UI wizard, restoring a Memento is much easier than manually undoing UI state changes.
 
@@ -680,7 +690,8 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Shallow Copying
-If your object state contains references to arrays or objects, and you only shallow-copy them into the Memento, modifying the original object will modify the Memento too! You *must* deep clone the state.
+
+If your object state contains references to arrays or objects, and you only shallow-copy them into the Memento, modifying the original object will modify the Memento too! You _must_ deep clone the state.
 
 ```typescript
 // ❌ Bad: Shallow copy
@@ -691,18 +702,19 @@ save() { return new Memento(structuredClone(this.itemsArray)); }
 ```
 
 ### 2. Violating Encapsulation in the Caretaker
+
 The Caretaker should NEVER read or alter the state inside the Memento. It should treat the Memento as an opaque black box.
 
 ## Related Patterns
 
-- **Command**: Almost always used together. A Command represents an action, and it holds a Memento representing the state *before* the action occurred. Calling `command.undo()` restores the Memento.
+- **Command**: Almost always used together. A Command represents an action, and it holds a Memento representing the state _before_ the action occurred. Calling `command.undo()` restores the Memento.
 - **Iterator**: You can use Iterators to traverse the history of Mementos stored in a Caretaker.
 - **Prototype**: Often used under the hood to generate the deep copy snapshot required by the Memento.
 
 ## Interview Insights
 
 - **Question**: "If Mementos take up too much RAM, how can we optimize the Undo system?"
-  - **Answer**: "Instead of storing full state snapshots (Mementos), you store the *inverse Command* (delta). If the user types 'A', you store a command to 'Delete 1 character'. This uses drastically less memory but makes the code much more complex."
+  - **Answer**: "Instead of storing full state snapshots (Mementos), you store the _inverse Command_ (delta). If the user types 'A', you store a command to 'Delete 1 character'. This uses drastically less memory but makes the code much more complex."
 - **Question**: "How does Java enforce the 'Restricted Interface' of a Memento?"
   - **Answer**: "Java allows nested classes. By making the `ConcreteMemento` a private nested class inside the `Originator`, only the Originator can access its fields. The Caretaker is only given the public `Memento` interface which exposes nothing."
 

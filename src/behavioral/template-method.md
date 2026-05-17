@@ -4,23 +4,24 @@ description: Defines the skeleton of an algorithm in the superclass but lets sub
 icon: BookMarked
 ---
 
-![Template Method Concept](/images/patterns/template-method-mini.png)
+![Template Method Concept](/images/patterns/template-method-mini-2x.png)
 
 # Template Method Pattern
 
 ## Overview
 
-The **Template Method** pattern is a behavioral design pattern that defines the skeleton of an algorithm in a base class but lets subclasses override specific steps of the algorithm without changing its overall structure. 
+The **Template Method** pattern is a behavioral design pattern that defines the skeleton of an algorithm in a base class but lets subclasses override specific steps of the algorithm without changing its overall structure.
 
 **Key advantage**: It eliminates code duplication by pulling the invariant parts of an algorithm into a base class while allowing the variant parts to be customized by subclasses.
 
-**Modern perspective**: While Template Method is historically based on heavy class inheritance, its core concept remains vital. In modern functional programming, this is often achieved by passing higher-order functions (callbacks) into a "template function." In OOP, it is still heavily used in frameworks (e.g., component lifecycles like `ngOnInit` in Angular or `componentDidMount` in legacy React) where the framework dictates the *when* (the template) and the developer defines the *what* (the overridden step).
+**Modern perspective**: While Template Method is historically based on heavy class inheritance, its core concept remains vital. In modern functional programming, this is often achieved by passing higher-order functions (callbacks) into a "template function." In OOP, it is still heavily used in frameworks (e.g., component lifecycles like `ngOnInit` in Angular or `componentDidMount` in legacy React) where the framework dictates the _when_ (the template) and the developer defines the _what_ (the overridden step).
 
 ## The Problem
 
 Imagine you are building an application that mines data from various document formats: PDF, DOC, and CSV.
 
 For each format, the overall data mining process is identical:
+
 1. Open the file.
 2. Extract the raw data.
 3. Parse the data into a standardized format.
@@ -34,10 +35,10 @@ class PDFDataMiner {
   mine(path: string) {
     const file = this.openFile(path);
     const rawData = this.extractData(file); // Unique to PDF
-    const data = this.parseData(rawData);   // Unique to PDF
-    this.analyzeData(data);                 // Same for all
-    this.sendReport(data);                  // Same for all
-    this.closeFile(file);                   // Same for all
+    const data = this.parseData(rawData); // Unique to PDF
+    this.analyzeData(data); // Same for all
+    this.sendReport(data); // Same for all
+    this.closeFile(file); // Same for all
   }
   // ... methods ...
 }
@@ -46,26 +47,26 @@ class CSVDataMiner {
   mine(path: string) {
     const file = this.openFile(path);
     const rawData = this.extractData(file); // Unique to CSV
-    const data = this.parseData(rawData);   // Unique to CSV
-    this.analyzeData(data);                 // Same for all
-    this.sendReport(data);                  // Same for all
-    this.closeFile(file);                   // Same for all
+    const data = this.parseData(rawData); // Unique to CSV
+    this.analyzeData(data); // Same for all
+    this.sendReport(data); // Same for all
+    this.closeFile(file); // Same for all
   }
   // ... methods ...
 }
 ```
 
-If you need to add a new step (e.g., "compress the report before sending"), you must manually update the `mine()` method in *every single miner class*.
+If you need to add a new step (e.g., "compress the report before sending"), you must manually update the `mine()` method in _every single miner class_.
 
 ## The Solution
 
 The Template Method pattern suggests that you declare an algorithm as a series of steps inside a base class.
 
-1. **Abstract Base Class**: Defines a "template method" (e.g., `mine()`) containing the sequence of method calls that make up the algorithm. 
+1. **Abstract Base Class**: Defines a "template method" (e.g., `mine()`) containing the sequence of method calls that make up the algorithm.
 2. **Steps**: The methods called by the template method.
-    - *Abstract steps*: Must be implemented by every subclass.
-    - *Optional steps (Hooks)*: Have a default implementation in the base class, but can be overridden.
-    - *Concrete steps*: Fully implemented in the base class and shared by all subclasses.
+   - _Abstract steps_: Must be implemented by every subclass.
+   - _Optional steps (Hooks)_: Have a default implementation in the base class, but can be overridden.
+   - _Concrete steps_: Fully implemented in the base class and shared by all subclasses.
 3. **Concrete Classes**: Subclasses that inherit from the base class and implement the abstract steps.
 
 By making the template method `final` (or read-only), you enforce the algorithm's structure, ensuring no subclass can accidentally change the order of execution.
@@ -82,7 +83,7 @@ classDiagram
         #hook()
     }
     note for AbstractClass "templateMethod() {\n  step1();\n  step2();\n  step3();\n  hook();\n}"
-    
+
     class ConcreteClass1 {
         #step2()
         #hook()
@@ -107,20 +108,21 @@ classDiagram
 
 Think of **building a mass-produced house**.
 The construction company has a strict sequence (the template method):
+
 1. Lay the foundation.
 2. Build the frame.
 3. Add the roof.
 4. Install plumbing.
 5. Add finishing touches.
 
-You cannot build the roof before the foundation. The *order* is fixed. However, the *details* of specific steps can vary depending on the model of the house you bought (e.g., Wooden frame vs. Steel frame, Shingle roof vs. Tile roof).
+You cannot build the roof before the foundation. The _order_ is fixed. However, the _details_ of specific steps can vary depending on the model of the house you bought (e.g., Wooden frame vs. Steel frame, Shingle roof vs. Tile roof).
 
 ## Step-by-Step Implementation
 
 1. **Identify the Algorithm**: Find an algorithm that is duplicated across multiple classes with only minor variations.
 2. **Create the Base Class**: Move the algorithm into a single template method in an abstract base class.
 3. **Define the Steps**: Break the algorithm down into helper methods.
-4. **Identify Variations**: Make the methods that vary `abstract`. 
+4. **Identify Variations**: Make the methods that vary `abstract`.
 5. **Identify Shared Logic**: Implement the shared methods in the base class.
 6. **Add Hooks (Optional)**: Add empty or default-behavior methods at crucial points in the algorithm to allow subclasses to "hook" into the process if needed.
 
@@ -140,12 +142,12 @@ abstract class BuildPipeline {
     this.installDependencies();
     this.compile();
     this.test();
-    
+
     // Hook: Only deploy if the subclass allows it
     if (this.shouldDeploy()) {
       this.deploy();
     }
-    
+
     this.notifySuccess();
   }
 
@@ -235,10 +237,10 @@ class BuildPipeline(ABC):
         self._install_dependencies()
         self._compile()
         self._test()
-        
+
         if self._should_deploy():
             self._deploy()
-            
+
         self._notify_success()
 
     # Common steps
@@ -315,18 +317,18 @@ if __name__ == "__main__":
 ```java [Java]
 // 1. Abstract Base Class
 abstract class BuildPipeline {
-    
+
     // The Template Method is marked final to prevent subclasses from altering the sequence
     public final void buildProject() {
         checkout();
         installDependencies();
         compile();
         test();
-        
+
         if (shouldDeploy()) {
             deploy();
         }
-        
+
         notifySuccess();
     }
 
@@ -535,11 +537,11 @@ trait BuildPipeline {
         self.install_dependencies();
         self.compile();
         self.test();
-        
+
         if self.should_deploy() {
             self.deploy();
         }
-        
+
         self.notify_success();
     }
 
@@ -628,15 +630,17 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Reduces Code Duplication**: Pulls identical logic (the workflow control) into a superclass.
 - **Enforces Algorithm Structure**: Ensures that subclasses do not break the critical sequence of operations.
 - **The Hollywood Principle**: "Don't call us, we'll call you." The base class controls the flow and calls the subclass methods when needed, reversing traditional dependency structures.
 - **Provides Hooks**: Allows subclasses to insert themselves at specific, safe points in the algorithm.
 
 ### Disadvantages
+
 - **Rigid Structure**: Subclasses are bound to the skeleton provided. If a subclass needs to significantly alter the flow, the pattern breaks down.
 - **Liskov Substitution Principle Risks**: Subclasses might suppress a default step by overriding it with an empty method, which can violate expected behaviors.
-- **Hard to Maintain**: Templates with too many steps or hooks become exceptionally difficult to read and maintain. 
+- **Hard to Maintain**: Templates with too many steps or hooks become exceptionally difficult to read and maintain.
 
 ## When to Use
 
@@ -652,14 +656,16 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Forgetting to Make the Template Method Final
+
 In languages like Java or C#, if you don't explicitly mark the template method as `final` / `sealed`, a subclass could override the template method itself, entirely destroying the purpose of the pattern.
 
 ### 2. Creating a "God Template"
+
 If your template method calls 15 different abstract steps, creating a subclass becomes a nightmare because the developer must implement 15 disjointed methods. Keep the steps cohesive and minimal.
 
 ## Related Patterns
 
-- **Strategy**: The biggest rival to Template Method. Strategy changes the *entire* algorithm via object composition. Template Method changes *parts* of an algorithm via inheritance.
+- **Strategy**: The biggest rival to Template Method. Strategy changes the _entire_ algorithm via object composition. Template Method changes _parts_ of an algorithm via inheritance.
 - **Factory Method**: A Factory Method is often called from within a Template Method to instantiate objects needed for the algorithm.
 - **Builder**: Both define steps, but Builder focuses on creating a complex object step-by-step, while Template Method executes a behavioral algorithm step-by-step.
 
@@ -668,9 +674,9 @@ If your template method calls 15 different abstract steps, creating a subclass b
 - **Question**: "What is the 'Hollywood Principle' and how does it relate to Template Method?"
   - **Answer**: "The Hollywood Principle is 'Don't call us, we'll call you.' In the Template Method, the subclass doesn't call the base class to figure out what to do next. Instead, the base class defines the workflow and calls the subclass's overridden methods at the correct time."
 - **Question**: "What is a 'Hook' in the Template Method?"
-  - **Answer**: "A hook is a method in the abstract class with an empty or default implementation. It provides an optional extension point for subclasses, unlike abstract methods which *must* be overridden."
+  - **Answer**: "A hook is a method in the abstract class with an empty or default implementation. It provides an optional extension point for subclasses, unlike abstract methods which _must_ be overridden."
 
 ## Modern Alternatives
 
-- **Higher-Order Functions**: In TypeScript, Python, and modern languages, passing callback functions to a generic pipeline function is often preferred over creating a rigid class inheritance hierarchy. 
+- **Higher-Order Functions**: In TypeScript, Python, and modern languages, passing callback functions to a generic pipeline function is often preferred over creating a rigid class inheritance hierarchy.
 - **Middleware Chains**: In web frameworks (Express, ASP.NET Core), request pipelines are defined as chains of middleware rather than a single hardcoded template class. This allows dynamic composition of the algorithm steps at runtime.

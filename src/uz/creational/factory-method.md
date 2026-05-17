@@ -4,8 +4,9 @@ description: Defines an interface for creating objects, but lets subclasses deci
 icon: Package
 ---
 
-
 # Factory Method Pattern
+
+![Cover](/covers/creational/factory-method.png)
 
 ## Overview
 
@@ -114,7 +115,6 @@ The Factory Method pattern solves this by:
     const wordApp = new WordApplication();
     wordApp.openDocument(); // Opening Word document...
 ```
-
 
   
 ```python [python]

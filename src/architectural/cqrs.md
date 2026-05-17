@@ -6,6 +6,8 @@ icon: Split
 
 # Command Query Responsibility Segregation (CQRS)
 
+![Cover](/covers/architectural/cqrs.png)
+
 ## Overview
 
 **Command Query Responsibility Segregation (CQRS)** is an advanced architectural pattern that splits the conceptual model of your application into two distinct parts:

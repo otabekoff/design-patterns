@@ -4,8 +4,9 @@ description: Constructs complex objects step by step, separating construction fr
 icon: Hammer
 ---
 
-
 # Builder Pattern
+
+![Cover](/covers/creational/builder.png)
 
 ## Overview
 

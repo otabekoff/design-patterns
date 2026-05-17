@@ -6,6 +6,8 @@ icon: Palette
 
 # Dasturlashda dizayn patternlari
 
+![Cover](/covers/getting-started/introduction.png)
+
 Dizayn patternlari — dasturiy ta'minotni loyihalashda ko'p uchraydigan muammolarning qayta ishlatilishi mumkin bo'lgan yechimlaridir. Ular eng yaxshi tajribalarni (best practices) ifodalaydi va sinovdan o'tgan rivojlanish paradigmalarini taqdim etish orqali ishlab chiqish jarayonini tezlashtirishi mumkin.
 
 Dizayn patternlari odatda maqsadiga ko'ra **uchta asosiy toifaga** bo'linadi:

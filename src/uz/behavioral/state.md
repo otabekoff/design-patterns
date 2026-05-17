@@ -6,7 +6,7 @@ icon: Zap
 
 # State
 
-
+![Cover](/covers/behavioral/state.png)
 
 ## Overview
 
@@ -218,7 +218,6 @@ class PlayingState implements State {
     player.stop();    // Stopping playback
     player.pause();   // Cannot pause - not playing
 ```
-
 
   
 ```python [python]

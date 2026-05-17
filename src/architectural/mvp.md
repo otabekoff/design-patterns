@@ -6,6 +6,8 @@ icon: Users
 
 # Model-View-Presenter (MVP)
 
+![Cover](/covers/architectural/mvp.png)
+
 ## Overview
 
 The **Model-View-Presenter (MVP)** pattern is an architectural pattern that evolved from MVC to improve testability by separating presentation logic from the view. It divides an application into:

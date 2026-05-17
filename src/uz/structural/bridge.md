@@ -6,7 +6,7 @@ icon: Layers
 
 # Bridge Pattern
 
-
+![Cover](/covers/structural/bridge.png)
 
 ## Overview
 
@@ -265,7 +265,6 @@ advancedRemote.changeChannel(102.3);
 advancedRemote.record();
 advancedRemote.getStatus();
 ```
-
 
   
 ```python [python]

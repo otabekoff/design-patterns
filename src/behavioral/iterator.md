@@ -4,9 +4,9 @@ description: Sequentially access elements of a collection without exposing its u
 icon: BookOpen
 ---
 
-![Iterator Concept](/images/patterns/iterator-2x.png)
-
 # Iterator Pattern
+
+![Cover](/covers/behavioral/iterator.png)
 
 ## Overview
 
@@ -268,7 +268,6 @@ if __name__ == "__main__":
     for user in network:
         print(user.name)
     # Output: Alice, Bob, Charlie
-
 
 # --- MODERN PYTHON EQUIVALENT (Generators) ---
 class ModernCollection:

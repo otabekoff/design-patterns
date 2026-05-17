@@ -6,7 +6,7 @@ icon: Box
 
 # Model-View-ViewModel (MVVM)
 
-
+![Cover](/covers/architectural/mvvm.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -363,8 +363,6 @@ view.displayUserList();
 view.onAddUserFormSubmit("Jane Smith", "jane@example.com", 28);
 view.displayUserList();
 ```
-
-
 
 ```python [python]
 from typing import Dict, List, Optional, Callable, TypeVar

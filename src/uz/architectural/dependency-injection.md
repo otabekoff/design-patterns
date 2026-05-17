@@ -6,7 +6,7 @@ icon: Wrench
 
 # Dependency Injection Pattern
 
-
+![Cover](/covers/architectural/dependency-injection.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -155,8 +155,6 @@ const mockDb: Database = {
 const testService = new UserService(mockLogger, mockDb);
 testService.getUsers();
 ```
-
-
 
 ```python [python]
 from abc import ABC, abstractmethod

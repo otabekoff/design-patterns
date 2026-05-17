@@ -4,9 +4,9 @@ description: Uses sharing to efficiently support large numbers of similar object
 icon: Minimize2
 ---
 
-![Flyweight Concept](/images/patterns/flyweight-2x.png)
-
 # Flyweight Pattern
+
+![Cover](/covers/structural/flyweight.png)
 
 ## Overview
 
@@ -171,12 +171,10 @@ console.log(`Unique flyweights: ${factory.count()}`);
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class SpriteFlyweight(ABC):
     @abstractmethod
     def render(self, x: int, y: int, color: str) -> None:
         pass
-
 
 class Sprite(SpriteFlyweight):
     def __init__(self, texture: str, width: int, height: int):
@@ -188,7 +186,6 @@ class Sprite(SpriteFlyweight):
         print(
             f"Rendering {self._texture} at ({x}, {y}) with {self._width}x{self._height} and color {color}"
         )
-
 
 class SpriteFactory:
     def __init__(self):
@@ -203,7 +200,6 @@ class SpriteFactory:
     def count(self) -> int:
         return len(self._sprites)
 
-
 class Particle:
     def __init__(self, sprite: SpriteFlyweight, context):
         self._sprite = sprite
@@ -211,7 +207,6 @@ class Particle:
 
     def draw(self) -> None:
         self._sprite.render(self._context["x"], self._context["y"], self._context["color"])
-
 
 class ParticleSystem:
     def __init__(self, factory: SpriteFactory):
@@ -225,7 +220,6 @@ class ParticleSystem:
     def render_all(self) -> None:
         for particle in self._particles:
             particle.draw()
-
 
 factory = SpriteFactory()
 system = ParticleSystem(factory)

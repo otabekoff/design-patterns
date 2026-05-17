@@ -6,7 +6,7 @@ icon: Table
 
 # Active Record Pattern
 
-
+![Cover](/covers/architectural/active-record.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -181,8 +181,6 @@ if (user.id) {
   loaded?.delete();
 }
 ```
-
-
 
 ```python [python]
 # Database Connection Mock

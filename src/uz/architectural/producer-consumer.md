@@ -6,7 +6,7 @@ icon: Play
 
 # Producer-Consumer (Ishlab chiqaruvchi-Iste'molchi)
 
-
+![Cover](/covers/architectural/producer-consumer.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -136,8 +136,6 @@ consumer.consume();
 
 console.log(`\nQueue size: ${queue.size()}`);
 ```
-
-
 
 ```python [python]
 from typing import TypeVar, Generic, List, Optional

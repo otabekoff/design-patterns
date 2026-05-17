@@ -6,7 +6,7 @@ icon: Split
 
 # Command Query Responsibility Segregation (CQRS)
 
-
+![Cover](/covers/architectural/cqrs.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -309,8 +309,6 @@ app.updateUser(1, "John Updated", "john.updated@example.com");
 console.log("\n=== Updated Query Results ===");
 console.log("User 1:", app.getUserById(1));
 ```
-
-
 
 ```python [python]
 from abc import ABC, abstractmethod

@@ -4,8 +4,9 @@ description: Creates families of related objects without specifying their concre
 icon: Boxes
 ---
 
-
 # Abstract Factory Pattern
+
+![Cover](/covers/creational/abstract-factory.png)
 
 ## Overview
 
@@ -126,7 +127,6 @@ The Abstract Factory pattern solves this by:
     const app = new Application(factory);
     app.render();
 ```
-
 
   
 ```python [python]

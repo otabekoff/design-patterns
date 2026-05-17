@@ -6,7 +6,7 @@ icon: BookOpen
 
 # Iterator
 
-
+![Cover](/covers/behavioral/iterator.png)
 
 ## Overview
 
@@ -220,7 +220,6 @@ function processCollection<T>(collection: Collection<T>) {
       console.log(filteredIterator.next());
     }
 ```
-
 
   
 ```python [python]

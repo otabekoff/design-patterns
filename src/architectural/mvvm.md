@@ -6,6 +6,8 @@ icon: Box
 
 # Model-View-ViewModel (MVVM)
 
+![Cover](/covers/architectural/mvvm.png)
+
 ## Overview
 
 The **Model-View-ViewModel (MVVM)** pattern is the architectural standard for modern, reactive user interfaces. It was originally created by Microsoft for WPF (Windows Presentation Foundation) but has since become the underlying philosophy for almost all modern frontend frameworks (Vue.js, Angular, SwiftUI, Jetpack Compose).

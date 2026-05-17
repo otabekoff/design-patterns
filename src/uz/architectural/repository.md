@@ -6,7 +6,7 @@ icon: Database
 
 # Repository (Ombor)
 
-
+![Cover](/covers/architectural/repository.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -285,8 +285,6 @@ async function main() {
 
 // main();
 ```
-
-
 
 ```python [python]
 from abc import ABC, abstractmethod

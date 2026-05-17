@@ -6,6 +6,8 @@ icon: Layers
 
 # Model-View-Controller (MVC)
 
+![Cover](/covers/architectural/mvc.png)
+
 ## Overview
 
 The **Model-View-Controller (MVC)** pattern is arguably the most famous architectural pattern in software engineering. Created in the 1970s for early graphical user interfaces (Smalltalk), it has since become the dominant architecture for backend web frameworks (Ruby on Rails, Spring Boot, ASP.NET MVC, Laravel).

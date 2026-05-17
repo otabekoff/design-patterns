@@ -6,6 +6,8 @@ icon: Layout
 
 # MVT (Model-View-Template)
 
+![Cover](/covers/architectural/mvt.png)
+
 ## Umumiy Tavsif
 
 **MVT (Model-View-Template)** — bu mashhur **MVC (Model-View-Controller)** namunasining biroz o'zgartirilgan varianti bo'lgan dasturiy ta'minot arxitektura namunasidir. U asosan **Django** veb-freymvorki tomonidan ishlatilishi bilan mashhur.

@@ -6,7 +6,7 @@ icon: BookMarked
 
 # Template Method
 
-
+![Cover](/covers/behavioral/template-method.png)
 
 ## Overview
 
@@ -166,7 +166,6 @@ class CSVProcessor extends DataProcessor {
     const macchiato = new MacchiatoCoffee();
     macchiato.brew();
 ```
-
 
   
 ```python [python]

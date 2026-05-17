@@ -6,6 +6,8 @@ icon: Layout
 
 # Model-View-Template (MVT)
 
+![Cover](/covers/architectural/mvt.png)
+
 ## Overview
 
 The **Model-View-Template (MVT)** pattern is a specific variation of the MVC pattern popularized by the **Django** Python web framework. It exists because the creators of Django had a slightly different philosophical interpretation of what a "View" should be.
@@ -90,7 +92,6 @@ class Article(models.Model):
         self.is_published = True
         self.save()
 
-
 # 2. THE VIEW (views.py)
 # Acts as the Controller: Handles HTTP Request, gets Model data, renders Template
 from django.shortcuts import render, get_object_or_404
@@ -108,7 +109,6 @@ def article_detail(request, article_id):
     
     # Return the rendered Template as an HTTP Response
     return render(request, 'blog/article_detail.html', context)
-
 
 # 3. THE URL DISPATCHER (urls.py)
 # The Framework's entry point that maps URLs to Views

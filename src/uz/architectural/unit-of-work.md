@@ -6,6 +6,8 @@ icon: Boxes
 
 # Unit of Work Pattern
 
+![Cover](/covers/architectural/unit-of-work.png)
+
 ## Umumiy Tavsif
 
 **Unit of Work** (Ish Birligi) namunasi — bu biznes tranzaksiyasi natijasida o'zgargan ob'ektlar ro'yxatini yurituvchi va o'zgarishlarni yozish hamda konkurensiya (bir vaqtning o'zida ishlash) muammolarini hal qilishni muvofiqlashtiruvchi arxitektura namunasidir.

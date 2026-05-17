@@ -6,6 +6,8 @@ icon: BookMarked
 
 # Dizayn Namunalari: Tezkor Ma'lumotnoma
 
+![Cover](/covers/getting-started/quick-reference.png)
+
 Ushbu sahifa ushbu hujjatda keltirilgan barcha 41 ta dizayn namunasi haqida qisqacha ma'lumot beradi.
 
 ## Creational Patterns (6) - Yaratuvchi Namunalar

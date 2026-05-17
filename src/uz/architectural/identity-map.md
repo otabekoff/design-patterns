@@ -6,6 +6,8 @@ icon: Fingerprint
 
 # Identity Map Pattern
 
+![Cover](/covers/architectural/identity-map.png)
+
 ## Umumiy Tavsif
 
 **Identity Map** (Identifikatsiya Xaritasi) namunasi — sessiya davomida har bir ma'lumotlar bazasi yozuvi xotirada bitta yagona ob'ekt nusxasiga yuklanishini ta'minlaydi. U ma'lumotlar bazasidan olingan ob'ektlar uchun kesh vazifasini bajaradi va bir xil yozuvning bir vaqtning o'zida bir nechta nusxalari mavjud bo'lishining oldini oladi.

@@ -4,9 +4,9 @@ description: Defines an interface for creating objects, allowing subclasses to d
 icon: Package
 ---
 
-![Factory Method Concept](/images/patterns/factory-method-2x.png)
-
 # Factory Method Pattern
+
+![Cover](/covers/creational/factory-method.png)
 
 ## Overview
 
@@ -259,7 +259,6 @@ class Document(ABC):
     def close(self) -> None:
         pass
 
-
 class PDFDocument(Document):
     """Concrete product: PDF document."""
 
@@ -271,7 +270,6 @@ class PDFDocument(Document):
 
     def close(self) -> None:
         print("Closing PDF document")
-
 
 class WordDocument(Document):
     """Concrete product: Word document."""
@@ -285,7 +283,6 @@ class WordDocument(Document):
     def close(self) -> None:
         print("Closing Word document")
 
-
 class ExcelDocument(Document):
     """Concrete product: Excel document."""
 
@@ -297,7 +294,6 @@ class ExcelDocument(Document):
 
     def close(self) -> None:
         print("Closing Excel document")
-
 
 class Application(ABC):
     """Creator: Abstract base class defining the factory method."""
@@ -319,20 +315,17 @@ class Application(ABC):
     def list_documents(self) -> None:
         print(f"Total documents: {len(self.documents)}")
 
-
 class PDFApplication(Application):
     """Concrete creator: Creates PDF documents."""
 
     def create_document(self) -> Document:
         return PDFDocument()
 
-
 class WordApplication(Application):
     """Concrete creator: Creates Word documents."""
 
     def create_document(self) -> Document:
         return WordDocument()
-
 
 # Usage
 if __name__ == "__main__":

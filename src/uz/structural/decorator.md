@@ -6,6 +6,8 @@ icon: Wand
 
 # Decorator Pattern
 
+![Cover](/covers/structural/decorator.png)
+
 ## Overview
 
 The Decorator Pattern is a structural design pattern that dynamically attaches additional responsibilities to objects. It provides a flexible alternative to subclassing for extending functionality by allowing you to "decorate" objects with new behavior at runtime.

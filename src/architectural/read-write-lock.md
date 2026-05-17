@@ -6,6 +6,8 @@ icon: Lock
 
 # Read-Write Lock Pattern
 
+![Cover](/covers/architectural/read-write-lock.png)
+
 ## Overview
 
 The **Read-Write Lock** pattern is a fundamental concurrency design pattern that optimizes access to shared resources in multi-threaded environments. Unlike a standard mutual exclusion lock (Mutex) which serializes all access, a Read-Write Lock distinguishes between read-only operations and modifying (write) operations. It allows multiple threads to read the resource simultaneously but strictly enforces that a write operation requires exclusive access.

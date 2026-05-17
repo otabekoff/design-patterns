@@ -4,9 +4,9 @@ description: Decouples an abstraction from its implementation so the two can var
 icon: Layers
 ---
 
-![Bridge Concept](/images/patterns/bridge-2x.png)
-
 # Bridge Pattern
+
+![Cover](/covers/structural/bridge.png)
 
 ## Overview
 
@@ -150,7 +150,6 @@ rectangle.draw();
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class Renderer(ABC):
     @abstractmethod
     def render_circle(self, radius: float) -> None:
@@ -160,7 +159,6 @@ class Renderer(ABC):
     def render_rectangle(self, width: float, height: float) -> None:
         pass
 
-
 class SvgRenderer(Renderer):
     def render_circle(self, radius: float) -> None:
         print(f"SVG circle with radius {radius}")
@@ -168,14 +166,12 @@ class SvgRenderer(Renderer):
     def render_rectangle(self, width: float, height: float) -> None:
         print(f"SVG rectangle {width}x{height}")
 
-
 class CanvasRenderer(Renderer):
     def render_circle(self, radius: float) -> None:
         print(f"Canvas circle with radius {radius}")
 
     def render_rectangle(self, width: float, height: float) -> None:
         print(f"Canvas rectangle {width}x{height}")
-
 
 class Shape(ABC):
     def __init__(self, renderer: Renderer):
@@ -185,7 +181,6 @@ class Shape(ABC):
     def draw(self) -> None:
         pass
 
-
 class Circle(Shape):
     def __init__(self, radius: float, renderer: Renderer):
         super().__init__(renderer)
@@ -193,7 +188,6 @@ class Circle(Shape):
 
     def draw(self) -> None:
         self._renderer.render_circle(self._radius)
-
 
 class Rectangle(Shape):
     def __init__(self, width: float, height: float, renderer: Renderer):
@@ -203,7 +197,6 @@ class Rectangle(Shape):
 
     def draw(self) -> None:
         self._renderer.render_rectangle(self._width, self._height)
-
 
 circle = Circle(10, SvgRenderer())
 rectangle = Rectangle(20, 12, CanvasRenderer())

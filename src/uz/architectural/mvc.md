@@ -6,7 +6,7 @@ icon: Layers
 
 # Model-View-Controller (MVC)
 
-
+![Cover](/covers/architectural/mvc.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -237,8 +237,6 @@ controller.handleUpdateUser(1, 'John Updated', 'john.updated@example.com', 31);
 controller.handleDeleteUser(2);
 controller.handleViewUsers();
 ```
-
-
 
 ```python [python]
 from typing import Dict, List, Optional

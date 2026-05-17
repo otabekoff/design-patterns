@@ -6,6 +6,8 @@ icon: Zap
 
 # Event Sourcing
 
+![Cover](/covers/architectural/event-sourcing.png)
+
 ## Overview
 
 **Event Sourcing** is a radical departure from traditional data storage. Instead of storing the *current state* of an entity in a database table, Event Sourcing stores **every state-changing event** that has ever occurred to that entity in an append-only log.

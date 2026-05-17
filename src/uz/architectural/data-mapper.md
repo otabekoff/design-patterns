@@ -6,7 +6,7 @@ icon: GitGraph
 
 # Data Mapper Pattern
 
-
+![Cover](/covers/architectural/data-mapper.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -181,8 +181,6 @@ if (found) {
   console.log(`Found: ${found.name} (${found.email})`);
 }
 ```
-
-
 
 ```python [python]
 from typing import Optional, List, Dict

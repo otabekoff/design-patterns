@@ -6,6 +6,8 @@ icon: Database
 
 # Object Pool Pattern
 
+![Cover](/covers/creational/object-pool.png)
+
 ## Overview
 
 The **Object Pool** pattern is a creational design pattern that manages a pool of reusable objects rather than creating new instances and destroying them on demand. Pre-initialized objects are kept in a pool and reused when needed, then returned to the pool.
@@ -360,7 +362,6 @@ class PooledConnection(Poolable):
     def get_age(self) -> float:
         return time() - self.created_at
 
-
 class ConnectionPool:
     def __init__(self, max_size: int = 10):
         self.available: List[PooledConnection] = []
@@ -425,7 +426,6 @@ class ConnectionPool:
             self.available.clear()
             self.in_use.clear()
         print("ConnectionPool: Drained")
-
 
 # Usage
 pool = ConnectionPool(5)

@@ -6,7 +6,7 @@ icon: ScrollText
 
 # Strategy
 
-
+![Cover](/covers/behavioral/strategy.png)
 
 ## Overview
 
@@ -198,7 +198,6 @@ class PaymentProcessor {
     sorter.setStrategy(new MergeSortStrategy());
     console.log('Sorted:', sorter.sort(data));
 ```
-
 
   
 ```python [python]

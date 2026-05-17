@@ -6,6 +6,8 @@ icon: Palette
 
 # Introduction to Design Patterns
 
+![Cover](/covers/getting-started/introduction.png)
+
 Design patterns are proven design approaches to recurring problems in software systems. They are not copy-and-paste solutions. Instead, they are reusable ideas that help you communicate design intent, structure code clearly, and make tradeoffs explicit.
 
 This guide focuses on how patterns are used in modern software teams: when they help, when they hurt, and how to implement them in a realistic way across different ecosystems.

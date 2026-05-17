@@ -6,6 +6,8 @@ icon: Wrench
 
 # Dependency Injection Pattern
 
+![Cover](/covers/architectural/dependency-injection.png)
+
 ## Overview
 
 **Dependency Injection (DI)** is a fundamental architectural pattern where an object or function receives the objects it depends on (its dependencies) from the outside, rather than creating them internally.

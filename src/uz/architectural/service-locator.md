@@ -6,7 +6,7 @@ icon: Settings
 
 # Service Locator
 
-
+![Cover](/covers/architectural/service-locator.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -176,8 +176,6 @@ const service = new UserService(locator);
 service.createUser("John Doe");
 service.getUsers();
 ```
-
-
 
 ```python [python]
 from typing import Dict, Callable, Any, TypeVar, Generic

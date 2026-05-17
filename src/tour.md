@@ -4,8 +4,9 @@ description: A guided tour of the Design Patterns documentation features
 icon: BookOpen
 ---
 
-
 # 📚 Documentation Tour
+
+![Cover](/covers/getting-started/tour.png)
 
 Welcome to the comprehensive Design Patterns documentation! Let me give you a tour of what's available and how to use it effectively.
 

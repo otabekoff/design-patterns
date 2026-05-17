@@ -6,6 +6,8 @@ icon: GitGraph
 
 # Data Mapper Pattern
 
+![Cover](/covers/architectural/data-mapper.png)
+
 ## Overview
 
 The **Data Mapper** pattern is an architectural data access pattern that moves all database interaction out of the domain objects and into a separate, dedicated layer. The domain objects become completely unaware that a database even exists.

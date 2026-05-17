@@ -4,9 +4,9 @@ description: Creates families of related objects without specifying their concre
 icon: Boxes
 ---
 
-![Abstract Factory Concept](/images/patterns/abstract-factory-2x.png)
-
 # Abstract Factory Pattern
+
+![Cover](/covers/creational/abstract-factory.png)
 
 ## Overview
 
@@ -237,7 +237,6 @@ console.log(app.render());
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class Button(ABC):
     @abstractmethod
     def click(self) -> None:
@@ -246,7 +245,6 @@ class Button(ABC):
     @abstractmethod
     def render(self) -> str:
         pass
-
 
 class Checkbox(ABC):
     @abstractmethod
@@ -257,7 +255,6 @@ class Checkbox(ABC):
     def render(self) -> str:
         pass
 
-
 class Scrollbar(ABC):
     @abstractmethod
     def scroll(self, delta: int) -> None:
@@ -267,14 +264,12 @@ class Scrollbar(ABC):
     def render(self) -> str:
         pass
 
-
 class WindowsButton(Button):
     def click(self) -> None:
         print("Windows button clicked")
 
     def render(self) -> str:
         return '<button style="windows">Click me</button>'
-
 
 class WindowsCheckbox(Checkbox):
     def toggle(self) -> None:
@@ -283,14 +278,12 @@ class WindowsCheckbox(Checkbox):
     def render(self) -> str:
         return '<input type="checkbox" style="windows">'
 
-
 class WindowsScrollbar(Scrollbar):
     def scroll(self, delta: int) -> None:
         print(f"Windows scrollbar scrolled by {delta}")
 
     def render(self) -> str:
         return '<scrollbar style="windows"></scrollbar>'
-
 
 class MacButton(Button):
     def click(self) -> None:
@@ -299,7 +292,6 @@ class MacButton(Button):
     def render(self) -> str:
         return '<button style="mac">Click me</button>'
 
-
 class MacCheckbox(Checkbox):
     def toggle(self) -> None:
         print("Mac checkbox toggled")
@@ -307,14 +299,12 @@ class MacCheckbox(Checkbox):
     def render(self) -> str:
         return '<input type="checkbox" style="mac">'
 
-
 class MacScrollbar(Scrollbar):
     def scroll(self, delta: int) -> None:
         print(f"Mac scrollbar scrolled by {delta}")
 
     def render(self) -> str:
         return '<scrollbar style="mac"></scrollbar>'
-
 
 class UIFactory(ABC):
     @abstractmethod
@@ -329,7 +319,6 @@ class UIFactory(ABC):
     def create_scrollbar(self) -> Scrollbar:
         pass
 
-
 class WindowsUIFactory(UIFactory):
     def create_button(self) -> Button:
         return WindowsButton()
@@ -339,7 +328,6 @@ class WindowsUIFactory(UIFactory):
 
     def create_scrollbar(self) -> Scrollbar:
         return WindowsScrollbar()
-
 
 class MacUIFactory(UIFactory):
     def create_button(self) -> Button:
@@ -351,7 +339,6 @@ class MacUIFactory(UIFactory):
     def create_scrollbar(self) -> Scrollbar:
         return MacScrollbar()
 
-
 class Application:
     def __init__(self, factory: UIFactory) -> None:
         self.factory = factory
@@ -362,7 +349,6 @@ class Application:
         scrollbar = self.factory.create_scrollbar()
 
         return f"{button.render()}\n{checkbox.render()}\n{scrollbar.render()}"
-
 
 if __name__ == "__main__":
     os_type = "mac"

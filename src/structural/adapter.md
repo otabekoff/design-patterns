@@ -4,9 +4,9 @@ description: Converts the interface of a class into another interface clients ex
 icon: Package
 ---
 
-![Adapter Concept](/images/patterns/adapter-2x.png)
-
 # Adapter Pattern
+
+![Cover](/covers/structural/adapter.png)
 
 ## Overview
 
@@ -232,19 +232,16 @@ httpAdapter.get("/api/users").then((data) => console.log("User data:", data));
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-
 class PaymentProcessor(ABC):
     @abstractmethod
     def process_payment(self, amount: float, card_data: str) -> None:
         pass
-
 
 class LegacyPaymentGateway:
     def charge_card(self, card_info: dict, cents: int) -> None:
         print(
             f"Legacy gateway: charging {cents} cents to card ending in {card_info['card_number'][-4:]}"
         )
-
 
 class PaymentGatewayAdapter(PaymentProcessor):
     def __init__(self, legacy_gateway: LegacyPaymentGateway):
@@ -262,7 +259,6 @@ class PaymentGatewayAdapter(PaymentProcessor):
             raise ValueError("Invalid card data")
         return {"card_number": card_number, "cvv": cvv}
 
-
 class CheckoutService:
     def __init__(self, processor: PaymentProcessor):
         self._processor = processor
@@ -272,13 +268,11 @@ class CheckoutService:
         self._processor.process_payment(amount, card_data)
         print("Payment processed successfully")
 
-
 @dataclass
 class LegacyWeatherApiResponse:
     temp_c: float
     condition: str
     humidity: int
-
 
 class WeatherData(ABC):
     @property
@@ -291,7 +285,6 @@ class WeatherData(ABC):
     def description(self) -> str:
         pass
 
-
 class WeatherApiAdapter(WeatherData):
     def __init__(self, response: LegacyWeatherApiResponse):
         self._response = response
@@ -303,7 +296,6 @@ class WeatherApiAdapter(WeatherData):
     @property
     def description(self) -> str:
         return self._response.condition
-
 
 checkout = CheckoutService(PaymentGatewayAdapter(LegacyPaymentGateway()))
 checkout.checkout(99.99, "4111111111111111|123")

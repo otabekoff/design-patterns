@@ -6,6 +6,8 @@ icon: CircleDot
 
 # Singleton patterni
 
+![Cover](/covers/creational/singleton.png)
+
 ## Sharh
 
 Singleton patterni — bu yaratuvchi (creational) dizayn patterni bo'lib, u klassning instansiya qilinishini faqat bitta obyekt bilan cheklaydi. U ushbu instansiyaga global kirish nuqtasini taqdim etadi.

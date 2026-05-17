@@ -6,6 +6,8 @@ icon: Clock
 
 # Scheduler Pattern
 
+![Cover](/covers/architectural/scheduler.png)
+
 ## Overview
 
 The **Scheduler** pattern is a fundamental system-level architectural pattern. It manages a pool of pending tasks and determines exactly **when** and **in what order** they should be executed by worker threads or processes.

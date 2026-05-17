@@ -6,6 +6,8 @@ icon: BookMarked
 
 # Design Patterns Quick Reference Guide
 
+![Cover](/covers/getting-started/quick-reference.png)
+
 This page provides a quick reference for all 41 design patterns covered in this documentation.
 
 ## Creational Patterns (6)

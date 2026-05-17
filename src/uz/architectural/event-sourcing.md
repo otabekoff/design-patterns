@@ -6,7 +6,7 @@ icon: Zap
 
 # Event Sourcing
 
-
+![Cover](/covers/architectural/event-sourcing.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -240,8 +240,6 @@ console.log("\n=== Replay to Rebuild State ===");
 const replayedUser = repository.getById("user-1");
 console.log(replayedUser.getState());
 ```
-
-
 
 ```python [python]
 from abc import ABC, abstractmethod

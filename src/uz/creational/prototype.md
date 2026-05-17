@@ -4,8 +4,9 @@ description: Creates new objects by cloning an existing object.
 icon: Copy
 ---
 
-
 # Prototype Pattern
+
+![Cover](/covers/creational/prototype.png)
 
 ## Overview
 
@@ -105,7 +106,6 @@ The Prototype pattern solves this by:
     console.log(cloned.radius); // 10
     console.log(original === cloned); // false
 ```
-
 
   
 ```python [python]

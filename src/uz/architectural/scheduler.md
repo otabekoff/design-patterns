@@ -6,7 +6,7 @@ icon: Clock
 
 # Scheduler (Rejalashtiruvchi)
 
-
+![Cover](/covers/architectural/scheduler.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -156,8 +156,6 @@ scheduler.schedule({
 
 console.log(`\nPending tasks: ${scheduler.getPendingCount()}`);
 ```
-
-
 
 ```python [python]
 from typing import Callable, List

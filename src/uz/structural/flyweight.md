@@ -6,7 +6,7 @@ icon: Minimize2
 
 # Flyweight Pattern
 
-
+![Cover](/covers/structural/flyweight.png)
 
 ## Overview
 
@@ -317,7 +317,6 @@ particleSystem.emitExplosion(200, 200, 1000);
 particleSystem.render();
 particleSystem.getStatistics();
 ```
-
 
   
 ```python [python]

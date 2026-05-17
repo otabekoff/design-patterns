@@ -6,7 +6,7 @@ icon: Users
 
 # Mediator
 
-
+![Cover](/covers/behavioral/mediator.png)
 
 ## Overview
 
@@ -180,7 +180,6 @@ class LoginDialogMediator implements Mediator {
     user2.send('Hi Alice!');
     admin.send('Welcome to chat room!');
 ```
-
 
   
 ```python [python]

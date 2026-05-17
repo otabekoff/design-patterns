@@ -6,6 +6,8 @@ icon: Brackets
 
 # Interpreter Pattern
 
+![Cover](/covers/behavioral/interpreter.png)
+
 ## Overview
 
 The **Interpreter** pattern is a behavioral design pattern that defines a grammatical representation for a language and provides an interpreter to deal with this grammar. It is primarily used to evaluate sentences or expressions in a language by representing them as an Abstract Syntax Tree (AST).

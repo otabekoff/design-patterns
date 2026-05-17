@@ -4,9 +4,9 @@ description: Provides a surrogate or placeholder for another object to control a
 icon: Shield
 ---
 
-![Proxy Concept](/images/patterns/proxy-2x.png)
-
 # Proxy Pattern
+
+![Cover](/covers/structural/proxy.png)
 
 ## Overview
 
@@ -156,7 +156,6 @@ const deniedDoc = new ProtectedDocumentProxy(
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class DocumentSource(ABC):
     @abstractmethod
     def get_content(self) -> str:
@@ -165,7 +164,6 @@ class DocumentSource(ABC):
     @abstractmethod
     def display(self) -> None:
         pass
-
 
 class RealDocument(DocumentSource):
     def __init__(self, filename: str):
@@ -182,12 +180,10 @@ class RealDocument(DocumentSource):
     def display(self) -> None:
         print(self._content)
 
-
 class User:
     def __init__(self, name: str, role: str):
         self.name = name
         self.role = role
-
 
 class ProtectedDocumentProxy(DocumentSource):
     def __init__(self, filename: str, current_user: User, required_role: str):
@@ -217,7 +213,6 @@ class ProtectedDocumentProxy(DocumentSource):
 
         self._ensure_loaded()
         self._real_document.display()
-
 
 admin = User("Alice", "admin")
 guest = User("Bob", "guest")

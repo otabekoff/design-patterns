@@ -4,9 +4,9 @@ description: Creates new objects by cloning an existing object prototype rather 
 icon: Copy
 ---
 
-![Prototype Concept](/images/patterns/prototype-2x.png)
-
 # Prototype Pattern
+
+![Cover](/covers/creational/prototype.png)
 
 ## Overview
 
@@ -265,7 +265,6 @@ class GameCharacter(Prototype):
         return (f"GameCharacter(name={self.name}, "
                 f"health={self.health}, mana={self.mana})")
 
-
 class CharacterFactory:
     def __init__(self):
         self._prototypes: Dict[str, GameCharacter] = {}
@@ -278,7 +277,6 @@ class CharacterFactory:
         if not prototype:
             raise ValueError(f"Unknown prototype: {prototype_name}")
         return prototype.deep_clone()
-
 
 # Usage
 warrior = GameCharacter(

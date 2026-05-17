@@ -6,7 +6,7 @@ icon: Command
 
 # Command
 
-
+![Cover](/covers/behavioral/command.png)
 
 ## Overview
 
@@ -269,7 +269,6 @@ class TextEditor {
     editor.redo(); // Adds " World" back
     console.log(document.getText()); // "Hello World"
 ```
-
 
   
 ```python [python]

@@ -4,8 +4,9 @@ description: Birgalikda o'qishga ruxsat beradi, lekin umumiy resursga yozishni b
 icon: Lock
 ---
 
-
 # Read-Write Lock Pattern
+
+![Cover](/covers/architectural/read-write-lock.png)
 
 ## Umumiy ko'rinish (Overview)
 

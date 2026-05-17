@@ -4,8 +4,9 @@ description: Dizayn patternlari hujjatlari imkoniyatlari bo'yicha qo'llanma
 icon: BookOpen
 ---
 
-
 # 📚 Qo'llanma bo'ylab sayohat
+
+![Cover](/covers/getting-started/tour.png)
 
 Dizayn patternlari bo'yicha keng qamrovli qo'llanmaga xush kelibsiz! Keling, sizga nimalar mavjudligi va ulardan qanday samarali foydalanish bo'yicha sayohat uyushtiramiz.
 

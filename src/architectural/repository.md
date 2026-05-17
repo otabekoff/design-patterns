@@ -6,6 +6,8 @@ icon: Database
 
 # Repository Pattern
 
+![Cover](/covers/architectural/repository.png)
+
 ## Overview
 
 The **Repository Pattern** is an architectural pattern that sits between the domain/business logic and the data mapping layer. It provides an abstraction of data access, allowing the business logic to treat the database as if it were a simple, in-memory collection of objects.

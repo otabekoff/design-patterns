@@ -6,7 +6,7 @@ icon: Users
 
 # Model-View-Presenter (MVP)
 
-
+![Cover](/covers/architectural/mvp.png)
 
 ## Umumiy ko'rinish (Overview)
 
@@ -262,8 +262,6 @@ view.onAddUserClick((name, email, age) => {
   view.displayUsers(model.getAllUsers());
 });
 ```
-
-
 
 ```python [python]
 from typing import Dict, List, Optional, Callable

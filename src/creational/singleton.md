@@ -6,6 +6,8 @@ icon: CircleDot
 
 # Singleton Pattern
 
+![Cover](/covers/creational/singleton.png)
+
 ![Singleton Concept](/images/patterns/singleton-2x.png)
 
 ## Overview
@@ -173,7 +175,6 @@ class SingletonMeta(type):
                     cls._instances[cls] = instance
         return cls._instances[cls]
 
-
 class Database(metaclass=SingletonMeta):
     """Thread-safe singleton database connection."""
 
@@ -190,7 +191,6 @@ class Database(metaclass=SingletonMeta):
         if not self.connected:
             raise RuntimeError('Not connected')
         print(f'Database: Executing SQL: {sql}')
-
 
 # Usage
 db1 = Database()  # "Database: Creating instance..."

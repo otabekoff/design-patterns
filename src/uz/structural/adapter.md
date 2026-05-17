@@ -6,6 +6,8 @@ icon: Package
 
 # Adapter Pattern
 
+![Cover](/covers/structural/adapter.png)
+
 ## Overview
 
 The Adapter Pattern is a structural design pattern that allows incompatible interfaces to collaborate. It acts as a bridge between two incompatible interfaces by converting the interface of a class into another interface that clients expect.

@@ -6,6 +6,8 @@ icon: Table
 
 # Active Record Pattern
 
+![Cover](/covers/architectural/active-record.png)
+
 ## Overview
 
 The **Active Record** pattern is an architectural data access pattern where a class wraps a single row in a database table or view, encapsulates the database access, and adds domain logic to that data. An Active Record object knows how to load, save, and delete itself from the database.

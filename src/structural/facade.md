@@ -4,9 +4,9 @@ description: Provides a unified, simplified interface to a set of interfaces in 
 icon: Zap
 ---
 
-![Facade Concept](/images/patterns/facade-2x.png)
-
 # Facade Pattern
+
+![Cover](/covers/structural/facade.png)
 
 ## Overview
 
@@ -146,27 +146,22 @@ class PricingService:
     def calculate_total(self, items):
         return sum(item["price"] * item["quantity"] for item in items)
 
-
 class InventoryService:
     def reserve(self, items):
         print(f"Reserving {len(items)} line items")
-
 
 class PaymentService:
     def authorize(self, amount, card_token):
         print(f"Authorizing payment for ${amount:.2f}")
         return f"auth_{int(amount * 100)}"
 
-
 class OrderRepository:
     def save(self, order_id, amount, auth_code):
         print(f"Saving order {order_id} with auth {auth_code}")
 
-
 class NotificationService:
     def send_order_confirmation(self, order_id):
         print(f"Sending confirmation for {order_id}")
-
 
 class CheckoutFacade:
     def __init__(self, pricing, inventory, payment, orders, notifications):
@@ -182,7 +177,6 @@ class CheckoutFacade:
         auth_code = self._payment.authorize(total, card_token)
         self._orders.save(order_id, total, auth_code)
         self._notifications.send_order_confirmation(order_id)
-
 
 checkout = CheckoutFacade(
     PricingService(),

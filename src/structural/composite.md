@@ -4,9 +4,9 @@ description: Composes objects into tree structures and lets clients treat indivi
 icon: GitBranch
 ---
 
-![Composite Concept](/images/patterns/composite-2x.png)
-
 # Composite Pattern
+
+![Cover](/covers/structural/composite.png)
 
 ## Overview
 
@@ -180,7 +180,6 @@ console.log(page.render());
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class ContentNode(ABC):
     @abstractmethod
     def get_title(self) -> str:
@@ -189,7 +188,6 @@ class ContentNode(ABC):
     @abstractmethod
     def render(self) -> str:
         pass
-
 
 class TextBlock(ContentNode):
     def __init__(self, title: str, text: str):
@@ -202,7 +200,6 @@ class TextBlock(ContentNode):
     def render(self) -> str:
         return f"<p>{self._text}</p>"
 
-
 class ImageBlock(ContentNode):
     def __init__(self, title: str, src: str):
         self._title = title
@@ -213,7 +210,6 @@ class ImageBlock(ContentNode):
 
     def render(self) -> str:
         return f'<img alt="{self._title}" src="{self._src}" />'
-
 
 class Section(ContentNode):
     def __init__(self, title: str):
@@ -242,7 +238,6 @@ class Section(ContentNode):
                 titles.extend(child.list_titles()[1:])
         return titles
 
-
 class Page(ContentNode):
     def __init__(self, title: str):
         self._title = title
@@ -257,7 +252,6 @@ class Page(ContentNode):
     def render(self) -> str:
         body = "\n".join(child.render() for child in self._children)
         return f"<!doctype html><html><body><main><h1>{self._title}</h1>{body}</main></body></html>"
-
 
 page = Page("Design Patterns Handbook")
 intro = Section("Introduction")

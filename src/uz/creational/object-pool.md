@@ -4,8 +4,9 @@ description: Reuses a set of initialized objects rather than creating and destro
 icon: Database
 ---
 
-
 # Object Pool Pattern
+
+![Cover](/covers/creational/object-pool.png)
 
 ## Overview
 
@@ -133,7 +134,6 @@ The Object Pool pattern solves this by:
 
     console.log(pool.getStatus()); // Available: 5, In Use: 0
 ```
-
 
   
 ```python [python]

@@ -6,7 +6,7 @@ icon: Link
 
 # Chain of Responsibility
 
-
+![Cover](/covers/behavioral/chain-of-responsibility.png)
 
 ## Overview
 
@@ -190,7 +190,6 @@ class ErrorHandler extends Handler {
       timestamp: new Date(),
     });
 ```
-
 
   
 ```python [python]

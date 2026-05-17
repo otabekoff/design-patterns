@@ -6,6 +6,8 @@ icon: Boxes
 
 # Unit of Work Pattern
 
+![Cover](/covers/architectural/unit-of-work.png)
+
 ## Overview
 
 The **Unit of Work** pattern is an architectural pattern that tracks all changes made to a set of objects during a business transaction. At the end of the transaction, it coordinates the writing out of all changes (inserts, updates, and deletes) to the database in one single, atomic batch.

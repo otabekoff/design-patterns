@@ -6,7 +6,7 @@ icon: Shield
 
 # Proxy Pattern
 
-
+![Cover](/covers/structural/proxy.png)
 
 ## Overview
 
@@ -332,7 +332,6 @@ console.log(`  ${img.getWidth()}x${img.getHeight()}`);
 console.log(`\nRendering specific image (triggers loading):`);
 images[1].render();
 ```
-
 
   
 ```python [python]

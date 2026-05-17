@@ -6,7 +6,7 @@ icon: Brackets
 
 # Interpreter
 
-
+![Cover](/covers/behavioral/interpreter.png)
 
 ## Overview
 
@@ -268,7 +268,6 @@ class MultiplyExpression implements Expression {
     const expr2 = parser.parse('(x - y) * 2');
     console.log(expr2.interpret(context)); // 10
 ```
-
 
   
 ```python [python]

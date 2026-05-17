@@ -6,6 +6,8 @@ icon: GitBranch
 
 # Composite Pattern
 
+![Cover](/covers/structural/composite.png)
+
 ## Overview
 
 The Composite Pattern is a structural design pattern that allows you to compose objects into tree structures to represent part-whole hierarchies. It lets clients treat individual objects and compositions of objects uniformly, creating recursive tree structures.

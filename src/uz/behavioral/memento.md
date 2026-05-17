@@ -6,7 +6,7 @@ icon: History
 
 # Memento
 
-
+![Cover](/covers/behavioral/memento.png)
 
 ## Overview
 
@@ -220,7 +220,6 @@ class EditorHistory {
     history.redo(editor);
     console.log(`After redo: ${editor.getContent()}`); // Hello World
 ```
-
 
   
 ```python [python]

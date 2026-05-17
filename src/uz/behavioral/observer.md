@@ -6,7 +6,7 @@ icon: Bell
 
 # Observer
 
-
+![Cover](/covers/behavioral/observer.png)
 
 ## Overview
 
@@ -246,7 +246,6 @@ class DataModel implements Subject {
     stock.detach(alert);
     stock.setPrice(110);
 ```
-
 
   
 ```python [python]

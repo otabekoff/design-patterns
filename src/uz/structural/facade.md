@@ -6,7 +6,7 @@ icon: Zap
 
 # Facade Pattern
 
-
+![Cover](/covers/structural/facade.png)
 
 ## Overview
 
@@ -393,7 +393,6 @@ framework.handleUserLogout('john_doe');
 const logger = framework.getLogger();
 logger.error('Custom error message');
 ```
-
 
   
 ```python [python]

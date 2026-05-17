@@ -6,6 +6,8 @@ icon: Fingerprint
 
 # Identity Map Pattern
 
+![Cover](/covers/architectural/identity-map.png)
+
 ## Overview
 
 The **Identity Map** pattern is a critical architectural pattern that ensures that every row loaded from a database is instantiated into exactly **one** object in memory. It acts as an internal cache—a map—where the keys are the database IDs, and the values are the in-memory object instances.

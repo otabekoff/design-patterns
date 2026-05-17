@@ -6,6 +6,8 @@ icon: Settings
 
 # Service Locator Pattern
 
+![Cover](/covers/architectural/service-locator.png)
+
 ## Overview
 
 The **Service Locator** pattern introduces a centralized registry—the "Locator"—that knows how to create or retrieve all the services an application needs. Instead of classes having their dependencies handed to them (like in Dependency Injection), classes actively ask the Service Locator for the dependencies they need.

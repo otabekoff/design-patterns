@@ -4,9 +4,9 @@ description: Dynamically adds responsibilities to objects by wrapping them in de
 icon: Wand
 ---
 
-![Decorator Concept](/images/patterns/decorator-2x.png)
-
 # Decorator Pattern
+
+![Cover](/covers/structural/decorator.png)
 
 ## Overview
 
@@ -139,22 +139,18 @@ client.fetch("/users");
 ```python [python]
 from abc import ABC, abstractmethod
 
-
 class ApiClient(ABC):
     @abstractmethod
     def fetch(self, path: str) -> str:
         pass
 
-
 class HttpApiClient(ApiClient):
     def fetch(self, path: str) -> str:
         return f"response from {path}"
 
-
 class ApiClientDecorator(ApiClient):
     def __init__(self, client: ApiClient):
         self._client = client
-
 
 class LoggingDecorator(ApiClientDecorator):
     def fetch(self, path: str) -> str:
@@ -162,7 +158,6 @@ class LoggingDecorator(ApiClientDecorator):
         result = self._client.fetch(path)
         print(f"[LOG] received {result}")
         return result
-
 
 class CachingDecorator(ApiClientDecorator):
     def __init__(self, client: ApiClient):
@@ -176,7 +171,6 @@ class CachingDecorator(ApiClientDecorator):
         result = self._client.fetch(path)
         self._cache[path] = result
         return result
-
 
 class RetryDecorator(ApiClientDecorator):
     def __init__(self, client: ApiClient, max_retries: int = 3):
@@ -192,7 +186,6 @@ class RetryDecorator(ApiClientDecorator):
                 last_error = error
                 print(f"[RETRY] attempt {attempt} failed")
         raise last_error
-
 
 client = LoggingDecorator(RetryDecorator(CachingDecorator(HttpApiClient())))
 print(client.fetch("/users"))

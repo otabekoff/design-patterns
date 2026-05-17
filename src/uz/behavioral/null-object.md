@@ -6,7 +6,7 @@ icon: Circle
 
 # Null Object
 
-
+![Cover](/covers/behavioral/null-object.png)
 
 ## Overview
 
@@ -206,7 +206,6 @@ class Order {
     appWithoutLogger.setLogger(new ConsoleLogger());
     appWithoutLogger.run();
 ```
-
 
   
 ```python [python]

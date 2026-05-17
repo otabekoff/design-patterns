@@ -4,9 +4,9 @@ description: Encapsulate a request as an object, thereby letting you parameteriz
 icon: Command
 ---
 
-![Command Concept](/images/patterns/command-2x.png)
-
 # Command Pattern
+
+![Cover](/covers/behavioral/command.png)
 
 ## Overview
 
@@ -276,7 +276,6 @@ class InsertTextCommand(Command):
 
     def undo(self):
         self.doc.delete(self.position, len(self.text))
-
 
 class DeleteTextCommand(Command):
     def __init__(self, doc: TextDocument, position: int, length: int):

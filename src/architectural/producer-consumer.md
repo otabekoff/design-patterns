@@ -6,6 +6,8 @@ icon: Play
 
 # Producer-Consumer Pattern
 
+![Cover](/covers/architectural/producer-consumer.png)
+
 ## Overview
 
 The **Producer-Consumer** pattern is a fundamental concurrency and architectural design pattern. It separates the code that generates data (the **Producer**) from the code that processes that data (the **Consumer**) by placing an intermediate **Queue** or **Buffer** between them.

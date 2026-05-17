@@ -6,7 +6,7 @@ icon: GitBranch
 
 # Visitor
 
-
+![Cover](/covers/behavioral/visitor.png)
 
 ## Overview
 
@@ -203,7 +203,6 @@ class CompileVisitor implements Visitor {
     shapes.forEach(shape => shape.accept(perimeterCalculator));
     console.log(`Total perimeter: ${perimeterCalculator.getTotalPerimeter().toFixed(2)}`);
 ```
-
 
   
 ```python [python]

@@ -6,6 +6,8 @@ icon: Circle
 
 # Null Object Pattern
 
+![Cover](/covers/behavioral/null-object.png)
+
 ## Overview
 
 The **Null Object** pattern is a behavioral design pattern that provides a safe, no-op (no operation) surrogate for a missing collaborator. Instead of relying on `null` or `nil` values and scattering defensive `if (object != null)` checks throughout your codebase, you inject a Null Object that implements the exact same interface as the real object but does nothing.

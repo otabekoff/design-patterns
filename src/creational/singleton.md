@@ -4,9 +4,9 @@ description: Ensures a class has only one instance and provides a global access 
 icon: CircleDot
 ---
 
-![Singleton Concept](/images/patterns/singleton.png)
-
 # Singleton Pattern
+
+![Singleton Concept](/images/patterns/singleton.png)
 
 ## Overview
 

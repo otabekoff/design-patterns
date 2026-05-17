@@ -4,6 +4,8 @@ description: Define a family of algorithms, encapsulate each one, and make them 
 icon: ScrollText
 ---
 
+![Strategy Concept](/images/patterns/strategy-mini.png)
+
 # Strategy Pattern
 
 ## Overview

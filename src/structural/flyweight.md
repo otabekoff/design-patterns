@@ -4,6 +4,8 @@ description: Uses sharing to efficiently support large numbers of similar object
 icon: Minimize2
 ---
 
+![Flyweight Concept](/images/patterns/flyweight-mini.png)
+
 # Flyweight Pattern
 
 ## Overview

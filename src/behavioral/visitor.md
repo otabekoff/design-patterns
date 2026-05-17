@@ -4,6 +4,8 @@ description: Represent an operation to be performed on elements of an object str
 icon: GitBranch
 ---
 
+![Visitor Concept](/images/patterns/visitor-mini.png)
+
 # Visitor Pattern
 
 ## Overview

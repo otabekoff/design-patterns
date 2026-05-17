@@ -4,6 +4,8 @@ description: Capture and externalize an object's internal state without violatin
 icon: History
 ---
 
+![Memento Concept](/images/patterns/memento-mini.png)
+
 # Memento Pattern
 
 ## Overview

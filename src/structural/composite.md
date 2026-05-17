@@ -4,6 +4,8 @@ description: Composes objects into tree structures and lets clients treat indivi
 icon: GitBranch
 ---
 
+![Composite Concept](/images/patterns/composite-mini.png)
+
 # Composite Pattern
 
 ## Overview

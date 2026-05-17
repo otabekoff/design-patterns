@@ -4,6 +4,8 @@ description: Define a one-to-many dependency between objects. When one object ch
 icon: Bell
 ---
 
+![Observer Concept](/images/patterns/observer-mini.png)
+
 # Observer Pattern
 
 ## Overview

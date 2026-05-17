@@ -4,6 +4,8 @@ description: Defines an interface for creating objects, allowing subclasses to d
 icon: Package
 ---
 
+![Factory Method Concept](/images/patterns/factory-method-mini.png)
+
 # Factory Method Pattern
 
 ## Overview

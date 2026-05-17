@@ -4,6 +4,8 @@ description: Provides a surrogate or placeholder for another object to control a
 icon: Shield
 ---
 
+![Proxy Concept](/images/patterns/proxy-mini.png)
+
 # Proxy Pattern
 
 ## Overview

@@ -4,6 +4,8 @@ description: Centralizes complex communication between objects so they do not ne
 icon: Users
 ---
 
+![Mediator Concept](/images/patterns/mediator-mini.png)
+
 # Mediator Pattern
 
 ## Overview

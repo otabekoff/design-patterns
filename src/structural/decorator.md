@@ -4,6 +4,8 @@ description: Dynamically adds responsibilities to objects by wrapping them in de
 icon: Wand
 ---
 
+![Decorator Concept](/images/patterns/decorator-mini.png)
+
 # Decorator Pattern
 
 ## Overview

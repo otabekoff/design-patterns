@@ -4,6 +4,8 @@ description: Provides a unified, simplified interface to a set of interfaces in 
 icon: Zap
 ---
 
+![Facade Concept](/images/patterns/facade-mini.png)
+
 # Facade Pattern
 
 ## Overview

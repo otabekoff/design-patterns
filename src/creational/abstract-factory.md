@@ -4,6 +4,8 @@ description: Creates families of related objects without specifying their concre
 icon: Boxes
 ---
 
+![Abstract Factory Concept](/images/patterns/abstract-factory-mini.png)
+
 # Abstract Factory Pattern
 
 ## Overview

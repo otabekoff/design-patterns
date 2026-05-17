@@ -31,10 +31,14 @@ const showOverlay = ref(false);
 
     <Transition name="fade-slide">
       <div class="cover-overlay" v-if="showOverlay" @click="showOverlay = false">
+        <button 
+          class="close-btn" 
+          @click.stop="showOverlay = false" 
+          title="Close Overlay"
+        >
+          <X :size="18" />
+        </button>
         <div class="overlay-content" @click.stop>
-          <button class="close-btn" @click="showOverlay = false">
-            <X :size="18" />
-          </button>
           <slot />
         </div>
       </div>
@@ -141,23 +145,26 @@ const showOverlay = ref(false);
 
 .close-btn {
   position: absolute;
-  top: -48px;
-  background: rgba(255, 255, 255, 0.1);
+  top: 16px;
+  right: 16px;
+  background: rgba(20, 20, 20, 0.65);
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.25s ease;
+  z-index: 30;
 }
 
 .close-btn:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
+  transform: scale(1.05) rotate(90deg);
 }
 
 /* Slotted elements styling */

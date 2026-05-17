@@ -393,14 +393,15 @@ div[class*="language-"] > button.copy.copied {
 
 .vp-doc img[alt="Cover"] {
   display: block;
-  width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
   background-color: var(--vp-c-bg-soft);
+  width: 680px;
+  max-width: 100%;
 }
 
 .vp-doc p:has(img[alt="Cover"]) {
-  margin-top: 0;
+  margin-top: 20px;
   margin-bottom: 24px;
 }
 

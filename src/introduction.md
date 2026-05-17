@@ -219,11 +219,104 @@ These patterns focus on collaboration, communication, and responsibility distrib
 
 Architectural patterns deal with system structure, data flow, and interaction boundaries.
 
-- [**MVC**](/architectural/mvc): Model-View-Controller
-- [**MVP**](/architectural/mvp): Model-View-Presenter
-- [**MVVM**](/architectural/mvvm): Model-View-ViewModel
-- [**CQRS**](/architectural/cqrs): Command Query Responsibility Segregation
-- [**Repository**](/architectural/repository): Mediates between domain and data mapping layers
+<Cards>
+  <Card
+    title="Active Record"
+    description="Wraps a database table row in an object, combining data and behavior"
+    href="/architectural/active-record"
+    image="/cards/active-record.png"
+  />
+  <Card
+    title="CQRS"
+    description="Separates read (query) and write (command) operations to optimize performance"
+    href="/architectural/cqrs"
+    image="/cards/cqrs.png"
+  />
+  <Card
+    title="Data Mapper"
+    description="Decouples in-memory domain objects from the database schema"
+    href="/architectural/data-mapper"
+    image="/cards/data-mapper.png"
+  />
+  <Card
+    title="Dependency Injection"
+    description="Passes dependent objects automatically instead of hardcoding them"
+    href="/architectural/dependency-injection"
+    image="/cards/dependency-injection.png"
+  />
+  <Card
+    title="Event Sourcing"
+    description="Saves application state changes as a sequence of events"
+    href="/architectural/event-sourcing"
+    image="/cards/event-sourcing.png"
+  />
+  <Card
+    title="Identity Map"
+    description="Ensures each database record is loaded only once per business transaction"
+    href="/architectural/identity-map"
+    image="/cards/identity-map.png"
+  />
+  <Card
+    title="MVC"
+    description="Separates application logic into Model, View, and Controller"
+    href="/architectural/mvc"
+    image="/cards/mvc.png"
+  />
+  <Card
+    title="MVP"
+    description="Presenter handles user interface logic and coordinates View updates"
+    href="/architectural/mvp"
+    image="/cards/mvp.png"
+  />
+  <Card
+    title="MVT"
+    description="Separates application into Model, View, and Template layers"
+    href="/architectural/mvt"
+    image="/cards/mvt.png"
+  />
+  <Card
+    title="MVVM"
+    description="Binds user interface to a reactive View Model"
+    href="/architectural/mvvm"
+    image="/cards/mvvm.png"
+  />
+  <Card
+    title="Producer-Consumer"
+    description="Decouples work producing threads from work consuming threads"
+    href="/architectural/producer-consumer"
+    image="/cards/producer-consumer.png"
+  />
+  <Card
+    title="Read-Write Lock"
+    description="Allows concurrent read access while ensuring exclusive write locks"
+    href="/architectural/read-write-lock"
+    image="/cards/read-write-lock.png"
+  />
+  <Card
+    title="Repository"
+    description="Mediates between domain and data mapping layers using a collection-like interface"
+    href="/architectural/repository"
+    image="/cards/repository.png"
+  />
+  <Card
+    title="Scheduler"
+    description="Controls execution scheduling of thread tasks"
+    href="/architectural/scheduler"
+    image="/cards/scheduler.png"
+  />
+  <Card
+    title="Service Locator"
+    description="Locates and resolves dependencies from a central registry"
+    href="/architectural/service-locator"
+    image="/cards/service-locator.png"
+  />
+  <Card
+    title="Unit of Work"
+    description="Maintains a list of business objects affected by a business transaction"
+    href="/architectural/unit-of-work"
+    image="/cards/unit-of-work.png"
+  />
+</Cards>
 
 ## Modern Perspective
 

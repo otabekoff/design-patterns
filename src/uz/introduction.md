@@ -189,6 +189,42 @@ Tizim tuzilishi va ko'p oqimli ishlov berish uchun yuqori darajadagi patternlar.
 
 <Cards>
   <Card
+    title="Active Record"
+    description="Ma'lumotlar bazasi qatorini obyekt bilan o'raydi"
+    href="/architectural/active-record"
+    image="/cards/active-record.png"
+  />
+  <Card
+    title="CQRS"
+    description="O'qish va yozish operatsiyalarini ajratadi"
+    href="/architectural/cqrs"
+    image="/cards/cqrs.png"
+  />
+  <Card
+    title="Data Mapper"
+    description="Xotiradagi obyektlarni ma'lumotlar bazasidan ajratadi"
+    href="/architectural/data-mapper"
+    image="/cards/data-mapper.png"
+  />
+  <Card
+    title="Dependency Injection"
+    description="Bog'liqliklarni obyektlarga uzatadi"
+    href="/architectural/dependency-injection"
+    image="/cards/dependency-injection.png"
+  />
+  <Card
+    title="Event Sourcing"
+    description="Holatni voqealar ketma-ketligi sifatida saqlaydi"
+    href="/architectural/event-sourcing"
+    image="/cards/event-sourcing.png"
+  />
+  <Card
+    title="Identity Map"
+    description="Biznes tranzaksiyasi davomida har bir yozuvni faqat bir marta yuklaydi"
+    href="/architectural/identity-map"
+    image="/cards/identity-map.png"
+  />
+  <Card
     title="MVC"
     description="Model, view va controllerni ajratadi"
     href="/architectural/mvc"
@@ -201,52 +237,16 @@ Tizim tuzilishi va ko'p oqimli ishlov berish uchun yuqori darajadagi patternlar.
     image="/cards/mvp.png"
   />
   <Card
+    title="MVT"
+    description="Model, View va Template qatlamlariga ajratadi"
+    href="/architectural/mvt"
+    image="/cards/mvt.png"
+  />
+  <Card
     title="MVVM"
     description="UI-ni reaktiv view modeliga bog'laydi"
     href="/architectural/mvvm"
     image="/cards/mvvm.png"
-  />
-  <Card
-    title="Repository"
-    description="Ma'lumotlarga kirish qatlamini mavhumlashtiradi"
-    href="/architectural/repository"
-    image="/cards/repository.png"
-  />
-  <Card
-    title="CQRS"
-    description="O'qish va yozish operatsiyalarini ajratadi"
-    href="/architectural/cqrs"
-    image="/cards/cqrs.png"
-  />
-  <Card
-    title="Event Sourcing"
-    description="Holatni voqealar ketma-ketligi sifatida saqlaydi"
-    href="/architectural/event-sourcing"
-    image="/cards/event-sourcing.png"
-  />
-  <Card
-    title="Active Record"
-    description="Ma'lumotlar bazasi qatorini obyekt bilan o'raydi"
-    href="/architectural/active-record"
-    image="/cards/active-record.png"
-  />
-  <Card
-    title="Data Mapper"
-    description="Xotiradagi obyektlarni ma'lumotlar bazasidan ajratadi"
-    href="/architectural/data-mapper"
-    image="/cards/data-mapper.png"
-  />
-  <Card
-    title="Service Locator"
-    description="Servislarni registrdan topadi"
-    href="/architectural/service-locator"
-    image="/cards/service-locator.png"
-  />
-  <Card
-    title="Dependency Injection"
-    description="Bog'liqliklarni obyektlarga uzatadi"
-    href="/architectural/dependency-injection"
-    image="/cards/dependency-injection.png"
   />
   <Card
     title="Producer-Consumer"
@@ -255,16 +255,34 @@ Tizim tuzilishi va ko'p oqimli ishlov berish uchun yuqori darajadagi patternlar.
     image="/cards/producer-consumer.png"
   />
   <Card
+    title="Read-Write Lock"
+    description="Bir vaqtning o'zida o'qish va eksklyuziv yozish imkonini beradi"
+    href="/architectural/read-write-lock"
+    image="/cards/read-write-lock.png"
+  />
+  <Card
+    title="Repository"
+    description="Ma'lumotlarga kirish qatlamini mavhumlashtiradi"
+    href="/architectural/repository"
+    image="/cards/repository.png"
+  />
+  <Card
     title="Scheduler"
     description="Oqim resurslaridan foydalanishni boshqaradi"
     href="/architectural/scheduler"
     image="/cards/scheduler.png"
   />
   <Card
-    title="Read-Write Lock"
-    description="Bir vaqtning o'zida o'qish va eksklyuziv yozish imkonini beradi"
-    href="/architectural/read-write-lock"
-    image="/cards/read-write-lock.png"
+    title="Service Locator"
+    description="Servislarni registrdan topadi"
+    href="/architectural/service-locator"
+    image="/cards/service-locator.png"
+  />
+  <Card
+    title="Unit of Work"
+    description="Tranzaksiya ta'sir qiladigan biznes obyektlari ro'yxatini yuritadi"
+    href="/architectural/unit-of-work"
+    image="/cards/unit-of-work.png"
   />
 </Cards>
 

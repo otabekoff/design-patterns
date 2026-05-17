@@ -26,31 +26,37 @@ Ushbu qo'llanma 4 ta toifaga bo'lingan **38 ta dizayn patternini** o'z ichiga ol
     title="Asosiy sahifa"
     description="Barcha patternlarni vizual kartalar yordamida toifalar bo'yicha ko'rib chiqing"
     href="/uz/"
+    image="/cards/introduction.png"
   />
   <Card
     title="Tezkor ma'lumotnoma"
     description="Jadvallar, qarorlar daraxti va patternlarni solishtirish"
     href="/uz/quick-reference"
+    image="/cards/quick-reference.png"
   />
   <Card
     title="Yaratuvchi patternlar"
     description="Obyektlarni yaratish mexanizmlari"
     href="/uz/creational/singleton"
+    image="/cards/singleton.png"
   />
   <Card
     title="Strukturaviy patternlar"
     description="Obyektlar tarkibi va aloqalari"
     href="/uz/structural/adapter"
+    image="/cards/adapter.png"
   />
   <Card
     title="Xulq-atvor patternlari"
     description="Obyektlararo aloqa va mas'uliyat"
     href="/uz/behavioral/observer"
+    image="/cards/observer.png"
   />
   <Card
     title="Arxitektura patternlari"
     description="Tizim tuzilishi va parallellik"
     href="/uz/architectural/mvc"
+    image="/cards/mvc.png"
   />
 </Cards>
 

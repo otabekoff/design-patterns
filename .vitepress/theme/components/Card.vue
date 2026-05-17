@@ -1,13 +1,23 @@
 <template>
   <a v-if="href" :href="localizedHref" class="vp-card is-link">
-    <h3 class="title">{{ title }}</h3>
-    <p v-if="description" class="description">{{ description }}</p>
-    <slot></slot>
+    <div v-if="image" class="image-wrapper">
+      <img :src="withBase(image)" class="card-image" :alt="title" loading="lazy" />
+    </div>
+    <div class="content-wrapper">
+      <h3 class="title">{{ title }}</h3>
+      <p v-if="description" class="description">{{ description }}</p>
+      <slot></slot>
+    </div>
   </a>
   <div v-else class="vp-card">
-    <h3 class="title">{{ title }}</h3>
-    <p v-if="description" class="description">{{ description }}</p>
-    <slot></slot>
+    <div v-if="image" class="image-wrapper">
+      <img :src="withBase(image)" class="card-image" :alt="title" loading="lazy" />
+    </div>
+    <div class="content-wrapper">
+      <h3 class="title">{{ title }}</h3>
+      <p v-if="description" class="description">{{ description }}</p>
+      <slot></slot>
+    </div>
   </div>
 </template>
 
@@ -19,7 +29,8 @@ const props = defineProps({
   title: String,
   description: String,
   href: String,
-  icon: String
+  icon: String,
+  image: String
 })
 
 const { lang } = useData()
@@ -49,12 +60,15 @@ const localizedHref = computed(() => {
 
 <style scoped>
 .vp-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--vp-c-bg-soft);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
   background: var(--vp-c-bg-soft);
-  transition: border-color 0.25s, background-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s, transform 0.25s;
+  overflow: hidden;
+  height: 100%;
+  padding: 0;
 }
 
 .is-link {
@@ -63,6 +77,33 @@ const localizedHref = computed(() => {
 
 .is-link:hover {
   border-color: var(--vp-c-brand-1);
+  transform: translateY(-4px);
+}
+
+.image-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background-color: var(--vp-c-bg-alt);
+  border-bottom: 1px solid var(--vp-c-gutter);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.is-link:hover .card-image {
+  transform: scale(1.05);
+}
+
+.content-wrapper {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .title {
@@ -76,5 +117,6 @@ const localizedHref = computed(() => {
   margin: 8px 0 0;
   font-size: 14px;
   color: var(--vp-c-text-2);
+  line-height: 1.5;
 }
 </style>

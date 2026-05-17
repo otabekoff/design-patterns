@@ -26,31 +26,37 @@ This documentation contains **38 design patterns** organized into 4 categories:
     title="Main Page"
     description="Browse all patterns by category with visual cards"
     href="/"
+    image="/cards/introduction.png"
   />
   <Card
     title="Quick Reference"
     description="Tables, decision trees, and pattern comparison"
     href="/quick-reference"
+    image="/cards/quick-reference.png"
   />
   <Card
     title="Creational Patterns"
     description="Object creation mechanisms"
     href="/creational/singleton"
+    image="/cards/singleton.png"
   />
   <Card
     title="Structural Patterns"
     description="Object composition and relationships"
     href="/structural/adapter"
+    image="/cards/adapter.png"
   />
   <Card
     title="Behavioral Patterns"
     description="Object communication and responsibility"
     href="/behavioral/observer"
+    image="/cards/observer.png"
   />
   <Card
     title="Architectural Patterns"
     description="System structure and concurrency"
     href="/architectural/mvc"
+    image="/cards/mvc.png"
   />
 </Cards>
 

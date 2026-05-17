@@ -65,31 +65,37 @@ These patterns control object creation to improve flexibility, testing, and life
     title="Singleton"
     description="Ensures a class has only one instance"
     href="/creational/singleton"
+    image="/cards/singleton.png"
   />
   <Card
     title="Factory Method"
     description="Creates objects without specifying the exact class"
     href="/creational/factory-method"
+    image="/cards/factory-method.png"
   />
   <Card
     title="Abstract Factory"
     description="Creates families of related objects"
     href="/creational/abstract-factory"
+    image="/cards/abstract-factory.png"
   />
   <Card
     title="Builder"
     description="Constructs complex objects step by step"
     href="/creational/builder"
+    image="/cards/builder.png"
   />
   <Card
     title="Prototype"
     description="Clones existing objects"
     href="/creational/prototype"
+    image="/cards/prototype.png"
   />
   <Card
     title="Object Pool"
     description="Reuses expensive objects"
     href="/creational/object-pool"
+    image="/cards/object-pool.png"
   />
 </Cards>
 
@@ -102,36 +108,43 @@ These patterns help you compose objects and modules into flexible, maintainable 
     title="Adapter"
     description="Converts incompatible interfaces"
     href="/structural/adapter"
+    image="/cards/adapter.png"
   />
   <Card
     title="Bridge"
     description="Decouples an abstraction from its implementation"
     href="/structural/bridge"
+    image="/cards/bridge.png"
   />
   <Card
     title="Composite"
     description="Composes objects into tree structures"
     href="/structural/composite"
+    image="/cards/composite.png"
   />
   <Card
     title="Decorator"
     description="Adds responsibilities to objects dynamically"
     href="/structural/decorator"
+    image="/cards/decorator.png"
   />
   <Card
     title="Facade"
     description="Provides a simplified interface to a library"
     href="/structural/facade"
+    image="/cards/facade.png"
   />
   <Card
     title="Flyweight"
     description="Minimizes memory usage by sharing data"
     href="/structural/flyweight"
+    image="/cards/flyweight.png"
   />
   <Card
     title="Proxy"
     description="Provides a placeholder for another object"
     href="/structural/proxy"
+    image="/cards/proxy.png"
   />
 </Cards>
 
@@ -144,51 +157,61 @@ These patterns focus on collaboration, communication, and responsibility distrib
     title="Chain of Responsibility"
     description="Passes requests along a chain of handlers"
     href="/behavioral/chain-of-responsibility"
+    image="/cards/chain-of-responsibility.png"
   />
   <Card
     title="Command"
     description="Turns a request into a stand-alone object"
     href="/behavioral/command"
+    image="/cards/command.png"
   />
   <Card
     title="Iterator"
     description="Traverses elements of a collection"
     href="/behavioral/iterator"
+    image="/cards/iterator.png"
   />
   <Card
     title="Mediator"
     description="Reduces chaotic dependencies between objects"
     href="/behavioral/mediator"
+    image="/cards/mediator.png"
   />
   <Card
     title="Memento"
     description="Captures and restores an object's internal state"
     href="/behavioral/memento"
+    image="/cards/memento.png"
   />
   <Card
     title="Observer"
     description="Lets objects notify others about changes"
     href="/behavioral/observer"
+    image="/cards/observer.png"
   />
   <Card
     title="State"
     description="Alters an object's behavior when its state changes"
     href="/behavioral/state"
+    image="/cards/state.png"
   />
   <Card
     title="Strategy"
     description="Defines a family of algorithms"
     href="/behavioral/strategy"
+    image="/cards/strategy.png"
   />
   <Card
     title="Template Method"
     description="Defines the skeleton of an algorithm"
     href="/behavioral/template-method"
+    image="/cards/template-method.png"
   />
   <Card
     title="Visitor"
     description="Separates algorithms from the objects on which they operate"
     href="/behavioral/visitor"
+    image="/cards/visitor.png"
   />
 </Cards>
 

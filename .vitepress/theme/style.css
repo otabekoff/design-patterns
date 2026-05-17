@@ -388,8 +388,12 @@ div[class*="language-"] > button.copy.copied {
   border: 2px solid #3c3f44;
   border-radius: 24px;
   max-width: 100%;
+  height: auto;
+}
+
+.vp-doc img[alt="Cover"] {
   width: 100%;
-  max-height: 400px;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
 }
 

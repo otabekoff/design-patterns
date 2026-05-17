@@ -36,7 +36,7 @@ MVT exists as a naming convention to clarify Django's separation of concerns, em
 | :--- | :--- | :--- | :--- |
 | **Data Layer** | Model | **Model** | Database schema, ORM queries, core business rules. |
 | **Logic Layer** | Controller | **View** | Receives HTTP request, queries Model, passes data to presentation. |
-| **Presentation Layer** | View | **Template** | HTML files with basic interpolation tags (`{{ user.name }}`). |
+| **Presentation Layer** | View | **Template** | HTML files with basic interpolation tags (<code v-pre>{{ user.name }}</code>). |
 | **Routing / Glue** | Router / Front Controller | **URL Dispatcher** | Maps `https://example.com/users` to a specific logic layer function. |
 
 ```mermaid

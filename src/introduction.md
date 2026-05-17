@@ -166,6 +166,12 @@ These patterns focus on collaboration, communication, and responsibility distrib
     image="/cards/command.png"
   />
   <Card
+    title="Interpreter"
+    description="Defines a grammatical representation for a language and an interpreter to evaluate it"
+    href="/behavioral/interpreter"
+    image="/cards/interpreter.png"
+  />
+  <Card
     title="Iterator"
     description="Traverses elements of a collection"
     href="/behavioral/iterator"
@@ -182,6 +188,12 @@ These patterns focus on collaboration, communication, and responsibility distrib
     description="Captures and restores an object's internal state"
     href="/behavioral/memento"
     image="/cards/memento.png"
+  />
+  <Card
+    title="Null Object"
+    description="Provides a default no-op behavior to avoid null reference checks"
+    href="/behavioral/null-object"
+    image="/cards/null-object.png"
   />
   <Card
     title="Observer"

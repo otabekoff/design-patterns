@@ -416,7 +416,7 @@ div[class*="language-"] > button.copy.copied {
 .vp-doc img[alt="Cover"] {
   display: block;
   aspect-ratio: 16 / 10;
-  object-fit: cover;
+  object-fit: contain;
   background-color: var(--vp-c-bg-soft);
   width: 680px;
   max-width: 100%;

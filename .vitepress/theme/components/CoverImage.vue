@@ -49,11 +49,12 @@ const showOverlay = ref(false);
 <style scoped>
 .cover-image-container {
   position: relative;
-  width: 100%;
+  width: 680px;
+  max-width: 100%;
   border-radius: 24px;
-  border: 2px solid var(--vp-c-border);
+  border: 2px solid #3c3f44;
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 20px;
   margin-bottom: 24px;
   background-color: var(--vp-c-bg-soft);
   /* Save the exact look & height aspect ratio */
@@ -66,7 +67,7 @@ const showOverlay = ref(false);
 .cover-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   margin: 0 !important;
   border: none !important;

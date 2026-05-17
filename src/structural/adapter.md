@@ -4,7 +4,7 @@ description: Converts the interface of a class into another interface clients ex
 icon: Package
 ---
 
-![Adapter Concept](/images/patterns/adapter-mini-2x.png)
+![Adapter Concept](/images/patterns/adapter-2x.png)
 
 # Adapter Pattern
 

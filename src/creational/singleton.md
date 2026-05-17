@@ -6,7 +6,7 @@ icon: CircleDot
 
 # Singleton Pattern
 
-![Singleton Concept](/images/patterns/singleton.png)
+![Singleton Concept](/images/patterns/singleton-2x.png)
 
 ## Overview
 

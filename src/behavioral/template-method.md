@@ -4,7 +4,7 @@ description: Defines the skeleton of an algorithm in the superclass but lets sub
 icon: BookMarked
 ---
 
-![Template Method Concept](/images/patterns/template-method-mini-2x.png)
+![Template Method Concept](/images/patterns/template-method-2x.png)
 
 # Template Method Pattern
 

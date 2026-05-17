@@ -4,7 +4,7 @@ description: Sequentially access elements of a collection without exposing its u
 icon: BookOpen
 ---
 
-![Iterator Concept](/images/patterns/iterator-mini-2x.png)
+![Iterator Concept](/images/patterns/iterator-2x.png)
 
 # Iterator Pattern
 

@@ -4,7 +4,7 @@ description: Creates new objects by cloning an existing object prototype rather 
 icon: Copy
 ---
 
-![Prototype Concept](/images/patterns/prototype-mini-2x.png)
+![Prototype Concept](/images/patterns/prototype-2x.png)
 
 # Prototype Pattern
 

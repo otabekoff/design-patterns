@@ -4,7 +4,7 @@ description: Passes a request through a chain of handlers until one handles it o
 icon: Link
 ---
 
-![Chain of Responsibility Concept](/images/patterns/chain-of-responsibility-mini-2x.png)
+![Chain of Responsibility Concept](/images/patterns/chain-of-responsibility-2x.png)
 
 # Chain of Responsibility Pattern
 

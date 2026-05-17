@@ -4,7 +4,7 @@ description: Creates families of related objects without specifying their concre
 icon: Boxes
 ---
 
-![Abstract Factory Concept](/images/patterns/abstract-factory-mini-2x.png)
+![Abstract Factory Concept](/images/patterns/abstract-factory-2x.png)
 
 # Abstract Factory Pattern
 

@@ -4,7 +4,7 @@ description: Allow an object to alter its behavior when its internal state chang
 icon: Zap
 ---
 
-![State Concept](/images/patterns/state-mini-2x.png)
+![State Concept](/images/patterns/state-2x.png)
 
 # State Pattern
 

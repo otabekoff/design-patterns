@@ -4,7 +4,7 @@ description: Encapsulate a request as an object, thereby letting you parameteriz
 icon: Command
 ---
 
-![Command Concept](/images/patterns/command-mini-2x.png)
+![Command Concept](/images/patterns/command-2x.png)
 
 # Command Pattern
 

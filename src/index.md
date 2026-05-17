@@ -49,26 +49,26 @@ features:
 <div class="home-features-grid">
 <div class="home-feature-card">
 <div class="home-feature-icon">🎯</div>
-<h3 class="home-feature-title">Choose the right pattern</h3>
-<p class="home-feature-desc">Learn when a pattern fits, when it doesn’t, and how to spot modern alternatives.</p>
+<h3 class="home-feature-title">Find the right fit</h3>
+<p class="home-feature-desc">Identify when a pattern fits, when it doesn't, and explore modern alternatives.</p>
 </div>
 
 <div class="home-feature-card">
 <div class="home-feature-icon">⚖️</div>
-<h3 class="home-feature-title">Understand tradeoffs</h3>
-<p class="home-feature-desc">See the pros, cons, and operational cost of each approach.</p>
+<h3 class="home-feature-title">Weigh the tradeoffs</h3>
+<p class="home-feature-desc">Compare the pros, cons, complexity, and exact runtime costs of each solution.</p>
 </div>
 
 <div class="home-feature-card">
 <div class="home-feature-icon">🧩</div>
-<h3 class="home-feature-title">Combine patterns well</h3>
-<p class="home-feature-desc">Layer patterns safely without over-design or accidental complexity.</p>
+<h3 class="home-feature-title">Combine them safely</h3>
+<p class="home-feature-desc">Compose multiple patterns elegantly without over-design or added complexity.</p>
 </div>
 
 <div class="home-feature-card">
 <div class="home-feature-icon">🚀</div>
-<h3 class="home-feature-title">Apply with confidence</h3>
-<p class="home-feature-desc">Follow decision guides and real-world examples you can reuse.</p>
+<h3 class="home-feature-title">Build with confidence</h3>
+<p class="home-feature-desc">Implement using hands-on decision guides and production-ready examples.</p>
 </div>
 </div>
 </div>

@@ -44,6 +44,35 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(groupIconMdPlugin)
+      
+      const fence = md.renderer.rules.fence!
+      md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+        const { localeIndex = 'root' } = env
+        const codeCopyButtonTitle = (() => {
+          switch (localeIndex) {
+            case 'uz':
+              return 'Kodni nusxalash'
+            case 'es':
+              return 'Copiar código'
+            case 'fa':
+              return 'کپی کد'
+            case 'ko':
+              return '코드 복사'
+            case 'pt':
+              return 'Copiar código'
+            case 'ru':
+              return 'Скопировать код'
+            case 'zh':
+              return '复制代码'
+            default:
+              return 'Copy code'
+          }
+        })()
+        return fence(tokens, idx, options, env, self).replace(
+          '<button title="Copy Code" class="copy"></button>',
+          `<button title="${codeCopyButtonTitle}" class="copy"></button>`
+        )
+      }
     },
   },
   transformPageData: async (pageData, context) => {

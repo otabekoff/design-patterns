@@ -20,9 +20,9 @@ const showOverlay = ref(false);
 <template>
   <div class="cover-image-container">
     <img :src="withBase(src)" :alt="alt" class="cover-image" />
-    
-    <button 
-      class="info-btn" 
+
+    <button
+      class="info-btn"
       @click="showOverlay = true"
       title="Show Visual Blueprint Prompt"
     >
@@ -30,10 +30,14 @@ const showOverlay = ref(false);
     </button>
 
     <Transition name="fade-slide">
-      <div class="cover-overlay" v-if="showOverlay" @click="showOverlay = false">
-        <button 
-          class="close-btn" 
-          @click.stop="showOverlay = false" 
+      <div
+        class="cover-overlay"
+        v-if="showOverlay"
+        @click="showOverlay = false"
+      >
+        <button
+          class="close-btn"
+          @click.stop="showOverlay = false"
           title="Close Overlay"
         >
           <X :size="18" />

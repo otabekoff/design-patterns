@@ -287,8 +287,6 @@ div[class*="language-"] pre,
   scrollbar-color: var(--vp-c-divider) transparent;
 }
 
-
-
 /* Sidebar Custom Layout */
 .VPSidebar {
   overflow: hidden !important;
@@ -421,29 +419,29 @@ div[class*="language-"] pre,
 
 /* Code Blocks Copy Button Translations */
 :root {
-  --vp-code-copy-copied-text-content: 'Copied';
+  --vp-code-copy-copied-text-content: "Copied";
 }
 
 :lang(uz) {
-  --vp-code-copy-copied-text-content: 'Nusxalandi';
+  --vp-code-copy-copied-text-content: "Nusxalandi";
 }
 
 :lang(tr) {
-  --vp-code-copy-copied-text-content: 'Kopyalandı';
+  --vp-code-copy-copied-text-content: "Kopyalandı";
 }
 
 :lang(ru) {
-  --vp-code-copy-copied-text-content: 'Скопировано';
+  --vp-code-copy-copied-text-content: "Скопировано";
 }
 
 :lang(de) {
-  --vp-code-copy-copied-text-content: 'Kopiert';
+  --vp-code-copy-copied-text-content: "Kopiert";
 }
 
 :lang(es) {
-  --vp-code-copy-copied-text-content: 'Copiado';
+  --vp-code-copy-copied-text-content: "Copiado";
 }
 
 :lang(ar) {
-  --vp-code-copy-copied-text-content: 'تم النسخ';
+  --vp-code-copy-copied-text-content: "تم النسخ";
 }

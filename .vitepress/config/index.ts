@@ -44,7 +44,7 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(groupIconMdPlugin)
-      
+
       const fence = md.renderer.rules.fence!
       md.renderer.rules.fence = function (tokens, idx, options, env, self) {
         const { localeIndex = 'root' } = env

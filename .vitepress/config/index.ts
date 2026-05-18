@@ -5,6 +5,7 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 import { en } from './langs/en'
 import { uz } from './langs/uz'
 import { injectSidebarIcons } from './icon-injector'
+import { MermaidMarkdown } from './mermaid-markdown'
 
 function processLocale(localeObj: any) {
   if (localeObj.themeConfig && localeObj.themeConfig.sidebar) {
@@ -44,6 +45,7 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(groupIconMdPlugin)
+      MermaidMarkdown(md)
 
       const fence = md.renderer.rules.fence!
       md.renderer.rules.fence = function (tokens, idx, options, env, self) {

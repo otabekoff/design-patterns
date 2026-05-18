@@ -13,30 +13,34 @@ icon: Table
 
 ## Overview
 
-The **Active Record** pattern is an architectural data access pattern where a class wraps a single row in a database table or view, encapsulates the database access, and adds domain logic to that data. An Active Record object knows how to load, save, and delete itself from the database.
+The **Active Record** pattern wraps a single database row inside an object that also knows how to persist itself. The class maps to a table, an instance maps to a row, and properties map to columns. Persistence — `save()`, `delete()`, and static finders — lives directly on the domain object alongside business logic.
 
-**Key advantage**: It provides a highly intuitive, developer-friendly interface for simple CRUD operations, making rapid application development incredibly fast.
+This is the backbone of many major web frameworks: Ruby on Rails' `ActiveRecord`, Laravel's `Eloquent`, and Django's ORM all implement it. The pattern is criticized by Domain-Driven Design (DDD) practitioners for violating the Single Responsibility Principle, and that criticism is fair in complex domains. But Active Record is extraordinarily productive for the large class of applications where the domain model closely mirrors the database schema and speed of development matters more than architectural purity.
 
-**Modern perspective**: Active Record is the backbone of many major web frameworks (Ruby on Rails, Laravel, Django, early TypeORM). While it is heavily criticized by proponents of pure Domain-Driven Design (DDD) for mixing persistence with business logic, it remains an incredibly effective pattern for most standard web applications where the domain model closely mirrors the database schema.
+Understand its strengths and its failure modes, and you will know exactly when to reach for it — and when to reach for [Data Mapper](/architectural/data-mapper) instead.
+
+## Real-World Analogy
+
+Imagine a **self-filing document**. Most documents are passive — you write data on them, and then a separate filing clerk picks them up and decides where to store them. An Active Record document is different: it knows its own filing rules. Write your data on it, and it walks itself to the correct cabinet, opens the right drawer, and slots itself in. It can also retrieve itself later if you ask, and shred itself when it is no longer needed.
+
+The document's data and its filing behavior are inseparable — they travel together. That bundling is both the appeal and the architectural trade-off of Active Record.
 
 ## The Problem
 
-When building data-driven applications, if you do not use an ORM (Object-Relational Mapper) or an architectural pattern, you end up writing raw SQL scattered throughout your business logic.
+Without an organized data access pattern, SQL leaks into business logic, creating code that is hard to test, hard to maintain, and impossible to refactor safely.
 
 ```typescript
-// ❌ Bad: Scattered Data Access and Business Logic
-function registerUser(name: string, email: string) {
-  // Business logic mixed with persistence
-  const isValid = email.includes("@");
-  if (!isValid) throw new Error("Invalid email");
+// ❌ Raw SQL scattered through business logic
+function registerUser(name: string, email: string): number {
+  // Validation tangled with persistence
+  if (!email.includes("@")) throw new Error("Invalid email");
 
-  // Raw SQL scattered in the service layer
-  database.execute("INSERT INTO users (name, email) VALUES (?, ?)", [
-    name,
-    email,
-  ]);
+  database.execute(
+    "INSERT INTO users (name, email, is_active) VALUES (?, ?, 1)",
+    [name, email],
+  );
 
-  // Need the ID back? More raw SQL.
+  // Need the generated ID? Another query.
   const result = database.query("SELECT id FROM users WHERE email = ?", [
     email,
   ]);
@@ -44,479 +48,529 @@ function registerUser(name: string, email: string) {
 }
 ```
 
-This leads to:
+**What goes wrong:**
 
-- **Code Duplication**: You write `INSERT INTO users` in five different files.
-- **Leaky Abstractions**: Your controllers and services are deeply coupled to the exact names of your database columns.
-- **Maintenance Nightmares**: Changing a database column name means finding and replacing strings across the entire codebase.
+- `INSERT INTO users` gets written in five different service files.
+- Renaming a database column means a grep-and-pray across the whole codebase.
+- Unit testing this function requires a running database.
+- The caller has no idea this function touches a database at all.
 
 ## The Solution
 
-The Active Record pattern suggests creating a class that directly represents a table in the database.
-
-- A **Class** maps to a **Database Table**.
-- An **Instance** (object) maps to a **Table Row**.
-- The **Properties** of the object map to the **Columns** of the table.
-
-The class itself is given methods like `save()`, `delete()`, and static methods like `find()` or `create()`.
+Move all persistence knowledge into the class that owns the data. The class itself becomes the authoritative place for CRUD operations, and callers never write SQL.
 
 ```typescript
-// ✅ Good: Active Record encapsulates persistence
-const user = new User({ name: "John", email: "john@example.com" });
-user.save(); // Internally executes the INSERT statement
+// ✅ Active Record: data and persistence in one place
+const user = new User("Alice", "alice@example.com");
+user.save(); // Executes INSERT — caller doesn't know or care
+
+const existing = User.findById(1); // Executes SELECT — returns a typed object
+existing.name = "Alice Smith";
+existing.save(); // Executes UPDATE — same call, different SQL path
 ```
 
-## Structure
+The calling code is readable, self-documenting, and decoupled from SQL syntax.
+
+## How the Mapping Works
 
 ```mermaid
 classDiagram
-    class Database {
-        <<external>>
+    class users["users (table)"] {
+        <<database table>>
+        id INT PK AUTO_INCREMENT
+        name VARCHAR(255)
+        email VARCHAR(255) UNIQUE
+        is_active TINYINT DEFAULT 1
+        created_at TIMESTAMP
     }
 
-    class ActiveRecord {
-        +id: int
+    class User {
+        +id: number | null
         +name: string
-        +save()
-        +delete()
-        +find(id)*
-        +findAll()*
+        +email: string
+        +isActive: boolean
+        +createdAt: Date
+        +save() void
+        +delete() void
+        +deactivate() void
+        +getDisplayName() string
+        +findById(id)$ User
+        +findByEmail(email)$ User
+        +findAll()$ User[]
     }
 
-    ActiveRecord --> Database : "reads/writes"
+    User ..> users : "1 class → 1 table\n1 instance → 1 row\n1 property → 1 column"
 ```
 
-## Flow
+### Participants
 
-1. **Creating**: The client instantiates an Active Record object. Calling `.save()` inserts it into the database and populates the generated ID.
-2. **Reading**: The client calls a static method like `User.find(1)`. The Active Record class executes the `SELECT` query, maps the row data to an object, and returns it.
-3. **Updating**: The client modifies properties on an existing object and calls `.save()`. The object executes an `UPDATE` statement.
-4. **Deleting**: The client calls `.delete()`, which executes a `DELETE` statement.
+| Participant                      | Role                                                                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Active Record class** (`User`) | Maps to a database table. Holds properties for each column, instance methods for persistence and business logic, and static methods for queries. |
+| **Active Record instance**       | Represents a single database row. Calling `save()` either inserts or updates depending on whether an ID exists.                                  |
+| **Database**                     | The underlying persistence store. The Active Record class knows how to talk to it directly.                                                      |
 
-## Real-World Analogy
+## CRUD Lifecycle
 
-Think of an **Employee ID Badge**.
-The badge contains your data (Name, Role, Photo). But the badge also acts as your access key to enter the building. The data (who you are) and the behavior/persistence (allowing you through the turnstile) are bundled into the exact same physical object. You don't hand your badge to a separate "Door Unlocking Service"; you just tap the badge itself.
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant U as User (Active Record)
+    participant DB as Database
 
-## Step-by-Step Implementation
+    rect rgb(240, 248, 255)
+        Note over C,DB: CREATE
+        C->>U: new User("Alice", "alice@x.com")
+        C->>U: user.save()
+        U->>DB: INSERT INTO users (name, email, is_active) VALUES (...)
+        DB-->>U: generated id = 42
+        U-->>C: user.id === 42
+    end
 
-1. **Define the Base Class**: Often, frameworks provide an `ActiveRecord` base class or `Model` class that handles the raw SQL generation.
-2. **Create the Entity Class**: Extend the base class. Define properties that match the database columns.
-3. **Add Business Logic**: Add methods to the entity class that operate on the data (e.g., `updatePassword()`, `getFullName()`).
-4. **Implement Static Finders**: Add class-level methods for querying (`findById`, `findByEmail`).
-5. **Implement Persistence**: Implement `save()` to either INSERT (if no ID exists) or UPDATE (if ID exists), and `delete()` to REMOVE.
+    rect rgb(240, 255, 240)
+        Note over C,DB: READ
+        C->>U: User.findById(42)
+        U->>DB: SELECT * FROM users WHERE id = 42 LIMIT 1
+        DB-->>U: { id: 42, name: "Alice", ... }
+        U-->>C: hydrated User instance
+    end
 
-## Code Examples
+    rect rgb(255, 255, 240)
+        Note over C,DB: UPDATE
+        C->>U: user.name = "Alice Smith"
+        C->>U: user.save()
+        U->>DB: UPDATE users SET name = "Alice Smith" WHERE id = 42
+        DB-->>U: OK
+    end
 
-We will build a simple Active Record for a `User` entity, simulating the behavior you would get from a framework like Laravel Eloquent or Ruby on Rails ActiveRecord.
+    rect rgb(255, 240, 240)
+        Note over C,DB: DELETE
+        C->>U: user.delete()
+        U->>DB: DELETE FROM users WHERE id = 42
+        DB-->>U: OK
+        U-->>C: user.id === null
+    end
+```
+
+The `save()` method's dual role — INSERT for new records, UPDATE for existing ones — is one of Active Record's most ergonomic features. The caller never has to decide which SQL statement to use.
+
+## Implementation
+
+### Core Steps
+
+1. Create a base class (or extend your framework's provided one) that holds database connection logic and generic `save()` / `delete()` / `find()` implementations.
+2. Create an entity class that extends the base. Declare properties matching the table columns.
+3. Add business logic as instance methods directly on the entity class.
+4. Add static finder methods that execute `SELECT` queries and return hydrated instances.
+5. Implement `save()` to branch on whether `id` is null (INSERT) or set (UPDATE).
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Mock Database connection
+// Mock database
 const db = {
-  execute: (sql: string, params: any[] = []) =>
-    console.log(`[DB EXECUTE] ${sql} | Params:`, params),
-  query: (sql: string, params: any[] = []) => {
-    console.log(`[DB QUERY] ${sql} | Params:`, params);
+  execute: (sql: string, params: unknown[] = []) =>
+    console.log(`[DB] ${sql}`, params),
+  query: (sql: string, params: unknown[] = []) => {
+    console.log(`[DB] ${sql}`, params);
     return [{ id: 1, name: "John Doe", email: "john@test.com", is_active: 1 }];
   },
 };
 
-// 1. The Active Record Class
 class User {
   public id: number | null = null;
   public name: string;
   public email: string;
   public isActive: boolean;
+  public createdAt: Date = new Date();
 
-  constructor(name: string, email: string, isActive: boolean = true) {
+  constructor(name: string, email: string, isActive = true) {
     this.name = name;
     this.email = email;
     this.isActive = isActive;
   }
 
-  // --- Business Logic ---
-  public deactivate(): void {
+  // ── Business Logic ────────────────────────────────────────────────────────
+
+  deactivate(): void {
     this.isActive = false;
     this.save();
   }
 
-  public getDisplayName(): string {
-    return `${this.name} (${this.email})`;
+  getDisplayName(): string {
+    return `${this.name} <${this.email}>`;
   }
 
-  // --- Persistence Logic (Instance Methods) ---
-  public save(): void {
+  // ── Persistence ───────────────────────────────────────────────────────────
+
+  save(): void {
     if (this.id === null) {
-      // Create (INSERT)
       db.execute(
         "INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
         [this.name, this.email, this.isActive ? 1 : 0],
       );
-      this.id = 1; // Simulate generated ID
-      console.log(`✅ User inserted with ID: ${this.id}`);
+      this.id = 1; // In production: db.lastInsertId()
     } else {
-      // Update (UPDATE)
       db.execute(
         "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
         [this.name, this.email, this.isActive ? 1 : 0, this.id],
       );
-      console.log(`✅ User ${this.id} updated.`);
     }
   }
 
-  public delete(): void {
-    if (this.id !== null) {
-      db.execute("DELETE FROM users WHERE id = ?", [this.id]);
-      this.id = null;
-      console.log("✅ User deleted.");
-    }
+  delete(): void {
+    if (this.id === null) return;
+    db.execute("DELETE FROM users WHERE id = ?", [this.id]);
+    this.id = null;
   }
 
-  // --- Static Finders (Class Methods) ---
-  public static findById(id: number): User | null {
+  // ── Finders ───────────────────────────────────────────────────────────────
+
+  static findById(id: number): User | null {
     const rows = db.query("SELECT * FROM users WHERE id = ? LIMIT 1", [id]);
-    if (rows.length === 0) return null;
+    if (!rows.length) return null;
+    return User.hydrate(rows[0]);
+  }
 
-    const row = rows[0];
-    const user = new User(row.name, row.email, row.is_active === 1);
-    user.id = row.id;
+  static findByEmail(email: string): User | null {
+    const rows = db.query("SELECT * FROM users WHERE email = ? LIMIT 1", [
+      email,
+    ]);
+    if (!rows.length) return null;
+    return User.hydrate(rows[0]);
+  }
+
+  static findAllActive(): User[] {
+    const rows = db.query("SELECT * FROM users WHERE is_active = 1");
+    return rows.map(User.hydrate);
+  }
+
+  private static hydrate(row: Record<string, unknown>): User {
+    const user = new User(
+      row.name as string,
+      row.email as string,
+      row.is_active === 1,
+    );
+    user.id = row.id as number;
     return user;
   }
 }
 
-// 2. Client Code
-console.log("--- Creating User ---");
+// ── Usage ─────────────────────────────────────────────────────────────────
+
 const user = new User("Alice", "alice@example.com");
-user.save(); // INSERTS
+user.save(); // INSERT
 
-console.log("\n--- Updating User ---");
 user.name = "Alice Smith";
-user.save(); // UPDATES
+user.save(); // UPDATE
 
-console.log("\n--- Finding User ---");
-const loadedUser = User.findById(1);
-if (loadedUser) {
-  console.log(`Found: ${loadedUser.getDisplayName()}`);
-  loadedUser.deactivate(); // Business logic + UPDATE
-}
+const found = User.findById(1);
+found?.deactivate(); // business logic + UPDATE
+
+found?.delete(); // DELETE
 ```
 
 ```python [Python]
+from datetime import datetime
+
 class MockDB:
     @staticmethod
     def execute(sql: str, params: tuple = ()) -> None:
-        print(f"[DB EXECUTE] {sql} | Params: {params}")
+        print(f"[DB] {sql} | {params}")
 
     @staticmethod
-    def query(sql: str, params: tuple = ()) -> list:
-        print(f"[DB QUERY] {sql} | Params: {params}")
-        # Mocking a returned row
+    def query(sql: str, params: tuple = ()) -> list[dict]:
+        print(f"[DB] {sql} | {params}")
         return [{"id": 1, "name": "John Doe", "email": "john@test.com", "is_active": 1}]
 
-# 1. The Active Record Class
+
 class User:
     def __init__(self, name: str, email: str, is_active: bool = True):
-        self.id = None
+        self.id: int | None = None
         self.name = name
         self.email = email
         self.is_active = is_active
+        self.created_at = datetime.now()
 
-    # --- Business Logic ---
+    # ── Business Logic ────────────────────────────────────────────────────────
+
     def deactivate(self) -> None:
         self.is_active = False
         self.save()
 
     def get_display_name(self) -> str:
-        return f"{self.name} ({self.email})"
+        return f"{self.name} <{self.email}>"
 
-    # --- Persistence Logic (Instance Methods) ---
+    # ── Persistence ───────────────────────────────────────────────────────────
+
     def save(self) -> None:
         if self.id is None:
-            # Create (INSERT)
             MockDB.execute(
                 "INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
-                (self.name, self.email, 1 if self.is_active else 0)
+                (self.name, self.email, int(self.is_active))
             )
-            self.id = 1  # Simulate generated ID
-            print(f"✅ User inserted with ID: {self.id}")
+            self.id = 1  # In production: db.lastrowid
         else:
-            # Update (UPDATE)
             MockDB.execute(
                 "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
-                (self.name, self.email, 1 if self.is_active else 0, self.id)
+                (self.name, self.email, int(self.is_active), self.id)
             )
-            print(f"✅ User {self.id} updated.")
 
     def delete(self) -> None:
         if self.id is not None:
             MockDB.execute("DELETE FROM users WHERE id = ?", (self.id,))
             self.id = None
-            print("✅ User deleted.")
 
-    # --- Static Finders (Class Methods) ---
+    # ── Finders ───────────────────────────────────────────────────────────────
+
     @classmethod
-    def find_by_id(cls, user_id: int) -> 'User':
+    def find_by_id(cls, user_id: int) -> "User | None":
         rows = MockDB.query("SELECT * FROM users WHERE id = ? LIMIT 1", (user_id,))
-        if not rows:
-            return None
+        return cls._hydrate(rows[0]) if rows else None
 
-        row = rows[0]
+    @classmethod
+    def find_all_active(cls) -> list["User"]:
+        rows = MockDB.query("SELECT * FROM users WHERE is_active = 1")
+        return [cls._hydrate(row) for row in rows]
+
+    @classmethod
+    def _hydrate(cls, row: dict) -> "User":
         user = cls(row["name"], row["email"], bool(row["is_active"]))
         user.id = row["id"]
         return user
 
-# 2. Client Code
-if __name__ == "__main__":
-    print("--- Creating User ---")
-    user = User("Alice", "alice@example.com")
-    user.save() # INSERTS
 
-    print("\n--- Updating User ---")
-    user.name = "Alice Smith"
-    user.save() # UPDATES
+# ── Usage ─────────────────────────────────────────────────────────────────
 
-    print("\n--- Finding User ---")
-    loaded_user = User.find_by_id(1)
-    if loaded_user:
-        print(f"Found: {loaded_user.get_display_name()}")
-        loaded_user.deactivate() # Business logic + UPDATE
+user = User("Alice", "alice@example.com")
+user.save()             # INSERT
+
+user.name = "Alice Smith"
+user.save()             # UPDATE
+
+found = User.find_by_id(1)
+if found:
+    print(found.get_display_name())
+    found.deactivate()  # business logic + UPDATE
+    found.delete()      # DELETE
 ```
 
 ```java [Java]
-import java.util.List;
+import java.time.LocalDateTime;
 
-// Mock DB
 class MockDB {
-    public static void execute(String sql, Object... params) {
-        System.out.printf("[DB EXECUTE] %s | Params count: %d%n", sql, params.length);
+    static void execute(String sql, Object... params) {
+        System.out.printf("[DB] %s%n", sql);
     }
-
-    public static Object[] queryRow(String sql, Object... params) {
-        System.out.printf("[DB QUERY] %s%n", sql);
-        // Mock row data
+    static Object[] queryRow(String sql, Object... params) {
+        System.out.printf("[DB] %s%n", sql);
         return new Object[]{1, "John Doe", "john@test.com", true};
     }
 }
 
-// 1. The Active Record Class
 class User {
-    private Integer id = null;
+    private Integer id;
     private String name;
     private String email;
-    private boolean isActive;
+    private boolean active;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public User(String name, String email, boolean isActive) {
+    public User(String name, String email) {
         this.name = name;
         this.email = email;
-        this.isActive = isActive;
+        this.active = true;
     }
 
-    public Integer getId() { return id; }
-    public void setName(String name) { this.name = name; }
-    public String getName() { return name; }
+    // ── Business Logic ────────────────────────────────────────────────────────
 
-    // --- Business Logic ---
     public void deactivate() {
-        this.isActive = false;
+        this.active = false;
         this.save();
     }
 
     public String getDisplayName() {
-        return name + " (" + email + ")";
+        return name + " <" + email + ">";
     }
 
-    // --- Persistence Logic ---
+    // ── Persistence ───────────────────────────────────────────────────────────
+
     public void save() {
-        if (this.id == null) {
-            // INSERT
-            MockDB.execute("INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
-                           name, email, isActive);
-            this.id = 1; // Simulate generated ID
-            System.out.println("✅ User inserted with ID: " + this.id);
+        if (id == null) {
+            MockDB.execute(
+                "INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
+                name, email, active
+            );
+            this.id = 1; // In production: Statement.RETURN_GENERATED_KEYS
         } else {
-            // UPDATE
-            MockDB.execute("UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
-                           name, email, isActive, id);
-            System.out.println("✅ User " + this.id + " updated.");
+            MockDB.execute(
+                "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
+                name, email, active, id
+            );
         }
     }
 
     public void delete() {
-        if (this.id != null) {
+        if (id != null) {
             MockDB.execute("DELETE FROM users WHERE id = ?", id);
             this.id = null;
-            System.out.println("✅ User deleted.");
         }
     }
 
-    // --- Static Finders ---
-    public static User findById(int searchId) {
-        Object[] row = MockDB.queryRow("SELECT * FROM users WHERE id = ? LIMIT 1", searchId);
-        if (row == null) return null;
+    // ── Finders ───────────────────────────────────────────────────────────────
 
-        User user = new User((String)row[1], (String)row[2], (Boolean)row[3]);
-        user.id = (Integer)row[0];
+    public static User findById(int searchId) {
+        Object[] row = MockDB.queryRow(
+            "SELECT * FROM users WHERE id = ? LIMIT 1", searchId
+        );
+        if (row == null) return null;
+        User user = new User((String) row[1], (String) row[2]);
+        user.id = (Integer) row[0];
+        user.active = (Boolean) row[3];
         return user;
     }
+
+    public Integer getId() { return id; }
+    public void setName(String name) { this.name = name; }
 }
 
-// 2. Client Code
-public class ActiveRecordDemo {
-    public static void main(String[] args) {
-        System.out.println("--- Creating User ---");
-        User user = new User("Alice", "alice@example.com", true);
-        user.save(); // INSERTS
+// ── Usage ─────────────────────────────────────────────────────────────────
 
-        System.out.println("\n--- Updating User ---");
-        user.setName("Alice Smith");
-        user.save(); // UPDATES
+// In main():
+User user = new User("Alice", "alice@example.com");
+user.save();
 
-        System.out.println("\n--- Finding User ---");
-        User loadedUser = User.findById(1);
-        if (loadedUser != null) {
-            System.out.println("Found: " + loadedUser.getDisplayName());
-            loadedUser.deactivate(); // Business logic + UPDATE
-        }
-    }
+user.setName("Alice Smith");
+user.save();
+
+User found = User.findById(1);
+if (found != null) {
+    System.out.println(found.getDisplayName());
+    found.deactivate();
+    found.delete();
 }
 ```
 
 ```go [Go]
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// Mock DB
-var MockDB = struct {
-	Execute func(sql string, params ...interface{})
-	Query   func(sql string, params ...interface{}) map[string]interface{}
+// MockDB simulates a database
+var db = struct {
+    Execute func(sql string, params ...any)
+    Query   func(sql string, params ...any) map[string]any
 }{
-	Execute: func(sql string, params ...interface{}) {
-		fmt.Printf("[DB EXECUTE] %s | Params: %v\n", sql, params)
-	},
-	Query: func(sql string, params ...interface{}) map[string]interface{} {
-		fmt.Printf("[DB QUERY] %s | Params: %v\n", sql, params)
-		return map[string]interface{}{
-			"id":        1,
-			"name":      "John Doe",
-			"email":     "john@test.com",
-			"is_active": true,
-		}
-	},
+    Execute: func(sql string, params ...any) {
+        fmt.Printf("[DB] %s %v\n", sql, params)
+    },
+    Query: func(sql string, params ...any) map[string]any {
+        fmt.Printf("[DB] %s %v\n", sql, params)
+        return map[string]any{
+            "id": 1, "name": "John Doe",
+            "email": "john@test.com", "is_active": true,
+        }
+    },
 }
 
-// 1. The Active Record Struct
-// In Go, we attach methods to a struct instead of a class.
+// User is the Active Record struct
 type User struct {
-	ID       *int
-	Name     string
-	Email    string
-	IsActive bool
+    ID       *int
+    Name     string
+    Email    string
+    IsActive bool
 }
 
 func NewUser(name, email string) *User {
-	return &User{
-		Name:     name,
-		Email:    email,
-		IsActive: true,
-	}
+    return &User{Name: name, Email: email, IsActive: true}
 }
 
-// --- Business Logic ---
+// ── Business Logic ────────────────────────────────────────────────────────
+
 func (u *User) Deactivate() {
-	u.IsActive = false
-	u.Save()
+    u.IsActive = false
+    u.Save()
 }
 
 func (u *User) GetDisplayName() string {
-	return fmt.Sprintf("%s (%s)", u.Name, u.Email)
+    return fmt.Sprintf("%s <%s>", u.Name, u.Email)
 }
 
-// --- Persistence Logic ---
+// ── Persistence ───────────────────────────────────────────────────────────
+
 func (u *User) Save() {
-	if u.ID == nil {
-		// INSERT
-		MockDB.Execute("INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)", u.Name, u.Email, u.IsActive)
-		id := 1
-		u.ID = &id // Simulate generated ID
-		fmt.Printf("✅ User inserted with ID: %d\n", *u.ID)
-	} else {
-		// UPDATE
-		MockDB.Execute("UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?", u.Name, u.Email, u.IsActive, *u.ID)
-		fmt.Printf("✅ User %d updated.\n", *u.ID)
-	}
+    if u.ID == nil {
+        db.Execute(
+            "INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
+            u.Name, u.Email, u.IsActive,
+        )
+        id := 1
+        u.ID = &id
+    } else {
+        db.Execute(
+            "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
+            u.Name, u.Email, u.IsActive, *u.ID,
+        )
+    }
 }
 
 func (u *User) Delete() {
-	if u.ID != nil {
-		MockDB.Execute("DELETE FROM users WHERE id = ?", *u.ID)
-		u.ID = nil
-		fmt.Println("✅ User deleted.")
-	}
+    if u.ID != nil {
+        db.Execute("DELETE FROM users WHERE id = ?", *u.ID)
+        u.ID = nil
+    }
 }
 
-// --- Finders (Top-level functions in Go) ---
+// ── Finders ───────────────────────────────────────────────────────────────
+
 func FindUserByID(id int) *User {
-	row := MockDB.Query("SELECT * FROM users WHERE id = ? LIMIT 1", id)
-	if row == nil {
-		return nil
-	}
-
-	userId := row["id"].(int)
-	return &User{
-		ID:       &userId,
-		Name:     row["name"].(string),
-		Email:    row["email"].(string),
-		IsActive: row["is_active"].(bool),
-	}
+    row := db.Query("SELECT * FROM users WHERE id = ? LIMIT 1", id)
+    if row == nil {
+        return nil
+    }
+    uid := row["id"].(int)
+    return &User{
+        ID:       &uid,
+        Name:     row["name"].(string),
+        Email:    row["email"].(string),
+        IsActive: row["is_active"].(bool),
+    }
 }
 
-// 2. Client Code
+// ── Usage ─────────────────────────────────────────────────────────────────
+
 func main() {
-	fmt.Println("--- Creating User ---")
-	user := NewUser("Alice", "alice@example.com")
-	user.Save()
+    user := NewUser("Alice", "alice@example.com")
+    user.Save()
 
-	fmt.Println("\n--- Updating User ---")
-	user.Name = "Alice Smith"
-	user.Save()
+    user.Name = "Alice Smith"
+    user.Save()
 
-	fmt.Println("\n--- Finding User ---")
-	loadedUser := FindUserByID(1)
-	if loadedUser != nil {
-		fmt.Printf("Found: %s\n", loadedUser.GetDisplayName())
-		loadedUser.Deactivate()
-	}
+    found := FindUserByID(1)
+    if found != nil {
+        fmt.Println(found.GetDisplayName())
+        found.Deactivate()
+        found.Delete()
+    }
 }
 ```
 
 ```rust [Rust]
-use std::cell::RefCell;
 use std::collections::HashMap;
 
-// Mock DB context
 struct MockDB;
 impl MockDB {
     fn execute(sql: &str, params: &[&str]) {
-        println!("[DB EXECUTE] {} | Params: {:?}", sql, params);
+        println!("[DB] {} {:?}", sql, params);
     }
-
     fn query(sql: &str, _params: &[&str]) -> Option<HashMap<&'static str, &'static str>> {
-        println!("[DB QUERY] {}", sql);
-        let mut row = HashMap::new();
-        row.insert("id", "1");
-        row.insert("name", "John Doe");
-        row.insert("email", "john@test.com");
-        row.insert("is_active", "1");
-        Some(row)
+        println!("[DB] {}", sql);
+        Some(HashMap::from([
+            ("id", "1"), ("name", "John Doe"),
+            ("email", "john@test.com"), ("is_active", "1"),
+        ]))
     }
 }
 
-// 1. The Active Record Struct
 pub struct User {
     pub id: Option<i32>,
     pub name: String,
@@ -526,145 +580,606 @@ pub struct User {
 
 impl User {
     pub fn new(name: &str, email: &str) -> Self {
-        Self {
-            id: None,
-            name: name.to_string(),
-            email: email.to_string(),
-            is_active: true,
-        }
+        Self { id: None, name: name.into(), email: email.into(), is_active: true }
     }
 
-    // --- Business Logic ---
+    // ── Business Logic ────────────────────────────────────────────────────────
+
     pub fn deactivate(&mut self) {
         self.is_active = false;
         self.save();
     }
 
     pub fn get_display_name(&self) -> String {
-        format!("{} ({})", self.name, self.email)
+        format!("{} <{}>", self.name, self.email)
     }
 
-    // --- Persistence Logic ---
-    pub fn save(&mut self) {
-        let active_str = if self.is_active { "1" } else { "0" };
+    // ── Persistence ───────────────────────────────────────────────────────────
 
+    pub fn save(&mut self) {
+        let active = if self.is_active { "1" } else { "0" };
         if self.id.is_none() {
-            // INSERT
             MockDB::execute(
                 "INSERT INTO users (name, email, is_active) VALUES (?, ?, ?)",
-                &[&self.name, &self.email, active_str]
+                &[&self.name, &self.email, active],
             );
-            self.id = Some(1); // Simulate generated ID
-            println!("✅ User inserted with ID: 1");
+            self.id = Some(1);
         } else {
-            // UPDATE
             let id_str = self.id.unwrap().to_string();
             MockDB::execute(
                 "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
-                &[&self.name, &self.email, active_str, &id_str]
+                &[&self.name, &self.email, active, &id_str],
             );
-            println!("✅ User {} updated.", self.id.unwrap());
         }
     }
 
     pub fn delete(&mut self) {
         if let Some(id) = self.id {
-            let id_str = id.to_string();
-            MockDB::execute("DELETE FROM users WHERE id = ?", &[&id_str]);
+            MockDB::execute("DELETE FROM users WHERE id = ?", &[&id.to_string()]);
             self.id = None;
-            println!("✅ User deleted.");
         }
     }
 
-    // --- Static Finders ---
-    pub fn find_by_id(id: i32) -> Option<User> {
-        let id_str = id.to_string();
-        let row_opt = MockDB::query("SELECT * FROM users WHERE id = ? LIMIT 1", &[&id_str]);
+    // ── Finders ───────────────────────────────────────────────────────────────
 
-        if let Some(row) = row_opt {
-            Some(User {
-                id: Some(row.get("id")?.parse().unwrap()),
-                name: row.get("name")?.to_string(),
-                email: row.get("email")?.to_string(),
-                is_active: row.get("is_active")? == &"1",
-            })
-        } else {
-            None
-        }
+    pub fn find_by_id(id: i32) -> Option<User> {
+        let row = MockDB::query(
+            "SELECT * FROM users WHERE id = ? LIMIT 1",
+            &[&id.to_string()],
+        )?;
+        Some(User {
+            id: Some(row["id"].parse().unwrap()),
+            name: row["name"].to_string(),
+            email: row["email"].to_string(),
+            is_active: row["is_active"] == "1",
+        })
     }
 }
 
-// 2. Client Code
 fn main() {
-    println!("--- Creating User ---");
     let mut user = User::new("Alice", "alice@example.com");
-    user.save(); // INSERTS
+    user.save();
 
-    println!("\n--- Updating User ---");
-    user.name = "Alice Smith".to_string();
-    user.save(); // UPDATES
+    user.name = "Alice Smith".into();
+    user.save();
 
-    println!("\n--- Finding User ---");
-    if let Some(mut loaded_user) = User::find_by_id(1) {
-        println!("Found: {}", loaded_user.get_display_name());
-        loaded_user.deactivate(); // Business logic + UPDATE
+    if let Some(mut found) = User::find_by_id(1) {
+        println!("{}", found.get_display_name());
+        found.deactivate();
+        found.delete();
     }
 }
 ```
 
 :::
 
-## Pros and Cons
+## Associations
 
-### Advantages
+One of Active Record's most powerful features is association declarations — `hasMany`, `belongsTo`, `hasOne` — that generate the join queries automatically. This is where frameworks like Rails and Laravel really shine, and it's also where the pattern's hidden costs start to appear.
 
-- **Unbeatable Simplicity**: For standard CRUD operations, no pattern gets an application up and running faster.
-- **Intuitive API**: Calling `user.save()` is incredibly easy to read and understand.
-- **Convention over Configuration**: Active Record frameworks usually infer database tables, foreign keys, and relationships, saving massive amounts of boilerplate code.
-- **Everything in One Place**: You don't have to navigate between Repositories, Domain Entities, and Mappers to understand how a single database table behaves.
+### Types of Associations
 
-### Disadvantages
+```mermaid
+erDiagram
+    users {
+        int id PK
+        string name
+        string email
+    }
+    posts {
+        int id PK
+        int user_id FK
+        string title
+        string body
+    }
+    profiles {
+        int id PK
+        int user_id FK
+        string bio
+    }
+    comments {
+        int id PK
+        int post_id FK
+        int user_id FK
+        string body
+    }
 
-- **Violation of the Single Responsibility Principle**: The class handles both complex domain business logic AND database connection/querying logic.
-- **Testing Difficulties**: Because objects interact directly with the database, unit testing business logic usually requires a running database or complex mocking tools.
-- **Rigid Schema Coupling**: Your domain model is forced to look exactly like your database schema. If the database schema is highly denormalized or heavily normalized for performance, your business objects must reflect that, leading to awkward APIs.
+    users ||--o{ posts : "hasMany"
+    users ||--o| profiles : "hasOne"
+    posts ||--o{ comments : "hasMany"
+    users ||--o{ comments : "hasMany"
+```
+
+```typescript
+// TypeScript: manual association loading (no framework magic)
+class Post {
+  public id: number | null = null;
+  public userId: number;
+  public title: string;
+  public body: string;
+
+  constructor(userId: number, title: string, body: string) {
+    this.userId = userId;
+    this.title = title;
+    this.body = body;
+  }
+
+  // hasMany: a post has many comments
+  getComments(): Comment[] {
+    const rows = db.query("SELECT * FROM comments WHERE post_id = ?", [
+      this.id,
+    ]);
+    return rows.map(Comment.hydrate);
+  }
+
+  // belongsTo: a post belongs to a user
+  getAuthor(): User | null {
+    return User.findById(this.userId);
+  }
+
+  save(): void {
+    /* INSERT or UPDATE */
+  }
+
+  static findById(id: number): Post | null {
+    /* SELECT */ return null;
+  }
+  static hydrate(row: Record<string, unknown>): Post {
+    const post = new Post(
+      row.user_id as number,
+      row.title as string,
+      row.body as string,
+    );
+    post.id = row.id as number;
+    return post;
+  }
+}
+
+// Usage: loading a user's posts with authors
+const posts = Post.findByUserId(1);
+posts.forEach((post) => {
+  const author = post.getAuthor(); // ⚠️ One extra query per post — N+1!
+  console.log(`${author?.name}: ${post.title}`);
+});
+```
+
+In framework implementations (Rails, Eloquent), you would declare these associations declaratively:
+
+```ruby
+# Ruby on Rails — Active Record associations
+class User < ApplicationRecord
+  has_many :posts
+  has_one  :profile
+  has_many :comments, through: :posts
+end
+
+class Post < ApplicationRecord
+  belongs_to :user
+  has_many   :comments
+end
+
+# Rails loads all posts + authors in 2 queries (eager loading)
+User.includes(:posts).find(1).posts.each do |post|
+  puts post.title
+end
+```
+
+```php
+// Laravel Eloquent — same concept
+class User extends Model {
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
+}
+
+// Eager load to avoid N+1
+User::with('posts')->find(1)->posts->each(fn($p) => dump($p->title));
+```
+
+## The N+1 Query Problem
+
+This is the most common and damaging performance mistake in Active Record codebases. It occurs when you load a list of records and then access an association on each one inside a loop — triggering one query per iteration.
+
+### The Problem
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant DB
+
+    App->>DB: SELECT * FROM users
+    DB-->>App: 100 user rows
+
+    loop For each of 100 users
+        App->>DB: SELECT * FROM posts WHERE user_id = N
+        DB-->>App: posts for user N
+    end
+
+    Note over App,DB: 1 + 100 = 101 queries ❌
+```
+
+```typescript
+// ❌ N+1 — looks innocent, performs terribly
+const users = User.findAllActive(); // 1 query: SELECT * FROM users
+
+users.forEach((user) => {
+  // This triggers a new SELECT for every user in the loop
+  const posts = user.getPosts(); // N queries: SELECT * FROM posts WHERE user_id = ?
+  console.log(`${user.name} has ${posts.length} posts`);
+});
+// Total: 1 + N queries
+```
+
+### The Fix: Eager Loading
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant DB
+
+    App->>DB: SELECT * FROM users
+    DB-->>App: 100 user rows
+
+    App->>DB: SELECT * FROM posts WHERE user_id IN (1,2,...,100)
+    DB-->>App: all posts in one response
+
+    Note over App,DB: Always 2 queries, regardless of dataset size ✅
+```
+
+```typescript
+// ✅ Eager loading — tell the query what you'll need upfront
+const users = User.findAllWithPosts(); // 2 queries total, regardless of count
+
+// Framework syntax (Rails / Eloquent style):
+// User.includes(:posts).where(is_active: true)
+// User::with('posts')->where('is_active', 1)->get()
+
+users.forEach((user) => {
+  // posts are already in memory — no extra queries
+  console.log(`${user.name} has ${user.posts.length} posts`);
+});
+```
+
+::: warning Always think one level ahead
+Before iterating over a collection and accessing any property that could trigger a query, ask: "Is this going to fire a SELECT for every row?" If yes, use eager loading. This single habit prevents the majority of Active Record performance problems.
+:::
+
+## Active Record vs. Data Mapper
+
+This is one of the most common architectural decision points in backend development. The choice shapes your entire persistence layer.
+
+```mermaid
+classDiagram
+    namespace ActiveRecord {
+        class AR_User["User (Active Record)"] {
+            +id: number
+            +name: string
+            +email: string
+            +save() void
+            +delete() void
+            +findById()$ User
+            +getPosts() Post[]
+        }
+    }
+
+    namespace DataMapper {
+        class DM_User["User (Data Mapper)"] {
+            +id: number
+            +name: string
+            +email: string
+        }
+
+        class UserRepository {
+            +save(user: User) void
+            +delete(user: User) void
+            +findById(id) User
+            +findWithPosts(id) User
+        }
+    }
+
+    AR_User --> Database : "knows about DB"
+    UserRepository --> Database : "knows about DB"
+    DM_User ..> UserRepository : "passed into"
+```
+
+| Dimension                   | Active Record                 | Data Mapper                           |
+| --------------------------- | ----------------------------- | ------------------------------------- |
+| **Database knowledge**      | Lives in the entity           | Lives in a separate mapper/repository |
+| **Domain object purity**    | Coupled to schema             | Pure — no persistence concern         |
+| **Unit testing**            | Requires DB or complex mocks  | Test domain objects in pure memory    |
+| **Schema flexibility**      | Model must mirror the DB      | Model and DB can diverge              |
+| **Associations**            | Declarative, built-in         | Explicit, more control                |
+| **Development speed**       | Very fast for CRUD            | Slower initial setup                  |
+| **Code navigation**         | One class for everything      | Separate domain + persistence layers  |
+| **Best framework examples** | Rails, Eloquent, Django ORM   | TypeORM (data mapper mode), Hibernate |
+| **Ideal for**               | CRUD apps, MVPs, standard web | DDD, complex domains, microservices   |
+
+The decision is not about which is "better" — it is about which fits your domain complexity and team priorities.
+
+## Advantages and Disadvantages
+
+### ✅ Advantages
+
+- **Developer speed**: The fastest path from database schema to working CRUD operations in any pattern.
+- **Readable call sites**: `user.save()` communicates intent clearly. No repositories, factories, or mappers to navigate.
+- **Convention over configuration**: Frameworks infer table names, foreign keys, and join conditions, eliminating boilerplate.
+- **Colocation**: Business logic and persistence live together. For simple domains, this reduces the cognitive cost of context-switching between files.
+- **Rich association support**: `has_many`, `belongs_to`, and `through` associations are first-class citizens in every major framework implementation.
+
+### ❌ Disadvantages
+
+- **Single Responsibility Principle violation**: A `User` class that validates passwords, sends email, and executes SQL is doing too many things.
+- **Testing complexity**: Business logic tests often require a running database, dramatically increasing test suite time and fragility.
+- **Schema coupling**: The domain model is constrained to mirror the database schema. Normalizing for performance or denormalizing for reads forces awkward domain APIs.
+- **Fat model creep**: Without discipline, entity classes grow to thousands of lines as every team member adds "one more method" to the convenient central class.
+- **N+1 query risk**: Easy to introduce silently in association-heavy code with no static analysis to catch it.
 
 ## When to Use
 
-- **Rapid Application Development (RAD)**: Startups, MVPs, and internal tools where getting to market quickly is more important than achieving perfect architectural purity.
-- **CRUD-Heavy Applications**: If your application is essentially forms mapping directly to database tables without massive amounts of complex workflow logic.
-- **Small to Medium Complexity Domains**: Where a `User` class is just a User, and an `Order` class is just an Order.
+::: tip Use Active Record when...
 
-## When NOT to Use
+- **Rapid development is the priority**: Startups, MVPs, and internal tools where time-to-market outweighs long-term architectural concerns.
+- **Your domain is CRUD-heavy**: If most operations are creating, reading, updating, and deleting records without complex multi-aggregate workflows.
+- **The schema mirrors the domain**: When a `User` table maps cleanly to a `User` object with no awkward transformation in between.
+- **Your team is small**: Active Record's colocation of concerns is a feature when everyone can hold the whole model in their head.
 
-- **Complex Domain-Driven Design (DDD)**: If your domain model requires complex aggregates, deep validation rules, and objects that do not map cleanly 1:1 with database tables, Active Record will become an unmaintainable anti-pattern.
-- **High-Scale Enterprise Architectures**: When the database schema must be heavily optimized in ways that shouldn't impact the business logic layer.
-- **Microservices separating Read and Write models**: If you are using CQRS (Command Query Responsibility Segregation), Active Record tightly couples reads and writes together.
+:::
+
+::: warning Avoid Active Record when...
+
+- **You need pure domain models**: If your domain logic should run without any database infrastructure (strict DDD, hexagonal architecture), use Data Mapper.
+- **Your schema and domain diverge**: Heavily normalized read models, sharded tables, or schemas owned by a separate team make Active Record a poor fit.
+- **You use CQRS**: Active Record tightly couples reads and writes. CQRS demands they be separate.
+- **Complex aggregates span multiple tables**: When an "Order" means coordinating across `orders`, `order_items`, `inventory`, and `invoices`, the single-class model breaks down.
+- **Test speed is critical**: Large test suites that depend on database state become slow and brittle.
+
+:::
+
+## Should I Use Active Record?
+
+```mermaid
+flowchart TD
+    A([Need data persistence]) --> B{How complex\nis the domain?}
+
+    B -- Simple or moderate --> C{Does the schema\nmatch the domain?}
+    B -- Complex DDD\naggregates --> D[Data Mapper\n+ Repository]
+
+    C -- Yes, closely --> E{Is development\nspeed important?}
+    C -- No, they diverge --> D
+
+    E -- Yes, MVP / startup --> F[✅ Active Record]
+    E -- No, long-lived system --> G{Will you need\nisolated unit tests?}
+
+    G -- Yes --> D
+    G -- No --> F
+
+    D --> H{Still need\neasy CRUD?}
+    H -- Yes --> I[Repository pattern\nwith Data Mapper]
+    H -- No --> D
+```
 
 ## Common Mistakes
 
-### 1. The "Fat Model" Anti-Pattern
+### ❌ The Fat Model
 
-Because everything goes into the Active Record class, developers often end up with 3,000-line `User.php` or `user.rb` files containing everything from password hashing to sending welcome emails to triggering Stripe payments. _Solution: Keep models focused on persistence and core validation; move complex operations to Service classes or Event Handlers._
+The biggest long-term failure mode. Because everything lives in one class, every developer adds their feature to the `User` class because it is the obvious place.
 
-### 2. N+1 Query Problem
+```typescript
+// ❌ After 18 months of a growing team
+class User {
+  // Core data
+  id: number;
+  name: string;
+  email: string;
 
-Looping over an array of Active Records and accessing a related property (e.g., `user.posts`) often triggers a separate `SELECT` query for _every single item in the loop_, crushing database performance. Ensure your implementation supports Eager Loading (e.g., `User.with('posts').findAll()`).
+  // Authentication
+  hashPassword(pw: string): string {
+    /* ... */
+  }
+  validatePassword(pw: string): boolean {
+    /* ... */
+  }
+  generateJWT(): string {
+    /* ... */
+  }
+
+  // Emails
+  sendWelcomeEmail(): void {
+    /* ... */
+  }
+  sendPasswordResetEmail(): void {
+    /* ... */
+  }
+  sendWeeklyDigest(): void {
+    /* ... */
+  }
+
+  // Billing
+  createStripeCustomer(): void {
+    /* ... */
+  }
+  charge(amount: number): void {
+    /* ... */
+  }
+  cancelSubscription(): void {
+    /* ... */
+  }
+
+  // Persistence
+  save(): void {
+    /* ... */
+  }
+  delete(): void {
+    /* ... */
+  }
+  static findById(id: number): User {
+    /* ... */
+  }
+  // ... 2,400 more lines
+}
+```
+
+```typescript
+// ✅ Keep the model focused. Move concerns to service classes.
+class User {
+  id: number;
+  name: string;
+  email: string;
+  deactivate(): void {
+    /* core domain logic only */
+  }
+  save(): void {
+    /* persistence */
+  }
+}
+
+class AuthService {
+  hashPassword(pw: string): string {
+    /* ... */
+  }
+  generateJWT(user: User): string {
+    /* ... */
+  }
+}
+
+class BillingService {
+  createCustomer(user: User): void {
+    /* ... */
+  }
+  charge(user: User, amount: number): void {
+    /* ... */
+  }
+}
+```
+
+### ❌ The N+1 Query Problem
+
+Covered in detail above. The short version: any time you loop over Active Record objects and call an association method inside the loop, you are firing N+1 queries unless you have eagerly loaded the association beforehand.
+
+### ❌ Calling `save()` in a Loop
+
+Each `save()` call is a round-trip to the database. Importing 10,000 records one by one can take minutes; a bulk insert takes seconds.
+
+```typescript
+// ❌ 10,000 individual INSERT statements
+for (const row of csvData) {
+  const user = new User(row.name, row.email);
+  user.save(); // one DB round-trip per row
+}
+
+// ✅ Bulk insert in one statement
+User.insertMany(csvData.map((r) => ({ name: r.name, email: r.email })));
+// INSERT INTO users (name, email) VALUES (?, ?), (?, ?), ...
+```
+
+### ❌ Ignoring Transactions
+
+When multiple Active Record operations must succeed or fail together, you need an explicit transaction. Without one, a failure halfway through leaves the database in an inconsistent state.
+
+```typescript
+// ❌ If createProfile() throws, the User was already saved
+const user = new User("Alice", "alice@example.com");
+user.save();
+const profile = new Profile(user.id!, "Software Engineer");
+profile.save(); // what if this fails?
+
+// ✅ Wrap in a transaction
+await db.transaction(async () => {
+  const user = new User("Alice", "alice@example.com");
+  user.save();
+  const profile = new Profile(user.id!, "Software Engineer");
+  profile.save();
+  // Both succeed or both roll back
+});
+```
+
+### ❌ Treating Active Record Objects as DTOs
+
+Active Record objects are not safe to pass across layer boundaries. They carry a live database connection context, lazy-loaded associations, and change-tracking state. Serializing them directly into API responses can expose columns you didn't intend to include.
+
+```typescript
+// ❌ Exposes is_active, created_at, internal fields
+app.get("/users/:id", (req, res) => {
+  const user = User.findById(Number(req.params.id));
+  res.json(user); // serializes the entire object including DB state
+});
+
+// ✅ Map to a plain DTO before returning
+app.get("/users/:id", (req, res) => {
+  const user = User.findById(Number(req.params.id));
+  res.json({ id: user.id, name: user.name, email: user.email });
+});
+```
+
+## Active Record in Real Frameworks
+
+All of these are Active Record implementations with slight variations. Understanding how the pattern appears in the wild helps when moving between ecosystems.
+
+| Framework                | Language       | Notes                                                                       |
+| ------------------------ | -------------- | --------------------------------------------------------------------------- |
+| **Rails ActiveRecord**   | Ruby           | The canonical implementation. Conventions are strict and powerful.          |
+| **Laravel Eloquent**     | PHP            | Closest to Rails in feel. Rich association and scope API.                   |
+| **Django ORM**           | Python         | Technically Data Mapper but feels like Active Record due to `Model.save()`. |
+| **TypeORM (AR mode)**    | TypeScript     | Supports both Active Record and Data Mapper modes in the same library.      |
+| **Sequelize**            | JavaScript     | Active Record with explicit model definitions.                              |
+| **GORM**                 | Go             | Active Record-style with struct tags for column mapping.                    |
+| **ActiveAndroid / Room** | Android/Kotlin | Mobile adaptations of the pattern for SQLite.                               |
 
 ## Related Patterns
 
-- **Data Mapper**: The philosophical opposite of Active Record. Separates the Domain Object from the persistence logic.
-- **Repository**: Often used as an abstraction layer above Active Record (or Data Mapper) to provide a collection-like interface for accessing objects.
-- **Unit of Work**: Manages multiple Active Record operations in a single database transaction.
+- **[Data Mapper](/architectural/data-mapper)** — the architectural opposite. Domain objects have no knowledge of the database; a separate mapper handles persistence. Use this when the domain is complex or must be tested in isolation.
+- **[Repository](/architectural/repository)** — an abstraction layer that can sit above either Active Record or Data Mapper, providing a collection-like interface for querying objects.
+- **[Unit of Work](/architectural/unit-of-work)** — coordinates multiple Active Record operations into a single atomic database transaction.
+- **[Identity Map](/architectural/identity-map)** — ensures each database row is hydrated into memory only once per request, preventing stale duplicate objects when the same row is loaded multiple times.
 
 ## Interview Insights
 
-- **Question**: "What is the primary architectural difference between Active Record and Data Mapper?"
-  - **Answer**: "In Active Record, the domain entity knows about the database. It contains `save()` and `delete()` methods. In Data Mapper, the domain entity is a Plain Old Object (POJO/POCO) that has absolutely no knowledge of the database. A separate Data Mapper or Repository class handles moving data between the database and the entity."
-- **Question**: "Why do Domain-Driven Design (DDD) practitioners dislike Active Record?"
-  - **Answer**: "Because it violates the Single Responsibility Principle and couples the domain model to the database schema. In DDD, the domain model should dictate business rules purely in memory, unconstrained by how data is persisted."
+::: details What is the primary architectural difference between Active Record and Data Mapper?
 
-## Modern Alternatives
+In Active Record, the domain entity knows about the database — it carries `save()`, `delete()`, and finder methods. In Data Mapper, the entity is a plain object with no persistence logic; a separate mapper or repository class is responsible for translating between the in-memory object and the database row.
 
-- **Data Mapper ORMs**: Modern ecosystems often favor Data Mapper ORMs (like TypeORM in its Data Mapper mode, Prisma, or Hibernate) for complex enterprise apps to keep the domain clean.
-- **Query Builders**: Instead of mapping rows to objects at all, developers in high-performance or functional contexts often use query builders (like Knex.js or Kysely) to just return raw structs/interfaces, skipping the overhead of instantiating "smart" Active Record objects.
+The consequence: an Active Record `User` cannot be unit-tested without a database (or heavy mocking). A Data Mapper `User` is a plain object that can be instantiated, mutated, and asserted on in a test with no database at all.
+
+:::
+
+::: details Why do DDD practitioners dislike Active Record?
+
+Domain-Driven Design requires that the domain model express business rules purely in memory, unconstrained by persistence details. Active Record violates this in two ways:
+
+1. **Schema coupling** — the domain model must mirror the database structure, which is an infrastructure concern.
+2. **Responsibility mixing** — business logic and SQL generation live in the same class, making the domain logic harder to test and harder to reason about independently.
+
+For simple CRUD apps, these trade-offs are acceptable. For complex domains with aggregates, value objects, and invariants that span multiple tables, they become architectural liabilities.
+
+:::
+
+::: details How would you handle a case where Active Record is causing N+1 queries?
+
+First, identify the problem — database query logs or an APM tool (New Relic, Datadog) showing 100+ nearly-identical queries on a single request is the signature.
+
+The fix is eager loading: declare upfront which associations you need before iterating. In Rails: `User.includes(:posts)`. In Eloquent: `User::with('posts')`. In TypeORM: `userRepo.find({ relations: ['posts'] })`.
+
+If the association is conditionally needed or the query builder doesn't support it cleanly, fall back to a manual JOIN query on the finder method.
+
+:::
+
+::: details When would you migrate from Active Record to Data Mapper?
+
+The signals that it is time to move:
+
+- Unit tests require a running database and run slowly.
+- The domain model has complex aggregates that span multiple tables with non-trivial mapping logic.
+- The database schema and the domain model need to diverge (e.g., the DB is heavily normalized for write performance but the domain object is denormalized).
+- The team is implementing CQRS and needs separate read and write models.
+
+Migration is gradual: introduce a Repository interface over the existing Active Record classes first, then replace the implementation with a Data Mapper underneath without changing callers.
+
+:::
+
+::: details What is the "fat model" problem and how do you address it?
+
+Active Record encourages placing all logic related to an entity in a single class. Over time, as features are added, that class becomes a catch-all with authentication logic, email sending, billing, and persistence mixed together — sometimes exceeding thousands of lines.
+
+The fix is **service decomposition**: keep the model focused on its core data invariants and persistence, and move distinct operations (authentication, notifications, billing) into dedicated service classes that accept a domain object as input. This also dramatically improves testability since each service can be tested independently with a mock or stub object.
+
+:::

@@ -20,6 +20,7 @@ import NotFound from './components/NotFound.vue'
 import SidebarTop from './components/SidebarTop.vue'
 import SidebarBottom from './components/SidebarBottom.vue'
 import CoverImage from './components/CoverImage.vue'
+import Mermaid from './components/Mermaid.vue'
 
 export default {
   extends: DefaultTheme,
@@ -47,5 +48,6 @@ export default {
     app.component('TabsTrigger', TabsTrigger)
     app.component('TabsContent', TabsContent)
     app.component('CoverImage', CoverImage)
+    app.component('Mermaid', Mermaid)
   }
 } satisfies Theme

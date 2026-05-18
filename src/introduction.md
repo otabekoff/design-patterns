@@ -13,7 +13,7 @@ icon: Palette
 
 Design patterns are proven answers to recurring design problems in software. They are not libraries you import or templates you paste — they are ideas you apply with judgment. A pattern gives you a shared name for a solution, a clear structure for a problem, and the vocabulary to discuss tradeoffs with your team.
 
-This guide covers 41 patterns across four categories: Creational, Structural, Behavioral, and Architectural. Each pattern page follows a consistent structure — problem, solution, implementation in TypeScript and Python, real-world example, and honest tradeoffs.
+This guide covers 41 patterns across four categories: Creational, Structural, Behavioral, and Architectural. Each pattern page follows a consistent structure — problem, solution, implementation in five well-known programming languages, such as TypeScript and Python, real-world example, and honest tradeoffs.
 
 ## How To Use This Guide
 

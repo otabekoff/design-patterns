@@ -67,7 +67,7 @@ const showOverlay = ref(false);
 .cover-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   margin: 0 !important;
   border: none !important;
@@ -189,6 +189,40 @@ const showOverlay = ref(false);
   text-align: center;
 }
 
+/* Responsive Mobile Layout */
+@media (max-width: 768px) {
+  .cover-overlay {
+    padding: 24px 20px !important;
+  }
+
+  .overlay-content {
+    display: block !important;
+    text-align: left !important; /* Elegant flow for inline text */
+    padding-right: 28px; /* Safe space from close button */
+  }
+
+  .overlay-content :deep(h1) {
+    display: inline !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1.6 !important;
+    color: #ffffff !important;
+    letter-spacing: normal !important;
+  }
+
+  .overlay-content :deep(h1)::after {
+    content: ": " !important;
+  }
+
+  .overlay-content :deep(p) {
+    display: inline !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 400 !important;
+  }
+}
+
 /* Transition Animations */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
@@ -200,7 +234,7 @@ const showOverlay = ref(false);
   opacity: 0;
 }
 
-/* Dark mode image adjustments (if needed) */
+/* Dark mode image adjustments */
 :root.dark .cover-image {
   opacity: 0.9;
 }

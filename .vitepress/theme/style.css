@@ -436,26 +436,22 @@ div[class*="language-"] > button.copy.copied {
   --vp-code-copy-copied-text-content: 'Nusxalandi';
 }
 
-:lang(es) {
-  --vp-code-copy-copied-text-content: 'Copiado';
-}
-
-:lang(fa) {
-  --vp-code-copy-copied-text-content: 'کپی شد';
-}
-
-:lang(ko) {
-  --vp-code-copy-copied-text-content: '복사 완료';
-}
-
-:lang(pt) {
-  --vp-code-copy-copied-text-content: 'Copiado';
+:lang(tr) {
+  --vp-code-copy-copied-text-content: 'Kopyalandı';
 }
 
 :lang(ru) {
   --vp-code-copy-copied-text-content: 'Скопировано';
 }
 
-:lang(zh) {
-  --vp-code-copy-copied-text-content: '已复制';
+:lang(de) {
+  --vp-code-copy-copied-text-content: 'Kopiert';
+}
+
+:lang(es) {
+  --vp-code-copy-copied-text-content: 'Copiado';
+}
+
+:lang(ar) {
+  --vp-code-copy-copied-text-content: 'تم النسخ';
 }

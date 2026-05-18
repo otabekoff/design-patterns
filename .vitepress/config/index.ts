@@ -52,18 +52,16 @@ export default defineConfig({
           switch (localeIndex) {
             case 'uz':
               return 'Kodni nusxalash'
-            case 'es':
-              return 'Copiar código'
-            case 'fa':
-              return 'کپی کد'
-            case 'ko':
-              return '코드 복사'
-            case 'pt':
-              return 'Copiar código'
+            case 'tr':
+              return 'Kodu kopyala'
             case 'ru':
               return 'Скопировать код'
-            case 'zh':
-              return '复制代码'
+            case 'de':
+              return 'Code kopieren'
+            case 'es':
+              return 'Copiar código'
+            case 'ar':
+              return 'نسخ الكود'
             default:
               return 'Copy code'
           }

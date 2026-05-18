@@ -11,8 +11,6 @@ icon: CircleDot
   <p>One single, giant golden egg sitting in a carton of regular white eggs, guarded by a cute tiny security-guard robot with a flashlight.</p>
 </CoverImage>
 
-![Singleton Concept](/images/patterns/singleton-2x.png)
-
 ## Overview
 
 The **Singleton** pattern is a creational design pattern that restricts a class to a single instance and provides a global access point to that instance. While straightforward in concept, Singleton is controversial in practice because it trades simplicity for testing difficulty and hidden coupling.

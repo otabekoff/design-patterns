@@ -67,7 +67,7 @@ const showOverlay = ref(false);
 .cover-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   margin: 0 !important;
   border: none !important;

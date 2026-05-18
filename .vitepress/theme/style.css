@@ -406,7 +406,7 @@ div[class*="language-"] > button.copy.copied {
   }
 }
 
-.vp-doc img {
+/* .vp-doc img {
   border: 2px solid #3c3f44;
   border-radius: 24px;
   max-width: 100%;
@@ -416,7 +416,7 @@ div[class*="language-"] > button.copy.copied {
 .vp-doc img[alt="Cover"] {
   display: block;
   aspect-ratio: 16 / 10;
-  object-fit: contain;
+  object-fit: cover;
   background-color: var(--vp-c-bg-soft);
   width: 680px;
   max-width: 100%;
@@ -425,7 +425,7 @@ div[class*="language-"] > button.copy.copied {
 .vp-doc p:has(img[alt="Cover"]) {
   margin-top: 20px;
   margin-bottom: 24px;
-}
+} */
 
 /* Code Wrap Buttons */
 .wrap-button {

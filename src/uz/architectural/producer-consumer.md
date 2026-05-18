@@ -62,7 +62,7 @@ Producer → [Buffer/Queue] → Consumer
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Queue implementation
 class Queue<T> {
   private items: T[] = [];
@@ -140,7 +140,7 @@ consumer.consume();
 console.log(`\nQueue size: ${queue.size()}`);
 ```
 
-```python [python]
+```python [Python]
 from typing import TypeVar, Generic, List, Optional
 from dataclasses import dataclass
 import time

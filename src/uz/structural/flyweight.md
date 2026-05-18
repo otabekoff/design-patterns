@@ -53,7 +53,7 @@ The Flyweight Pattern provides a solution by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Flyweight (Intrinsic State) ==========
 
 interface CharacterFlyweight {
@@ -321,8 +321,7 @@ particleSystem.render();
 particleSystem.getStatistics();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import Dict, Optional
 

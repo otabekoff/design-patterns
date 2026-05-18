@@ -69,7 +69,7 @@ const db = locator.get('database');
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Service interfaces
 interface Logger {
   log(message: string): void;
@@ -180,7 +180,7 @@ service.createUser("John Doe");
 service.getUsers();
 ```
 
-```python [python]
+```python [Python]
 from typing import Dict, Callable, Any, TypeVar, Generic
 
 T = TypeVar('T')

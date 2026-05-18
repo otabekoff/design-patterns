@@ -71,7 +71,7 @@ class User {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Database Connection Mock
 interface Database {
   execute(sql: string, params?: any[]): any[];
@@ -185,7 +185,7 @@ if (user.id) {
 }
 ```
 
-```python [python]
+```python [Python]
 # Database Connection Mock
 class Database:
     @staticmethod

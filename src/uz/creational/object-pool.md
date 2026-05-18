@@ -46,100 +46,99 @@ The Object Pool pattern solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Poolable object interface
-    interface Poolable {
-      reset(): void;
+interface Poolable {
+  reset(): void;
+}
+
+// Concrete poolable object
+class DatabaseConnection implements Poolable {
+  private isInUse: boolean = false;
+
+  connect(url: string): void {
+    console.log(`Connecting to ${url}`);
+  }
+
+  query(sql: string): void {
+    if (!this.isInUse) {
+      throw new Error("Connection not acquired from pool");
     }
+    console.log(`Executing: ${sql}`);
+  }
 
-    // Concrete poolable object
-    class DatabaseConnection implements Poolable {
-      private isInUse: boolean = false;
+  reset(): void {
+    this.isInUse = false;
+    console.log("Connection reset");
+  }
 
-      connect(url: string): void {
-        console.log(`Connecting to ${url}`);
-      }
+  setInUse(inUse: boolean): void {
+    this.isInUse = inUse;
+  }
+}
 
-      query(sql: string): void {
-        if (!this.isInUse) {
-          throw new Error('Connection not acquired from pool');
-        }
-        console.log(`Executing: ${sql}`);
-      }
+// Object Pool
+class ConnectionPool {
+  private available: DatabaseConnection[] = [];
+  private inUse: Set<DatabaseConnection> = new Set();
+  private maxSize: number;
 
-      reset(): void {
-        this.isInUse = false;
-        console.log('Connection reset');
-      }
+  constructor(maxSize: number = 10) {
+    this.maxSize = maxSize;
+    this.initialize();
+  }
 
-      setInUse(inUse: boolean): void {
-        this.isInUse = inUse;
-      }
+  private initialize(): void {
+    for (let i = 0; i < this.maxSize; i++) {
+      const conn = new DatabaseConnection();
+      conn.connect("localhost:5432");
+      this.available.push(conn);
     }
+    console.log(`Pool initialized with ${this.maxSize} connections`);
+  }
 
-    // Object Pool
-    class ConnectionPool {
-      private available: DatabaseConnection[] = [];
-      private inUse: Set<DatabaseConnection> = new Set();
-      private maxSize: number;
-
-      constructor(maxSize: number = 10) {
-        this.maxSize = maxSize;
-        this.initialize();
-      }
-
-      private initialize(): void {
-        for (let i = 0; i < this.maxSize; i++) {
-          const conn = new DatabaseConnection();
-          conn.connect('localhost:5432');
-          this.available.push(conn);
-        }
-        console.log(`Pool initialized with ${this.maxSize} connections`);
-      }
-
-      acquire(): DatabaseConnection {
-        if (this.available.length === 0) {
-          throw new Error('No connections available');
-        }
-        const conn = this.available.pop()!;
-        conn.setInUse(true);
-        this.inUse.add(conn);
-        return conn;
-      }
-
-      release(conn: DatabaseConnection): void {
-        if (!this.inUse.has(conn)) {
-          throw new Error('Connection not from this pool');
-        }
-        this.inUse.delete(conn);
-        conn.reset();
-        this.available.push(conn);
-      }
-
-      getStatus(): string {
-        return `Available: ${this.available.length}, In Use: ${this.inUse.size}`;
-      }
+  acquire(): DatabaseConnection {
+    if (this.available.length === 0) {
+      throw new Error("No connections available");
     }
+    const conn = this.available.pop()!;
+    conn.setInUse(true);
+    this.inUse.add(conn);
+    return conn;
+  }
 
-    // Usage
-    const pool = new ConnectionPool(5);
+  release(conn: DatabaseConnection): void {
+    if (!this.inUse.has(conn)) {
+      throw new Error("Connection not from this pool");
+    }
+    this.inUse.delete(conn);
+    conn.reset();
+    this.available.push(conn);
+  }
 
-    const conn1 = pool.acquire();
-    const conn2 = pool.acquire();
+  getStatus(): string {
+    return `Available: ${this.available.length}, In Use: ${this.inUse.size}`;
+  }
+}
 
-    conn1.query('SELECT * FROM users');
-    conn2.query('SELECT * FROM products');
+// Usage
+const pool = new ConnectionPool(5);
 
-    console.log(pool.getStatus()); // Available: 3, In Use: 2
+const conn1 = pool.acquire();
+const conn2 = pool.acquire();
 
-    pool.release(conn1);
-    pool.release(conn2);
+conn1.query("SELECT * FROM users");
+conn2.query("SELECT * FROM products");
 
-    console.log(pool.getStatus()); // Available: 5, In Use: 0
+console.log(pool.getStatus()); // Available: 3, In Use: 2
+
+pool.release(conn1);
+pool.release(conn2);
+
+console.log(pool.getStatus()); // Available: 5, In Use: 0
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     class Poolable(ABC):
@@ -300,7 +299,7 @@ threadPool.execute(() => console.log("Task 3"));
 
 ::: warn
 Ensure proper state reset when returning objects to the pool. Leftover state can cause subtle
-  bugs.
+bugs.
 :::
 
 ## When to Use

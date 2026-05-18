@@ -64,9 +64,12 @@ function findById(id) {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 class User {
-  constructor(public id: number, public name: string) {}
+  constructor(
+    public id: number,
+    public name: string,
+  ) {}
 }
 
 class IdentityMap {
@@ -97,7 +100,7 @@ class UserRepository {
     // 2. Bazadan olish
     console.log(`[DB] Foydalanuvchi ${id} bazadan yuklanmoqda...`);
     const user = new User(id, "User " + id);
-    
+
     // 3. Xaritada saqlash
     IdentityMap.add(id, user);
     return user;
@@ -112,7 +115,7 @@ const u2 = repo.findById(1);
 console.log(u1 === u2); // true ✅
 ```
 
-```python [python]
+```python [Python]
 class User:
     def __init__(self, id_val, name):
         self.id = id_val
@@ -144,7 +147,7 @@ class UserRepository:
         # 2. Bazadan olish
         print(f"[DB] Foydalanuvchi {id_val} bazadan yuklanmoqda...")
         user = User(id_val, f"User {id_val}")
-        
+
         # 3. Xaritada saqlash
         IdentityMap.add(id_val, user)
         return user
@@ -162,12 +165,15 @@ print(u1 is u2) # True ✅
 ## Real Hayotdan Misollar
 
 ### Hibernate / JPA
+
 Hibernate'dagi "First-Level Cache" — bu klassik Identity Map hisoblanadi. U `Session` doirasida ishlaydi.
 
 ### SQLAlchemy
+
 SQLAlchemy'ning `Session` ob'ekti o'z doirasida yuklangan barcha ob'ektlar uchun Identity Map yuritadi.
 
 ### JavaScript ORMlar (TypeORM, MikroORM)
+
 MikroORM ob'ektlar yagonaligini ta'minlash uchun o'zining `EntityManager`i tarkibida Identity Map'dan foydalanadi.
 
 ## Afzalliklari ✅

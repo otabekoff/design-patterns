@@ -91,7 +91,7 @@ const scrollbar = factory.createScrollbar(); // Matching scrollbar
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 /**
  * Product interfaces: Define what each component type must support.
  */
@@ -233,7 +233,7 @@ const app = new Application(factory);
 console.log(app.render());
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class Button(ABC):
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     print(app.render())
 ```
 
-```java [java]
+```java [Java]
 interface Button {
     void click();
     String render();
@@ -509,7 +509,7 @@ public class Main {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -649,7 +649,7 @@ func main() {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 pub trait Button {
     fn click(&self);
     fn render(&self) -> String;
@@ -813,7 +813,7 @@ TypeScript uses `interface` declarations to define both the product contracts (`
 
 ### Python: Leveraging Duck Typing and Protocols
 
-Python uses `ABC` (Abstract Base Class) to enforce the factory and product contracts at class-definition time. Each abstract method decorated with `@abstractmethod` prevents instantiation of incomplete factories. Despite this formal structure, Python's duck typing means the client code (`Application`) only cares that the factory *has* `create_button()`, `create_checkbox()`, and `create_scrollbar()` methods — no type annotation is strictly required at runtime. The `if __name__ == "__main__"` guard keeps the wiring logic clean and testable.
+Python uses `ABC` (Abstract Base Class) to enforce the factory and product contracts at class-definition time. Each abstract method decorated with `@abstractmethod` prevents instantiation of incomplete factories. Despite this formal structure, Python's duck typing means the client code (`Application`) only cares that the factory _has_ `create_button()`, `create_checkbox()`, and `create_scrollbar()` methods — no type annotation is strictly required at runtime. The `if __name__ == "__main__"` guard keeps the wiring logic clean and testable.
 
 ### Java: Generics for Type Safety
 

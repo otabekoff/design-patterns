@@ -60,196 +60,196 @@ The Facade Pattern provides a solution by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Subsystem Components ==========
 
 class LightingSystem {
-dimLights(level: number): void {
-console.log(`Dimming lights to ${level}%`);
-}
+  dimLights(level: number): void {
+    console.log(`Dimming lights to ${level}%`);
+  }
 
-turnOnLights(): void {
-console.log('Turning on all lights');
-}
+  turnOnLights(): void {
+    console.log("Turning on all lights");
+  }
 
-turnOffLights(): void {
-console.log('Turning off all lights');
-}
+  turnOffLights(): void {
+    console.log("Turning off all lights");
+  }
 
-setAmbientLighting(): void {
-console.log('Setting ambient lighting');
-}
+  setAmbientLighting(): void {
+    console.log("Setting ambient lighting");
+  }
 }
 
 class TemperatureSystem {
-setTemperature(celsius: number): void {
-console.log(`Setting temperature to ${celsius}°C`);
-}
+  setTemperature(celsius: number): void {
+    console.log(`Setting temperature to ${celsius}°C`);
+  }
 
-activateHeating(): void {
-console.log('Activating heating system');
-}
+  activateHeating(): void {
+    console.log("Activating heating system");
+  }
 
-activateCooling(): void {
-console.log('Activating cooling system');
-}
+  activateCooling(): void {
+    console.log("Activating cooling system");
+  }
 }
 
 class SecuritySystem {
-lockDoors(): void {
-console.log('Locking all doors');
-}
+  lockDoors(): void {
+    console.log("Locking all doors");
+  }
 
-unlockDoors(): void {
-console.log('Unlocking all doors');
-}
+  unlockDoors(): void {
+    console.log("Unlocking all doors");
+  }
 
-activateAlarm(): void {
-console.log('Activating security alarm');
-}
+  activateAlarm(): void {
+    console.log("Activating security alarm");
+  }
 
-deactivateAlarm(): void {
-console.log('Deactivating security alarm');
-}
+  deactivateAlarm(): void {
+    console.log("Deactivating security alarm");
+  }
 
-activatePrivacyMode(): void {
-console.log('Activating privacy mode (blocking windows)');
-}
+  activatePrivacyMode(): void {
+    console.log("Activating privacy mode (blocking windows)");
+  }
 }
 
 class EntertainmentSystem {
-turnOnTV(): void {
-console.log('Turning on television');
-}
+  turnOnTV(): void {
+    console.log("Turning on television");
+  }
 
-turnOffTV(): void {
-console.log('Turning off television');
-}
+  turnOffTV(): void {
+    console.log("Turning off television");
+  }
 
-turnOnSoundSystem(): void {
-console.log('Turning on sound system');
-}
+  turnOnSoundSystem(): void {
+    console.log("Turning on sound system");
+  }
 
-turnOffSoundSystem(): void {
-console.log('Turning off sound system');
-}
+  turnOffSoundSystem(): void {
+    console.log("Turning off sound system");
+  }
 
-setSurroundSound(): void {
-console.log('Setting surround sound mode');
-}
+  setSurroundSound(): void {
+    console.log("Setting surround sound mode");
+  }
 }
 
 class EnergySystem {
-checkBatteryLevel(): number {
-console.log('Checking battery level');
-return 85;
-}
+  checkBatteryLevel(): number {
+    console.log("Checking battery level");
+    return 85;
+  }
 
-activateSolarMode(): void {
-console.log('Activating solar power mode');
-}
+  activateSolarMode(): void {
+    console.log("Activating solar power mode");
+  }
 
-disableSolarMode(): void {
-console.log('Disabling solar power mode');
-}
+  disableSolarMode(): void {
+    console.log("Disabling solar power mode");
+  }
 }
 
 // ========== Facade Class ==========
 
 class HomeAutomationFacade {
-private lighting: LightingSystem;
-private temperature: TemperatureSystem;
-private security: SecuritySystem;
-private entertainment: EntertainmentSystem;
-private energy: EnergySystem;
+  private lighting: LightingSystem;
+  private temperature: TemperatureSystem;
+  private security: SecuritySystem;
+  private entertainment: EntertainmentSystem;
+  private energy: EnergySystem;
 
-constructor() {
-this.lighting = new LightingSystem();
-this.temperature = new TemperatureSystem();
-this.security = new SecuritySystem();
-this.entertainment = new EntertainmentSystem();
-this.energy = new EnergySystem();
-}
+  constructor() {
+    this.lighting = new LightingSystem();
+    this.temperature = new TemperatureSystem();
+    this.security = new SecuritySystem();
+    this.entertainment = new EntertainmentSystem();
+    this.energy = new EnergySystem();
+  }
 
-// High-level convenience methods
-activateMovieMode(): void {
-console.log('\n=== Activating Movie Mode ===');
-this.lighting.dimLights(10);
-this.lighting.setAmbientLighting();
-this.temperature.setTemperature(22);
-this.entertainment.turnOnTV();
-this.entertainment.turnOnSoundSystem();
-this.entertainment.setSurroundSound();
-this.security.lockDoors();
-console.log('Movie Mode activated!');
-}
+  // High-level convenience methods
+  activateMovieMode(): void {
+    console.log("\n=== Activating Movie Mode ===");
+    this.lighting.dimLights(10);
+    this.lighting.setAmbientLighting();
+    this.temperature.setTemperature(22);
+    this.entertainment.turnOnTV();
+    this.entertainment.turnOnSoundSystem();
+    this.entertainment.setSurroundSound();
+    this.security.lockDoors();
+    console.log("Movie Mode activated!");
+  }
 
-activateSleepMode(): void {
-console.log('\n=== Activating Sleep Mode ===');
-this.lighting.turnOffLights();
-this.temperature.setTemperature(18);
-this.entertainment.turnOffTV();
-this.entertainment.turnOffSoundSystem();
-this.security.lockDoors();
-this.security.activateAlarm();
-console.log('Sleep Mode activated!');
-}
+  activateSleepMode(): void {
+    console.log("\n=== Activating Sleep Mode ===");
+    this.lighting.turnOffLights();
+    this.temperature.setTemperature(18);
+    this.entertainment.turnOffTV();
+    this.entertainment.turnOffSoundSystem();
+    this.security.lockDoors();
+    this.security.activateAlarm();
+    console.log("Sleep Mode activated!");
+  }
 
-activateAwayMode(): void {
-console.log('\n=== Activating Away Mode ===');
-this.lighting.turnOffLights();
-this.entertainment.turnOffTV();
-this.entertainment.turnOffSoundSystem();
-this.security.lockDoors();
-this.security.activateAlarm();
-this.security.activatePrivacyMode();
-const batteryLevel = this.energy.checkBatteryLevel();
-if (batteryLevel > 20) {
-this.energy.activateSolarMode();
-}
-console.log('Away Mode activated!');
-}
+  activateAwayMode(): void {
+    console.log("\n=== Activating Away Mode ===");
+    this.lighting.turnOffLights();
+    this.entertainment.turnOffTV();
+    this.entertainment.turnOffSoundSystem();
+    this.security.lockDoors();
+    this.security.activateAlarm();
+    this.security.activatePrivacyMode();
+    const batteryLevel = this.energy.checkBatteryLevel();
+    if (batteryLevel > 20) {
+      this.energy.activateSolarMode();
+    }
+    console.log("Away Mode activated!");
+  }
 
-activatePartyMode(): void {
-console.log('\n=== Activating Party Mode ===');
-this.lighting.turnOnLights();
-this.lighting.setAmbientLighting();
-this.temperature.setTemperature(24);
-this.entertainment.turnOnTV();
-this.entertainment.turnOnSoundSystem();
-this.security.unlockDoors();
-console.log('Party Mode activated!');
-}
+  activatePartyMode(): void {
+    console.log("\n=== Activating Party Mode ===");
+    this.lighting.turnOnLights();
+    this.lighting.setAmbientLighting();
+    this.temperature.setTemperature(24);
+    this.entertainment.turnOnTV();
+    this.entertainment.turnOnSoundSystem();
+    this.security.unlockDoors();
+    console.log("Party Mode activated!");
+  }
 
-deactivateAllModes(): void {
-console.log('\n=== Deactivating All Modes ===');
-this.lighting.turnOffLights();
-this.entertainment.turnOffTV();
-this.entertainment.turnOffSoundSystem();
-this.security.deactivateAlarm();
-console.log('All systems deactivated!');
-}
+  deactivateAllModes(): void {
+    console.log("\n=== Deactivating All Modes ===");
+    this.lighting.turnOffLights();
+    this.entertainment.turnOffTV();
+    this.entertainment.turnOffSoundSystem();
+    this.security.deactivateAlarm();
+    console.log("All systems deactivated!");
+  }
 
-// Access to subsystems for advanced users
-getLightingSystem(): LightingSystem {
-return this.lighting;
-}
+  // Access to subsystems for advanced users
+  getLightingSystem(): LightingSystem {
+    return this.lighting;
+  }
 
-getTemperatureSystem(): TemperatureSystem {
-return this.temperature;
-}
+  getTemperatureSystem(): TemperatureSystem {
+    return this.temperature;
+  }
 
-getSecuritySystem(): SecuritySystem {
-return this.security;
-}
+  getSecuritySystem(): SecuritySystem {
+    return this.security;
+  }
 
-getEntertainmentSystem(): EntertainmentSystem {
-return this.entertainment;
-}
+  getEntertainmentSystem(): EntertainmentSystem {
+    return this.entertainment;
+  }
 
-getEnergySystem(): EnergySystem {
-return this.energy;
-}
+  getEnergySystem(): EnergySystem {
+    return this.energy;
+  }
 }
 
 // ========== Usage ==========
@@ -262,7 +262,7 @@ homeFacade.activateSleepMode();
 homeFacade.activateAwayMode();
 
 // Advanced usage - access subsystems directly if needed
-console.log('\n=== Custom Configuration ===');
+console.log("\n=== Custom Configuration ===");
 const lighting = homeFacade.getLightingSystem();
 const temperature = homeFacade.getTemperatureSystem();
 
@@ -272,87 +272,87 @@ temperature.setTemperature(20);
 // ========== Real-world example: Web Framework Facade ==========
 
 class DatabaseConnection {
-query(sql: string): any[] {
-console.log(`Executing query: ${sql}`);
-return [];
-}
+  query(sql: string): any[] {
+    console.log(`Executing query: ${sql}`);
+    return [];
+  }
 
-close(): void {
-console.log('Database connection closed');
-}
+  close(): void {
+    console.log("Database connection closed");
+  }
 }
 
 class AuthenticationService {
-authenticate(username: string, password: string): boolean {
-console.log(`Authenticating user: ${username}`);
-return true;
-}
+  authenticate(username: string, password: string): boolean {
+    console.log(`Authenticating user: ${username}`);
+    return true;
+  }
 
-generateToken(): string {
-console.log('Generating auth token');
-return 'token_12345';
-}
+  generateToken(): string {
+    console.log("Generating auth token");
+    return "token_12345";
+  }
 }
 
 class LoggingService {
-log(level: string, message: string): void {
-console.log(`[${level}] ${message}`);
-}
+  log(level: string, message: string): void {
+    console.log(`[${level}] ${message}`);
+  }
 
-info(message: string): void {
-this.log('INFO', message);
-}
+  info(message: string): void {
+    this.log("INFO", message);
+  }
 
-error(message: string): void {
-this.log('ERROR', message);
-}
+  error(message: string): void {
+    this.log("ERROR", message);
+  }
 }
 
 class CachingService {
-set(key: string, value: any): void {
-console.log(`Setting cache: ${key}`);
-}
+  set(key: string, value: any): void {
+    console.log(`Setting cache: ${key}`);
+  }
 
-get(key: string): any {
-console.log(`Getting cache: ${key}`);
-return null;
-}
+  get(key: string): any {
+    console.log(`Getting cache: ${key}`);
+    return null;
+  }
 
-invalidate(key: string): void {
-console.log(`Invalidating cache: ${key}`);
-}
+  invalidate(key: string): void {
+    console.log(`Invalidating cache: ${key}`);
+  }
 }
 
 // Web Framework Facade
 class WebFramework {
-private db: DatabaseConnection;
-private auth: AuthenticationService;
-private logger: LoggingService;
-private cache: CachingService;
+  private db: DatabaseConnection;
+  private auth: AuthenticationService;
+  private logger: LoggingService;
+  private cache: CachingService;
 
-constructor() {
-this.db = new DatabaseConnection();
-this.auth = new AuthenticationService();
-this.logger = new LoggingService();
-this.cache = new CachingService();
-}
+  constructor() {
+    this.db = new DatabaseConnection();
+    this.auth = new AuthenticationService();
+    this.logger = new LoggingService();
+    this.cache = new CachingService();
+  }
 
-handleUserLogin(username: string, password: string): string {
-console.log('\n=== Processing Login Request ===');
+  handleUserLogin(username: string, password: string): string {
+    console.log("\n=== Processing Login Request ===");
 
     this.logger.info(`Login attempt for user: ${username}`);
 
     // Check cache first
     const cachedResult = this.cache.get(`user_${username}`);
     if (cachedResult) {
-      this.logger.info('User found in cache');
+      this.logger.info("User found in cache");
       return cachedResult;
     }
 
     // Authenticate
     if (!this.auth.authenticate(username, password)) {
-      this.logger.error('Authentication failed');
-      return 'null';
+      this.logger.error("Authentication failed");
+      return "null";
     }
 
     // Generate token
@@ -361,44 +361,41 @@ console.log('\n=== Processing Login Request ===');
     // Cache the result
     this.cache.set(`user_${username}`, token);
 
-    this.logger.info('Login successful');
+    this.logger.info("Login successful");
     return token;
+  }
 
-}
-
-handleUserLogout(username: string): void {
-console.log('\n=== Processing Logout Request ===');
+  handleUserLogout(username: string): void {
+    console.log("\n=== Processing Logout Request ===");
 
     this.logger.info(`Logout for user: ${username}`);
     this.cache.invalidate(`user_${username}`);
-    this.logger.info('Logout complete');
+    this.logger.info("Logout complete");
+  }
 
-}
+  getDatabase(): DatabaseConnection {
+    return this.db;
+  }
 
-getDatabase(): DatabaseConnection {
-return this.db;
-}
-
-getLogger(): LoggingService {
-return this.logger;
-}
+  getLogger(): LoggingService {
+    return this.logger;
+  }
 }
 
 // ========== Web Framework Usage ==========
 
 const framework = new WebFramework();
-const token = framework.handleUserLogin('john_doe', 'password123');
+const token = framework.handleUserLogin("john_doe", "password123");
 console.log(`Received token: ${token}`);
 
-framework.handleUserLogout('john_doe');
+framework.handleUserLogout("john_doe");
 
 // Access services directly for advanced configuration
 const logger = framework.getLogger();
-logger.error('Custom error message');
+logger.error("Custom error message");
 ```
 
-  
-```python [python]
+```python [Python]
 # ========== Subsystem Components ==========
 
 class LightingSystem:

@@ -21,7 +21,7 @@ The **Identity Map** pattern is a critical architectural pattern that ensures th
 
 ## The Problem
 
-When you retrieve data from a database without an Identity Map, every query instantiates a brand new object in memory. 
+When you retrieve data from a database without an Identity Map, every query instantiates a brand new object in memory.
 
 ```typescript
 // ❌ Bad: Multiple objects for the same database record
@@ -39,8 +39,9 @@ await userRepository.save(userInstanceB); // Saves "Bob" to DB, overwriting "Ali
 ```
 
 This creates severe issues:
+
 1. **Lost Updates**: Because `userInstanceA` and `userInstanceB` are unaware of each other, whichever is saved last silently overwrites the other.
-2. **Memory Bloat**: If you load a `Post` with 100 `Comments`, and each `Comment` has an `Author`, and 80 of those comments are written by the *same* Author, you will instantiate 80 identical `User` objects in memory instead of just 1.
+2. **Memory Bloat**: If you load a `Post` with 100 `Comments`, and each `Comment` has an `Author`, and 80 of those comments are written by the _same_ Author, you will instantiate 80 identical `User` objects in memory instead of just 1.
 3. **Database Thrashing**: Querying for the same record multiple times triggers redundant, identical SQL queries.
 
 ## The Solution
@@ -51,8 +52,8 @@ An Identity Map is placed between the Repository and the Database. When you requ
 // ✅ Good: The Identity Map ensures only one object exists
 const map = new IdentityMap();
 
-const userA = map.get(1) || await db.query(1); // Hits DB, stores in Map
-const userB = map.get(1) || await db.query(1); // Hits Map, DB is ignored
+const userA = map.get(1) || (await db.query(1)); // Hits DB, stores in Map
+const userB = map.get(1) || (await db.query(1)); // Hits Map, DB is ignored
 
 console.log(userA === userB); // true! They share the exact same memory reference.
 
@@ -94,16 +95,16 @@ classDiagram
 ## Real-World Analogy
 
 Think of a **Hospital Patient Registry**.
-When Patient John Doe arrives, the receptionist checks the central registry. If John is already checked in and in Room 4B, the receptionist directs the doctor to Room 4B. 
+When Patient John Doe arrives, the receptionist checks the central registry. If John is already checked in and in Room 4B, the receptionist directs the doctor to Room 4B.
 
-Without this registry (Identity Map), the hospital might mistakenly check John Doe in a second time, assign him to Room 7A, and suddenly two different doctors are treating two different instances of "John Doe" with conflicting medications. 
+Without this registry (Identity Map), the hospital might mistakenly check John Doe in a second time, assign him to Room 7A, and suddenly two different doctors are treating two different instances of "John Doe" with conflicting medications.
 
 ## Step-by-Step Implementation
 
 1. **Create the Map**: Create an internal dictionary/hash map.
 2. **Create Get/Set Methods**: Implement methods to retrieve and store objects by their unique identifiers.
 3. **Integrate with Repository**: Modify your Repository/Data Mapper to always check the Identity Map before querying the database, and to always add new objects to the map after querying.
-4. **Scoping**: Ensure the Identity Map is scoped correctly (usually bound to a single HTTP Request or Unit of Work), *not* globally across the entire application.
+4. **Scoping**: Ensure the Identity Map is scoped correctly (usually bound to a single HTTP Request or Unit of Work), _not_ globally across the entire application.
 
 ## Code Examples
 
@@ -112,7 +113,10 @@ Without this registry (Identity Map), the hospital might mistakenly check John D
 ```typescript [TypeScript]
 // 1. Domain Entity
 class User {
-  constructor(public id: number, public name: string) {}
+  constructor(
+    public id: number,
+    public name: string,
+  ) {}
 }
 
 // 2. The Identity Map
@@ -143,14 +147,16 @@ class UserRepository {
     // Check Identity Map first
     const cachedUser = this.identityMap.get<User>("User", id);
     if (cachedUser) {
-      console.log(`[Cache Hit] Returning existing memory reference for User ${id}`);
+      console.log(
+        `[Cache Hit] Returning existing memory reference for User ${id}`,
+      );
       return cachedUser;
     }
 
     // Simulate DB Query (Cache Miss)
     console.log(`[DB Query] SELECT * FROM users WHERE id = ${id}`);
     const userFromDb = new User(id, `User ${id}`);
-    
+
     // Store in Identity Map for future requests
     this.identityMap.add("User", id, userFromDb);
     return userFromDb;
@@ -219,7 +225,7 @@ class UserRepository:
         # Simulate DB Query (Cache Miss)
         print(f"[DB Query] SELECT * FROM users WHERE id = {id_val}")
         user_from_db = User(id_val, f"User {id_val}")
-        
+
         # Store in Map
         self.identity_map.add("User", id_val, user_from_db)
         return user_from_db
@@ -290,7 +296,7 @@ class UserRepository {
         // DB Query
         System.out.println("[DB Query] SELECT * FROM users WHERE id = " + id);
         User user = new User(id, "User " + id);
-        
+
         // Store
         identityMap.add("User", id, user);
         return user;
@@ -373,7 +379,7 @@ func (r *UserRepository) FindByID(id int) *User {
 	// Mock DB Query
 	fmt.Printf("[DB Query] SELECT * FROM users WHERE id = %d\n", id)
 	user := &User{ID: id, Name: fmt.Sprintf("User %d", id)}
-	
+
 	// Store in Map
 	r.identityMap.Add("User", id, user)
 	return user
@@ -464,7 +470,7 @@ impl<'a> UserRepository<'a> {
 // Client Code
 fn main() {
     let mut imap = IdentityMap::new();
-    
+
     // Block to control mutable borrow scopes
     {
         let mut repo = UserRepository::new(&mut imap);
@@ -491,11 +497,13 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Guaranteed Consistency**: Eliminates "lost update" bugs. If part A of your code changes an object, part B sees the changes instantly.
 - **Drastically Improves Performance**: Caching objects avoids costly and redundant network calls to the database.
 - **Fixes Circular References**: When loading a `Post` that has an `Author`, and the `Author` has a list of `Posts`, the Identity Map prevents infinite recursion loops during hydration.
 
 ### Disadvantages
+
 - **The Stale Data Problem**: If another server modifies the database record, the Identity Map doesn't know. The application will continue serving the outdated object from memory instead of querying the database.
 - **Memory Leaks**: If an Identity Map is accidentally instantiated globally (e.g., at the application startup) rather than locally (e.g., per HTTP Request), it will cache every object ever loaded until the server crashes with an Out Of Memory (OOM) error.
 
@@ -513,9 +521,11 @@ fn main() {
 ## Common Mistakes
 
 ### 1. The Global Identity Map (Memory Leak)
-In Node.js, storing the Identity Map in a global variable means all HTTP requests share the same map. Within minutes, the map grows to gigabytes in size. *Solution: Always scope the Identity Map/Unit of Work to the specific incoming request context (e.g., AsyncLocalStorage in Node.js, or scoped Dependency Injection).*
+
+In Node.js, storing the Identity Map in a global variable means all HTTP requests share the same map. Within minutes, the map grows to gigabytes in size. _Solution: Always scope the Identity Map/Unit of Work to the specific incoming request context (e.g., AsyncLocalStorage in Node.js, or scoped Dependency Injection)._
 
 ### 2. Forgetting to Evict
+
 If you execute a raw SQL `UPDATE` statement that bypasses the ORM, the Identity Map will still hold the old values. You must manually clear/evict the Identity Map so subsequent queries fetch the fresh data.
 
 ## Related Patterns

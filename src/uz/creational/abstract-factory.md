@@ -38,101 +38,100 @@ The Abstract Factory pattern solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Abstract products
-    abstract class Button {
-      abstract click(): void;
-    }
+abstract class Button {
+  abstract click(): void;
+}
 
-    abstract class Checkbox {
-      abstract toggle(): void;
-    }
+abstract class Checkbox {
+  abstract toggle(): void;
+}
 
-    // Concrete products for Windows
-    class WindowsButton extends Button {
-      click(): void {
-        console.log('Windows button clicked');
-      }
-    }
+// Concrete products for Windows
+class WindowsButton extends Button {
+  click(): void {
+    console.log("Windows button clicked");
+  }
+}
 
-    class WindowsCheckbox extends Checkbox {
-      toggle(): void {
-        console.log('Windows checkbox toggled');
-      }
-    }
+class WindowsCheckbox extends Checkbox {
+  toggle(): void {
+    console.log("Windows checkbox toggled");
+  }
+}
 
-    // Concrete products for macOS
-    class MacButton extends Button {
-      click(): void {
-        console.log('Mac button clicked');
-      }
-    }
+// Concrete products for macOS
+class MacButton extends Button {
+  click(): void {
+    console.log("Mac button clicked");
+  }
+}
 
-    class MacCheckbox extends Checkbox {
-      toggle(): void {
-        console.log('Mac checkbox toggled');
-      }
-    }
+class MacCheckbox extends Checkbox {
+  toggle(): void {
+    console.log("Mac checkbox toggled");
+  }
+}
 
-    // Abstract factory
-    abstract class UIFactory {
-      abstract createButton(): Button;
-      abstract createCheckbox(): Checkbox;
-    }
+// Abstract factory
+abstract class UIFactory {
+  abstract createButton(): Button;
+  abstract createCheckbox(): Checkbox;
+}
 
-    // Concrete factories
-    class WindowsUIFactory extends UIFactory {
-      createButton(): Button {
-        return new WindowsButton();
-      }
-      createCheckbox(): Checkbox {
-        return new WindowsCheckbox();
-      }
-    }
+// Concrete factories
+class WindowsUIFactory extends UIFactory {
+  createButton(): Button {
+    return new WindowsButton();
+  }
+  createCheckbox(): Checkbox {
+    return new WindowsCheckbox();
+  }
+}
 
-    class MacUIFactory extends UIFactory {
-      createButton(): Button {
-        return new MacButton();
-      }
-      createCheckbox(): Checkbox {
-        return new MacCheckbox();
-      }
-    }
+class MacUIFactory extends UIFactory {
+  createButton(): Button {
+    return new MacButton();
+  }
+  createCheckbox(): Checkbox {
+    return new MacCheckbox();
+  }
+}
 
-    // Client code
-    class Application {
-      private factory: UIFactory;
-      private button: Button;
-      private checkbox: Checkbox;
+// Client code
+class Application {
+  private factory: UIFactory;
+  private button: Button;
+  private checkbox: Checkbox;
 
-      constructor(factory: UIFactory) {
-        this.factory = factory;
-        this.button = factory.createButton();
-        this.checkbox = factory.createCheckbox();
-      }
+  constructor(factory: UIFactory) {
+    this.factory = factory;
+    this.button = factory.createButton();
+    this.checkbox = factory.createCheckbox();
+  }
 
-      render(): void {
-        this.button.click();
-        this.checkbox.toggle();
-      }
-    }
+  render(): void {
+    this.button.click();
+    this.checkbox.toggle();
+  }
+}
 
-    // Usage
-    const os = 'windows'; // or 'mac'
-    let factory: UIFactory;
+// Usage
+const os = "windows"; // or 'mac'
+let factory: UIFactory;
 
-    if (os === 'windows') {
-      factory = new WindowsUIFactory();
-    } else {
-      factory = new MacUIFactory();
-    }
+if (os === "windows") {
+  factory = new WindowsUIFactory();
+} else {
+  factory = new MacUIFactory();
+}
 
-    const app = new Application(factory);
-    app.render();
+const app = new Application(factory);
+app.render();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     # Abstract products
@@ -328,7 +327,7 @@ connection.close();
 
 ::: warn
 If you need to add a new product type (e.g., ScrollBar) to all factories, you must modify every
-  factory implementation.
+factory implementation.
 :::
 
 ## When to Use

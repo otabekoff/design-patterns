@@ -101,77 +101,76 @@ class CSVProcessor extends DataProcessor {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Template Method abstract class
-    abstract class CoffeeRecipe {
-      // Template method
-      brew(): void {
-        console.log('Starting coffee brewing...');
-        this.boilWater();
-        this.brewCoffee();
-        this.pourInCup();
-        this.addCondiments();
-        console.log('Coffee ready!\n');
-      }
+abstract class CoffeeRecipe {
+  // Template method
+  brew(): void {
+    console.log("Starting coffee brewing...");
+    this.boilWater();
+    this.brewCoffee();
+    this.pourInCup();
+    this.addCondiments();
+    console.log("Coffee ready!\n");
+  }
 
-      private boilWater(): void {
-        console.log('1. Boiling water');
-      }
+  private boilWater(): void {
+    console.log("1. Boiling water");
+  }
 
-      private pourInCup(): void {
-        console.log('3. Pouring into cup');
-      }
+  private pourInCup(): void {
+    console.log("3. Pouring into cup");
+  }
 
-      // Steps that subclasses must implement
-      protected abstract brewCoffee(): void;
-      protected abstract addCondiments(): void;
-    }
+  // Steps that subclasses must implement
+  protected abstract brewCoffee(): void;
+  protected abstract addCondiments(): void;
+}
 
-    // Concrete implementations
-    class AmericanoCoffee extends CoffeeRecipe {
-      protected brewCoffee(): void {
-        console.log('2. Brewing espresso shots');
-      }
+// Concrete implementations
+class AmericanoCoffee extends CoffeeRecipe {
+  protected brewCoffee(): void {
+    console.log("2. Brewing espresso shots");
+  }
 
-      protected addCondiments(): void {
-        console.log('4. Adding hot water');
-      }
-    }
+  protected addCondiments(): void {
+    console.log("4. Adding hot water");
+  }
+}
 
-    class CappuccinoCoffee extends CoffeeRecipe {
-      protected brewCoffee(): void {
-        console.log('2. Brewing espresso');
-      }
+class CappuccinoCoffee extends CoffeeRecipe {
+  protected brewCoffee(): void {
+    console.log("2. Brewing espresso");
+  }
 
-      protected addCondiments(): void {
-        console.log('4. Adding steamed milk');
-        console.log('4a. Adding milk foam');
-      }
-    }
+  protected addCondiments(): void {
+    console.log("4. Adding steamed milk");
+    console.log("4a. Adding milk foam");
+  }
+}
 
-    class MacchiatoCoffee extends CoffeeRecipe {
-      protected brewCoffee(): void {
-        console.log('2. Brewing espresso');
-      }
+class MacchiatoCoffee extends CoffeeRecipe {
+  protected brewCoffee(): void {
+    console.log("2. Brewing espresso");
+  }
 
-      protected addCondiments(): void {
-        console.log('4. Adding splash of milk');
-      }
-    }
+  protected addCondiments(): void {
+    console.log("4. Adding splash of milk");
+  }
+}
 
-    // Usage
-    const americano = new AmericanoCoffee();
-    americano.brew();
+// Usage
+const americano = new AmericanoCoffee();
+americano.brew();
 
-    const cappuccino = new CappuccinoCoffee();
-    cappuccino.brew();
+const cappuccino = new CappuccinoCoffee();
+cappuccino.brew();
 
-    const macchiato = new MacchiatoCoffee();
-    macchiato.brew();
+const macchiato = new MacchiatoCoffee();
+macchiato.brew();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     class CoffeeRecipe(ABC):

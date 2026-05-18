@@ -105,125 +105,124 @@ class PlayingState implements State {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // State interface
-    interface PlayerState {
-      play(player: MediaPlayer): void;
-      pause(player: MediaPlayer): void;
-      stop(player: MediaPlayer): void;
-      getStateName(): string;
-    }
+interface PlayerState {
+  play(player: MediaPlayer): void;
+  pause(player: MediaPlayer): void;
+  stop(player: MediaPlayer): void;
+  getStateName(): string;
+}
 
-    // Concrete States
-    class StoppedState implements PlayerState {
-      play(player: MediaPlayer): void {
-        console.log('Starting playback from stopped state');
-        player.setState(new PlayingState());
-      }
+// Concrete States
+class StoppedState implements PlayerState {
+  play(player: MediaPlayer): void {
+    console.log("Starting playback from stopped state");
+    player.setState(new PlayingState());
+  }
 
-      pause(player: MediaPlayer): void {
-        console.log('Cannot pause - not playing');
-      }
+  pause(player: MediaPlayer): void {
+    console.log("Cannot pause - not playing");
+  }
 
-      stop(player: MediaPlayer): void {
-        console.log('Already stopped');
-      }
+  stop(player: MediaPlayer): void {
+    console.log("Already stopped");
+  }
 
-      getStateName(): string {
-        return 'STOPPED';
-      }
-    }
+  getStateName(): string {
+    return "STOPPED";
+  }
+}
 
-    class PlayingState implements PlayerState {
-      play(player: MediaPlayer): void {
-        console.log('Already playing');
-      }
+class PlayingState implements PlayerState {
+  play(player: MediaPlayer): void {
+    console.log("Already playing");
+  }
 
-      pause(player: MediaPlayer): void {
-        console.log('Pausing playback');
-        player.setState(new PausedState());
-      }
+  pause(player: MediaPlayer): void {
+    console.log("Pausing playback");
+    player.setState(new PausedState());
+  }
 
-      stop(player: MediaPlayer): void {
-        console.log('Stopping playback');
-        player.setState(new StoppedState());
-      }
+  stop(player: MediaPlayer): void {
+    console.log("Stopping playback");
+    player.setState(new StoppedState());
+  }
 
-      getStateName(): string {
-        return 'PLAYING';
-      }
-    }
+  getStateName(): string {
+    return "PLAYING";
+  }
+}
 
-    class PausedState implements PlayerState {
-      play(player: MediaPlayer): void {
-        console.log('Resuming playback from pause');
-        player.setState(new PlayingState());
-      }
+class PausedState implements PlayerState {
+  play(player: MediaPlayer): void {
+    console.log("Resuming playback from pause");
+    player.setState(new PlayingState());
+  }
 
-      pause(player: MediaPlayer): void {
-        console.log('Already paused');
-      }
+  pause(player: MediaPlayer): void {
+    console.log("Already paused");
+  }
 
-      stop(player: MediaPlayer): void {
-        console.log('Stopping playback from pause');
-        player.setState(new StoppedState());
-      }
+  stop(player: MediaPlayer): void {
+    console.log("Stopping playback from pause");
+    player.setState(new StoppedState());
+  }
 
-      getStateName(): string {
-        return 'PAUSED';
-      }
-    }
+  getStateName(): string {
+    return "PAUSED";
+  }
+}
 
-    // Context
-    class MediaPlayer {
-      private state: PlayerState;
-      private currentTrack: string = '';
+// Context
+class MediaPlayer {
+  private state: PlayerState;
+  private currentTrack: string = "";
 
-      constructor() {
-        this.state = new StoppedState();
-      }
+  constructor() {
+    this.state = new StoppedState();
+  }
 
-      setState(state: PlayerState): void {
-        console.log(`Transitioning to ${state.getStateName()}`);
-        this.state = state;
-      }
+  setState(state: PlayerState): void {
+    console.log(`Transitioning to ${state.getStateName()}`);
+    this.state = state;
+  }
 
-      play(): void {
-        this.state.play(this);
-      }
+  play(): void {
+    this.state.play(this);
+  }
 
-      pause(): void {
-        this.state.pause(this);
-      }
+  pause(): void {
+    this.state.pause(this);
+  }
 
-      stop(): void {
-        this.state.stop(this);
-      }
+  stop(): void {
+    this.state.stop(this);
+  }
 
-      setTrack(track: string): void {
-        this.currentTrack = track;
-        console.log(`Loaded track: ${track}`);
-      }
+  setTrack(track: string): void {
+    this.currentTrack = track;
+    console.log(`Loaded track: ${track}`);
+  }
 
-      getState(): string {
-        return this.state.getStateName();
-      }
-    }
+  getState(): string {
+    return this.state.getStateName();
+  }
+}
 
-    // Usage
-    const player = new MediaPlayer();
-    player.setTrack('Song.mp3');
+// Usage
+const player = new MediaPlayer();
+player.setTrack("Song.mp3");
 
-    player.play();    // Starting playback from stopped state
-    player.play();    // Already playing
-    player.pause();   // Pausing playback
-    player.play();    // Resuming playback from pause
-    player.stop();    // Stopping playback
-    player.pause();   // Cannot pause - not playing
+player.play(); // Starting playback from stopped state
+player.play(); // Already playing
+player.pause(); // Pausing playback
+player.play(); // Resuming playback from pause
+player.stop(); // Stopping playback
+player.pause(); // Cannot pause - not playing
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     class PlayerState(ABC):

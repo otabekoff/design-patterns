@@ -50,109 +50,111 @@ The Proxy Pattern provides a solution by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Common Interface ==========
 
 interface Document {
-getContent(): string;
-display(): void;
+  getContent(): string;
+  display(): void;
 }
 
 // ========== Real Subject ==========
 
 class RealDocument implements Document {
-private content: string = '';
+  private content: string = "";
 
-constructor(private filename: string) {
-// Simulate expensive document loading
-this.loadFromDisk();
-}
+  constructor(private filename: string) {
+    // Simulate expensive document loading
+    this.loadFromDisk();
+  }
 
-private loadFromDisk(): void {
-console.log(`⏳ Loading document: ${this.filename}...`);
-// Simulate heavy I/O operation
-this.content = `Content of ${this.filename}`;
-console.log(`✅ Document loaded: ${this.filename}`);
-}
+  private loadFromDisk(): void {
+    console.log(`⏳ Loading document: ${this.filename}...`);
+    // Simulate heavy I/O operation
+    this.content = `Content of ${this.filename}`;
+    console.log(`✅ Document loaded: ${this.filename}`);
+  }
 
-getContent(): string {
-return this.content;
-}
+  getContent(): string {
+    return this.content;
+  }
 
-display(): void {
-console.log(`📄 Displaying: ${this.content}`);
-}
+  display(): void {
+    console.log(`📄 Displaying: ${this.content}`);
+  }
 }
 
 // ========== Protection Proxy ==========
 // Controls access based on user permissions
 
 interface User {
-name: string;
-role: 'admin' | 'user' | 'guest';
+  name: string;
+  role: "admin" | "user" | "guest";
 }
 
 class DocumentProtectionProxy implements Document {
-private realDocument: RealDocument | null = null;
+  private realDocument: RealDocument | null = null;
 
-constructor(
-private filename: string,
-private currentUser: User,
-private requiredRole: 'admin' | 'user' | 'guest'
-) {}
+  constructor(
+    private filename: string,
+    private currentUser: User,
+    private requiredRole: "admin" | "user" | "guest",
+  ) {}
 
-private hasAccess(): boolean {
-const roleHierarchy = { admin: 3, user: 2, guest: 1 };
-return roleHierarchy[this.currentUser.role] >= roleHierarchy[this.requiredRole];
-}
+  private hasAccess(): boolean {
+    const roleHierarchy = { admin: 3, user: 2, guest: 1 };
+    return (
+      roleHierarchy[this.currentUser.role] >= roleHierarchy[this.requiredRole]
+    );
+  }
 
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
+  private initializeDocument(): void {
+    if (!this.realDocument) {
+      this.realDocument = new RealDocument(this.filename);
+    }
+  }
 
-getContent(): string {
-if (!this.hasAccess()) {
-console.log(`❌ Access denied for user: ${this.currentUser.name}. Required role: ${this.requiredRole}`);
-return 'ACCESS DENIED';
-}
+  getContent(): string {
+    if (!this.hasAccess()) {
+      console.log(
+        `❌ Access denied for user: ${this.currentUser.name}. Required role: ${this.requiredRole}`,
+      );
+      return "ACCESS DENIED";
+    }
 
     this.initializeDocument();
     return this.realDocument!.getContent();
+  }
 
-}
-
-display(): void {
-if (!this.hasAccess()) {
-console.log(`❌ Access denied for user: ${this.currentUser.name}`);
-return;
-}
+  display(): void {
+    if (!this.hasAccess()) {
+      console.log(`❌ Access denied for user: ${this.currentUser.name}`);
+      return;
+    }
 
     this.initializeDocument();
     this.realDocument!.display();
-
-}
+  }
 }
 
 // ========== Caching Proxy ==========
 // Caches document content to improve performance
 
 class DocumentCachingProxy implements Document {
-private realDocument: RealDocument | null = null;
-private cachedContent: string | null = null;
-private accessCount: number = 0;
+  private realDocument: RealDocument | null = null;
+  private cachedContent: string | null = null;
+  private accessCount: number = 0;
 
-constructor(private filename: string) {}
+  constructor(private filename: string) {}
 
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
+  private initializeDocument(): void {
+    if (!this.realDocument) {
+      this.realDocument = new RealDocument(this.filename);
+    }
+  }
 
-getContent(): string {
-this.accessCount++;
+  getContent(): string {
+    this.accessCount++;
 
     if (this.cachedContent === null) {
       console.log(`📦 Cache miss, loading document...`);
@@ -163,94 +165,96 @@ this.accessCount++;
     }
 
     return this.cachedContent;
+  }
 
-}
+  display(): void {
+    const content = this.getContent();
+    console.log(`📄 Displaying (cached): ${content}`);
+  }
 
-display(): void {
-const content = this.getContent();
-console.log(`📄 Displaying (cached): ${content}`);
-}
+  getAccessCount(): number {
+    return this.accessCount;
+  }
 
-getAccessCount(): number {
-return this.accessCount;
-}
-
-invalidateCache(): void {
-console.log(`🔄 Invalidating cache for ${this.filename}`);
-this.cachedContent = null;
-this.realDocument = null;
-}
+  invalidateCache(): void {
+    console.log(`🔄 Invalidating cache for ${this.filename}`);
+    this.cachedContent = null;
+    this.realDocument = null;
+  }
 }
 
 // ========== Logging Proxy ==========
 // Logs all access to the document
 
 class DocumentLoggingProxy implements Document {
-private realDocument: RealDocument | null = null;
-private logs: string[] = [];
+  private realDocument: RealDocument | null = null;
+  private logs: string[] = [];
 
-constructor(private filename: string, private userId: string) {}
+  constructor(
+    private filename: string,
+    private userId: string,
+  ) {}
 
-private initializeDocument(): void {
-if (!this.realDocument) {
-this.realDocument = new RealDocument(this.filename);
-}
-}
+  private initializeDocument(): void {
+    if (!this.realDocument) {
+      this.realDocument = new RealDocument(this.filename);
+    }
+  }
 
-private log(action: string): void {
-const timestamp = new Date().toISOString();
-const logEntry = `[${timestamp}] User ${this.userId} - ${action} on ${this.filename}`;
-this.logs.push(logEntry);
-console.log(`📝 ${logEntry}`);
-}
+  private log(action: string): void {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] User ${this.userId} - ${action} on ${this.filename}`;
+    this.logs.push(logEntry);
+    console.log(`📝 ${logEntry}`);
+  }
 
-getContent(): string {
-this.log('getContent()');
-this.initializeDocument();
-return this.realDocument!.getContent();
-}
+  getContent(): string {
+    this.log("getContent()");
+    this.initializeDocument();
+    return this.realDocument!.getContent();
+  }
 
-display(): void {
-this.log('display()');
-this.initializeDocument();
-this.realDocument!.display();
-}
+  display(): void {
+    this.log("display()");
+    this.initializeDocument();
+    this.realDocument!.display();
+  }
 
-getLogs(): string[] {
-return this.logs;
-}
+  getLogs(): string[] {
+    return this.logs;
+  }
 }
 
 // ========== Usage Examples ==========
 
-console.log('=== Protection Proxy Example ===\n');
+console.log("=== Protection Proxy Example ===\n");
 
-const adminUser: User = { name: 'Alice', role: 'admin' };
-const regularUser: User = { name: 'Bob', role: 'user' };
-const guestUser: User = { name: 'Charlie', role: 'guest' };
+const adminUser: User = { name: "Alice", role: "admin" };
+const regularUser: User = { name: "Bob", role: "user" };
+const guestUser: User = { name: "Charlie", role: "guest" };
 
 // Admin can access everything
-const adminDoc = new DocumentProtectionProxy('secret.txt', adminUser, 'admin');
+const adminDoc = new DocumentProtectionProxy("secret.txt", adminUser, "admin");
 adminDoc.getContent();
 adminDoc.display();
 
-console.log('\n');
+console.log("\n");
 
 // Guest cannot access
-const guestDoc = new DocumentProtectionProxy('secret.txt', guestUser, 'admin');
+const guestDoc = new DocumentProtectionProxy("secret.txt", guestUser, "admin");
 guestDoc.getContent();
 
-console.log('\n=== Caching Proxy Example ===\n');
+console.log("\n=== Caching Proxy Example ===\n");
 
-const cachedDoc = new DocumentCachingProxy('report.pdf');
+const cachedDoc = new DocumentCachingProxy("report.pdf");
 cachedDoc.getContent();
 cachedDoc.getContent();
 cachedDoc.getContent();
 console.log(`Total accesses: ${cachedDoc.getAccessCount()}`);
 
-console.log('\n=== Logging Proxy Example ===\n');
+console.log("\n=== Logging Proxy Example ===\n");
 
-const loggedDoc = new DocumentLoggingProxy('data.csv', 'user123');
+const loggedDoc = new DocumentLoggingProxy("data.csv", "user123");
 loggedDoc.getContent();
 loggedDoc.display();
 console.log(`\nAccess logs: ${loggedDoc.getLogs().length} entries`);
@@ -258,86 +262,93 @@ console.log(`\nAccess logs: ${loggedDoc.getLogs().length} entries`);
 // ========== Real-world example: Virtual Proxy ==========
 
 interface Image {
-render(): void;
-getWidth(): number;
-getHeight(): number;
+  render(): void;
+  getWidth(): number;
+  getHeight(): number;
 }
 
 class RealImage implements Image {
-constructor(private filename: string, private width: number, private height: number) {
-this.loadImage();
-}
+  constructor(
+    private filename: string,
+    private width: number,
+    private height: number,
+  ) {
+    this.loadImage();
+  }
 
-private loadImage(): void {
-console.log(`🖼️  Loading image: ${this.filename}...`);
-}
+  private loadImage(): void {
+    console.log(`🖼️  Loading image: ${this.filename}...`);
+  }
 
-render(): void {
-console.log(`📸 Rendering image: ${this.filename} (${this.width}x${this.height})`);
-}
+  render(): void {
+    console.log(
+      `📸 Rendering image: ${this.filename} (${this.width}x${this.height})`,
+    );
+  }
 
-getWidth(): number {
-return this.width;
-}
+  getWidth(): number {
+    return this.width;
+  }
 
-getHeight(): number {
-return this.height;
-}
+  getHeight(): number {
+    return this.height;
+  }
 }
 
 class ImageProxy implements Image {
-private realImage: RealImage | null = null;
-private width: number;
-private height: number;
+  private realImage: RealImage | null = null;
+  private width: number;
+  private height: number;
 
-constructor(filename: string, width: number, height: number) {
-this.width = width;
-this.height = height;
-console.log(`✏️  Created proxy for image: ${filename} (${width}x${height})`);
+  constructor(filename: string, width: number, height: number) {
+    this.width = width;
+    this.height = height;
+    console.log(
+      `✏️  Created proxy for image: ${filename} (${width}x${height})`,
+    );
+  }
+
+  private ensureLoaded(): void {
+    if (!this.realImage) {
+      // In real scenario, we'd pass filename but for simplicity...
+      this.realImage = new RealImage("image.jpg", this.width, this.height);
+    }
+  }
+
+  render(): void {
+    this.ensureLoaded();
+    this.realImage!.render();
+  }
+
+  getWidth(): number {
+    return this.width;
+  }
+
+  getHeight(): number {
+    return this.height;
+  }
 }
 
-private ensureLoaded(): void {
-if (!this.realImage) {
-// In real scenario, we'd pass filename but for simplicity...
-this.realImage = new RealImage('image.jpg', this.width, this.height);
-}
-}
-
-render(): void {
-this.ensureLoaded();
-this.realImage!.render();
-}
-
-getWidth(): number {
-return this.width;
-}
-
-getHeight(): number {
-return this.height;
-}
-}
-
-console.log('\n=== Virtual Proxy Example (Lazy Loading) ===\n');
+console.log("\n=== Virtual Proxy Example (Lazy Loading) ===\n");
 
 const images: Image[] = [
-new ImageProxy('image1.jpg', 800, 600),
-new ImageProxy('image2.jpg', 1024, 768),
-new ImageProxy('image3.jpg', 640, 480),
+  new ImageProxy("image1.jpg", 800, 600),
+  new ImageProxy("image2.jpg", 1024, 768),
+  new ImageProxy("image3.jpg", 640, 480),
 ];
 
 console.log(`\n✅ Created ${images.length} image proxies without loading`);
 
 console.log(`\nGetting dimensions (no loading needed):`);
 for (const img of images) {
-console.log(`  ${img.getWidth()}x${img.getHeight()}`);
+  console.log(`  ${img.getWidth()}x${img.getHeight()}`);
 }
 
 console.log(`\nRendering specific image (triggers loading):`);
 images[1].render();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from datetime import datetime
 

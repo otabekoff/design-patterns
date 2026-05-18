@@ -129,7 +129,7 @@ class Application {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Poolable interface
 interface Poolable {
   reset(): void;
@@ -311,7 +311,7 @@ try {
 }
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from threading import Lock, Event
 from time import time
@@ -441,7 +441,7 @@ pool.release(conn2)
 print(pool.get_status())  # {'available': 5, 'in_use': 0, 'total': 5}
 ```
 
-```java [java]
+```java [Java]
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -575,7 +575,7 @@ class ConnectionPool {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import (
@@ -695,7 +695,7 @@ func (cp *ConnectionPool) Release(conn *PooledConnection) {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::VecDeque;

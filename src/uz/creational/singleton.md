@@ -24,6 +24,7 @@ Singleton patterni — bu yaratuvchi (creational) dizayn patterni bo'lib, u klas
 ## Muammo
 
 Ba'zan klassning faqat bitta instansiyasi borligiga ishonch hosil qilishingiz kerak bo'ladi. Masalan:
+
 - Ma'lumotlar bazasiga ulanish puli (pool)
 - Logger
 - Konfiguratsiya menejeri
@@ -34,6 +35,7 @@ Ushbu patternsiz siz tasodifan bir nechta instansiyalarni yaratishingiz mumkin, 
 ## Yechim
 
 Singleton patterni buni quyidagilar orqali hal qiladi:
+
 1. Konstruktorni `private` qilish
 2. Klassning `static` instansiyasini yaratish
 3. Instansiyaga kirish uchun `static` metodni taqdim etish
@@ -42,7 +44,7 @@ Singleton patterni buni quyidagilar orqali hal qiladi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Eager Initialization (Thread-safe)
     class Database {
       private static instance: Database = new Database();
@@ -68,8 +70,7 @@ Singleton patterni buni quyidagilar orqali hal qiladi:
     db1.query('SELECT * FROM users');
 ```
 
-  
-```python [python]
+```python [Python]
 # Klass o'zgaruvchisidan foydalanish (Thread-safe with GIL)
     class Database:
         _instance = None
@@ -91,8 +92,7 @@ Singleton patterni buni quyidagilar orqali hal qiladi:
     db1.query("SELECT * FROM users")
 ```
 
-  
-```java [java]
+```java [Java]
 // Eager Initialization
     public class Database {
         private static final Database INSTANCE = new Database();
@@ -124,7 +124,7 @@ Singleton patterni buni quyidagilar orqali hal qiladi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 class Database {
       private static instance: Database;
 
@@ -145,8 +145,7 @@ class Database {
     }
 ```
 
-  
-```java [java]
+```java [Java]
 // Double-Checked Locking
     public class Database {
         private static volatile Database instance;
@@ -202,8 +201,8 @@ class Logger {
 const logger1 = Logger.getInstance();
 const logger2 = Logger.getInstance();
 
-logger1.log('Ilova ishga tushdi');
-logger2.log('Foydalanuvchi tizimga kirdi');
+logger1.log("Ilova ishga tushdi");
+logger2.log("Foydalanuvchi tizimga kirdi");
 
 console.log(logger1 === logger2); // true
 console.log(logger1.getLogs());

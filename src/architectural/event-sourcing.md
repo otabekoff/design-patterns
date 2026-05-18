@@ -13,11 +13,12 @@ icon: Zap
 
 ## Overview
 
-**Event Sourcing** is a radical departure from traditional data storage. Instead of storing the *current state* of an entity in a database table, Event Sourcing stores **every state-changing event** that has ever occurred to that entity in an append-only log.
+**Event Sourcing** is a radical departure from traditional data storage. Instead of storing the _current state_ of an entity in a database table, Event Sourcing stores **every state-changing event** that has ever occurred to that entity in an append-only log.
 
 To get the current state of an entity, you read all the events from the log and "replay" them in order.
 
 Key concepts:
+
 - **Events**: Immutable records of something that happened in the past (e.g., `FundsDeposited`, `AddressChanged`).
 - **Event Store**: An append-only database specifically optimized for storing sequences of events.
 - **Projections**: Read-models that listen to the Event Store and build a queryable representation of the current state (closely tied to CQRS).
@@ -25,7 +26,7 @@ Key concepts:
 
 ## The Problem
 
-Traditional CRUD databases only store the *current* state of the world. 
+Traditional CRUD databases only store the _current_ state of the world.
 
 ```sql
 -- ❌ Traditional CRUD: Information is destroyed!
@@ -33,7 +34,8 @@ UPDATE BankAccount SET balance = 500 WHERE id = 123;
 ```
 
 When you overwrite a row in a relational database, the previous data is permanently destroyed. This creates massive business problems:
-1. **No True Audit Trail**: If a bank balance suddenly drops by $10,000, you can't reliably prove *why* or *when* it happened using just the current row. (Audit tables are often hacked on later as an afterthought).
+
+1. **No True Audit Trail**: If a bank balance suddenly drops by $10,000, you can't reliably prove _why_ or _when_ it happened using just the current row. (Audit tables are often hacked on later as an afterthought).
 2. **Lost Business Value**: Data analysts love historical data. Overwriting data destroys the ability to analyze user behavior over time.
 3. **Difficult Debugging**: If your system enters an invalid state, you cannot "rewind" the database to see exactly what sequence of operations caused the bug.
 
@@ -50,7 +52,7 @@ In Event Sourcing, the database is just a list of events. **You never UPDATE or 
 5. FundsWithdrawn (amount: $300)
 ```
 
-To know the current balance, the system loads the events and applies them: `$0 + $1000 - $200 - $300 = $500`. 
+To know the current balance, the system loads the events and applies them: `$0 + $1000 - $200 - $300 = $500`.
 If you want to know what the user's balance was last Tuesday, you simply replay the events up until last Tuesday.
 
 ```mermaid
@@ -73,8 +75,8 @@ flowchart TD
 
 ## Real-World Analogy
 
-Think of your **Bank Account Statement**. 
-Your bank does not store a single sticky note with your current balance on it. They store a ledger of every single deposit, withdrawal, and fee that has ever occurred. 
+Think of your **Bank Account Statement**.
+Your bank does not store a single sticky note with your current balance on it. They store a ledger of every single deposit, withdrawal, and fee that has ever occurred.
 Your "current balance" is simply a projection calculated by summing all the transactions in the ledger. If you dispute a charge, the bank can look at the exact historical sequence of events. Event Sourcing applies this financial ledger concept to software architecture.
 
 ## Step-by-Step Implementation
@@ -92,36 +94,48 @@ We will implement a Bank Account aggregate. Notice how the `withdraw` command do
 
 ```typescript [TypeScript]
 // 1. Define Events (Immutable, Past Tense)
-interface DomainEvent { type: string; timestamp: Date; }
+interface DomainEvent {
+  type: string;
+  timestamp: Date;
+}
 
 class AccountCreated implements DomainEvent {
-  type = 'AccountCreated';
-  constructor(public accountId: string, public timestamp = new Date()) {}
+  type = "AccountCreated";
+  constructor(
+    public accountId: string,
+    public timestamp = new Date(),
+  ) {}
 }
 
 class FundsDeposited implements DomainEvent {
-  type = 'FundsDeposited';
-  constructor(public amount: number, public timestamp = new Date()) {}
+  type = "FundsDeposited";
+  constructor(
+    public amount: number,
+    public timestamp = new Date(),
+  ) {}
 }
 
 class FundsWithdrawn implements DomainEvent {
-  type = 'FundsWithdrawn';
-  constructor(public amount: number, public timestamp = new Date()) {}
+  type = "FundsWithdrawn";
+  constructor(
+    public amount: number,
+    public timestamp = new Date(),
+  ) {}
 }
 
 // 2. The Aggregate Root
 class BankAccount {
-  public id: string = '';
+  public id: string = "";
   public balance: number = 0;
   private uncommittedEvents: DomainEvent[] = [];
 
   // Replay historical events to rebuild state
   public loadFromHistory(history: DomainEvent[]) {
-    history.forEach(event => this.apply(event));
+    history.forEach((event) => this.apply(event));
   }
 
   // --- COMMANDS (Business Logic & Validation) ---
-  
+
   public createAccount(id: string) {
     if (this.id) throw new Error("Account already exists");
     this.recordThat(new AccountCreated(id));
@@ -141,25 +155,29 @@ class BankAccount {
 
   private recordThat(event: DomainEvent) {
     this.uncommittedEvents.push(event); // Save to commit later
-    this.apply(event);                  // Mutate current state
+    this.apply(event); // Mutate current state
   }
 
   private apply(event: DomainEvent) {
     switch (event.type) {
-      case 'AccountCreated':
+      case "AccountCreated":
         this.id = (event as AccountCreated).accountId;
         break;
-      case 'FundsDeposited':
+      case "FundsDeposited":
         this.balance += (event as FundsDeposited).amount;
         break;
-      case 'FundsWithdrawn':
+      case "FundsWithdrawn":
         this.balance -= (event as FundsWithdrawn).amount;
         break;
     }
   }
 
-  public getUncommittedEvents() { return this.uncommittedEvents; }
-  public clearUncommittedEvents() { this.uncommittedEvents = []; }
+  public getUncommittedEvents() {
+    return this.uncommittedEvents;
+  }
+  public clearUncommittedEvents() {
+    this.uncommittedEvents = [];
+  }
 }
 
 // Execution
@@ -173,7 +191,7 @@ account.withdraw(200);
 console.log("Current Balance:", account.balance); // 300
 
 // Later, rebuilding from the database:
-const historyFromDb = account.getUncommittedEvents(); 
+const historyFromDb = account.getUncommittedEvents();
 const rebuiltAccount = new BankAccount();
 rebuiltAccount.loadFromHistory(historyFromDb);
 console.log("Rebuilt Balance:", rebuiltAccount.balance); // 300
@@ -329,7 +347,7 @@ public class EventSourcingDemo {
         account.createAccount("acc_123");
         account.deposit(500);
         account.withdraw(200);
-        
+
         System.out.println("Balance: " + account.getBalance());
 
         // Rebuilding
@@ -511,7 +529,7 @@ fn main() {
     let history = account.uncommitted_events.clone();
     let mut rebuilt = BankAccount::new();
     rebuilt.load_from_history(&history);
-    
+
     println!("Rebuilt Balance: {}", rebuilt.balance); // 300
 }
 ```
@@ -521,19 +539,21 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Perfect Audit Trail**: Guaranteed, 100% accurate history of every change that ever happened in the system. It is cryptographically verifiable.
 - **Time-Travel Debugging**: If a bug corrupts a user's state, you can delete the corrupted projection, fix the code in the `apply` method, and replay the event stream from the beginning to instantly fix their data.
 - **Business Value**: You can retroactively generate new insights. If marketing asks "How many users deposited money and withdrew it on the same day last year?", you can write a script to replay the historical events to find out, even if you never tracked that specific metric before.
 
 ### Disadvantages
+
 - **Incredibly Difficult**: Event Sourcing fundamentally changes how you think about databases, validation, and consistency. It has an immense learning curve.
 - **Event Evolution**: If you change the shape of an event (e.g., adding a new required field), you still have to be able to deserialize the millions of old events that were saved in the old format. "Event Upcasting" is notoriously difficult.
-- **Performance Constraints on Reads**: Replaying 100,000 events just to get a user's name is too slow. You *must* implement CQRS to project these events into a standard queryable database, drastically increasing system complexity.
+- **Performance Constraints on Reads**: Replaying 100,000 events just to get a user's name is too slow. You _must_ implement CQRS to project these events into a standard queryable database, drastically increasing system complexity.
 
 ## When to Use
 
 - **Financial and Healthcare Systems**: Where an immutable audit trail is legally required and must never be altered.
-- **High-Value Enterprise Domains**: Core domains where the *history of changes* is just as important as the *current state* (e.g., Shopping Cart abandonment analysis, Order tracking).
+- **High-Value Enterprise Domains**: Core domains where the _history of changes_ is just as important as the _current state_ (e.g., Shopping Cart abandonment analysis, Order tracking).
 - **Collaborative Systems**: Where multiple users edit the same entity simultaneously (e.g., Google Docs uses a form of Event Sourcing called Operational Transformation).
 
 ## When NOT to Use
@@ -543,7 +563,7 @@ fn main() {
 
 ## Common Mistakes
 
-- **Putting Side Effects in the `apply` Method**: `apply` methods run every time an event is replayed. If your `apply` method sends an email, it will send 10,000 emails every time you rebuild the aggregate from the database! *Solution: `apply` must only mutate memory. Side effects belong in Event Handlers.*
+- **Putting Side Effects in the `apply` Method**: `apply` methods run every time an event is replayed. If your `apply` method sends an email, it will send 10,000 emails every time you rebuild the aggregate from the database! _Solution: `apply` must only mutate memory. Side effects belong in Event Handlers._
 - **Saving State in the Event**: An event should only contain the delta (what changed). Don't save the entire entity state inside the event payload.
 
 ## Related Patterns

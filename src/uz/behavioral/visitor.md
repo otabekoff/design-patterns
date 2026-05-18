@@ -91,124 +91,127 @@ class CompileVisitor implements Visitor {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Element interface
-    interface Shape {
-      accept(visitor: ShapeVisitor): void;
-    }
+interface Shape {
+  accept(visitor: ShapeVisitor): void;
+}
 
-    // Concrete elements
-    class Circle implements Shape {
-      constructor(public radius: number) {}
+// Concrete elements
+class Circle implements Shape {
+  constructor(public radius: number) {}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitCircle(this);
-      }
-    }
+  accept(visitor: ShapeVisitor): void {
+    visitor.visitCircle(this);
+  }
+}
 
-    class Rectangle implements Shape {
-      constructor(
-        public width: number,
-        public height: number
-      ) {}
+class Rectangle implements Shape {
+  constructor(
+    public width: number,
+    public height: number,
+  ) {}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitRectangle(this);
-      }
-    }
+  accept(visitor: ShapeVisitor): void {
+    visitor.visitRectangle(this);
+  }
+}
 
-    class Triangle implements Shape {
-      constructor(
-        public side1: number,
-        public side2: number,
-        public side3: number
-      ) {}
+class Triangle implements Shape {
+  constructor(
+    public side1: number,
+    public side2: number,
+    public side3: number,
+  ) {}
 
-      accept(visitor: ShapeVisitor): void {
-        visitor.visitTriangle(this);
-      }
-    }
+  accept(visitor: ShapeVisitor): void {
+    visitor.visitTriangle(this);
+  }
+}
 
-    // Visitor interface
-    interface ShapeVisitor {
-      visitCircle(circle: Circle): void;
-      visitRectangle(rectangle: Rectangle): void;
-      visitTriangle(triangle: Triangle): void;
-    }
+// Visitor interface
+interface ShapeVisitor {
+  visitCircle(circle: Circle): void;
+  visitRectangle(rectangle: Rectangle): void;
+  visitTriangle(triangle: Triangle): void;
+}
 
-    // Concrete visitor 1 - Area calculator
-    class AreaCalculator implements ShapeVisitor {
-      private totalArea: number = 0;
+// Concrete visitor 1 - Area calculator
+class AreaCalculator implements ShapeVisitor {
+  private totalArea: number = 0;
 
-      visitCircle(circle: Circle): void {
-        const area = Math.PI * circle.radius ** 2;
-        this.totalArea += area;
-        console.log(`Circle area: ${area.toFixed(2)}`);
-      }
+  visitCircle(circle: Circle): void {
+    const area = Math.PI * circle.radius ** 2;
+    this.totalArea += area;
+    console.log(`Circle area: ${area.toFixed(2)}`);
+  }
 
-      visitRectangle(rectangle: Rectangle): void {
-        const area = rectangle.width * rectangle.height;
-        this.totalArea += area;
-        console.log(`Rectangle area: ${area}`);
-      }
+  visitRectangle(rectangle: Rectangle): void {
+    const area = rectangle.width * rectangle.height;
+    this.totalArea += area;
+    console.log(`Rectangle area: ${area}`);
+  }
 
-      visitTriangle(triangle: Triangle): void {
-        const s = (triangle.side1 + triangle.side2 + triangle.side3) / 2;
-        const area = Math.sqrt(s * (s - triangle.side1) * (s - triangle.side2) * (s - triangle.side3));
-        this.totalArea += area;
-        console.log(`Triangle area: ${area.toFixed(2)}`);
-      }
+  visitTriangle(triangle: Triangle): void {
+    const s = (triangle.side1 + triangle.side2 + triangle.side3) / 2;
+    const area = Math.sqrt(
+      s * (s - triangle.side1) * (s - triangle.side2) * (s - triangle.side3),
+    );
+    this.totalArea += area;
+    console.log(`Triangle area: ${area.toFixed(2)}`);
+  }
 
-      getTotalArea(): number {
-        return this.totalArea;
-      }
-    }
+  getTotalArea(): number {
+    return this.totalArea;
+  }
+}
 
-    // Concrete visitor 2 - Perimeter calculator
-    class PerimeterCalculator implements ShapeVisitor {
-      private totalPerimeter: number = 0;
+// Concrete visitor 2 - Perimeter calculator
+class PerimeterCalculator implements ShapeVisitor {
+  private totalPerimeter: number = 0;
 
-      visitCircle(circle: Circle): void {
-        const perimeter = 2 * Math.PI * circle.radius;
-        this.totalPerimeter += perimeter;
-        console.log(`Circle perimeter: ${perimeter.toFixed(2)}`);
-      }
+  visitCircle(circle: Circle): void {
+    const perimeter = 2 * Math.PI * circle.radius;
+    this.totalPerimeter += perimeter;
+    console.log(`Circle perimeter: ${perimeter.toFixed(2)}`);
+  }
 
-      visitRectangle(rectangle: Rectangle): void {
-        const perimeter = 2 * (rectangle.width + rectangle.height);
-        this.totalPerimeter += perimeter;
-        console.log(`Rectangle perimeter: ${perimeter}`);
-      }
+  visitRectangle(rectangle: Rectangle): void {
+    const perimeter = 2 * (rectangle.width + rectangle.height);
+    this.totalPerimeter += perimeter;
+    console.log(`Rectangle perimeter: ${perimeter}`);
+  }
 
-      visitTriangle(triangle: Triangle): void {
-        const perimeter = triangle.side1 + triangle.side2 + triangle.side3;
-        this.totalPerimeter += perimeter;
-        console.log(`Triangle perimeter: ${perimeter}`);
-      }
+  visitTriangle(triangle: Triangle): void {
+    const perimeter = triangle.side1 + triangle.side2 + triangle.side3;
+    this.totalPerimeter += perimeter;
+    console.log(`Triangle perimeter: ${perimeter}`);
+  }
 
-      getTotalPerimeter(): number {
-        return this.totalPerimeter;
-      }
-    }
+  getTotalPerimeter(): number {
+    return this.totalPerimeter;
+  }
+}
 
-    // Usage
-    const shapes: Shape[] = [
-      new Circle(5),
-      new Rectangle(4, 6),
-      new Triangle(3, 4, 5)
-    ];
+// Usage
+const shapes: Shape[] = [
+  new Circle(5),
+  new Rectangle(4, 6),
+  new Triangle(3, 4, 5),
+];
 
-    const areaCalculator = new AreaCalculator();
-    shapes.forEach(shape => shape.accept(areaCalculator));
-    console.log(`Total area: ${areaCalculator.getTotalArea().toFixed(2)}\n`);
+const areaCalculator = new AreaCalculator();
+shapes.forEach((shape) => shape.accept(areaCalculator));
+console.log(`Total area: ${areaCalculator.getTotalArea().toFixed(2)}\n`);
 
-    const perimeterCalculator = new PerimeterCalculator();
-    shapes.forEach(shape => shape.accept(perimeterCalculator));
-    console.log(`Total perimeter: ${perimeterCalculator.getTotalPerimeter().toFixed(2)}`);
+const perimeterCalculator = new PerimeterCalculator();
+shapes.forEach((shape) => shape.accept(perimeterCalculator));
+console.log(
+  `Total perimeter: ${perimeterCalculator.getTotalPerimeter().toFixed(2)}`,
+);
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     import math
 
@@ -364,7 +367,10 @@ class MarkdownExporter implements DocumentVisitor {
 }
 
 // Usage
-const doc: Document[] = [new Paragraph("Hello World"), new Image("example.png")];
+const doc: Document[] = [
+  new Paragraph("Hello World"),
+  new Image("example.png"),
+];
 
 const htmlExporter = new HTMLExporter();
 doc.forEach((d) => d.accept(htmlExporter));

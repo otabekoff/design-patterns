@@ -73,87 +73,81 @@ Read-Write Lock patterni buni quyidagilar orqali hal qiladi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 class ReadWriteLock {
-      private readersCount: number = 0;
-      private writersCount: number = 0;
-      private readersWaiting: number = 0;
-      private writersWaiting: number = 0;
-      private conditions = {
-        canRead: true,
-        canWrite: true
-      };
+  private readersCount: number = 0;
+  private writersCount: number = 0;
+  private readersWaiting: number = 0;
+  private writersWaiting: number = 0;
+  private conditions = {
+    canRead: true,
+    canWrite: true,
+  };
 
-      async acquireRead(): Promise<void> {
-        this.readersWaiting++;
-        while (this.writersCount > 0 || this.writersWaiting > 0) {
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
-        this.readersWaiting--;
-        this.readersCount++;
-      }
-
-      releaseRead(): void {
-        this.readersCount--;
-      }
-
-      async acquireWrite(): Promise<void> {
-        this.writersWaiting++;
-        while (this.readersCount > 0 || this.writersCount > 0) {
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
-        this.writersWaiting--;
-        this.writersCount++;
-      }
-
-      releaseWrite(): void {
-        this.writersCount--;
-      }
+  async acquireRead(): Promise<void> {
+    this.readersWaiting++;
+    while (this.writersCount > 0 || this.writersWaiting > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
+    this.readersWaiting--;
+    this.readersCount++;
+  }
 
-    // Usage
-    class Cache {
-      private data: Map<string, any> = new Map();
-      private lock = new ReadWriteLock();
+  releaseRead(): void {
+    this.readersCount--;
+  }
 
-      async get(key: string): Promise<any> {
-        await this.lock.acquireRead();
-        try {
-          console.log(`Reading ${key}`);
-          return this.data.get(key);
-        } finally {
-          this.lock.releaseRead();
-        }
-      }
-
-      async set(key: string, value: any): Promise<void> {
-        await this.lock.acquireWrite();
-        try {
-          console.log(`Writing ${key}`);
-          this.data.set(key, value);
-        } finally {
-          this.lock.releaseWrite();
-        }
-      }
+  async acquireWrite(): Promise<void> {
+    this.writersWaiting++;
+    while (this.readersCount > 0 || this.writersCount > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
+    this.writersWaiting--;
+    this.writersCount++;
+  }
 
-    // Example
-    const cache = new Cache();
+  releaseWrite(): void {
+    this.writersCount--;
+  }
+}
 
-    // Multiple concurrent reads - allowed
-    Promise.all([
-      cache.get('key1'),
-      cache.get('key2'),
-      cache.get('key3')
-    ]);
+// Usage
+class Cache {
+  private data: Map<string, any> = new Map();
+  private lock = new ReadWriteLock();
 
-    // Write blocks readers
-    await cache.set('key1', 'value1');
+  async get(key: string): Promise<any> {
+    await this.lock.acquireRead();
+    try {
+      console.log(`Reading ${key}`);
+      return this.data.get(key);
+    } finally {
+      this.lock.releaseRead();
+    }
+  }
+
+  async set(key: string, value: any): Promise<void> {
+    await this.lock.acquireWrite();
+    try {
+      console.log(`Writing ${key}`);
+      this.data.set(key, value);
+    } finally {
+      this.lock.releaseWrite();
+    }
+  }
+}
+
+// Example
+const cache = new Cache();
+
+// Multiple concurrent reads - allowed
+Promise.all([cache.get("key1"), cache.get("key2"), cache.get("key3")]);
+
+// Write blocks readers
+await cache.set("key1", "value1");
 ```
 
-  
-  
-```python [python]
+```python [Python]
 import threading
     import time
 

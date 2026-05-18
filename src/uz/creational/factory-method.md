@@ -52,75 +52,74 @@ The Factory Method pattern solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Abstract product
-    abstract class Document {
-      abstract open(): void;
-      abstract save(): void;
-      abstract close(): void;
-    }
+abstract class Document {
+  abstract open(): void;
+  abstract save(): void;
+  abstract close(): void;
+}
 
-    // Concrete products
-    class PDFDocument extends Document {
-      open(): void {
-        console.log('Opening PDF document...');
-      }
-      save(): void {
-        console.log('Saving as PDF...');
-      }
-      close(): void {
-        console.log('Closing PDF document');
-      }
-    }
+// Concrete products
+class PDFDocument extends Document {
+  open(): void {
+    console.log("Opening PDF document...");
+  }
+  save(): void {
+    console.log("Saving as PDF...");
+  }
+  close(): void {
+    console.log("Closing PDF document");
+  }
+}
 
-    class WordDocument extends Document {
-      open(): void {
-        console.log('Opening Word document...');
-      }
-      save(): void {
-        console.log('Saving as Word...');
-      }
-      close(): void {
-        console.log('Closing Word document');
-      }
-    }
+class WordDocument extends Document {
+  open(): void {
+    console.log("Opening Word document...");
+  }
+  save(): void {
+    console.log("Saving as Word...");
+  }
+  close(): void {
+    console.log("Closing Word document");
+  }
+}
 
-    // Abstract creator
-    abstract class Application {
-      protected documents: Document[] = [];
+// Abstract creator
+abstract class Application {
+  protected documents: Document[] = [];
 
-      abstract createDocument(): Document;
+  abstract createDocument(): Document;
 
-      openDocument(): void {
-        const doc = this.createDocument();
-        doc.open();
-        this.documents.push(doc);
-      }
-    }
+  openDocument(): void {
+    const doc = this.createDocument();
+    doc.open();
+    this.documents.push(doc);
+  }
+}
 
-    // Concrete creators
-    class PDFApplication extends Application {
-      createDocument(): Document {
-        return new PDFDocument();
-      }
-    }
+// Concrete creators
+class PDFApplication extends Application {
+  createDocument(): Document {
+    return new PDFDocument();
+  }
+}
 
-    class WordApplication extends Application {
-      createDocument(): Document {
-        return new WordDocument();
-      }
-    }
+class WordApplication extends Application {
+  createDocument(): Document {
+    return new WordDocument();
+  }
+}
 
-    // Usage
-    const pdfApp = new PDFApplication();
-    pdfApp.openDocument(); // Opening PDF document...
+// Usage
+const pdfApp = new PDFApplication();
+pdfApp.openDocument(); // Opening PDF document...
 
-    const wordApp = new WordApplication();
-    wordApp.openDocument(); // Opening Word document...
+const wordApp = new WordApplication();
+wordApp.openDocument(); // Opening Word document...
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     # Abstract product

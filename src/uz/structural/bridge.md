@@ -51,7 +51,7 @@ The abstraction holds a reference to an implementation, allowing them to vary in
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Implementation Hierarchy ==========
 interface Renderer {
   renderCircle(radius: number): void;
@@ -269,8 +269,7 @@ advancedRemote.record();
 advancedRemote.getStatus();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 # ========== Implementation Hierarchy ==========

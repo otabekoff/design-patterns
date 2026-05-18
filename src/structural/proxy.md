@@ -65,7 +65,7 @@ Proxy solves this by placing a controlled object in front of the real one.
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface DocumentSource {
   getContent(): string;
   display(): void;
@@ -156,7 +156,7 @@ const deniedDoc = new ProtectedDocumentProxy(
 // deniedDoc.getContent(); // throws access denied
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class DocumentSource(ABC):
@@ -227,7 +227,7 @@ print(protected_doc.get_content())
 # denied_doc.get_content()
 ```
 
-```java [java]
+```java [Java]
 interface DocumentSource {
     String getContent();
     void display();
@@ -316,7 +316,7 @@ class ProtectedDocumentProxy implements DocumentSource {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -394,7 +394,7 @@ func (p *ProtectedDocumentProxy) Display() {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 trait DocumentSource {
     fn get_content(&mut self) -> String;
     fn display(&mut self);

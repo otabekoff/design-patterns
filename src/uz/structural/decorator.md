@@ -58,7 +58,7 @@ This allows unlimited combinations of features through composition instead of in
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Component Interface ==========
 interface Beverage {
   getDescription(): string;
@@ -67,74 +67,74 @@ interface Beverage {
 
 // ========== Concrete Component ==========
 class SimpleCoffee implements Beverage {
-getDescription(): string {
-return 'Simple Coffee';
-}
+  getDescription(): string {
+    return "Simple Coffee";
+  }
 
-getCost(): number {
-return 3.0;
-}
+  getCost(): number {
+    return 3.0;
+  }
 }
 
 class Tea implements Beverage {
-getDescription(): string {
-return 'Tea';
-}
+  getDescription(): string {
+    return "Tea";
+  }
 
-getCost(): number {
-return 2.5;
-}
+  getCost(): number {
+    return 2.5;
+  }
 }
 
 // ========== Decorator Classes ==========
 abstract class BeverageDecorator implements Beverage {
-constructor(protected beverage: Beverage) {}
+  constructor(protected beverage: Beverage) {}
 
-abstract getDescription(): string;
+  abstract getDescription(): string;
 
-getCost(): number {
-return this.beverage.getCost();
-}
+  getCost(): number {
+    return this.beverage.getCost();
+  }
 }
 
 class MilkDecorator extends BeverageDecorator {
-getDescription(): string {
-return `${this.beverage.getDescription()}, Milk`;
-}
+  getDescription(): string {
+    return `${this.beverage.getDescription()}, Milk`;
+  }
 
-getCost(): number {
-return this.beverage.getCost() + 0.5;
-}
+  getCost(): number {
+    return this.beverage.getCost() + 0.5;
+  }
 }
 
 class SugarDecorator extends BeverageDecorator {
-getDescription(): string {
-return `${this.beverage.getDescription()}, Sugar`;
-}
+  getDescription(): string {
+    return `${this.beverage.getDescription()}, Sugar`;
+  }
 
-getCost(): number {
-return this.beverage.getCost() + 0.25;
-}
+  getCost(): number {
+    return this.beverage.getCost() + 0.25;
+  }
 }
 
 class VanillaDecorator extends BeverageDecorator {
-getDescription(): string {
-return `${this.beverage.getDescription()}, Vanilla`;
-}
+  getDescription(): string {
+    return `${this.beverage.getDescription()}, Vanilla`;
+  }
 
-getCost(): number {
-return this.beverage.getCost() + 0.75;
-}
+  getCost(): number {
+    return this.beverage.getCost() + 0.75;
+  }
 }
 
 class WhippedCreamDecorator extends BeverageDecorator {
-getDescription(): string {
-return `${this.beverage.getDescription()}, Whipped Cream`;
-}
+  getDescription(): string {
+    return `${this.beverage.getDescription()}, Whipped Cream`;
+  }
 
-getCost(): number {
-return this.beverage.getCost() + 0.5;
-}
+  getCost(): number {
+    return this.beverage.getCost() + 0.5;
+  }
 }
 
 // ========== Usage ==========
@@ -166,125 +166,128 @@ console.log(`${tea.getDescription()}: $${tea.getCost()}`);
 // ========== Real-world example: Data Stream Encryption & Compression ==========
 
 interface DataStream {
-read(): string;
-write(data: string): void;
+  read(): string;
+  write(data: string): void;
 }
 
 class FileDataStream implements DataStream {
-constructor(private filename: string) {}
+  constructor(private filename: string) {}
 
-read(): string {
-return `Reading from ${this.filename}`;
-}
+  read(): string {
+    return `Reading from ${this.filename}`;
+  }
 
-write(data: string): void {
-console.log(`Writing to ${this.filename}: ${data}`);
-}
+  write(data: string): void {
+    console.log(`Writing to ${this.filename}: ${data}`);
+  }
 }
 
 // Decorator for compression
 class CompressionDecorator implements DataStream {
-constructor(private stream: DataStream) {}
+  constructor(private stream: DataStream) {}
 
-read(): string {
-return `[Compressed] ${this.stream.read()}`;
-}
+  read(): string {
+    return `[Compressed] ${this.stream.read()}`;
+  }
 
-write(data: string): void {
-const compressed = this.compressData(data);
-this.stream.write(compressed);
-}
+  write(data: string): void {
+    const compressed = this.compressData(data);
+    this.stream.write(compressed);
+  }
 
-private compressData(data: string): string {
-return `compressed(${data})`;
-}
+  private compressData(data: string): string {
+    return `compressed(${data})`;
+  }
 }
 
 // Decorator for encryption
 class EncryptionDecorator implements DataStream {
-constructor(private stream: DataStream) {}
+  constructor(private stream: DataStream) {}
 
-read(): string {
-return `[Encrypted] ${this.stream.read()}`;
-}
+  read(): string {
+    return `[Encrypted] ${this.stream.read()}`;
+  }
 
-write(data: string): void {
-const encrypted = this.encryptData(data);
-this.stream.write(encrypted);
-}
+  write(data: string): void {
+    const encrypted = this.encryptData(data);
+    this.stream.write(encrypted);
+  }
 
-private encryptData(data: string): string {
-return `encrypted(${data})`;
-}
+  private encryptData(data: string): string {
+    return `encrypted(${data})`;
+  }
 }
 
 // Decorator for logging
 class LoggingDecorator implements DataStream {
-constructor(private stream: DataStream) {}
+  constructor(private stream: DataStream) {}
 
-read(): string {
-const data = this.stream.read();
-console.log(`[LOG] Reading: ${data}`);
-return data;
-}
+  read(): string {
+    const data = this.stream.read();
+    console.log(`[LOG] Reading: ${data}`);
+    return data;
+  }
 
-write(data: string): void {
-console.log(`[LOG] Writing: ${data}`);
-this.stream.write(data);
-}
+  write(data: string): void {
+    console.log(`[LOG] Writing: ${data}`);
+    this.stream.write(data);
+  }
 }
 
 // ========== Stream Usage ==========
-console.log('\n--- Stream Decorators ---');
-let stream: DataStream = new FileDataStream('data.txt');
+console.log("\n--- Stream Decorators ---");
+let stream: DataStream = new FileDataStream("data.txt");
 stream = new CompressionDecorator(stream);
 stream = new EncryptionDecorator(stream);
 stream = new LoggingDecorator(stream);
 
-stream.write('sensitive data');
+stream.write("sensitive data");
 stream.read();
 
 // ========== Real-world example: UI Components ==========
 
 interface UIComponent {
-render(): string;
+  render(): string;
 }
 
 class Button implements UIComponent {
-constructor(private label: string) {}
+  constructor(private label: string) {}
 
-render(): string {
-return `<button>${this.label}</button>`;
-}
+  render(): string {
+    return `<button>${this.label}</button>`;
+  }
 }
 
 class BorderDecorator implements UIComponent {
-constructor(private component: UIComponent) {}
+  constructor(private component: UIComponent) {}
 
-render(): string {
-return `<div style="border: 1px solid black;">${this.component.render()}</div>`;
-}
+  render(): string {
+    return `<div style="border: 1px solid black;">${this.component.render()}</div>`;
+  }
 }
 
 class PaddingDecorator implements UIComponent {
-constructor(private component: UIComponent, private padding: number = 10) {}
+  constructor(
+    private component: UIComponent,
+    private padding: number = 10,
+  ) {}
 
-render(): string {
-return `<div style="padding: ${this.padding}px;">${this.component.render()}</div>`;
-}
+  render(): string {
+    return `<div style="padding: ${this.padding}px;">${this.component.render()}</div>`;
+  }
 }
 
 class ShadowDecorator implements UIComponent {
-constructor(private component: UIComponent) {}
+  constructor(private component: UIComponent) {}
 
-render(): string {
-return `<div style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">${this.component.render()}</div>`;
-}
+  render(): string {
+    return `<div style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">${this.component.render()}</div>`;
+  }
 }
 
 // ========== UI Component Usage ==========
-console.log('\n--- UI Component Decorators ---');
-let button: UIComponent = new Button('Click me');
+console.log("\n--- UI Component Decorators ---");
+let button: UIComponent = new Button("Click me");
 button = new PaddingDecorator(button, 15);
 button = new BorderDecorator(button);
 button = new ShadowDecorator(button);
@@ -292,8 +295,7 @@ button = new ShadowDecorator(button);
 console.log(button.render());
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 # ========== Component Interface ==========

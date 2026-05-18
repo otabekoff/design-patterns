@@ -19,7 +19,7 @@ The **Service Locator** pattern introduces a centralized registry—the "Locator
 
 ## The Problem
 
-When you don't want components tightly coupled to concrete classes, you might try to centralize dependency management. 
+When you don't want components tightly coupled to concrete classes, you might try to centralize dependency management.
 
 ```typescript
 // ❌ Bad: Tightly coupled to concrete classes
@@ -95,12 +95,13 @@ When you stay at a hotel and you need a taxi, a restaurant reservation, or extra
 
 ## Why is it considered an Anti-Pattern?
 
-1. **Hidden Dependencies**: If I look at the API of `OrderService`, the constructor takes *zero* arguments. It *looks* like I can just instantiate `new OrderService()` and use it. But if I run it, it crashes because I forgot to register a `Logger` globally first. With Dependency Injection, the constructor `constructor(logger: ILogger)` explicitly forces me to provide the dependency.
+1. **Hidden Dependencies**: If I look at the API of `OrderService`, the constructor takes _zero_ arguments. It _looks_ like I can just instantiate `new OrderService()` and use it. But if I run it, it crashes because I forgot to register a `Logger` globally first. With Dependency Injection, the constructor `constructor(logger: ILogger)` explicitly forces me to provide the dependency.
 2. **Global State**: The Service Locator is almost always implemented as a Singleton. This makes running tests in parallel extremely difficult because test A might overwrite the mocked Logger needed by test B.
 
 ## Step-by-Step Implementation
 
-If you *must* implement one (e.g., in game dev or legacy code):
+If you _must_ implement one (e.g., in game dev or legacy code):
+
 1. **Create the Locator**: Create a Singleton class or a globally accessible object.
 2. **Add Registration**: Create a method to add an object or a factory to an internal Dictionary/Map.
 3. **Add Retrieval**: Create a method that looks up the key in the Dictionary and returns the object (or invokes the factory).
@@ -112,15 +113,23 @@ If you *must* implement one (e.g., in game dev or legacy code):
 
 ```typescript [TypeScript]
 // 1. Interfaces
-interface ILogger { log(msg: string): void; }
-interface IDatabase { save(): void; }
+interface ILogger {
+  log(msg: string): void;
+}
+interface IDatabase {
+  save(): void;
+}
 
 // 2. Concrete Classes
 class ConsoleLogger implements ILogger {
-  log(msg: string) { console.log(`[LOG] ${msg}`); }
+  log(msg: string) {
+    console.log(`[LOG] ${msg}`);
+  }
 }
 class PostgresDatabase implements IDatabase {
-  save() { console.log(`[DB] Saving to Postgres`); }
+  save() {
+    console.log(`[DB] Saving to Postgres`);
+  }
 }
 
 // 3. The Service Locator
@@ -165,7 +174,7 @@ ServiceLocator.register("Database", new PostgresDatabase());
 
 console.log("\n--- Application Runtime ---");
 // Looks like it requires no dependencies, but relies on global state
-const service = new UserService(); 
+const service = new UserService();
 service.registerUser("Alice");
 ```
 
@@ -412,7 +421,7 @@ impl ServiceLocator {
             panic!("Service not found");
         }
     }
-    
+
     pub fn execute_db(name: &'static str) {
         let map = LOCATOR.lock().unwrap();
         if let Some(service) = map.get(name) {
@@ -457,10 +466,12 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Decoupling**: Like Dependency Injection, it decouples the client from concrete implementations. You can swap out the registered Logger for a MockLogger.
 - **Convenience in Legacy Systems**: If you have a deep component tree (e.g., Component A creates B, which creates C, which creates D), passing a Logger through constructors A, B, and C just so D can use it is tedious. A Service Locator allows D to grab the Logger directly.
 
 ### Disadvantages
+
 - **Hidden Dependencies (Liar API)**: The class API doesn't tell you what it needs to function. You only find out it needs a database when it throws a runtime exception.
 - **Global State**: It introduces a global Singleton, which makes testing difficult, causes race conditions in concurrent environments, and makes application state unpredictable.
 - **Maintenance Nightmare**: Refactoring is dangerous. If you remove a service from the locator, the compiler won't warn you. The app will just crash at runtime when a class tries to retrieve it.
@@ -477,6 +488,6 @@ fn main() {
 
 ## Related Patterns
 
-- **Dependency Injection (DI)**: The "correct" modern alternative to Service Locator. Instead of classes *asking* for dependencies, the framework *gives* them via constructors.
+- **Dependency Injection (DI)**: The "correct" modern alternative to Service Locator. Instead of classes _asking_ for dependencies, the framework _gives_ them via constructors.
 - **Singleton**: The Service Locator itself is almost always implemented as a Singleton.
 - **Factory**: The Service Locator acts as a generalized Factory for the entire application.

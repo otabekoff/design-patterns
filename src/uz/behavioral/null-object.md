@@ -106,112 +106,111 @@ class Order {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Logger interface
-    interface Logger {
-      log(message: string): void;
-      error(message: string): void;
-      warn(message: string): void;
+interface Logger {
+  log(message: string): void;
+  error(message: string): void;
+  warn(message: string): void;
+}
+
+// Concrete logger
+class ConsoleLogger implements Logger {
+  log(message: string): void {
+    console.log(`[LOG] ${message}`);
+  }
+
+  error(message: string): void {
+    console.error(`[ERROR] ${message}`);
+  }
+
+  warn(message: string): void {
+    console.warn(`[WARN] ${message}`);
+  }
+}
+
+// Null Object - does nothing
+class NullLogger implements Logger {
+  log(message: string): void {
+    // Do nothing
+  }
+
+  error(message: string): void {
+    // Do nothing
+  }
+
+  warn(message: string): void {
+    // Do nothing
+  }
+}
+
+// Concrete logger for file
+class FileLogger implements Logger {
+  constructor(private filename: string) {}
+
+  log(message: string): void {
+    // Write to file
+    console.log(`[FILE] Writing to ${this.filename}: ${message}`);
+  }
+
+  error(message: string): void {
+    console.log(`[FILE] Writing error to ${this.filename}: ${message}`);
+  }
+
+  warn(message: string): void {
+    console.log(`[FILE] Writing warning to ${this.filename}: ${message}`);
+  }
+}
+
+// Application class
+class Application {
+  private logger: Logger;
+
+  constructor(logger?: Logger) {
+    // Use NullLogger if no logger provided
+    this.logger = logger || new NullLogger();
+  }
+
+  run(): void {
+    this.logger.log("Application starting");
+
+    try {
+      this.logger.log("Processing data");
+      this.processData();
+      this.logger.log("Processing complete");
+    } catch (error) {
+      this.logger.error(`Error: ${error}`);
     }
+  }
 
-    // Concrete logger
-    class ConsoleLogger implements Logger {
-      log(message: string): void {
-        console.log(`[LOG] ${message}`);
-      }
+  private processData(): void {
+    this.logger.warn("This is a warning");
+  }
 
-      error(message: string): void {
-        console.error(`[ERROR] ${message}`);
-      }
+  setLogger(logger: Logger): void {
+    this.logger = logger;
+  }
+}
 
-      warn(message: string): void {
-        console.warn(`[WARN] ${message}`);
-      }
-    }
+// Usage
+console.log("=== With NullLogger ===");
+const appWithoutLogger = new Application();
+appWithoutLogger.run(); // No output from logger
 
-    // Null Object - does nothing
-    class NullLogger implements Logger {
-      log(message: string): void {
-        // Do nothing
-      }
+console.log("\n=== With ConsoleLogger ===");
+const appWithConsole = new Application(new ConsoleLogger());
+appWithConsole.run();
 
-      error(message: string): void {
-        // Do nothing
-      }
+console.log("\n=== With FileLogger ===");
+const appWithFile = new Application(new FileLogger("app.log"));
+appWithFile.run();
 
-      warn(message: string): void {
-        // Do nothing
-      }
-    }
-
-    // Concrete logger for file
-    class FileLogger implements Logger {
-      constructor(private filename: string) {}
-
-      log(message: string): void {
-        // Write to file
-        console.log(`[FILE] Writing to ${this.filename}: ${message}`);
-      }
-
-      error(message: string): void {
-        console.log(`[FILE] Writing error to ${this.filename}: ${message}`);
-      }
-
-      warn(message: string): void {
-        console.log(`[FILE] Writing warning to ${this.filename}: ${message}`);
-      }
-    }
-
-    // Application class
-    class Application {
-      private logger: Logger;
-
-      constructor(logger?: Logger) {
-        // Use NullLogger if no logger provided
-        this.logger = logger || new NullLogger();
-      }
-
-      run(): void {
-        this.logger.log('Application starting');
-
-        try {
-          this.logger.log('Processing data');
-          this.processData();
-          this.logger.log('Processing complete');
-        } catch (error) {
-          this.logger.error(`Error: ${error}`);
-        }
-      }
-
-      private processData(): void {
-        this.logger.warn('This is a warning');
-      }
-
-      setLogger(logger: Logger): void {
-        this.logger = logger;
-      }
-    }
-
-    // Usage
-    console.log('=== With NullLogger ===');
-    const appWithoutLogger = new Application();
-    appWithoutLogger.run(); // No output from logger
-
-    console.log('\n=== With ConsoleLogger ===');
-    const appWithConsole = new Application(new ConsoleLogger());
-    appWithConsole.run();
-
-    console.log('\n=== With FileLogger ===');
-    const appWithFile = new Application(new FileLogger('app.log'));
-    appWithFile.run();
-
-    console.log('\n=== Dynamic logger switching ===');
-    appWithoutLogger.setLogger(new ConsoleLogger());
-    appWithoutLogger.run();
+console.log("\n=== Dynamic logger switching ===");
+appWithoutLogger.setLogger(new ConsoleLogger());
+appWithoutLogger.run();
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
     class Logger(ABC):

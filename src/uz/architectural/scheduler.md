@@ -65,7 +65,7 @@ Thread3 ─┘    (Adolatli kirish)
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Task to schedule
 interface Task {
   id: string;
@@ -160,7 +160,7 @@ scheduler.schedule({
 console.log(`\nPending tasks: ${scheduler.getPendingCount()}`);
 ```
 
-```python [python]
+```python [Python]
 from typing import Callable, List
 from dataclasses import dataclass
 import time

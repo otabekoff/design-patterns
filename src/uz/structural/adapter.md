@@ -56,7 +56,7 @@ The adapter holds a reference to the adaptee and implements the target interface
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // The target interface that clients expect
 interface PaymentProcessor {
   processPayment(amount: number, cardData: string): void;
@@ -160,7 +160,7 @@ console.log('User data:', data);
 })();
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 # The target interface that clients expect

@@ -85,7 +85,7 @@ MVP separates presentation logic into a Presenter that orchestrates the View and
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Model - Contains data and business logic
 interface User {
   id: number;
@@ -281,7 +281,7 @@ view.onAddUserClick((name, email, age) => {
 });
 ```
 
-```python [python]
+```python [Python]
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 

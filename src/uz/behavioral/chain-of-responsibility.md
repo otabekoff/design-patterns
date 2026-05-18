@@ -107,95 +107,98 @@ class ErrorHandler extends Handler {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Request interface
-    interface Request {
-      level: 'info' | 'warning' | 'error' | 'critical';
-      message: string;
-      timestamp: Date;
+interface Request {
+  level: "info" | "warning" | "error" | "critical";
+  message: string;
+  timestamp: Date;
+}
+
+// Abstract handler
+abstract class Logger {
+  protected nextLogger: Logger | null = null;
+
+  setNext(logger: Logger): Logger {
+    this.nextLogger = logger;
+    return logger;
+  }
+
+  handle(request: Request): void {
+    if (this.canHandle(request)) {
+      this.write(request);
+    } else if (this.nextLogger) {
+      this.nextLogger.handle(request);
     }
+  }
 
-    // Abstract handler
-    abstract class Logger {
-      protected nextLogger: Logger | null = null;
+  protected abstract canHandle(request: Request): boolean;
+  protected abstract write(request: Request): void;
+}
 
-      setNext(logger: Logger): Logger {
-        this.nextLogger = logger;
-        return logger;
-      }
+// Concrete handlers
+class ConsoleLogger extends Logger {
+  protected canHandle(request: Request): boolean {
+    return request.level === "info";
+  }
 
-      handle(request: Request): void {
-        if (this.canHandle(request)) {
-          this.write(request);
-        } else if (this.nextLogger) {
-          this.nextLogger.handle(request);
-        }
-      }
+  protected write(request: Request): void {
+    console.log(
+      `[${request.timestamp.toISOString()}] INFO: ${request.message}`,
+    );
+  }
+}
 
-      protected abstract canHandle(request: Request): boolean;
-      protected abstract write(request: Request): void;
+class WarningLogger extends Logger {
+  protected canHandle(request: Request): boolean {
+    return request.level === "warning";
+  }
+
+  protected write(request: Request): void {
+    console.warn(
+      `[${request.timestamp.toISOString()}] WARNING: ${request.message}`,
+    );
+  }
+}
+
+class ErrorLogger extends Logger {
+  protected canHandle(request: Request): boolean {
+    return request.level === "error" || request.level === "critical";
+  }
+
+  protected write(request: Request): void {
+    console.error(
+      `[${request.timestamp.toISOString()}] ERROR: ${request.message}`,
+    );
+    // Send email for critical errors
+    if (request.level === "critical") {
+      this.sendEmailAlert(request.message);
     }
+  }
 
-    // Concrete handlers
-    class ConsoleLogger extends Logger {
-      protected canHandle(request: Request): boolean {
-        return request.level === 'info';
-      }
+  private sendEmailAlert(message: string): void {
+    // Email logic here
+  }
+}
 
-      protected write(request: Request): void {
-        console.log(`[${request.timestamp.toISOString()}] INFO: ${request.message}`);
-      }
-    }
+// Usage
+const loggerChain = new ConsoleLogger();
+loggerChain.setNext(new WarningLogger()).setNext(new ErrorLogger());
 
-    class WarningLogger extends Logger {
-      protected canHandle(request: Request): boolean {
-        return request.level === 'warning';
-      }
+loggerChain.handle({
+  level: "info",
+  message: "Application started",
+  timestamp: new Date(),
+});
 
-      protected write(request: Request): void {
-        console.warn(`[${request.timestamp.toISOString()}] WARNING: ${request.message}`);
-      }
-    }
-
-    class ErrorLogger extends Logger {
-      protected canHandle(request: Request): boolean {
-        return request.level === 'error' || request.level === 'critical';
-      }
-
-      protected write(request: Request): void {
-        console.error(`[${request.timestamp.toISOString()}] ERROR: ${request.message}`);
-        // Send email for critical errors
-        if (request.level === 'critical') {
-          this.sendEmailAlert(request.message);
-        }
-      }
-
-      private sendEmailAlert(message: string): void {
-        // Email logic here
-      }
-    }
-
-    // Usage
-    const loggerChain = new ConsoleLogger();
-    loggerChain
-      .setNext(new WarningLogger())
-      .setNext(new ErrorLogger());
-
-    loggerChain.handle({
-      level: 'info',
-      message: 'Application started',
-      timestamp: new Date(),
-    });
-
-    loggerChain.handle({
-      level: 'critical',
-      message: 'Database connection failed',
-      timestamp: new Date(),
-    });
+loggerChain.handle({
+  level: "critical",
+  message: "Database connection failed",
+  timestamp: new Date(),
+});
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from datetime import datetime
     from enum import Enum
@@ -325,14 +328,18 @@ class RateLimitMiddleware extends Middleware {
 
 class LoggingMiddleware extends Middleware {
   protected async process(request: HttpRequest): Promise<boolean> {
-    console.log(`[${new Date().toISOString()}] ${request.method} ${request.url}`);
+    console.log(
+      `[${new Date().toISOString()}] ${request.method} ${request.url}`,
+    );
     return true;
   }
 }
 
 // Setup chain
 const middlewareChain = new AuthenticationMiddleware();
-middlewareChain.setNext(new RateLimitMiddleware()).setNext(new LoggingMiddleware());
+middlewareChain
+  .setNext(new RateLimitMiddleware())
+  .setNext(new LoggingMiddleware());
 ```
 
 ## Advantages

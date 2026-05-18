@@ -22,6 +22,7 @@ The **Unit of Work** pattern is an architectural pattern that tracks all changes
 ## The Problem
 
 Consider an e-commerce checkout process. You need to:
+
 1. Create a new `Order`.
 2. Deduct inventory for each `OrderItem`.
 3. Update the `Customer` loyalty points.
@@ -49,6 +50,7 @@ class CheckoutService {
 ```
 
 This creates severe issues:
+
 1. **Partial Failures**: If the system crashes after DB Write 2, the customer is charged, the order exists, but inventory wasn't fully deducted and loyalty points weren't added. The database is now corrupted.
 2. **Performance (The "Chatty" DB problem)**: Making 50 separate database calls back-and-forth across the network for a single checkout is incredibly slow.
 
@@ -75,7 +77,7 @@ class CheckoutService {
     this.uow.registerDirty(customer); // Memory only
 
     // Atomically execute all SQL statements in a single DB Transaction
-    await this.uow.commit(); 
+    await this.uow.commit();
   }
 }
 ```
@@ -144,7 +146,12 @@ abstract class Entity {
 }
 
 class User extends Entity {
-  constructor(id: string, public name: string) { super(id); }
+  constructor(
+    id: string,
+    public name: string,
+  ) {
+    super(id);
+  }
 }
 
 // 2. The Unit of Work
@@ -183,13 +190,13 @@ class UnitOfWork {
 
   public async commit(): Promise<void> {
     console.log("--- 🏁 BEGIN DB TRANSACTION ---");
-    
+
     try {
       // Execute all INSERTS
       for (const entity of this.newEntities) {
         console.log(`[SQL] INSERT INTO table VALUES ('${entity.id}')`);
       }
-      
+
       // Execute all UPDATES
       for (const entity of this.dirtyEntities) {
         console.log(`[SQL] UPDATE table SET ... WHERE id = '${entity.id}'`);
@@ -219,14 +226,14 @@ class UnitOfWork {
 // 3. Client Code (Business Logic)
 async function processBusinessTransaction() {
   const uow = new UnitOfWork();
-  
+
   // Simulated domain logic
   const user1 = new User("u1", "Alice");
   const user2 = new User("u2", "Bob"); // Assume this was loaded from DB
 
   // Register intents
   uow.registerNew(user1);
-  
+
   user2.name = "Robert";
   uow.registerDirty(user2);
 
@@ -280,13 +287,13 @@ class UnitOfWork:
         try:
             for e in self.new_entities:
                 print(f"[SQL] INSERT INTO table VALUES ('{e.id}')")
-                
+
             for e in self.dirty_entities:
                 print(f"[SQL] UPDATE table SET ... WHERE id = '{e.id}'")
-                
+
             for e in self.deleted_entities:
                 print(f"[SQL] DELETE FROM table WHERE id = '{e.id}'")
-                
+
             print("--- ✅ COMMIT DB TRANSACTION ---")
         except Exception as err:
             print("--- ❌ ROLLBACK DB TRANSACTION ---")
@@ -302,15 +309,15 @@ class UnitOfWork:
 # 3. Client Code
 if __name__ == "__main__":
     uow = UnitOfWork()
-    
+
     user1 = User("u1", "Alice")
     user2 = User("u2", "Bob")
-    
+
     uow.register_new(user1)
-    
+
     user2.name = "Robert"
     uow.register_dirty(user2)
-    
+
     uow.commit()
 ```
 
@@ -393,15 +400,15 @@ class UnitOfWork {
 public class UnitOfWorkDemo {
     public static void main(String[] args) {
         UnitOfWork uow = new UnitOfWork();
-        
+
         User user1 = new User("u1", "Alice");
         User user2 = new User("u2", "Bob");
-        
+
         uow.registerNew(user1);
-        
+
         user2.name = "Robert";
         uow.registerDirty(user2);
-        
+
         try {
             uow.commit();
         } catch (Exception e) {
@@ -475,7 +482,7 @@ func (uow *UnitOfWork) RegisterDeleted(entity Entity) {
 func (uow *UnitOfWork) Commit() error {
 	fmt.Println("--- 🏁 BEGIN DB TRANSACTION ---")
 
-	// In Go, map iteration is randomized, which is fine as long as 
+	// In Go, map iteration is randomized, which is fine as long as
 	// inserts happen before updates (or order doesn't matter strictly here)
 	for e := range uow.newEntities {
 		fmt.Printf("[SQL] INSERT INTO table VALUES ('%s')\n", e.GetID())
@@ -583,7 +590,7 @@ impl UnitOfWork {
 
     pub fn commit(&mut self) {
         println!("--- 🏁 BEGIN DB TRANSACTION ---");
-        
+
         for e in &self.new_entities {
             println!("[SQL] INSERT INTO table VALUES ('{}')", e.id);
         }
@@ -593,7 +600,7 @@ impl UnitOfWork {
         for e in &self.deleted_entities {
             println!("[SQL] DELETE FROM table WHERE id = '{}'", e.id);
         }
-        
+
         println!("--- ✅ COMMIT DB TRANSACTION ---");
         self.clear();
     }
@@ -608,15 +615,15 @@ impl UnitOfWork {
 // 3. Client Code
 fn main() {
     let mut uow = UnitOfWork::new();
-    
+
     let user1 = User { id: "u1".to_string(), name: "Alice".to_string() };
     let mut user2 = User { id: "u2".to_string(), name: "Bob".to_string() };
-    
+
     uow.register_new(user1).unwrap();
-    
+
     user2.name = "Robert".to_string();
     uow.register_dirty(user2).unwrap();
-    
+
     uow.commit();
 }
 ```
@@ -626,11 +633,13 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Atomic Consistency**: Either the entire business transaction succeeds, or the entire transaction fails. The database is never left in a corrupted "half-saved" state.
 - **Maximized Performance**: By batching operations and executing them only at the end, it minimizes database connections, reduces network latency overhead, and minimizes table locking time.
 - **Simplifies Rollbacks**: Because it keeps track of what it planned to do, rolling back is as simple as dropping the in-memory lists rather than issuing reverse SQL statements.
 
 ### Disadvantages
+
 - **Heavy Abstraction**: It is a notoriously difficult pattern to implement from scratch correctly (especially when tracking nested object relationships).
 - **High Memory Usage**: Because the Unit of Work tracks every loaded, changed, and created object for the duration of the transaction, it can consume massive amounts of memory if you are processing a batch of millions of records.
 - **Stale Data Risks**: If a transaction takes 5 minutes to complete, the data held in the Unit of Work memory might become hopelessly out of sync with the actual database.
@@ -648,13 +657,15 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Manual Tracking instead of Proxies
+
 In the code examples above, the client explicitly called `uow.registerDirty()`. In a true modern implementation (like Entity Framework), the ORM uses Proxy classes or an Identity Map to automatically detect when a property changes. Forcing developers to manually call `registerDirty()` often results in bugs where changes are forgotten.
 
 ### 2. Lifespan is too long
+
 A Unit of Work should be short-lived. In a web application, it should live only for the duration of a single HTTP request. Keeping a Unit of Work alive across multiple requests (e.g., in user sessions) will lead to horrific memory leaks and stale data concurrency errors.
 
 ## Related Patterns
 
-- **Identity Map**: The Unit of Work almost always relies on an Identity Map to track *which* object instances are currently loaded and being monitored.
+- **Identity Map**: The Unit of Work almost always relies on an Identity Map to track _which_ object instances are currently loaded and being monitored.
 - **Repository**: Acts as the collection interface to fetch objects into the Unit of Work, and often relies on the Unit of Work to eventually persist them.
 - **Data Mapper**: Actually executes the final SQL commands against the database when the Unit of Work `commit()` is called.

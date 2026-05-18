@@ -147,7 +147,7 @@ class PaymentGatewayAdapter implements PaymentProcessor {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface PaymentProcessor {
   processPayment(amount: number, cardData: string): Promise<void>;
 }
@@ -231,7 +231,7 @@ const httpAdapter = new HttpClientAdapter(new LegacyHttpLib());
 httpAdapter.get("/api/users").then((data) => console.log("User data:", data));
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -307,7 +307,7 @@ weather = WeatherApiAdapter(LegacyWeatherApiResponse(20, "Sunny", 45))
 print(f"Weather: {weather.temperature}C, {weather.description}")
 ```
 
-```java [java]
+```java [Java]
 interface PaymentProcessor {
     void processPayment(double amount, String cardData);
 }
@@ -374,7 +374,7 @@ class HttpClientAdapter implements HttpClient {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -449,7 +449,7 @@ func (a *HttpClientAdapter) Post(url string, data any) (any, error) {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 trait PaymentProcessor {
     fn process_payment(&self, amount: f64, card_data: &str) -> Result<(), String>;
 }

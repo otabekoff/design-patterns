@@ -1,243 +1,211 @@
 ---
 title: Quick Reference
-description: A quick reference guide for all design patterns.
+description: Tables, decision trees, and pattern combinations for all 41 design patterns.
 icon: BookMarked
 ---
 
-# Design Patterns Quick Reference Guide
+# Quick Reference
 
 <CoverImage src="/covers/getting-started/quick-reference.png" alt="Cover">
   <h1>Quick Reference</h1>
   <p>A massive, clean control panel containing a beautiful array of color-coded glowing buttons, each with a mini graphic icon representing a design pattern, with a tiny operator robot happily sliding a slider.</p>
 </CoverImage>
 
-This page provides a quick reference for all 41 design patterns covered in this documentation.
+A concise reference for all 41 patterns in this documentation. Use the decision tree when you know what you need but not which pattern fits. Use the tables when you want to compare options side by side.
 
-## Creational Patterns (6)
+## Creational Patterns
 
-Used for object creation mechanisms.
+| Pattern              | Purpose                                            | Best For                                 |
+| -------------------- | -------------------------------------------------- | ---------------------------------------- |
+| **Singleton**        | Single instance with global access                 | Loggers, configs, database connections   |
+| **Factory Method**   | Object creation without specifying the exact class | Document types, payment methods          |
+| **Abstract Factory** | Families of related objects                        | UI themes, multi-database support        |
+| **Builder**          | Step-by-step object construction                   | Complex objects, fluent APIs             |
+| **Prototype**        | Clone existing objects                             | Document templates, configuration copies |
+| **Object Pool**      | Reuse expensive objects                            | Database connections, thread pools       |
 
-| Pattern              | Purpose                                    | Best For                                  |
-| -------------------- | ------------------------------------------ | ----------------------------------------- |
-| **Singleton**        | Single instance with global access         | Loggers, configs, database connections    |
-| **Factory Method**   | Object creation without specifying classes | Different document types, payment methods |
-| **Abstract Factory** | Families of related objects                | UI themes, database families              |
-| **Builder**          | Step-by-step object construction           | Complex objects, fluent APIs              |
-| **Prototype**        | Clone existing objects                     | Document templates, configuration copies  |
-| **Object Pool**      | Reuse expensive objects                    | Database connections, thread pools        |
+## Structural Patterns
 
-## Structural Patterns (7)
+| Pattern       | Purpose                                                | Best For                                   |
+| ------------- | ------------------------------------------------------ | ------------------------------------------ |
+| **Adapter**   | Convert incompatible interfaces                        | Third-party APIs, legacy integrations      |
+| **Bridge**    | Decouple abstraction from implementation               | Graphics rendering, cross-platform drivers |
+| **Composite** | Uniform treatment of single objects and compositions   | File systems, UI component trees           |
+| **Decorator** | Add responsibilities to objects at runtime             | Middleware pipelines, data streams         |
+| **Facade**    | Simplify a complex subsystem behind a single interface | SDK wrappers, home automation APIs         |
+| **Flyweight** | Share common state across many fine-grained objects    | Text editors, particle systems             |
+| **Proxy**     | Control access to another object                       | Caching, lazy loading, access control      |
 
-Used for object composition and relationships.
+## Behavioral Patterns
 
-| Pattern       | Purpose                                  | Best For                             |
-| ------------- | ---------------------------------------- | ------------------------------------ |
-| **Adapter**   | Convert incompatible interfaces          | Weather APIs, payment gateways       |
-| **Bridge**    | Decouple abstraction from implementation | Graphics rendering, device drivers   |
-| **Composite** | Tree structures                          | File systems, UI components          |
-| **Decorator** | Add responsibilities dynamically         | Beverage customization, data streams |
-| **Facade**    | Simplify complex subsystems              | Home automation, framework APIs      |
-| **Flyweight** | Share objects efficiently                | Text editors, particle systems       |
-| **Proxy**     | Control access to objects                | Caching, lazy loading, security      |
+| Pattern                     | Purpose                                                                 | Best For                              |
+| --------------------------- | ----------------------------------------------------------------------- | ------------------------------------- |
+| **Chain of Responsibility** | Pass a request along a chain until one handler processes it             | Middleware, logging pipelines         |
+| **Command**                 | Encapsulate a request as an object                                      | Undo/redo, job queues, macros         |
+| **Interpreter**             | Define and evaluate a grammar                                           | Expression parsers, DSLs              |
+| **Iterator**                | Sequential access to elements without exposing the underlying structure | Custom collections, lazy sequences    |
+| **Mediator**                | Centralize communication between objects                                | Dialog boxes, chat systems            |
+| **Memento**                 | Capture and restore an object's internal state                          | Undo/redo, save points                |
+| **Null Object**             | Provide a do-nothing default to eliminate null checks                   | Fallback handlers, test stubs         |
+| **Observer**                | Notify dependents automatically when an object changes                  | Event systems, data binding           |
+| **State**                   | Change an object's behavior when its internal state changes             | Workflow engines, UI state machines   |
+| **Strategy**                | Define a family of interchangeable algorithms                           | Sorting, compression, authentication  |
+| **Template Method**         | Define an algorithm's skeleton; defer steps to subclasses               | Frameworks, data processing pipelines |
+| **Visitor**                 | Add operations to objects without modifying their classes               | AST traversal, report generation      |
 
-## Behavioral Patterns (12)
+## Architectural Patterns
 
-Used for communication and responsibility between objects.
-
-| Pattern                     | Purpose                                  | Best For                              |
-| --------------------------- | ---------------------------------------- | ------------------------------------- |
-| **Chain of Responsibility** | Pass requests along a chain              | Event handling, logging levels        |
-| **Command**                 | Encapsulate requests as objects          | Undo/redo, task queues, macros        |
-| **Interpreter**             | Language grammar and interpretation      | Expression evaluation, DSLs           |
-| **Iterator**                | Sequential access to elements            | Collections, custom sequences         |
-| **Mediator**                | Encapsulate object interaction           | Dialog boxes, chat systems            |
-| **Memento**                 | Capture and restore state                | Undo/redo, save points, checkpoints   |
-| **Observer**                | Notify multiple objects of changes       | Event systems, pub/sub, data binding  |
-| **State**                   | Change behavior with state               | Traffic lights, workflow states       |
-| **Strategy**                | Interchangeable algorithms               | Sorting, compression, authentication  |
-| **Template Method**         | Algorithm skeleton in base class         | Frameworks, data processing pipelines |
-| **Visitor**                 | Add operations without modifying objects | AST traversal, report generation      |
-| **Null Object**             | Default do-nothing behavior              | Fallback handlers, mock objects       |
-
-## Architectural Patterns (16)
-
-Higher-level patterns for system structure and concurrency.
-
-| Pattern                  | Purpose                            | Best For                               |
-| ------------------------ | ---------------------------------- | -------------------------------------- |
-| **MVC**                  | Separate model, view, controller   | Web applications, desktop apps         |
-| **MVP**                  | Presenter handles UI logic         | Test-heavy applications, complex UIs   |
-| **MVVM**                 | Bind UI to view model              | Data-binding frameworks, reactive apps |
-| **Repository**           | Abstract data access layer         | Database interactions, DAL             |
-| **CQRS**                 | Separate reads and writes          | Complex domains, event-driven systems  |
-| **Event Sourcing**       | Store state as events              | Audit trails, event-driven systems     |
-| **Active Record**        | Database row as object             | Simple CRUD operations                 |
-| **Data Mapper**          | Separate objects from database     | Complex object-relational mapping      |
-| **Identity Map**         | Object uniqueness cache            | Preventing redundant DB loads          |
-| **Unit of Work**         | Atomic transaction tracking        | Managing multiple DB updates           |
-| **MVT**                  | Model-View-Template                | Django applications, rapid web dev     |
-| **Service Locator**      | Registry for services              | Dependency management, plugin systems  |
-| **Dependency Injection** | Pass dependencies in               | Testable code, loose coupling          |
-| **Producer-Consumer**    | Decouple producers/consumers       | Message queues, data pipelines         |
-| **Scheduler**            | Control thread resource access     | Thread synchronization, concurrency    |
-| **Read-Write Lock**      | Concurrent reads, exclusive writes | Caches, lookup tables, configuration   |
-
-## Decision Tree
-
-Choose a pattern based on your need:
-
-### I need to create objects efficiently
-
-→ **Singleton** (single instance) or **Factory Method** (multiple types) or **Builder** (complex construction)
-
-### I need to work with existing objects differently
-
-→ **Adapter** (incompatible interfaces) or **Decorator** (add behavior) or **Proxy** (control access)
-
-### I need to organize complex structures
-
-→ **Composite** (hierarchies) or **Facade** (simplify subsystems)
-
-### I need to handle events and notifications
-
-→ **Observer** (one-to-many) or **Chain of Responsibility** (sequential handlers) or **Mediator** (centralized)
-
-### I need to manage state and behavior changes
-
-→ **State** (internal state) or **Strategy** (algorithm switching) or **Template Method** (algorithm skeleton)
-
-### I need to handle concurrency
-
-→ **Producer-Consumer** (decoupled), **Scheduler** (resource control), or **Read-Write Lock** (concurrent access)
-
-### I need to structure my application
-
-→ **MVC** (web), **MVT** (Django), **MVP** (testing), **MVVM** (data binding), or **Repository** (data access)
-
-## Pattern Relationships
-
-### Patterns that work together:
-
-- **Factory Method** + **Template Method**
-- **Abstract Factory** + **Factory Method**
-- **Composite** + **Iterator** + **Visitor**
-- **Decorator** + **Strategy** + **State**
-- **Repository** + **Factory Method** + **Singleton**
-- **MVC** + **Observer** + **Strategy**
-- **Dependency Injection** + **Singleton** + **Factory Method**
-- **Unit of Work** + **Repository** + **Identity Map**
-
-## By Use Case
-
-### High Performance / Caching
-
-- Object Pool
-- Flyweight
-- Identity Map
-- Proxy (caching variant)
-- Read-Write Lock
-
-### Testing & Maintainability
-
-- Dependency Injection
-- Strategy
-- Template Method
-- Mock objects (Null Object)
-
-### Complex Business Logic
-
-- State
-- Chain of Responsibility
-- Mediator
-- Visitor
-
-### Data Processing
-
-- Iterator
-- Composite
-- Visitor
-- Pipeline (Producer-Consumer)
-- Unit of Work
-
-### User Interface
-
-- Observer
-- Command
-- Memento (undo/redo)
-- State
-- MVC / MVP / MVVM
-
-### System Integration
-
-- Adapter
-- Facade
-- Bridge
-- Repository
-
-## Performance Considerations
-
-**Potentially Expensive:**
-
-- Prototype (deep cloning)
-- Composite (tree traversal)
-- Visitor (multiple traversals)
-- Read-Write Lock (lock overhead)
-
-**Generally Lightweight:**
-
-- Singleton
-- Strategy
-- Decorator
-- Proxy (unless lazy-loading)
-
-## Testing Considerations
-
-**Easy to Test:**
-
-- Strategy
-- Template Method
-- Dependency Injection
-- Factory Method
-
-**Challenging to Test:**
-
-- Singleton (tight coupling)
-- Service Locator
-- Static methods
-
-## Common Mistakes
-
-| Pattern   | Common Mistake                   | Solution                   |
-| --------- | -------------------------------- | -------------------------- |
-| Singleton | Creates tight coupling           | Use Dependency Injection   |
-| Observer  | Memory leaks from unsubscription | Always unsubscribe         |
-| Composite | Treating leaves as nodes         | Use proper type hierarchy  |
-| Decorator | Order dependency                 | Ensure composability       |
-| Factory   | Hardcoding types                 | Use reflection or registry |
-| Strategy  | Too many tiny strategies         | Combine related strategies |
-| State     | State explosion                  | Group related states       |
-
-## Starting Point Recommendations
-
-### Beginner
-
-1. Start with: **Singleton**, **Factory Method**, **Strategy**
-2. Then learn: **Observer**, **Decorator**, **Adapter**
-3. Finally: **Builder**, **Repository**, **Dependency Injection**
-
-### Intermediate
-
-1. Strengthen understanding of basic patterns
-2. Learn: **Composite**, **Visitor**, **Template Method**
-3. Explore: **MVC**, **Repository**, **Command**
-
-### Advanced
-
-1. Master: **CQRS**, **Event Sourcing**, **Producer-Consumer**
-2. Combine patterns strategically
-3. Understand: **Read-Write Lock**, **Scheduler** for concurrency
-4. Apply to real systems: **Architectural Patterns**
+| Pattern                  | Purpose                                                                 | Best For                                   |
+| ------------------------ | ----------------------------------------------------------------------- | ------------------------------------------ |
+| **MVC**                  | Separate model, view, and controller                                    | Web applications, desktop apps             |
+| **MVP**                  | Presenter mediates between view and model                               | Test-heavy UIs, complex view logic         |
+| **MVVM**                 | Bind UI declaratively to a reactive view model                          | Data-binding frameworks, reactive apps     |
+| **MVT**                  | Model-View-Template (Django's variant of MVC)                           | Django applications                        |
+| **Repository**           | Abstract data access behind a collection-like interface                 | Any persistence layer                      |
+| **Active Record**        | Map a database row directly to a domain object                          | Simple CRUD operations                     |
+| **Data Mapper**          | Keep domain objects fully independent of the database schema            | Complex object-relational mapping          |
+| **Identity Map**         | Cache loaded objects to prevent duplicate database reads                | ORM internals, unit-of-work scenarios      |
+| **Unit of Work**         | Track changes to domain objects and commit them atomically              | Complex multi-entity transactions          |
+| **CQRS**                 | Separate read and write models                                          | High-scale reads, event-driven systems     |
+| **Event Sourcing**       | Persist state as an append-only sequence of events                      | Audit logs, temporal queries               |
+| **Dependency Injection** | Supply dependencies externally rather than constructing them internally | Testable code, loosely coupled services    |
+| **Service Locator**      | Resolve dependencies from a central registry                            | Plugin systems, legacy DI retrofits        |
+| **Producer-Consumer**    | Decouple work generation from work processing via a shared queue        | Message brokers, data pipelines            |
+| **Scheduler**            | Control when and how threads access shared resources                    | Thread synchronization, rate-limited tasks |
+| **Read-Write Lock**      | Allow concurrent reads; serialize writes                                | High-read caches, configuration stores     |
 
 ---
 
-Remember: Patterns are tools, not requirements. Use them when they solve a real problem, not just because they exist!
+## Decision Tree
+
+### Creating objects
+
+| Need                                          | Pattern          |
+| --------------------------------------------- | ---------------- |
+| One instance shared globally                  | Singleton        |
+| Different types, decided at runtime           | Factory Method   |
+| Families of related types                     | Abstract Factory |
+| Complex construction with many optional parts | Builder          |
+| Cheap copies of an existing object            | Prototype        |
+| Reuse costly-to-create objects                | Object Pool      |
+
+### Adapting or composing existing objects
+
+| Need                                              | Pattern   |
+| ------------------------------------------------- | --------- |
+| Connect incompatible interfaces                   | Adapter   |
+| Swap implementations independently of abstraction | Bridge    |
+| Treat individual items and groups uniformly       | Composite |
+| Add behavior without subclassing                  | Decorator |
+| Hide a complex subsystem                          | Facade    |
+| Share memory-heavy common state                   | Flyweight |
+| Control or intercept access to an object          | Proxy     |
+
+### Managing events and communication
+
+| Need                                      | Pattern                 |
+| ----------------------------------------- | ----------------------- |
+| Notify many objects when one changes      | Observer                |
+| Pass a request through ordered handlers   | Chain of Responsibility |
+| Decouple many-to-many communication       | Mediator                |
+| Encapsulate a request for later execution | Command                 |
+
+### Managing state and behavior
+
+| Need                                                    | Pattern         |
+| ------------------------------------------------------- | --------------- |
+| Different behavior depending on internal state          | State           |
+| Swap algorithms at runtime                              | Strategy        |
+| Enforce a fixed algorithm structure with flexible steps | Template Method |
+| Save and restore object state                           | Memento         |
+
+### Structuring an application
+
+| Need                                     | Pattern        |
+| ---------------------------------------- | -------------- |
+| Standard web or desktop application      | MVC            |
+| Highly testable UI                       | MVP            |
+| Reactive/data-binding frontend           | MVVM           |
+| Django application                       | MVT            |
+| Isolate database access                  | Repository     |
+| Simple ActiveRecord-style persistence    | Active Record  |
+| Domain objects independent of schema     | Data Mapper    |
+| Manage complex multi-object transactions | Unit of Work   |
+| Separate read and write concerns         | CQRS           |
+| Full event history and time travel       | Event Sourcing |
+
+### Concurrency and resource management
+
+| Need                                        | Pattern           |
+| ------------------------------------------- | ----------------- |
+| Decouple producers and consumers            | Producer-Consumer |
+| Schedule thread access to shared resources  | Scheduler         |
+| Maximize read concurrency, serialize writes | Read-Write Lock   |
+
+---
+
+## Pattern Combinations
+
+Some patterns are naturally complementary and appear together frequently in real systems.
+
+| Combination                                       | Why They Work Together                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Repository + Unit of Work + Identity Map          | Complete persistence layer: abstract access, batch writes, avoid duplicate loads           |
+| Factory Method + Template Method                  | The factory defines _what_ to create; the template defines _how_ to use it                 |
+| Abstract Factory + Factory Method                 | Abstract Factory uses Factory Methods to produce each product in a family                  |
+| MVC + Observer + Strategy                         | View observes model changes; controller delegates behavior via strategy                    |
+| Dependency Injection + Singleton + Factory Method | DI wires components together; Singleton manages shared instances; Factory handles creation |
+| CQRS + Event Sourcing                             | Natural fit: commands produce events, queries read projections                             |
+| Composite + Iterator + Visitor                    | Traverse a composite tree with an iterator; apply operations with a visitor                |
+| Decorator + Strategy                              | Decorators add structural layers; Strategy swaps algorithmic behavior                      |
+
+---
+
+## Performance Notes
+
+**Patterns with potential overhead:**
+
+- **Prototype** — deep cloning can be expensive for large object graphs
+- **Composite** — recursive tree traversal adds call stack depth
+- **Visitor** — may require multiple traversals for complex operations
+- **Read-Write Lock** — lock acquisition has latency; profile before assuming it helps
+
+**Patterns that are generally lightweight:**
+
+- Singleton, Strategy, Decorator, Null Object — minimal indirection once in place
+- Proxy — negligible unless lazy-loading triggers expensive initialization
+
+---
+
+## Testing Notes
+
+**Easier to test:**
+
+- Strategy, Template Method, Dependency Injection, Factory Method — dependencies are explicit and replaceable
+
+**Harder to test:**
+
+- Singleton — global state couples tests together; prefer DI over direct access
+- Service Locator — hides dependencies, making tests fragile
+- Static factory methods — cannot be overridden or mocked without extra tooling
+
+---
+
+## Common Mistakes
+
+| Pattern        | Common Mistake                                          | Better Approach                                                          |
+| -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Singleton      | Used as global state, causing hidden coupling           | Inject it as a dependency instead                                        |
+| Observer       | Subscriptions not cleaned up, causing memory leaks      | Always provide and call an unsubscribe mechanism                         |
+| Composite      | Leaf-specific operations pushed into the base interface | Keep the interface minimal; handle leaf behavior in subclasses           |
+| Decorator      | Order of decoration creates implicit dependencies       | Design decorators to be order-independent where possible                 |
+| Factory Method | Factory hardcodes the list of types it can create       | Use a registry or configuration to map types dynamically                 |
+| Strategy       | Strategy classes proliferate for trivial variations     | Use lambdas or closures for simple cases; classes for complex ones       |
+| State          | State explosion as conditions multiply                  | Group related state transitions; consider a state table                  |
+| CQRS           | Applied to simple CRUD where it adds no value           | Reserve CQRS for domains with genuinely asymmetric read/write complexity |
+
+---
+
+::: tip
+Patterns are tools, not requirements. If the simpler solution is clear and maintainable, use it.
+:::

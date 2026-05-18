@@ -95,7 +95,7 @@ CQRS ikkita alohida modelga ajratadi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Events
 interface Event {
   eventId: string;
@@ -181,7 +181,9 @@ class CommandHandler {
   }
 
   handleUpdateUser(command: UpdateUserCommand): void {
-    console.log(`[Command Handler] Processing UpdateUserCommand for user ${command.userId}`);
+    console.log(
+      `[Command Handler] Processing UpdateUserCommand for user ${command.userId}`,
+    );
 
     const event: UserUpdatedEvent = {
       eventId: `event-${this.nextEventId++}`,
@@ -313,7 +315,7 @@ console.log("\n=== Updated Query Results ===");
 console.log("User 1:", app.getUserById(1));
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import List, Optional, Callable, Dict
 from dataclasses import dataclass

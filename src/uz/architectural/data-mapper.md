@@ -77,7 +77,7 @@ class UserMapper {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Domain Object - Pure business logic
 class User {
   constructor(
@@ -175,7 +175,9 @@ repository.save(user2);
 console.log("\n=== All Users ===");
 const allUsers = repository.findAll();
 allUsers.forEach((u) => {
-  console.log(`${u.name}: Adult=${u.isAdult()}, Email Valid=${u.isValidEmail()}`);
+  console.log(
+    `${u.name}: Adult=${u.isAdult()}, Email Valid=${u.isValidEmail()}`,
+  );
 });
 
 console.log("\n=== Find Specific User ===");
@@ -185,7 +187,7 @@ if (found) {
 }
 ```
 
-```python [python]
+```python [Python]
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 from datetime import datetime

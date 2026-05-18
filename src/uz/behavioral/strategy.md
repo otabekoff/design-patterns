@@ -88,122 +88,118 @@ class PaymentProcessor {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Strategy interface
-    interface SortingStrategy {
-      sort(array: number[]): number[];
-      getName(): string;
-    }
+interface SortingStrategy {
+  sort(array: number[]): number[];
+  getName(): string;
+}
 
-    // Concrete strategies
-    class BubbleSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        const result = [...array];
-        for (let i = 0; i < result.length; i++) {
-          for (let j = 0; j < result.length - i - 1; j++) {
-            if (result[j] > result[j + 1]) {
-              [result[j], result[j + 1]] = [result[j + 1], result[j]];
-            }
-          }
+// Concrete strategies
+class BubbleSortStrategy implements SortingStrategy {
+  sort(array: number[]): number[] {
+    const result = [...array];
+    for (let i = 0; i < result.length; i++) {
+      for (let j = 0; j < result.length - i - 1; j++) {
+        if (result[j] > result[j + 1]) {
+          [result[j], result[j + 1]] = [result[j + 1], result[j]];
         }
-        return result;
       }
+    }
+    return result;
+  }
 
-      getName(): string {
-        return 'Bubble Sort';
+  getName(): string {
+    return "Bubble Sort";
+  }
+}
+
+class QuickSortStrategy implements SortingStrategy {
+  sort(array: number[]): number[] {
+    if (array.length <= 1) return array;
+
+    const pivot = array[Math.floor(array.length / 2)];
+    const left = array.filter((x) => x < pivot);
+    const middle = array.filter((x) => x === pivot);
+    const right = array.filter((x) => x > pivot);
+
+    return [...this.sort(left), ...middle, ...this.sort(right)];
+  }
+
+  getName(): string {
+    return "Quick Sort";
+  }
+}
+
+class MergeSortStrategy implements SortingStrategy {
+  sort(array: number[]): number[] {
+    if (array.length <= 1) return array;
+
+    const mid = Math.floor(array.length / 2);
+    const left = this.sort(array.slice(0, mid));
+    const right = this.sort(array.slice(mid));
+
+    return this.merge(left, right);
+  }
+
+  private merge(left: number[], right: number[]): number[] {
+    const result: number[] = [];
+    let i = 0,
+      j = 0;
+
+    while (i < left.length && j < right.length) {
+      if (left[i] <= right[j]) {
+        result.push(left[i++]);
+      } else {
+        result.push(right[j++]);
       }
     }
 
-    class QuickSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        if (array.length <= 1) return array;
+    return [...result, ...left.slice(i), ...right.slice(j)];
+  }
 
-        const pivot = array[Math.floor(array.length / 2)];
-        const left = array.filter(x => x < pivot);
-        const middle = array.filter(x => x === pivot);
-        const right = array.filter(x => x > pivot);
+  getName(): string {
+    return "Merge Sort";
+  }
+}
 
-        return [
-          ...this.sort(left),
-          ...middle,
-          ...this.sort(right)
-        ];
-      }
+// Context
+class Sorter {
+  private strategy: SortingStrategy;
 
-      getName(): string {
-        return 'Quick Sort';
-      }
-    }
+  constructor(strategy: SortingStrategy) {
+    this.strategy = strategy;
+  }
 
-    class MergeSortStrategy implements SortingStrategy {
-      sort(array: number[]): number[] {
-        if (array.length <= 1) return array;
+  setStrategy(strategy: SortingStrategy): void {
+    this.strategy = strategy;
+  }
 
-        const mid = Math.floor(array.length / 2);
-        const left = this.sort(array.slice(0, mid));
-        const right = this.sort(array.slice(mid));
+  sort(array: number[]): number[] {
+    console.log(`Sorting with ${this.strategy.getName()}`);
+    const startTime = performance.now();
+    const result = this.strategy.sort([...array]);
+    const endTime = performance.now();
+    console.log(`Time: ${(endTime - startTime).toFixed(2)}ms`);
+    return result;
+  }
+}
 
-        return this.merge(left, right);
-      }
+// Usage
+const data = [64, 34, 25, 12, 22, 11, 90];
+const sorter = new Sorter(new BubbleSortStrategy());
 
-      private merge(left: number[], right: number[]): number[] {
-        const result: number[] = [];
-        let i = 0, j = 0;
+console.log("Original:", data);
+console.log("Sorted:", sorter.sort(data));
 
-        while (i < left.length && j < right.length) {
-          if (left[i] <= right[j]) {
-            result.push(left[i++]);
-          } else {
-            result.push(right[j++]);
-          }
-        }
+sorter.setStrategy(new QuickSortStrategy());
+console.log("Sorted:", sorter.sort(data));
 
-        return [...result, ...left.slice(i), ...right.slice(j)];
-      }
-
-      getName(): string {
-        return 'Merge Sort';
-      }
-    }
-
-    // Context
-    class Sorter {
-      private strategy: SortingStrategy;
-
-      constructor(strategy: SortingStrategy) {
-        this.strategy = strategy;
-      }
-
-      setStrategy(strategy: SortingStrategy): void {
-        this.strategy = strategy;
-      }
-
-      sort(array: number[]): number[] {
-        console.log(`Sorting with ${this.strategy.getName()}`);
-        const startTime = performance.now();
-        const result = this.strategy.sort([...array]);
-        const endTime = performance.now();
-        console.log(`Time: ${(endTime - startTime).toFixed(2)}ms`);
-        return result;
-      }
-    }
-
-    // Usage
-    const data = [64, 34, 25, 12, 22, 11, 90];
-    const sorter = new Sorter(new BubbleSortStrategy());
-
-    console.log('Original:', data);
-    console.log('Sorted:', sorter.sort(data));
-
-    sorter.setStrategy(new QuickSortStrategy());
-    console.log('Sorted:', sorter.sort(data));
-
-    sorter.setStrategy(new MergeSortStrategy());
-    console.log('Sorted:', sorter.sort(data));
+sorter.setStrategy(new MergeSortStrategy());
+console.log("Sorted:", sorter.sort(data));
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import List
     import time

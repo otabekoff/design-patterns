@@ -28,17 +28,22 @@ When business logic directly queries the database or relies directly on an ORM's
 class UserService {
   public async deactivateInactiveUsers() {
     // Leaks SQL syntax into the business service
-    const users = await db.query('SELECT * FROM users WHERE last_login < ?', [thirtyDaysAgo]);
-    
+    const users = await db.query("SELECT * FROM users WHERE last_login < ?", [
+      thirtyDaysAgo,
+    ]);
+
     for (const user of users) {
       user.is_active = false;
-      await db.execute('UPDATE users SET is_active = false WHERE id = ?', [user.id]);
+      await db.execute("UPDATE users SET is_active = false WHERE id = ?", [
+        user.id,
+      ]);
     }
   }
 }
 ```
 
 This creates several issues:
+
 1. **Testing is difficult**: You cannot unit test `UserService` without a running database or complex SQL mocks.
 2. **Duplication**: The exact same SQL query might be written in `ReportService` and `AuthService`.
 3. **Rigidity**: If you decide to move `users` to an external microservice or a Redis cache, you have to rewrite the core business logic.
@@ -55,7 +60,7 @@ class UserService {
   public async deactivateInactiveUsers() {
     // Pure domain logic, zero SQL
     const users = await this.userRepository.findInactiveSince(thirtyDaysAgo);
-    
+
     for (const user of users) {
       user.deactivate();
       await this.userRepository.save(user);
@@ -109,10 +114,10 @@ classDiagram
 
 ## Real-World Analogy
 
-Think of a **Librarian**. 
-When you want a specific book, you don't go into the archives, figure out the Dewey Decimal System, and operate the mechanical shelves yourself. You go to the Librarian (the Repository). You say, "Find me books by George Orwell." 
+Think of a **Librarian**.
+When you want a specific book, you don't go into the archives, figure out the Dewey Decimal System, and operate the mechanical shelves yourself. You go to the Librarian (the Repository). You say, "Find me books by George Orwell."
 
-The Librarian might look in the physical stacks, check an off-site storage facility, or download an eBook. You (the Business Logic) don't care *where* or *how* the book is retrieved, as long as you get the Book object back.
+The Librarian might look in the physical stacks, check an off-site storage facility, or download an eBook. You (the Business Logic) don't care _where_ or _how_ the book is retrieved, as long as you get the Book object back.
 
 ## Step-by-Step Implementation
 
@@ -132,7 +137,7 @@ class User {
   constructor(
     public id: string,
     public name: string,
-    public email: string
+    public email: string,
   ) {}
 }
 
@@ -173,16 +178,22 @@ class InMemoryUserRepository implements IUserRepository {
 // 4. Concrete Implementation (PostgreSQL)
 class PostgresUserRepository implements IUserRepository {
   // In reality, this would be an actual DB connection or ORM instance
-  private db: any = { query: async () => [] }; 
+  private db: any = { query: async () => [] };
 
   async findById(id: string): Promise<User | null> {
-    console.log(`[Postgres DB] Executing: SELECT * FROM users WHERE id = ${id}`);
-    const rows = await this.db.query('SELECT * FROM users WHERE id = $1', [id]);
-    return rows.length ? new User(rows[0].id, rows[0].name, rows[0].email) : null;
+    console.log(
+      `[Postgres DB] Executing: SELECT * FROM users WHERE id = ${id}`,
+    );
+    const rows = await this.db.query("SELECT * FROM users WHERE id = $1", [id]);
+    return rows.length
+      ? new User(rows[0].id, rows[0].name, rows[0].email)
+      : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    console.log(`[Postgres DB] Executing: SELECT * FROM users WHERE email = ${email}`);
+    console.log(
+      `[Postgres DB] Executing: SELECT * FROM users WHERE email = ${email}`,
+    );
     return null; // Mock implementation
   }
 
@@ -213,11 +224,11 @@ class UserService {
 // Client Code
 async function run() {
   // We can easily swap out the Postgres repository for the InMemory one for testing!
-  const repo = new InMemoryUserRepository(); 
+  const repo = new InMemoryUserRepository();
   const service = new UserService(repo);
 
   await service.registerUser("u1", "Alice", "alice@example.com");
-  
+
   const user = await repo.findById("u1");
   console.log("Found:", user);
 }
@@ -296,7 +307,7 @@ class UserService:
     def register_user(self, user_id: str, name: str, email: str) -> User:
         if self.repo.find_by_email(email):
             raise ValueError("Email already registered")
-        
+
         new_user = User(user_id, name, email)
         self.repo.save(new_user)
         return new_user
@@ -508,7 +519,7 @@ func main() {
 	service := NewUserService(repo)
 
 	service.RegisterUser("u1", "Alice", "alice@example.com")
-	
+
 	user, _ := repo.FindByID("u1")
 	if user != nil {
 		fmt.Printf("Found: %s\n", user.Name)
@@ -610,12 +621,14 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Ultimate Testability**: By mocking the repository, you can unit test your business logic at lightning speed without spinning up a real database.
 - **Data Source Agnosticism**: You can easily migrate from MongoDB to PostgreSQL. As long as the new `PostgresRepository` conforms to the `IRepository` interface, the business logic will not change.
 - **Centralized Query Logic**: Common queries (e.g., `findActiveAdmins`) exist in one place, reducing SQL string duplication across the codebase.
 - **Clean Architecture Foundation**: It forms the hard boundary between the "Application Core" and the "Infrastructure/Persistence" layers.
 
 ### Disadvantages
+
 - **Over-Engineering for Small Apps**: If you are building a simple 3-page CRUD app, writing Interfaces, Concrete Repositories, and Dependency Injectors is incredibly verbose compared to just using an Active Record ORM.
 - **The "Generic Repository" Anti-Pattern**: Developers sometimes try to create a single `BaseRepository<T>` for all entities. While it saves code, it often becomes a bloated God Class that leaks complex ORM query objects (like Entity Framework `IQueryable`) into the business logic.
 - **N+1 Performance Issues**: If the repository only returns single aggregates, attempting to do complex joins or bulk reporting can be inefficient. (Repositories are for transactional data, not reporting/analytics).
@@ -630,15 +643,17 @@ fn main() {
 ## When NOT to Use
 
 - **Simple CRUD Applications**: Use Active Record instead.
-- **Analytics / Reporting / CQRS**: If you are just querying massive amounts of data for a dashboard, bypass the Repository entirely and run raw optimized SQL. Repositories are for *transactional* business logic, not reporting.
+- **Analytics / Reporting / CQRS**: If you are just querying massive amounts of data for a dashboard, bypass the Repository entirely and run raw optimized SQL. Repositories are for _transactional_ business logic, not reporting.
 
 ## Common Mistakes
 
 ### 1. Leaking Infrastructure Details
+
 If your repository interface looks like this: `findById(id: string, includeRelations: boolean, transactionContext: PostgresTx)`, you have failed. The interface is now coupled to Postgres. The interface must speak the language of the Domain, not the Database.
 
 ### 2. The God Repository
-Putting hundreds of query methods in one repository (`findUserByAge`, `findUserByAgeAndName`, `findUserBy...`). *Solution: Use the Specification Pattern or a robust Query Object for complex filtering.*
+
+Putting hundreds of query methods in one repository (`findUserByAge`, `findUserByAgeAndName`, `findUserBy...`). _Solution: Use the Specification Pattern or a robust Query Object for complex filtering._
 
 ## Related Patterns
 
@@ -648,4 +663,4 @@ Putting hundreds of query methods in one repository (`findUserByAge`, `findUserB
 
 ## Modern Alternatives
 
-- **CQRS (Command Query Responsibility Segregation)**: In modern high-scale architectures, the Repository is often kept *only* for Writes (Commands). For Reads (Queries), developers bypass the repository entirely and use a thin Data Access Layer (like Dapper or raw SQL) to map directly to lightweight Data Transfer Objects (DTOs), optimizing performance.
+- **CQRS (Command Query Responsibility Segregation)**: In modern high-scale architectures, the Repository is often kept _only_ for Writes (Commands). For Reads (Queries), developers bypass the repository entirely and use a thin Data Access Layer (like Dapper or raw SQL) to map directly to lightweight Data Transfer Objects (DTOs), optimizing performance.

@@ -16,6 +16,7 @@ icon: Layout
 **MVT (Model-View-Template)** — bu mashhur **MVC (Model-View-Controller)** namunasining biroz o'zgartirilgan varianti bo'lgan dasturiy ta'minot arxitektura namunasidir. U asosan **Django** veb-freymvorki tomonidan ishlatilishi bilan mashhur.
 
 Asosiy farq "Controller" (Nazoratchi) mantiqini kim boshqarishida:
+
 - **Model**: Ma'lumotlar va biznes mantiqini boshqaradi.
 - **View**: So'rovni qayta ishlash va javob qaytarish uchun biznes mantiqini boshqaradi (MVC'dagi Controller vazifasini bajaradi).
 - **Template**: Taqdimot mantiqini boshqaradi (MVC'dagi View vazifasini bajaradi).
@@ -24,12 +25,15 @@ Asosiy farq "Controller" (Nazoratchi) mantiqini kim boshqarishida:
 ## Komponentlar
 
 ### 1. Model
+
 Ma'lumotlar tuzilmasini belgilaydi va ma'lumotlar bazasi bilan o'zaro ishlash usullarini taqdim etadi.
 
 ### 2. View
+
 Modeldan ma'lumotlarni olish va ularni Template'ga uzatish mantiqini o'z ichiga oladi. U foydalanuvchi so'rovi va yakuniy HTML javobi o'rtasidagi ko'prikdir.
 
 ### 3. Template
+
 Taqdimot qatlami. U HTML va ma'lumotlarni dinamik ravishage ko'rsatish uchun shablon tilidan (masalan, Django Template Language yoki Jinja2) iborat bo'ladi.
 
 ## Ma'lumotlar Oqimi
@@ -45,7 +49,7 @@ Taqdimot qatlami. U HTML va ma'lumotlarni dinamik ravishage ko'rsatish uchun sha
 
 ::: code-group
 
-```python [python]
+```python [Python]
 # models.py
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -65,7 +69,7 @@ def article_detail(request, id):
 # <p>{{ article.content }}</p>
 ```
 
-```typescript [typescript]
+```typescript [TypeScript]
 // TypeScript'da MVT tushunchasi
 interface Model {
   id: number;
@@ -92,12 +96,12 @@ console.log(View(1));
 
 ## MVT va MVC Solishtiruvi
 
-| Komponent | MVC | MVT |
-| :--- | :--- | :--- |
-| **Ma'lumotlar Qatlami** | Model | Model |
-| **Mantiq Qatlami** | Controller | View |
-| **Taqdimot Qatlami** | View | Template |
-| **Birlashtiruvchi** | Controller | Framework |
+| Komponent               | MVC        | MVT       |
+| :---------------------- | :--------- | :-------- |
+| **Ma'lumotlar Qatlami** | Model      | Model     |
+| **Mantiq Qatlami**      | Controller | View      |
+| **Taqdimot Qatlami**    | View       | Template  |
+| **Birlashtiruvchi**     | Controller | Framework |
 
 ## Afzalliklari ✅
 

@@ -66,7 +66,7 @@ Flyweight solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface SpriteFlyweight {
   render(x: number, y: number, color: string): void;
 }
@@ -171,7 +171,7 @@ system.renderAll();
 console.log(`Unique flyweights: ${factory.count()}`);
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class SpriteFlyweight(ABC):
@@ -246,7 +246,7 @@ system.render_all()
 print(f"Unique flyweights: {factory.count()}")
 ```
 
-```java [java]
+```java [Java]
 interface SpriteFlyweight {
     void render(int x, int y, String color);
 }
@@ -321,7 +321,7 @@ class ParticleSystem {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -390,7 +390,7 @@ func (s *ParticleSystem) RenderAll() {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 use std::collections::HashMap;
 use std::sync::Arc;
 

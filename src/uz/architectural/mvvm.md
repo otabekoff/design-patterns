@@ -87,7 +87,7 @@ MVVM vazifalarni ajratadi va ma'lumotlarni bog'lash imkonini beradi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Model - Contains data and business logic
 interface User {
   id: number;
@@ -316,7 +316,9 @@ class UserView {
     const users = this.viewModel.users$.get();
     console.log("=== User List ===");
     users.forEach((user) => {
-      console.log(`ID: ${user.id} | ${user.name} (${user.email}) - Age: ${user.age}`);
+      console.log(
+        `ID: ${user.id} | ${user.name} (${user.email}) - Age: ${user.age}`,
+      );
     });
   }
 
@@ -367,7 +369,7 @@ view.onAddUserFormSubmit("Jane Smith", "jane@example.com", 28);
 view.displayUserList();
 ```
 
-```python [python]
+```python [Python]
 from typing import Dict, List, Optional, Callable, TypeVar
 from dataclasses import dataclass
 

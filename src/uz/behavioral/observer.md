@@ -102,156 +102,159 @@ class DataModel implements Subject {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Observer interface
-    interface Observer {
-      update(subject: Subject): void;
-      getId(): string;
+interface Observer {
+  update(subject: Subject): void;
+  getId(): string;
+}
+
+// Subject interface
+interface Subject {
+  attach(observer: Observer): void;
+  detach(observer: Observer): void;
+  notify(): void;
+}
+
+// Concrete Subject
+class Stock implements Subject {
+  private observers: Observer[] = [];
+  private symbol: string;
+  private price: number = 0;
+
+  constructor(symbol: string) {
+    this.symbol = symbol;
+  }
+
+  attach(observer: Observer): void {
+    if (!this.observers.includes(observer)) {
+      this.observers.push(observer);
+      console.log(`${observer.getId()} subscribed to ${this.symbol}`);
     }
+  }
 
-    // Subject interface
-    interface Subject {
-      attach(observer: Observer): void;
-      detach(observer: Observer): void;
-      notify(): void;
+  detach(observer: Observer): void {
+    const index = this.observers.indexOf(observer);
+    if (index > -1) {
+      this.observers.splice(index, 1);
+      console.log(`${observer.getId()} unsubscribed from ${this.symbol}`);
     }
+  }
 
-    // Concrete Subject
-    class Stock implements Subject {
-      private observers: Observer[] = [];
-      private symbol: string;
-      private price: number = 0;
+  notify(): void {
+    this.observers.forEach((observer) => observer.update(this));
+  }
 
-      constructor(symbol: string) {
-        this.symbol = symbol;
-      }
+  setPrice(price: number): void {
+    console.log(`\nStock price changed: ${this.symbol} -> $${price}`);
+    this.price = price;
+    this.notify();
+  }
 
-      attach(observer: Observer): void {
-        if (!this.observers.includes(observer)) {
-          this.observers.push(observer);
-          console.log(`${observer.getId()} subscribed to ${this.symbol}`);
-        }
-      }
+  getPrice(): number {
+    return this.price;
+  }
 
-      detach(observer: Observer): void {
-        const index = this.observers.indexOf(observer);
-        if (index > -1) {
-          this.observers.splice(index, 1);
-          console.log(`${observer.getId()} unsubscribed from ${this.symbol}`);
-        }
-      }
+  getSymbol(): string {
+    return this.symbol;
+  }
+}
 
-      notify(): void {
-        this.observers.forEach(observer => observer.update(this));
-      }
+// Concrete Observer 1
+class PortfolioObserver implements Observer {
+  private id: string;
+  private portfolio: Map<string, number> = new Map();
 
-      setPrice(price: number): void {
-        console.log(`\nStock price changed: ${this.symbol} -> $${price}`);
-        this.price = price;
-        this.notify();
-      }
+  constructor(id: string) {
+    this.id = id;
+  }
 
-      getPrice(): number {
-        return this.price;
-      }
+  update(subject: Stock): void {
+    const symbol = subject.getSymbol();
+    const price = subject.getPrice();
+    this.portfolio.set(symbol, price);
+    console.log(`Portfolio ${this.id}: ${symbol} price updated to $${price}`);
+  }
 
-      getSymbol(): string {
-        return this.symbol;
-      }
+  getId(): string {
+    return this.id;
+  }
+}
+
+// Concrete Observer 2
+class AlertObserver implements Observer {
+  private id: string;
+  private threshold: number;
+
+  constructor(id: string, threshold: number) {
+    this.id = id;
+    this.threshold = threshold;
+  }
+
+  update(subject: Stock): void {
+    const price = subject.getPrice();
+    if (price > this.threshold) {
+      console.log(
+        `ALERT ${this.id}: ${subject.getSymbol()} price ($${price}) exceeds threshold ($${this.threshold})`,
+      );
     }
+  }
 
-    // Concrete Observer 1
-    class PortfolioObserver implements Observer {
-      private id: string;
-      private portfolio: Map<string, number> = new Map();
+  getId(): string {
+    return this.id;
+  }
+}
 
-      constructor(id: string) {
-        this.id = id;
-      }
+// Concrete Observer 3
+class AnalystObserver implements Observer {
+  private id: string;
+  private priceHistory: Map<string, number[]> = new Map();
 
-      update(subject: Stock): void {
-        const symbol = subject.getSymbol();
-        const price = subject.getPrice();
-        this.portfolio.set(symbol, price);
-        console.log(`Portfolio ${this.id}: ${symbol} price updated to $${price}`);
-      }
+  constructor(id: string) {
+    this.id = id;
+  }
 
-      getId(): string {
-        return this.id;
-      }
+  update(subject: Stock): void {
+    const symbol = subject.getSymbol();
+    const price = subject.getPrice();
+
+    if (!this.priceHistory.has(symbol)) {
+      this.priceHistory.set(symbol, []);
     }
+    this.priceHistory.get(symbol)!.push(price);
 
-    // Concrete Observer 2
-    class AlertObserver implements Observer {
-      private id: string;
-      private threshold: number;
+    const history = this.priceHistory.get(symbol)!;
+    const average = history.reduce((a, b) => a + b) / history.length;
+    console.log(
+      `Analyst ${this.id}: ${symbol} moving average: $${average.toFixed(2)}`,
+    );
+  }
 
-      constructor(id: string, threshold: number) {
-        this.id = id;
-        this.threshold = threshold;
-      }
+  getId(): string {
+    return this.id;
+  }
+}
 
-      update(subject: Stock): void {
-        const price = subject.getPrice();
-        if (price > this.threshold) {
-          console.log(`ALERT ${this.id}: ${subject.getSymbol()} price ($${price}) exceeds threshold ($${this.threshold})`);
-        }
-      }
+// Usage
+const stock = new Stock("ACME");
 
-      getId(): string {
-        return this.id;
-      }
-    }
+const portfolio = new PortfolioObserver("Portfolio1");
+const alert = new AlertObserver("Alert1", 100);
+const analyst = new AnalystObserver("Analyst1");
 
-    // Concrete Observer 3
-    class AnalystObserver implements Observer {
-      private id: string;
-      private priceHistory: Map<string, number[]> = new Map();
+stock.attach(portfolio);
+stock.attach(alert);
+stock.attach(analyst);
 
-      constructor(id: string) {
-        this.id = id;
-      }
+stock.setPrice(95);
+stock.setPrice(105);
+stock.setPrice(98);
 
-      update(subject: Stock): void {
-        const symbol = subject.getSymbol();
-        const price = subject.getPrice();
-
-        if (!this.priceHistory.has(symbol)) {
-          this.priceHistory.set(symbol, []);
-        }
-        this.priceHistory.get(symbol)!.push(price);
-
-        const history = this.priceHistory.get(symbol)!;
-        const average = history.reduce((a, b) => a + b) / history.length;
-        console.log(`Analyst ${this.id}: ${symbol} moving average: $${average.toFixed(2)}`);
-      }
-
-      getId(): string {
-        return this.id;
-      }
-    }
-
-    // Usage
-    const stock = new Stock('ACME');
-
-    const portfolio = new PortfolioObserver('Portfolio1');
-    const alert = new AlertObserver('Alert1', 100);
-    const analyst = new AnalystObserver('Analyst1');
-
-    stock.attach(portfolio);
-    stock.attach(alert);
-    stock.attach(analyst);
-
-    stock.setPrice(95);
-    stock.setPrice(105);
-    stock.setPrice(98);
-
-    stock.detach(alert);
-    stock.setPrice(110);
+stock.detach(alert);
+stock.setPrice(110);
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import List, Dict
 

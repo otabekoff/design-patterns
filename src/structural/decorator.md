@@ -68,7 +68,7 @@ This keeps the base object simple and lets you add features only where needed.
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface ApiClient {
   fetch(path: string): Promise<string>;
 }
@@ -139,7 +139,7 @@ const client: ApiClient = new LoggingDecorator(
 client.fetch("/users");
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class ApiClient(ABC):
@@ -194,7 +194,7 @@ client = LoggingDecorator(RetryDecorator(CachingDecorator(HttpApiClient())))
 print(client.fetch("/users"))
 ```
 
-```java [java]
+```java [Java]
 interface ApiClient {
     String fetch(String path);
 }
@@ -271,7 +271,7 @@ class RetryDecorator extends ApiClientDecorator {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -348,7 +348,7 @@ func (d *RetryDecorator) Fetch(path string) (string, error) {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 use std::collections::HashMap;
 
 trait ApiClient {

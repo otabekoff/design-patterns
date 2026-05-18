@@ -86,106 +86,105 @@ class LoginDialogMediator implements Mediator {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Mediator interface
-    interface ChatMediator {
-      displayMessage(user: User, message: string): void;
-      addUser(user: User): void;
-      removeUser(user: User): void;
-    }
+interface ChatMediator {
+  displayMessage(user: User, message: string): void;
+  addUser(user: User): void;
+  removeUser(user: User): void;
+}
 
-    // Colleague interface
-    abstract class User {
-      protected mediator: ChatMediator;
-      protected name: string;
+// Colleague interface
+abstract class User {
+  protected mediator: ChatMediator;
+  protected name: string;
 
-      constructor(mediator: ChatMediator, name: string) {
-        this.mediator = mediator;
-        this.name = name;
+  constructor(mediator: ChatMediator, name: string) {
+    this.mediator = mediator;
+    this.name = name;
+  }
+
+  getName(): string {
+    return this.name;
+  }
+
+  send(message: string): void {
+    console.log(`${this.name} sends: ${message}`);
+    this.mediator.displayMessage(this, message);
+  }
+
+  abstract receive(message: string): void;
+}
+
+// Concrete colleagues
+class RegularUser extends User {
+  receive(message: string): void {
+    console.log(`${this.name} received: ${message}`);
+  }
+}
+
+class AdminUser extends User {
+  receive(message: string): void {
+    console.log(`ADMIN ${this.name} received: ${message}`);
+  }
+
+  banUser(user: User): void {
+    this.mediator.removeUser(user);
+    this.send(`${user.getName()} has been banned`);
+  }
+}
+
+// Concrete mediator
+class ChatRoom implements ChatMediator {
+  private users: Map<string, User> = new Map();
+
+  addUser(user: User): void {
+    this.users.set(user.getName(), user);
+    this.broadcastMessage(`${user.getName()} joined the chat`);
+  }
+
+  removeUser(user: User): void {
+    this.users.delete(user.getName());
+    this.broadcastMessage(`${user.getName()} left the chat`);
+  }
+
+  displayMessage(sender: User, message: string): void {
+    // Broadcast to all users
+    this.users.forEach((user) => {
+      if (user.getName() !== sender.getName()) {
+        user.receive(`${sender.getName()}: ${message}`);
       }
+    });
+  }
 
-      getName(): string {
-        return this.name;
-      }
+  private broadcastMessage(message: string): void {
+    this.users.forEach((user) => {
+      user.receive(message);
+    });
+  }
 
-      send(message: string): void {
-        console.log(`${this.name} sends: ${message}`);
-        this.mediator.displayMessage(this, message);
-      }
+  getUser(name: string): User | undefined {
+    return this.users.get(name);
+  }
+}
 
-      abstract receive(message: string): void;
-    }
+// Usage
+const chatRoom = new ChatRoom();
 
-    // Concrete colleagues
-    class RegularUser extends User {
-      receive(message: string): void {
-        console.log(`${this.name} received: ${message}`);
-      }
-    }
+const user1 = new RegularUser(chatRoom, "Alice");
+const user2 = new RegularUser(chatRoom, "Bob");
+const admin = new AdminUser(chatRoom, "Admin");
 
-    class AdminUser extends User {
-      receive(message: string): void {
-        console.log(`ADMIN ${this.name} received: ${message}`);
-      }
+chatRoom.addUser(user1);
+chatRoom.addUser(user2);
+chatRoom.addUser(admin);
 
-      banUser(user: User): void {
-        this.mediator.removeUser(user);
-        this.send(`${user.getName()} has been banned`);
-      }
-    }
-
-    // Concrete mediator
-    class ChatRoom implements ChatMediator {
-      private users: Map<string, User> = new Map();
-
-      addUser(user: User): void {
-        this.users.set(user.getName(), user);
-        this.broadcastMessage(`${user.getName()} joined the chat`);
-      }
-
-      removeUser(user: User): void {
-        this.users.delete(user.getName());
-        this.broadcastMessage(`${user.getName()} left the chat`);
-      }
-
-      displayMessage(sender: User, message: string): void {
-        // Broadcast to all users
-        this.users.forEach((user) => {
-          if (user.getName() !== sender.getName()) {
-            user.receive(`${sender.getName()}: ${message}`);
-          }
-        });
-      }
-
-      private broadcastMessage(message: string): void {
-        this.users.forEach((user) => {
-          user.receive(message);
-        });
-      }
-
-      getUser(name: string): User | undefined {
-        return this.users.get(name);
-      }
-    }
-
-    // Usage
-    const chatRoom = new ChatRoom();
-
-    const user1 = new RegularUser(chatRoom, 'Alice');
-    const user2 = new RegularUser(chatRoom, 'Bob');
-    const admin = new AdminUser(chatRoom, 'Admin');
-
-    chatRoom.addUser(user1);
-    chatRoom.addUser(user2);
-    chatRoom.addUser(admin);
-
-    user1.send('Hello everyone!');
-    user2.send('Hi Alice!');
-    admin.send('Welcome to chat room!');
+user1.send("Hello everyone!");
+user2.send("Hi Alice!");
+admin.send("Welcome to chat room!");
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import Dict
 

@@ -16,41 +16,43 @@ icon: Box
 The **Model-View-ViewModel (MVVM)** pattern is the architectural standard for modern, reactive user interfaces. It was originally created by Microsoft for WPF (Windows Presentation Foundation) but has since become the underlying philosophy for almost all modern frontend frameworks (Vue.js, Angular, SwiftUI, Jetpack Compose).
 
 It divides an application into:
+
 - **Model**: Contains the domain data and business logic.
 - **View**: The declarative UI layout (HTML, XAML, JSX). It has no logic of its own.
 - **ViewModel**: A state-holding class/object that sits between the View and the Model. It exposes "Observable" data streams and Commands.
 
-**The Magic of MVVM**: Unlike MVP or MVC, where a Controller/Presenter must *manually* push updates to the UI (e.g., `textField.setText("Hello")`), MVVM uses **Data Binding**. The View automatically listens to the ViewModel. When the ViewModel's state changes, the View updates itself instantly and automatically.
+**The Magic of MVVM**: Unlike MVP or MVC, where a Controller/Presenter must _manually_ push updates to the UI (e.g., `textField.setText("Hello")`), MVVM uses **Data Binding**. The View automatically listens to the ViewModel. When the ViewModel's state changes, the View updates itself instantly and automatically.
 
 ## The Problem
 
-In MVC/MVP, the programmer is responsible for manually synchronizing the UI with the data. 
+In MVC/MVP, the programmer is responsible for manually synchronizing the UI with the data.
 
 ```javascript
 // ❌ Bad: Manual DOM manipulation (JQuery/Vanilla JS style)
 function updateUserName(newName) {
-    user.name = newName; // Update data
-    // Manually find the DOM element and update it
-    document.getElementById("name-display").innerText = newName;
-    document.getElementById("name-input").value = newName;
+  user.name = newName; // Update data
+  // Manually find the DOM element and update it
+  document.getElementById("name-display").innerText = newName;
+  document.getElementById("name-input").value = newName;
 }
 ```
 
 This causes massive bugs:
+
 1. **Desync**: If you update the data but forget to update the DOM element, the UI shows stale data.
 2. **Spaghetti Updates**: When 5 different buttons can change the User's name, you end up duplicating the DOM manipulation code 5 times.
 3. **Boilerplate**: Manually reading from inputs and writing to labels accounts for 80% of UI code.
 
 ## The Solution
 
-MVVM introduces a **Binder** (provided by frameworks like Vue, Angular, or React). The View *binds* directly to properties on the ViewModel.
+MVVM introduces a **Binder** (provided by frameworks like Vue, Angular, or React). The View _binds_ directly to properties on the ViewModel.
 
 ```html
 <!-- ✅ Good: Declarative Data Binding (Vue.js style) -->
 <template>
   <!-- The View automatically updates when ViewModel.userName changes -->
   <h1>{{ userName }}</h1>
-  
+
   <!-- Two-way binding: Typing in the input automatically updates the ViewModel -->
   <input v-model="userName" />
 </template>
@@ -92,11 +94,12 @@ classDiagram
 ## Real-World Analogy
 
 Think of a **Spreadsheet (like Excel)**.
+
 - **The View**: The cell you see on the screen displaying the number "50".
 - **The ViewModel**: The formula behind the cell `=A1+B1`.
 - **The Model**: The actual data in cells A1 and B1.
 
-If you change cell A1, you don't have to write a script commanding the total cell to redraw. Because the total cell is *bound* to the formula, it updates automatically.
+If you change cell A1, you don't have to write a script commanding the total cell to redraw. Because the total cell is _bound_ to the formula, it updates automatically.
 
 ## Step-by-Step Implementation
 
@@ -112,9 +115,13 @@ We will build a simple counter application. To demonstrate how MVVM works, we wi
 // 1. Model: Core business rules
 class CounterModel {
   public value: number = 0;
-  
-  public increment() { this.value++; }
-  public decrement() { this.value--; }
+
+  public increment() {
+    this.value++;
+  }
+  public decrement() {
+    this.value--;
+  }
 }
 
 // Helper: A simple Observable wrapper (This is what Vue/React do under the hood)
@@ -122,10 +129,12 @@ class Observable<T> {
   private listeners: ((val: T) => void)[] = [];
   constructor(private _val: T) {}
 
-  get value(): T { return this._val; }
+  get value(): T {
+    return this._val;
+  }
   set value(v: T) {
     this._val = v;
-    this.listeners.forEach(l => l(v)); // Notify all bound UI elements
+    this.listeners.forEach((l) => l(v)); // Notify all bound UI elements
   }
 
   bind(listener: (val: T) => void) {
@@ -164,7 +173,7 @@ class CounterViewModel {
 class CounterView {
   constructor(private viewModel: CounterViewModel) {
     // Declarative Binding
-    
+
     // Bind to the "count" state
     this.viewModel.count.bind((newVal) => {
       console.log(`UI Update: Counter text changed to -> ${newVal}`);
@@ -178,8 +187,12 @@ class CounterView {
   }
 
   // Simulating user clicking buttons in the UI
-  public simulateClickPlus() { this.viewModel.onIncrement(); }
-  public simulateClickMinus() { this.viewModel.onDecrement(); }
+  public simulateClickPlus() {
+    this.viewModel.onIncrement();
+  }
+  public simulateClickMinus() {
+    this.viewModel.onDecrement();
+  }
 }
 
 // Execution
@@ -223,10 +236,10 @@ class Observable(Generic[T]):
 class CounterModel:
     def __init__(self):
         self.value = 0
-        
+
     def increment(self):
         self.value += 1
-        
+
     def decrement(self):
         self.value -= 1
 
@@ -253,14 +266,14 @@ class CounterViewModel:
 class CounterView:
     def __init__(self, viewmodel: CounterViewModel):
         self.viewmodel = viewmodel
-        
+
         # Bind UI to ViewModel state
         self.viewmodel.count.bind(self.render_count)
         self.viewmodel.is_negative.bind(self.render_color)
-        
+
     def render_count(self, new_val):
         print(f"UI Update: Counter text -> {new_val}")
-        
+
     def render_color(self, is_neg):
         color = "RED" if is_neg else "BLACK"
         print(f"UI Update: Text turned {color}")
@@ -320,7 +333,7 @@ class CounterModel {
 // 2. ViewModel
 class CounterViewModel {
     private CounterModel model;
-    
+
     public Observable<Integer> count = new Observable<>(0);
     public Observable<Boolean> isNegative = new Observable<>(false);
 
@@ -570,10 +583,10 @@ struct CounterView {
 impl CounterView {
     fn new(vm: Rc<RefCell<CounterViewModel>>) -> Self {
         let view = CounterView { vm: Rc::clone(&vm) };
-        
+
         // Setup data bindings
         let mut vm_mut = vm.borrow_mut();
-        
+
         vm_mut.count.bind(|val| {
             println!("UI Update: Counter text -> {}", val);
         });
@@ -582,7 +595,7 @@ impl CounterView {
             let color = if *is_neg { "RED" } else { "BLACK" };
             println!("UI Update: Text turned {}", color);
         });
-        
+
         view
     }
 
@@ -609,14 +622,16 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Zero DOM Manipulation**: Developers no longer write `getElementById()` or deal with tracking which UI elements need updating. State changes automatically cascade to the UI.
 - **Incredible Testability**: The ViewModel contains 100% of the UI state and logic, but has absolutely no reference to the DOM/View. You can test a React Hook or Vue composable instantly in a pure Node environment.
 - **Designer/Developer Split**: A UX designer can write HTML/CSS (the View) while the developer writes the state logic (the ViewModel), and they just agree on variable names to bind.
 
 ### Disadvantages
+
 - **Framework Dependent**: Implementing MVVM without a framework engine (Vue/React/Angular/WPF) is exhausting and requires writing tons of boilerplate Observable classes.
 - **Memory Leaks (Ghost Listeners)**: If a View is destroyed but forgets to unsubscribe from the ViewModel's data streams, the ViewModel will keep a reference to the View, preventing Garbage Collection.
-- **Debugging Magic**: Because data binding happens invisibly via the framework, if an input suddenly changes to an unexpected value, tracing exactly *which* part of the code triggered the binding update can be difficult.
+- **Debugging Magic**: Because data binding happens invisibly via the framework, if an input suddenly changes to an unexpected value, tracing exactly _which_ part of the code triggered the binding update can be difficult.
 
 ## When to Use
 
@@ -637,5 +652,5 @@ fn main() {
 ## Related Patterns
 
 - **MVC / MVP**: The predecessors. MVVM solves their "manual view update" problem by introducing automated Data Binding.
-- **Observer Pattern**: The core mechanical pattern that makes MVVM work. The View *observes* the ViewModel.
+- **Observer Pattern**: The core mechanical pattern that makes MVVM work. The View _observes_ the ViewModel.
 - **Command Pattern**: Used in MVVM to wrap UI interactions (like button clicks) into objects that the ViewModel can process without knowing about UI events.

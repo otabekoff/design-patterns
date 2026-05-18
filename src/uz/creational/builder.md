@@ -33,7 +33,17 @@ Creating complex objects with many optional parameters leads to:
 
 ```typescript
 // Without Builder - Hard to use
-const house = new House("brick", true, true, false, true, "wooden", "single", true, "granite");
+const house = new House(
+  "brick",
+  true,
+  true,
+  false,
+  true,
+  "wooden",
+  "single",
+  true,
+  "granite",
+);
 ```
 
 ## Solution
@@ -48,92 +58,90 @@ The Builder pattern solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Product
-    class House {
-      constructor(
-        public walls: string,
-        public roof: string,
-        public windows: number,
-        public doors: number,
-        public garage: boolean,
-        public pool: boolean
-      ) {}
+class House {
+  constructor(
+    public walls: string,
+    public roof: string,
+    public windows: number,
+    public doors: number,
+    public garage: boolean,
+    public pool: boolean,
+  ) {}
 
-      describe(): string {
-        return `House with ${this.walls} walls, ${this.roof} roof,
+  describe(): string {
+    return `House with ${this.walls} walls, ${this.roof} roof,
                 ${this.windows} windows, ${this.doors} doors,
-                ${this.garage ? 'with' : 'without'} garage,
-                ${this.pool ? 'with' : 'without'} pool`;
-      }
-    }
+                ${this.garage ? "with" : "without"} garage,
+                ${this.pool ? "with" : "without"} pool`;
+  }
+}
 
-    // Builder
-    class HouseBuilder {
-      private walls: string = 'brick';
-      private roof: string = 'shingles';
-      private windows: number = 4;
-      private doors: number = 1;
-      private garage: boolean = false;
-      private pool: boolean = false;
+// Builder
+class HouseBuilder {
+  private walls: string = "brick";
+  private roof: string = "shingles";
+  private windows: number = 4;
+  private doors: number = 1;
+  private garage: boolean = false;
+  private pool: boolean = false;
 
-      setWalls(walls: string): HouseBuilder {
-        this.walls = walls;
-        return this;
-      }
+  setWalls(walls: string): HouseBuilder {
+    this.walls = walls;
+    return this;
+  }
 
-      setRoof(roof: string): HouseBuilder {
-        this.roof = roof;
-        return this;
-      }
+  setRoof(roof: string): HouseBuilder {
+    this.roof = roof;
+    return this;
+  }
 
-      setWindows(windows: number): HouseBuilder {
-        this.windows = windows;
-        return this;
-      }
+  setWindows(windows: number): HouseBuilder {
+    this.windows = windows;
+    return this;
+  }
 
-      setDoors(doors: number): HouseBuilder {
-        this.doors = doors;
-        return this;
-      }
+  setDoors(doors: number): HouseBuilder {
+    this.doors = doors;
+    return this;
+  }
 
-      setGarage(garage: boolean): HouseBuilder {
-        this.garage = garage;
-        return this;
-      }
+  setGarage(garage: boolean): HouseBuilder {
+    this.garage = garage;
+    return this;
+  }
 
-      setPool(pool: boolean): HouseBuilder {
-        this.pool = pool;
-        return this;
-      }
+  setPool(pool: boolean): HouseBuilder {
+    this.pool = pool;
+    return this;
+  }
 
-      build(): House {
-        return new House(
-          this.walls,
-          this.roof,
-          this.windows,
-          this.doors,
-          this.garage,
-          this.pool
-        );
-      }
-    }
+  build(): House {
+    return new House(
+      this.walls,
+      this.roof,
+      this.windows,
+      this.doors,
+      this.garage,
+      this.pool,
+    );
+  }
+}
 
-    // Usage
-    const house = new HouseBuilder()
-      .setWalls('stone')
-      .setRoof('slate')
-      .setWindows(8)
-      .setGarage(true)
-      .setPool(true)
-      .build();
+// Usage
+const house = new HouseBuilder()
+  .setWalls("stone")
+  .setRoof("slate")
+  .setWindows(8)
+  .setGarage(true)
+  .setPool(true)
+  .build();
 
-    console.log(house.describe());
+console.log(house.describe());
 ```
 
-  
-  
-```python [python]
+```python [Python]
 class House:
         def __init__(self, walls, roof, windows, doors, garage, pool):
             self.walls = walls

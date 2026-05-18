@@ -42,7 +42,7 @@ The string representation is flat, but the evaluation logic is inherently hierar
 
 ## The Solution
 
-The Interpreter pattern solves this by mapping grammatical rules to objects. 
+The Interpreter pattern solves this by mapping grammatical rules to objects.
 
 1. **Context**: A shared state (e.g., the `Product` object) passed to interpreters.
 2. **AbstractExpression**: An interface with an `interpret(context)` method.
@@ -92,8 +92,9 @@ classDiagram
 
 ## Real-World Analogy
 
-Think of **Translating a Sentence**. 
+Think of **Translating a Sentence**.
 If you read the sentence `"El gato bebe leche"`, your brain maps it to a grammar tree:
+
 - Subject: "El gato" (Terminal)
 - Action: "bebe" (Terminal)
 - Object: "leche" (Terminal)
@@ -107,7 +108,7 @@ You interpret the whole sentence by recursively translating and evaluating the s
 2. **Define the Expression Interface**: Create an interface with the `interpret(context)` method.
 3. **Create Terminal Expressions**: Implement expressions that represent the base building blocks (numbers, strings, variable lookups).
 4. **Create Non-Terminal Expressions**: Implement expressions that aggregate others (Add, Subtract, And, Or).
-5. *(Optional but usually required)* **Build a Parser**: Write logic that turns a string into the tree of Expressions.
+5. _(Optional but usually required)_ **Build a Parser**: Write logic that turns a string into the tree of Expressions.
 
 ## Code Examples
 
@@ -148,7 +149,10 @@ class VariableExpression implements Expression {
 
 // 4. Non-Terminal Expressions
 class AndExpression implements Expression {
-  constructor(private left: Expression, private right: Expression) {}
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
 
   interpret(context: Context): boolean {
     return this.left.interpret(context) && this.right.interpret(context);
@@ -156,7 +160,10 @@ class AndExpression implements Expression {
 }
 
 class OrExpression implements Expression {
-  constructor(private left: Expression, private right: Expression) {}
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
 
   interpret(context: Context): boolean {
     return this.left.interpret(context) || this.right.interpret(context);
@@ -536,15 +543,17 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Extensibility**: It's very easy to change or extend the grammar. You just create a new `Expression` class.
 - **Separation of Concerns**: Evaluative logic for different grammar rules is neatly separated into discrete classes.
 - **Implementing Grammar as Objects**: Makes traversing, formatting, or optimizing the AST relatively straightforward (often combined with the Visitor pattern).
 
 ### Disadvantages
-- **Class Explosion**: Complex grammars require hundreds of tiny classes. 
+
+- **Class Explosion**: Complex grammars require hundreds of tiny classes.
 - **Maintenance**: Extremely hard to maintain for large or changing languages.
 - **Performance**: Recursive interpretation is inherently slow. Compiling an AST to bytecode or machine code is dramatically faster than traversing object trees at runtime.
-- **Missing Parser**: The pattern does *not* address how the AST is constructed. You still need to write a string parser (Lexer/Parser) to turn raw text into the objects.
+- **Missing Parser**: The pattern does _not_ address how the AST is constructed. You still need to write a string parser (Lexer/Parser) to turn raw text into the objects.
 
 ## When to Use
 
@@ -560,9 +569,11 @@ fn main() {
 ## Common Mistakes
 
 ### 1. Hardcoding the Parser into the Interpreter
-The Interpreter pattern is for *evaluating* the tree, not *building* it. String parsing (Lexing/Parsing) should be a completely separate module that outputs the `Expression` AST.
+
+The Interpreter pattern is for _evaluating_ the tree, not _building_ it. String parsing (Lexing/Parsing) should be a completely separate module that outputs the `Expression` AST.
 
 ### 2. Mutating the Context Improperly
+
 If a non-terminal node modifies the context unexpectedly during `interpret()`, it creates side-effects that make subsequent rule evaluations unpredictable. Treat the context as read-only during interpretation if possible.
 
 ## Related Patterns

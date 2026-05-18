@@ -50,68 +50,67 @@ The Prototype pattern solves this by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Prototype interface
-    interface Cloneable {
-      clone(): Cloneable;
-    }
+interface Cloneable {
+  clone(): Cloneable;
+}
 
-    // Abstract prototype
-    abstract class Shape implements Cloneable {
-      color: string = 'red';
-      x: number = 0;
-      y: number = 0;
+// Abstract prototype
+abstract class Shape implements Cloneable {
+  color: string = "red";
+  x: number = 0;
+  y: number = 0;
 
-      abstract clone(): Shape;
+  abstract clone(): Shape;
 
-      abstract getArea(): number;
-    }
+  abstract getArea(): number;
+}
 
-    // Concrete prototypes
-    class Circle extends Shape {
-      radius: number = 1;
+// Concrete prototypes
+class Circle extends Shape {
+  radius: number = 1;
 
-      clone(): Circle {
-        const cloned = Object.create(Circle.prototype);
-        Object.assign(cloned, this);
-        return cloned;
-      }
+  clone(): Circle {
+    const cloned = Object.create(Circle.prototype);
+    Object.assign(cloned, this);
+    return cloned;
+  }
 
-      getArea(): number {
-        return Math.PI * this.radius * this.radius;
-      }
-    }
+  getArea(): number {
+    return Math.PI * this.radius * this.radius;
+  }
+}
 
-    class Rectangle extends Shape {
-      width: number = 1;
-      height: number = 1;
+class Rectangle extends Shape {
+  width: number = 1;
+  height: number = 1;
 
-      clone(): Rectangle {
-        const cloned = Object.create(Rectangle.prototype);
-        Object.assign(cloned, this);
-        return cloned;
-      }
+  clone(): Rectangle {
+    const cloned = Object.create(Rectangle.prototype);
+    Object.assign(cloned, this);
+    return cloned;
+  }
 
-      getArea(): number {
-        return this.width * this.height;
-      }
-    }
+  getArea(): number {
+    return this.width * this.height;
+  }
+}
 
-    // Usage
-    const original = new Circle();
-    original.radius = 5;
-    original.color = 'blue';
+// Usage
+const original = new Circle();
+original.radius = 5;
+original.color = "blue";
 
-    const cloned = original.clone();
-    cloned.radius = 10;
+const cloned = original.clone();
+cloned.radius = 10;
 
-    console.log(original.radius); // 5
-    console.log(cloned.radius); // 10
-    console.log(original === cloned); // false
+console.log(original.radius); // 5
+console.log(cloned.radius); // 10
+console.log(original === cloned); // false
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     import copy
 
@@ -210,7 +209,10 @@ class DocumentRegistry {
 const registry = new DocumentRegistry();
 
 // Register prototypes
-const businessLetterTemplate = new Document("Business Letter", "Dear Sir/Madam...");
+const businessLetterTemplate = new Document(
+  "Business Letter",
+  "Dear Sir/Madam...",
+);
 businessLetterTemplate.tags.push("official", "formal");
 
 const reportTemplate = new Document("Report", "Executive Summary...");
@@ -232,46 +234,46 @@ console.log(letter1 === letter2); // false
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 class Author {
-      constructor(public name: string) {}
-    }
+  constructor(public name: string) {}
+}
 
-    class Article {
-      author: Author;
-      tags: string[] = [];
+class Article {
+  author: Author;
+  tags: string[] = [];
 
-      constructor(title: string, author: Author) {
-        this.author = author;
-      }
+  constructor(title: string, author: Author) {
+    this.author = author;
+  }
 
-      // Shallow copy - references are shared
-      shallowClone(): Article {
-        return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
-      }
+  // Shallow copy - references are shared
+  shallowClone(): Article {
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+  }
 
-      // Deep copy - everything is copied
-      deepClone(): Article {
-        const cloned = new Article('', new Author(this.author.name));
-        cloned.tags = [...this.tags];
-        return cloned;
-      }
-    }
+  // Deep copy - everything is copied
+  deepClone(): Article {
+    const cloned = new Article("", new Author(this.author.name));
+    cloned.tags = [...this.tags];
+    return cloned;
+  }
+}
 
-    // Example of the difference
-    const author = new Author('John');
-    const original = new Article('Article', author);
-    original.tags.push('typescript');
+// Example of the difference
+const author = new Author("John");
+const original = new Article("Article", author);
+original.tags.push("typescript");
 
-    const shallow = original.shallowClone();
-    const deep = original.deepClone();
+const shallow = original.shallowClone();
+const deep = original.deepClone();
 
-    shallow.tags.push('javascript');
-    deep.tags.push('python');
+shallow.tags.push("javascript");
+deep.tags.push("python");
 
-    console.log(original.tags); // ['typescript', 'javascript'] - modified!
-    console.log(shallow.tags); // ['typescript', 'javascript']
-    console.log(deep.tags); // ['typescript', 'python']
+console.log(original.tags); // ['typescript', 'javascript'] - modified!
+console.log(shallow.tags); // ['typescript', 'javascript']
+console.log(deep.tags); // ['typescript', 'python']
 ```
 
 :::
@@ -292,7 +294,7 @@ class Author {
 
 ::: warn
 Be careful with shallow vs deep copying. Shallow copying shared mutable state can lead to
-  unexpected behavior.
+unexpected behavior.
 :::
 
 ## When to Use

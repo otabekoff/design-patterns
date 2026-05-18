@@ -121,7 +121,7 @@ class ExcelHandler extends DocumentHandler {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 /**
  * Product interface: All documents must implement this.
  */
@@ -234,7 +234,7 @@ function main() {
 main();
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class Document(ABC):
@@ -333,7 +333,7 @@ if __name__ == "__main__":
         app.list_documents()
 ```
 
-```java [java]
+```java [Java]
 import java.util.*;
 
 /**
@@ -440,7 +440,7 @@ public class Main {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -532,7 +532,7 @@ func main() {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 // Product trait: All documents implement this.
 trait Document {
     fn open(&self);

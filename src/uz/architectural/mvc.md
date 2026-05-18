@@ -82,7 +82,7 @@ MVC patterni ilovani uchta qatlamga bo'lish orqali aniq ajratishni (clear separa
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Model - Manages application data and business logic
 class UserModel {
   private users: Map<number, User> = new Map();
@@ -241,7 +241,7 @@ controller.handleDeleteUser(2);
 controller.handleViewUsers();
 ```
 
-```python [python]
+```python [Python]
 from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -471,7 +471,7 @@ Django MVC ni MTV (Model-Template-View) sifatida amalga oshiradi:
 
 - **Model-View-Presenter (MVP)**: Test qilish imkoniyati yaxshilangan holda MVC dan kelib chiqqan
 - **Model-View-ViewModel (MVVM)**: Ma'lumotlarni bog'lash va reaktiv tizimlar uchun yaxshiroq
-- **Model-View-Whatever (MVW)**: MV* patternlarining umumlashtirilishi
+- **Model-View-Whatever (MVW)**: MV\* patternlarining umumlashtirilishi
 - **Repository Pattern**: Ko'pincha modellarda ma'lumotlarga kirishni mavhumlashtirish (abstract) uchun ishlatiladi
 - **Observer Pattern**: Model-view aloqasi uchun ishlatiladi
 - **Strategy Pattern**: Turli xil view render qilish strategiyalarini o'zgartirish uchun ishlatiladi

@@ -70,7 +70,7 @@ The result is a simpler API at the boundary and lower coupling across the applic
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 class PricingService {
   calculateTotal(items: { price: number; quantity: number }[]): number {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -144,7 +144,7 @@ checkout.placeOrder(
 );
 ```
 
-```python [python]
+```python [Python]
 class PricingService:
     def calculate_total(self, items):
         return sum(item["price"] * item["quantity"] for item in items)
@@ -199,7 +199,7 @@ checkout.place_order(
 )
 ```
 
-```java [java]
+```java [Java]
 class PricingService {
     double calculateTotal(java.util.List<Item> items) {
         return items.stream().mapToDouble(item -> item.price * item.quantity).sum();
@@ -274,7 +274,7 @@ class CheckoutFacade {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -347,7 +347,7 @@ func (f *CheckoutFacade) PlaceOrder(orderID string, items []Item, cardToken stri
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 #[derive(Clone)]
 struct Item {
     sku: String,

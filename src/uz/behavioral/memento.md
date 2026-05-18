@@ -103,129 +103,128 @@ class EditorHistory {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Memento class - stores state
-    class EditorMemento {
-      private readonly content: string;
-      private readonly timestamp: Date;
+class EditorMemento {
+  private readonly content: string;
+  private readonly timestamp: Date;
 
-      constructor(content: string) {
-        this.content = content;
-        this.timestamp = new Date();
-      }
+  constructor(content: string) {
+    this.content = content;
+    this.timestamp = new Date();
+  }
 
-      getContent(): string {
-        return this.content;
-      }
+  getContent(): string {
+    return this.content;
+  }
 
-      getTimestamp(): Date {
-        return this.timestamp;
-      }
+  getTimestamp(): Date {
+    return this.timestamp;
+  }
 
-      getDescription(): string {
-        return `State at ${this.timestamp.toLocaleTimeString()}`;
-      }
+  getDescription(): string {
+    return `State at ${this.timestamp.toLocaleTimeString()}`;
+  }
+}
+
+// Originator class - creates and uses mementos
+class Editor {
+  private content: string = "";
+
+  getContent(): string {
+    return this.content;
+  }
+
+  setContent(content: string): void {
+    this.content = content;
+    console.log(`Content changed: "${this.content}"`);
+  }
+
+  // Create a memento with current state
+  createMemento(): EditorMemento {
+    return new EditorMemento(this.content);
+  }
+
+  // Restore state from a memento
+  restoreFromMemento(memento: EditorMemento): void {
+    this.content = memento.getContent();
+    console.log(`Content restored: "${this.content}"`);
+  }
+}
+
+// Caretaker class - manages mementos
+class EditorHistory {
+  private mementos: EditorMemento[] = [];
+  private currentIndex: number = -1;
+
+  save(memento: EditorMemento): void {
+    // Remove any mementos after current index (redo stack becomes invalid)
+    this.mementos = this.mementos.slice(0, this.currentIndex + 1);
+    this.mementos.push(memento);
+    this.currentIndex++;
+    console.log(`Saved: ${memento.getDescription()}`);
+  }
+
+  undo(editor: Editor): boolean {
+    if (this.currentIndex <= 0) {
+      console.log("Cannot undo");
+      return false;
     }
 
-    // Originator class - creates and uses mementos
-    class Editor {
-      private content: string = '';
+    this.currentIndex--;
+    const memento = this.mementos[this.currentIndex];
+    editor.restoreFromMemento(memento);
+    return true;
+  }
 
-      getContent(): string {
-        return this.content;
-      }
-
-      setContent(content: string): void {
-        this.content = content;
-        console.log(`Content changed: "${this.content}"`);
-      }
-
-      // Create a memento with current state
-      createMemento(): EditorMemento {
-        return new EditorMemento(this.content);
-      }
-
-      // Restore state from a memento
-      restoreFromMemento(memento: EditorMemento): void {
-        this.content = memento.getContent();
-        console.log(`Content restored: "${this.content}"`);
-      }
+  redo(editor: Editor): boolean {
+    if (this.currentIndex >= this.mementos.length - 1) {
+      console.log("Cannot redo");
+      return false;
     }
 
-    // Caretaker class - manages mementos
-    class EditorHistory {
-      private mementos: EditorMemento[] = [];
-      private currentIndex: number = -1;
+    this.currentIndex++;
+    const memento = this.mementos[this.currentIndex];
+    editor.restoreFromMemento(memento);
+    return true;
+  }
 
-      save(memento: EditorMemento): void {
-        // Remove any mementos after current index (redo stack becomes invalid)
-        this.mementos = this.mementos.slice(0, this.currentIndex + 1);
-        this.mementos.push(memento);
-        this.currentIndex++;
-        console.log(`Saved: ${memento.getDescription()}`);
-      }
+  getHistory(): string {
+    return this.mementos
+      .map((m, i) => `${i}: ${m.getDescription()}`)
+      .join("\n");
+  }
+}
 
-      undo(editor: Editor): boolean {
-        if (this.currentIndex <= 0) {
-          console.log('Cannot undo');
-          return false;
-        }
+// Usage
+const editor = new Editor();
+const history = new EditorHistory();
 
-        this.currentIndex--;
-        const memento = this.mementos[this.currentIndex];
-        editor.restoreFromMemento(memento);
-        return true;
-      }
+// Make some changes
+editor.setContent("Hello");
+history.save(editor.createMemento());
 
-      redo(editor: Editor): boolean {
-        if (this.currentIndex >= this.mementos.length - 1) {
-          console.log('Cannot redo');
-          return false;
-        }
+editor.setContent("Hello World");
+history.save(editor.createMemento());
 
-        this.currentIndex++;
-        const memento = this.mementos[this.currentIndex];
-        editor.restoreFromMemento(memento);
-        return true;
-      }
+editor.setContent("Hello World!");
+history.save(editor.createMemento());
 
-      getHistory(): string {
-        return this.mementos
-          .map((m, i) => `${i}: ${m.getDescription()}`)
-          .join('\n');
-      }
-    }
+console.log(`Current: ${editor.getContent()}`); // Hello World!
 
-    // Usage
-    const editor = new Editor();
-    const history = new EditorHistory();
+// Undo
+history.undo(editor);
+console.log(`After undo: ${editor.getContent()}`); // Hello World
 
-    // Make some changes
-    editor.setContent('Hello');
-    history.save(editor.createMemento());
+history.undo(editor);
+console.log(`After undo: ${editor.getContent()}`); // Hello
 
-    editor.setContent('Hello World');
-    history.save(editor.createMemento());
-
-    editor.setContent('Hello World!');
-    history.save(editor.createMemento());
-
-    console.log(`Current: ${editor.getContent()}`); // Hello World!
-
-    // Undo
-    history.undo(editor);
-    console.log(`After undo: ${editor.getContent()}`); // Hello World
-
-    history.undo(editor);
-    console.log(`After undo: ${editor.getContent()}`); // Hello
-
-    // Redo
-    history.redo(editor);
-    console.log(`After redo: ${editor.getContent()}`); // Hello World
+// Redo
+history.redo(editor);
+console.log(`After redo: ${editor.getContent()}`); // Hello World
 ```
 
-  
-```python [python]
+```python [Python]
 from datetime import datetime
     from typing import List
 

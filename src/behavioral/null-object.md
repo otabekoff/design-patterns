@@ -45,7 +45,7 @@ class OrderService {
 }
 ```
 
-The business logic is now polluted with `if` statements. If you forget even one `if (logger != null)` check, your application crashes with a `NullReferenceException`. 
+The business logic is now polluted with `if` statements. If you forget even one `if (logger != null)` check, your application crashes with a `NullReferenceException`.
 
 Furthermore, having to test `OrderService` requires passing a mock logger, configuring the mock, and verifying the mock, or intentionally passing `null` and hoping it doesn't crash.
 
@@ -65,7 +65,7 @@ class OrderService {
 
   completeOrder(orderId: string) {
     database.save(orderId);
-    
+
     // Always safe to call
     this.logger.info(`Order ${orderId} completed.`);
     this.logger.debug("Routing to shipping subsystem.");
@@ -107,7 +107,7 @@ classDiagram
 
 ## Real-World Analogy
 
-Think of a **Mute Button** on a television. 
+Think of a **Mute Button** on a television.
 When you press the mute button, the television does not disconnect the speakers or start throwing errors because the audio stream is missing. Instead, it routes the audio to a "Null Speaker" (or zero-volume amplifier). The TV's internal systems continue to decode and "play" the audio track exactly as before, but the output is effectively nothing. The TV system doesn't need "if volume is not muted" checks at every audio pipeline step.
 
 ## Step-by-Step Implementation
@@ -173,10 +173,12 @@ class CheckoutFlow {
 const userOptedOut = true;
 
 // Decide at the composition root which dependency to pass
-const tracker = userOptedOut ? NullTracker.getInstance() : new MixpanelTracker();
+const tracker = userOptedOut
+  ? NullTracker.getInstance()
+  : new MixpanelTracker();
 
 const flow = new CheckoutFlow(tracker);
-flow.processPayment(50.00); 
+flow.processPayment(50.0);
 // Output: Processing payment of $50.00...
 // (No Mixpanel logs are printed, and no errors are thrown!)
 ```
@@ -203,7 +205,7 @@ class MixpanelTracker:
 
 # 3. Null Collaborator
 class NullTracker:
-    # Python Singleton pattern via module-level instance or Borg, 
+    # Python Singleton pattern via module-level instance or Borg,
     # but a simple class is often enough as it has no state.
     def track_event(self, event_name: str, properties: Optional[Dict] = None) -> None:
         pass
@@ -421,13 +423,15 @@ fn main() {
 ## Pros and Cons
 
 ### Advantages
+
 - **Cleaner Code**: Eliminates boilerplate `null` checks across the application.
 - **Fail-Safe**: Prevents `NullReferenceExceptions`.
 - **Simplifies Testing**: Passing a `NullObject` to a constructor in a unit test is often much easier than setting up a mocking framework to ignore method calls.
 - **Open/Closed Principle**: The client doesn't need to change if you decide to disable the behavior.
 
 ### Disadvantages
-- **Can hide bugs**: If an object *should* be present, passing a Null Object silently swallows the error, making it incredibly hard to debug why data isn't saving.
+
+- **Can hide bugs**: If an object _should_ be present, passing a Null Object silently swallows the error, making it incredibly hard to debug why data isn't saving.
 - **Return Value Issues**: It is easy to implement `void` methods on a Null Object. But if the interface requires returning data (e.g., `getUser()`), the Null Object has to return "Null" variants of that data too, leading to a cascade of Null Objects.
 - **Code Bloat**: Requires creating an entirely new class for every interface that might be null.
 
@@ -438,13 +442,15 @@ fn main() {
 
 ## When NOT to Use
 
-- **When absence is an error**: If a `DatabaseConnection` is missing, you *want* the app to crash. A `NullDatabaseConnection` that silently drops data would be a catastrophe.
+- **When absence is an error**: If a `DatabaseConnection` is missing, you _want_ the app to crash. A `NullDatabaseConnection` that silently drops data would be a catastrophe.
 - **When utilizing modern Monads**: If your language supports robust `Option<T>` or `Result<T>` types (like Rust or Scala), the language naturally handles absence explicitly and safely, making Null Objects redundant.
 
 ## Common Mistakes
 
 ### 1. Complex Null Objects
-A Null object should do *nothing*. 
+
+A Null object should do _nothing_.
+
 ```typescript
 // ❌ Bad: Null Object trying to be smart
 class NullLogger {
@@ -455,6 +461,7 @@ class NullLogger {
 ```
 
 ### 2. Returning Null from a Null Object
+
 If your Null Object has to return something, it should return sensible defaults (empty arrays, `0`, empty strings). If it returns `null`, you've just deferred the `NullReferenceException` back to the client!
 
 ## Related Patterns

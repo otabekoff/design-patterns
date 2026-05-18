@@ -85,7 +85,7 @@ MVP taqdimot mantig'ini View va Modelni boshqaruvchi Presenterga ajratadi:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Model - Contains data and business logic
 interface User {
   id: number;
@@ -141,8 +141,12 @@ interface IUserView {
   displayError(message: string): void;
   displaySuccess(message: string): void;
   displayUserForm(user?: User): void;
-  onAddUserClick(callback: (name: string, email: string, age: number) => void): void;
-  onUpdateUserClick(callback: (id: number, name: string, email: string, age: number) => void): void;
+  onAddUserClick(
+    callback: (name: string, email: string, age: number) => void,
+  ): void;
+  onUpdateUserClick(
+    callback: (id: number, name: string, email: string, age: number) => void,
+  ): void;
   onDeleteUserClick(callback: (id: number) => void): void;
   onViewUsersClick(callback: () => void): void;
 }
@@ -151,7 +155,9 @@ class UserView implements IUserView {
   displayUsers(users: User[]): void {
     console.log("=== User List ===");
     users.forEach((user) => {
-      console.log(`ID: ${user.id} | Name: ${user.name} | Email: ${user.email} | Age: ${user.age}`);
+      console.log(
+        `ID: ${user.id} | Name: ${user.name} | Email: ${user.email} | Age: ${user.age}`,
+      );
     });
   }
 
@@ -171,7 +177,9 @@ class UserView implements IUserView {
     }
   }
 
-  onAddUserClick(callback: (name: string, email: string, age: number) => void): void {
+  onAddUserClick(
+    callback: (name: string, email: string, age: number) => void,
+  ): void {
     // In a real application, this would be connected to a button click event
     callback("New User", "newuser@example.com", 25);
   }
@@ -201,7 +209,9 @@ class UserPresenter {
   }
 
   private setupViewCallbacks(): void {
-    this.view.onAddUserClick((name, email, age) => this.handleAddUser(name, email, age));
+    this.view.onAddUserClick((name, email, age) =>
+      this.handleAddUser(name, email, age),
+    );
     this.view.onUpdateUserClick((id, name, email, age) =>
       this.handleUpdateUser(id, name, email, age),
     );
@@ -219,7 +229,12 @@ class UserPresenter {
     }
   }
 
-  private handleUpdateUser(id: number, name: string, email: string, age: number): void {
+  private handleUpdateUser(
+    id: number,
+    name: string,
+    email: string,
+    age: number,
+  ): void {
     try {
       const user = this.model.updateUser(id, { name, email, age });
       if (user) {
@@ -266,7 +281,7 @@ view.onAddUserClick((name, email, age) => {
 });
 ```
 
-```python [python]
+```python [Python]
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 

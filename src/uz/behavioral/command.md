@@ -114,167 +114,168 @@ class TextEditor {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Command interface
-    interface Command {
-      execute(): void;
-      undo(): void;
-      getDescription(): string;
-    }
+interface Command {
+  execute(): void;
+  undo(): void;
+  getDescription(): string;
+}
 
-    // Receiver class
-    class Document {
-      private text: string = '';
+// Receiver class
+class Document {
+  private text: string = "";
 
-      getText(): string {
-        return this.text;
-      }
+  getText(): string {
+    return this.text;
+  }
 
-      addText(position: number, text: string): void {
-        this.text = this.text.slice(0, position) + text + this.text.slice(position);
-      }
+  addText(position: number, text: string): void {
+    this.text = this.text.slice(0, position) + text + this.text.slice(position);
+  }
 
-      deleteText(position: number, length: number): void {
-        this.text = this.text.slice(0, position) + this.text.slice(position + length);
-      }
+  deleteText(position: number, length: number): void {
+    this.text =
+      this.text.slice(0, position) + this.text.slice(position + length);
+  }
 
-      replaceText(position: number, length: number, text: string): void {
-        this.text = this.text.slice(0, position) + text + this.text.slice(position + length);
-      }
+  replaceText(position: number, length: number, text: string): void {
+    this.text =
+      this.text.slice(0, position) + text + this.text.slice(position + length);
+  }
 
-      format(position: number, length: number, style: string): void {
-        // Apply formatting
-        console.log(`Applied ${style} to text at position ${position}`);
-      }
-    }
+  format(position: number, length: number, style: string): void {
+    // Apply formatting
+    console.log(`Applied ${style} to text at position ${position}`);
+  }
+}
 
-    // Concrete command 1
-    class AddTextCommand implements Command {
-      private previousText: string = '';
+// Concrete command 1
+class AddTextCommand implements Command {
+  private previousText: string = "";
 
-      constructor(
-        private document: Document,
-        private position: number,
-        private text: string
-      ) {}
+  constructor(
+    private document: Document,
+    private position: number,
+    private text: string,
+  ) {}
 
-      execute(): void {
-        this.previousText = this.document.getText();
-        this.document.addText(this.position, this.text);
-      }
+  execute(): void {
+    this.previousText = this.document.getText();
+    this.document.addText(this.position, this.text);
+  }
 
-      undo(): void {
-        this.document.deleteText(this.position, this.text.length);
-      }
+  undo(): void {
+    this.document.deleteText(this.position, this.text.length);
+  }
 
-      getDescription(): string {
-        return `Added "${this.text}" at position ${this.position}`;
-      }
-    }
+  getDescription(): string {
+    return `Added "${this.text}" at position ${this.position}`;
+  }
+}
 
-    // Concrete command 2
-    class DeleteTextCommand implements Command {
-      private deletedText: string = '';
+// Concrete command 2
+class DeleteTextCommand implements Command {
+  private deletedText: string = "";
 
-      constructor(
-        private document: Document,
-        private position: number,
-        private length: number
-      ) {}
+  constructor(
+    private document: Document,
+    private position: number,
+    private length: number,
+  ) {}
 
-      execute(): void {
-        const text = this.document.getText();
-        this.deletedText = text.slice(this.position, this.position + this.length);
-        this.document.deleteText(this.position, this.length);
-      }
+  execute(): void {
+    const text = this.document.getText();
+    this.deletedText = text.slice(this.position, this.position + this.length);
+    this.document.deleteText(this.position, this.length);
+  }
 
-      undo(): void {
-        this.document.addText(this.position, this.deletedText);
-      }
+  undo(): void {
+    this.document.addText(this.position, this.deletedText);
+  }
 
-      getDescription(): string {
-        return `Deleted ${this.length} characters at position ${this.position}`;
-      }
-    }
+  getDescription(): string {
+    return `Deleted ${this.length} characters at position ${this.position}`;
+  }
+}
 
-    // Concrete command 3 - Macro command
-    class FormatTextCommand implements Command {
-      constructor(
-        private document: Document,
-        private position: number,
-        private length: number,
-        private style: string
-      ) {}
+// Concrete command 3 - Macro command
+class FormatTextCommand implements Command {
+  constructor(
+    private document: Document,
+    private position: number,
+    private length: number,
+    private style: string,
+  ) {}
 
-      execute(): void {
-        this.document.format(this.position, this.length, this.style);
-      }
+  execute(): void {
+    this.document.format(this.position, this.length, this.style);
+  }
 
-      undo(): void {
-        this.document.format(this.position, this.length, 'normal');
-      }
+  undo(): void {
+    this.document.format(this.position, this.length, "normal");
+  }
 
-      getDescription(): string {
-        return `Applied ${this.style} formatting to text`;
-      }
-    }
+  getDescription(): string {
+    return `Applied ${this.style} formatting to text`;
+  }
+}
 
-    // Invoker class
-    class CommandHistory {
-      private history: Command[] = [];
-      private undoStack: Command[] = [];
+// Invoker class
+class CommandHistory {
+  private history: Command[] = [];
+  private undoStack: Command[] = [];
 
-      executeCommand(command: Command): void {
-        command.execute();
-        this.history.push(command);
-        this.undoStack = []; // Clear redo stack
-        console.log(`Executed: ${command.getDescription()}`);
-      }
+  executeCommand(command: Command): void {
+    command.execute();
+    this.history.push(command);
+    this.undoStack = []; // Clear redo stack
+    console.log(`Executed: ${command.getDescription()}`);
+  }
 
-      undo(): boolean {
-        if (this.history.length === 0) return false;
-        const command = this.history.pop()!;
-        command.undo();
-        this.undoStack.push(command);
-        console.log(`Undone: ${command.getDescription()}`);
-        return true;
-      }
+  undo(): boolean {
+    if (this.history.length === 0) return false;
+    const command = this.history.pop()!;
+    command.undo();
+    this.undoStack.push(command);
+    console.log(`Undone: ${command.getDescription()}`);
+    return true;
+  }
 
-      redo(): boolean {
-        if (this.undoStack.length === 0) return false;
-        const command = this.undoStack.pop()!;
-        command.execute();
-        this.history.push(command);
-        console.log(`Redone: ${command.getDescription()}`);
-        return true;
-      }
+  redo(): boolean {
+    if (this.undoStack.length === 0) return false;
+    const command = this.undoStack.pop()!;
+    command.execute();
+    this.history.push(command);
+    console.log(`Redone: ${command.getDescription()}`);
+    return true;
+  }
 
-      getHistory(): string {
-        return this.history.map(cmd => cmd.getDescription()).join('\n');
-      }
-    }
+  getHistory(): string {
+    return this.history.map((cmd) => cmd.getDescription()).join("\n");
+  }
+}
 
-    // Usage
-    const document = new Document();
-    const editor = new CommandHistory();
+// Usage
+const document = new Document();
+const editor = new CommandHistory();
 
-    const cmd1 = new AddTextCommand(document, 0, 'Hello');
-    editor.executeCommand(cmd1);
+const cmd1 = new AddTextCommand(document, 0, "Hello");
+editor.executeCommand(cmd1);
 
-    const cmd2 = new AddTextCommand(document, 5, ' World');
-    editor.executeCommand(cmd2);
+const cmd2 = new AddTextCommand(document, 5, " World");
+editor.executeCommand(cmd2);
 
-    console.log(document.getText()); // "Hello World"
+console.log(document.getText()); // "Hello World"
 
-    editor.undo(); // Removes " World"
-    console.log(document.getText()); // "Hello"
+editor.undo(); // Removes " World"
+console.log(document.getText()); // "Hello"
 
-    editor.redo(); // Adds " World" back
-    console.log(document.getText()); // "Hello World"
+editor.redo(); // Adds " World" back
+console.log(document.getText()); // "Hello World"
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import List
 
@@ -451,7 +452,9 @@ class TaskScheduler {
 
 // Usage
 const scheduler = new TaskScheduler();
-scheduler.schedule(new EmailTask("user@example.com", "Welcome", "Welcome aboard!"));
+scheduler.schedule(
+  new EmailTask("user@example.com", "Welcome", "Welcome aboard!"),
+);
 scheduler.processAll();
 ```
 

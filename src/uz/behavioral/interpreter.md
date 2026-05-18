@@ -101,179 +101,182 @@ class MultiplyExpression implements Expression {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Abstract expression interface
-    interface Expression {
-      interpret(context: Context): number;
+interface Expression {
+  interpret(context: Context): number;
+}
+
+// Context for variable values
+class Context {
+  private variables: Map<string, number> = new Map();
+
+  setVariable(name: string, value: number): void {
+    this.variables.set(name, value);
+  }
+
+  getVariable(name: string): number {
+    return this.variables.get(name) ?? 0;
+  }
+}
+
+// Terminal expression - Numbers
+class NumberExpression implements Expression {
+  constructor(private value: number) {}
+
+  interpret(context: Context): number {
+    return this.value;
+  }
+}
+
+// Terminal expression - Variables
+class VariableExpression implements Expression {
+  constructor(private name: string) {}
+
+  interpret(context: Context): number {
+    return context.getVariable(this.name);
+  }
+}
+
+// Non-terminal expression - Addition
+class AddExpression implements Expression {
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
+
+  interpret(context: Context): number {
+    return this.left.interpret(context) + this.right.interpret(context);
+  }
+}
+
+// Non-terminal expression - Subtraction
+class SubtractExpression implements Expression {
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
+
+  interpret(context: Context): number {
+    return this.left.interpret(context) - this.right.interpret(context);
+  }
+}
+
+// Non-terminal expression - Multiplication
+class MultiplyExpression implements Expression {
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
+
+  interpret(context: Context): number {
+    return this.left.interpret(context) * this.right.interpret(context);
+  }
+}
+
+// Non-terminal expression - Division
+class DivideExpression implements Expression {
+  constructor(
+    private left: Expression,
+    private right: Expression,
+  ) {}
+
+  interpret(context: Context): number {
+    const divisor = this.right.interpret(context);
+    if (divisor === 0) throw new Error("Division by zero");
+    return this.left.interpret(context) / divisor;
+  }
+}
+
+// Parser to build expression tree
+class ExpressionParser {
+  private tokens: string[];
+  private current: number = 0;
+
+  parse(expression: string): Expression {
+    this.tokens = this.tokenize(expression);
+    this.current = 0;
+    return this.parseExpression();
+  }
+
+  private parseExpression(): Expression {
+    let left = this.parseTerm();
+
+    while (
+      this.current < this.tokens.length &&
+      (this.tokens[this.current] === "+" || this.tokens[this.current] === "-")
+    ) {
+      const operator = this.tokens[this.current++];
+      const right = this.parseTerm();
+      left =
+        operator === "+"
+          ? new AddExpression(left, right)
+          : new SubtractExpression(left, right);
     }
 
-    // Context for variable values
-    class Context {
-      private variables: Map<string, number> = new Map();
+    return left;
+  }
 
-      setVariable(name: string, value: number): void {
-        this.variables.set(name, value);
-      }
+  private parseTerm(): Expression {
+    let left = this.parsePrimary();
 
-      getVariable(name: string): number {
-        return this.variables.get(name) ?? 0;
-      }
+    while (
+      this.current < this.tokens.length &&
+      (this.tokens[this.current] === "*" || this.tokens[this.current] === "/")
+    ) {
+      const operator = this.tokens[this.current++];
+      const right = this.parsePrimary();
+      left =
+        operator === "*"
+          ? new MultiplyExpression(left, right)
+          : new DivideExpression(left, right);
     }
 
-    // Terminal expression - Numbers
-    class NumberExpression implements Expression {
-      constructor(private value: number) {}
+    return left;
+  }
 
-      interpret(context: Context): number {
-        return this.value;
-      }
+  private parsePrimary(): Expression {
+    const token = this.tokens[this.current];
+
+    if (/^\d+$/.test(token)) {
+      this.current++;
+      return new NumberExpression(parseInt(token));
     }
 
-    // Terminal expression - Variables
-    class VariableExpression implements Expression {
-      constructor(private name: string) {}
-
-      interpret(context: Context): number {
-        return context.getVariable(this.name);
-      }
+    if (/^[a-zA-Z]+$/.test(token)) {
+      this.current++;
+      return new VariableExpression(token);
     }
 
-    // Non-terminal expression - Addition
-    class AddExpression implements Expression {
-      constructor(
-        private left: Expression,
-        private right: Expression
-      ) {}
-
-      interpret(context: Context): number {
-        return this.left.interpret(context) + this.right.interpret(context);
-      }
+    if (token === "(") {
+      this.current++; // skip '('
+      const expr = this.parseExpression();
+      this.current++; // skip ')'
+      return expr;
     }
 
-    // Non-terminal expression - Subtraction
-    class SubtractExpression implements Expression {
-      constructor(
-        private left: Expression,
-        private right: Expression
-      ) {}
+    throw new Error(`Unknown token: ${token}`);
+  }
 
-      interpret(context: Context): number {
-        return this.left.interpret(context) - this.right.interpret(context);
-      }
-    }
+  private tokenize(expression: string): string[] {
+    return expression.match(/\d+|[a-zA-Z]+|[+\-*/()]/g) || [];
+  }
+}
 
-    // Non-terminal expression - Multiplication
-    class MultiplyExpression implements Expression {
-      constructor(
-        private left: Expression,
-        private right: Expression
-      ) {}
+// Usage
+const parser = new ExpressionParser();
+const context = new Context();
+context.setVariable("x", 10);
+context.setVariable("y", 5);
 
-      interpret(context: Context): number {
-        return this.left.interpret(context) * this.right.interpret(context);
-      }
-    }
+const expr1 = parser.parse("x + y * 2");
+console.log(expr1.interpret(context)); // 20
 
-    // Non-terminal expression - Division
-    class DivideExpression implements Expression {
-      constructor(
-        private left: Expression,
-        private right: Expression
-      ) {}
-
-      interpret(context: Context): number {
-        const divisor = this.right.interpret(context);
-        if (divisor === 0) throw new Error('Division by zero');
-        return this.left.interpret(context) / divisor;
-      }
-    }
-
-    // Parser to build expression tree
-    class ExpressionParser {
-      private tokens: string[];
-      private current: number = 0;
-
-      parse(expression: string): Expression {
-        this.tokens = this.tokenize(expression);
-        this.current = 0;
-        return this.parseExpression();
-      }
-
-      private parseExpression(): Expression {
-        let left = this.parseTerm();
-
-        while (
-          this.current < this.tokens.length &&
-          (this.tokens[this.current] === '+' || this.tokens[this.current] === '-')
-        ) {
-          const operator = this.tokens[this.current++];
-          const right = this.parseTerm();
-          left =
-            operator === '+' ? new AddExpression(left, right) : new SubtractExpression(left, right);
-        }
-
-        return left;
-      }
-
-      private parseTerm(): Expression {
-        let left = this.parsePrimary();
-
-        while (
-          this.current < this.tokens.length &&
-          (this.tokens[this.current] === '*' || this.tokens[this.current] === '/')
-        ) {
-          const operator = this.tokens[this.current++];
-          const right = this.parsePrimary();
-          left =
-            operator === '*' ? new MultiplyExpression(left, right) : new DivideExpression(left, right);
-        }
-
-        return left;
-      }
-
-      private parsePrimary(): Expression {
-        const token = this.tokens[this.current];
-
-        if (/^\d+$/.test(token)) {
-          this.current++;
-          return new NumberExpression(parseInt(token));
-        }
-
-        if (/^[a-zA-Z]+$/.test(token)) {
-          this.current++;
-          return new VariableExpression(token);
-        }
-
-        if (token === '(') {
-          this.current++; // skip '('
-          const expr = this.parseExpression();
-          this.current++; // skip ')'
-          return expr;
-        }
-
-        throw new Error(`Unknown token: ${token}`);
-      }
-
-      private tokenize(expression: string): string[] {
-        return expression.match(/\d+|[a-zA-Z]+|[+\-*/()]/g) || [];
-      }
-    }
-
-    // Usage
-    const parser = new ExpressionParser();
-    const context = new Context();
-    context.setVariable('x', 10);
-    context.setVariable('y', 5);
-
-    const expr1 = parser.parse('x + y * 2');
-    console.log(expr1.interpret(context)); // 20
-
-    const expr2 = parser.parse('(x - y) * 2');
-    console.log(expr2.interpret(context)); // 10
+const expr2 = parser.parse("(x - y) * 2");
+console.log(expr2.interpret(context)); // 10
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import Dict, List, Optional
     import re

@@ -85,7 +85,7 @@ interface Renderer {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface Renderer {
   renderCircle(radius: number): void;
   renderRectangle(width: number, height: number): void;
@@ -150,7 +150,7 @@ circle.draw();
 rectangle.draw();
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class Renderer(ABC):
@@ -208,7 +208,7 @@ circle.draw()
 rectangle.draw()
 ```
 
-```java [java]
+```java [Java]
 interface Renderer {
     void renderCircle(double radius);
     void renderRectangle(double width, double height);
@@ -279,7 +279,7 @@ class Rectangle extends Shape {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -341,7 +341,7 @@ func (r *Rectangle) Draw() {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 trait Renderer {
     fn render_circle(&self, radius: f64);
     fn render_rectangle(&self, width: f64, height: f64);

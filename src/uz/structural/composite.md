@@ -53,7 +53,7 @@ The Composite Pattern provides a solution by:
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // ========== Component Interface ==========
 interface Component {
   getName(): string;
@@ -65,144 +65,157 @@ interface Component {
 
 // ========== Leaf Classes ==========
 class Button implements Component {
-constructor(private name: string) {}
+  constructor(private name: string) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-render(): string {
-return `<button>${this.name}</button>`;
-}
+  render(): string {
+    return `<button>${this.name}</button>`;
+  }
 }
 
 class TextBox implements Component {
-constructor(private name: string, private placeholder: string) {}
+  constructor(
+    private name: string,
+    private placeholder: string,
+  ) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-render(): string {
-return `<input type="text" placeholder="${this.placeholder}" />`;
-}
+  render(): string {
+    return `<input type="text" placeholder="${this.placeholder}" />`;
+  }
 }
 
 class Label implements Component {
-constructor(private name: string, private text: string) {}
+  constructor(
+    private name: string,
+    private text: string,
+  ) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-render(): string {
-return `<label>${this.text}</label>`;
-}
+  render(): string {
+    return `<label>${this.text}</label>`;
+  }
 }
 
 // ========== Composite Classes ==========
 class Panel implements Component {
-private children: Component[] = [];
+  private children: Component[] = [];
 
-constructor(private name: string) {}
+  constructor(private name: string) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-add(component: Component): void {
-this.children.push(component);
-}
+  add(component: Component): void {
+    this.children.push(component);
+  }
 
-remove(component: Component): void {
-this.children = this.children.filter(child => child !== component);
-}
+  remove(component: Component): void {
+    this.children = this.children.filter((child) => child !== component);
+  }
 
-getChild(index: number): Component | undefined {
-return this.children[index];
-}
+  getChild(index: number): Component | undefined {
+    return this.children[index];
+  }
 
-render(): string {
-const childrenHtml = this.children.map(child => child.render()).join('\n');
-return `<div class="panel" id="${this.name}">\n${childrenHtml}\n</div>`;
-}
+  render(): string {
+    const childrenHtml = this.children
+      .map((child) => child.render())
+      .join("\n");
+    return `<div class="panel" id="${this.name}">\n${childrenHtml}\n</div>`;
+  }
 
-// Additional composite operations
-renderWithIndentation(indent: number = 0): string {
-const spacing = ' '.repeat(indent);
-let result = `${spacing}<Panel: ${this.name}>\n`;
-for (const child of this.children) {
-if ('renderWithIndentation' in child) {
-result += (child as Panel).renderWithIndentation(indent + 2);
-} else {
-result += `${spacing}  <${child.getName()}>\n`;
-}
-}
-return result;
-}
+  // Additional composite operations
+  renderWithIndentation(indent: number = 0): string {
+    const spacing = " ".repeat(indent);
+    let result = `${spacing}<Panel: ${this.name}>\n`;
+    for (const child of this.children) {
+      if ("renderWithIndentation" in child) {
+        result += (child as Panel).renderWithIndentation(indent + 2);
+      } else {
+        result += `${spacing}  <${child.getName()}>\n`;
+      }
+    }
+    return result;
+  }
 
-getChildrenCount(): number {
-return this.children.length;
-}
+  getChildrenCount(): number {
+    return this.children.length;
+  }
 
-getAllDescendants(): Component[] {
-let descendants: Component[] = [];
-for (const child of this.children) {
-descendants.push(child);
-if ('getAllDescendants' in child) {
-descendants = descendants.concat((child as Panel).getAllDescendants());
-}
-}
-return descendants;
-}
+  getAllDescendants(): Component[] {
+    let descendants: Component[] = [];
+    for (const child of this.children) {
+      descendants.push(child);
+      if ("getAllDescendants" in child) {
+        descendants = descendants.concat((child as Panel).getAllDescendants());
+      }
+    }
+    return descendants;
+  }
 }
 
 class Window implements Component {
-private children: Component[] = [];
+  private children: Component[] = [];
 
-constructor(private name: string, private title: string) {}
+  constructor(
+    private name: string,
+    private title: string,
+  ) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-add(component: Component): void {
-this.children.push(component);
-}
+  add(component: Component): void {
+    this.children.push(component);
+  }
 
-remove(component: Component): void {
-this.children = this.children.filter(child => child !== component);
-}
+  remove(component: Component): void {
+    this.children = this.children.filter((child) => child !== component);
+  }
 
-getChild(index: number): Component | undefined {
-return this.children[index];
-}
+  getChild(index: number): Component | undefined {
+    return this.children[index];
+  }
 
-render(): string {
-const childrenHtml = this.children.map(child => child.render()).join('\n');
-return `<html>\n<head><title>${this.title}</title></head>\n<body>\n${childrenHtml}\n</body>\n</html>`;
-}
+  render(): string {
+    const childrenHtml = this.children
+      .map((child) => child.render())
+      .join("\n");
+    return `<html>\n<head><title>${this.title}</title></head>\n<body>\n${childrenHtml}\n</body>\n</html>`;
+  }
 }
 
 // ========== Usage ==========
 // Create a complex UI structure
-const window = new Window('mainWindow', 'My Application');
+const window = new Window("mainWindow", "My Application");
 
 // Create header panel
-const headerPanel = new Panel('header');
-headerPanel.add(new Label('title', 'Welcome to My App'));
+const headerPanel = new Panel("header");
+headerPanel.add(new Label("title", "Welcome to My App"));
 
 // Create form panel
-const formPanel = new Panel('form');
-formPanel.add(new Label('nameLabel', 'Name:'));
-formPanel.add(new TextBox('nameInput', 'Enter your name'));
-formPanel.add(new Label('emailLabel', 'Email:'));
-formPanel.add(new TextBox('emailInput', 'Enter your email'));
+const formPanel = new Panel("form");
+formPanel.add(new Label("nameLabel", "Name:"));
+formPanel.add(new TextBox("nameInput", "Enter your name"));
+formPanel.add(new Label("emailLabel", "Email:"));
+formPanel.add(new TextBox("emailInput", "Enter your email"));
 
 // Create button panel
-const buttonPanel = new Panel('buttons');
-buttonPanel.add(new Button('Submit'));
-buttonPanel.add(new Button('Cancel'));
+const buttonPanel = new Panel("buttons");
+buttonPanel.add(new Button("Submit"));
+buttonPanel.add(new Button("Cancel"));
 
 // Compose the structure
 window.add(headerPanel);
@@ -213,97 +226,102 @@ window.add(buttonPanel);
 console.log(window.render());
 
 // Show tree structure
-console.log('\n--- Tree Structure ---');
+console.log("\n--- Tree Structure ---");
 console.log((window as any).renderWithIndentation());
 
 // Get all descendants
-console.log('\n--- All Descendants ---');
-console.log((window as any).getAllDescendants().map((c: Component) => c.getName()));
+console.log("\n--- All Descendants ---");
+console.log(
+  (window as any).getAllDescendants().map((c: Component) => c.getName()),
+);
 
 // ========== Real-world example: File System ==========
 
 interface FileSystemItem {
-getName(): string;
-getSize(): number;
-display(indent: number): void;
+  getName(): string;
+  getSize(): number;
+  display(indent: number): void;
 }
 
 class File implements FileSystemItem {
-constructor(private name: string, private size: number) {}
+  constructor(
+    private name: string,
+    private size: number,
+  ) {}
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-getSize(): number {
-return this.size;
-}
+  getSize(): number {
+    return this.size;
+  }
 
-display(indent: number = 0): void {
-console.log(`${'  '.repeat(indent)}📄 ${this.name} (${this.size} KB)`);
-}
+  display(indent: number = 0): void {
+    console.log(`${"  ".repeat(indent)}📄 ${this.name} (${this.size} KB)`);
+  }
 }
 
 class Directory implements FileSystemItem {
-private items: FileSystemItem[] = [];
+  private items: FileSystemItem[] = [];
 
-constructor(private name: string) {}
+  constructor(private name: string) {}
 
-add(item: FileSystemItem): void {
-this.items.push(item);
-}
+  add(item: FileSystemItem): void {
+    this.items.push(item);
+  }
 
-getName(): string {
-return this.name;
-}
+  getName(): string {
+    return this.name;
+  }
 
-getSize(): number {
-return this.items.reduce((sum, item) => sum + item.getSize(), 0);
-}
+  getSize(): number {
+    return this.items.reduce((sum, item) => sum + item.getSize(), 0);
+  }
 
-display(indent: number = 0): void {
-console.log(`${'  '.repeat(indent)}📁 ${this.name}/`);
-for (const item of this.items) {
-item.display(indent + 1);
-}
-}
+  display(indent: number = 0): void {
+    console.log(`${"  ".repeat(indent)}📁 ${this.name}/`);
+    for (const item of this.items) {
+      item.display(indent + 1);
+    }
+  }
 
-getItemCount(): number {
-return this.items.length;
-}
+  getItemCount(): number {
+    return this.items.length;
+  }
 
-findByName(name: string): FileSystemItem | undefined {
-for (const item of this.items) {
-if (item.getName() === name) {
-return item;
-}
-if (item instanceof Directory) {
-const found = item.findByName(name);
-if (found) return found;
-}
-}
-return undefined;
-}
+  findByName(name: string): FileSystemItem | undefined {
+    for (const item of this.items) {
+      if (item.getName() === name) {
+        return item;
+      }
+      if (item instanceof Directory) {
+        const found = item.findByName(name);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
 }
 
 // ========== File System Usage ==========
-const root = new Directory('root');
+const root = new Directory("root");
 
-const documents = new Directory('Documents');
-documents.add(new File('Resume.pdf', 250));
-documents.add(new File('CoverLetter.docx', 180));
+const documents = new Directory("Documents");
+documents.add(new File("Resume.pdf", 250));
+documents.add(new File("CoverLetter.docx", 180));
 
-const photos = new Directory('Photos');
-const vacation = new Directory('Vacation');
-vacation.add(new File('beach01.jpg', 2400));
-vacation.add(new File('beach02.jpg', 2200));
+const photos = new Directory("Photos");
+const vacation = new Directory("Vacation");
+vacation.add(new File("beach01.jpg", 2400));
+vacation.add(new File("beach02.jpg", 2200));
 photos.add(vacation);
 
-const projects = new Directory('Projects');
-const project1 = new Directory('WebApp');
-project1.add(new File('index.html', 45));
-project1.add(new File('style.css', 120));
-project1.add(new File('script.js', 350));
+const projects = new Directory("Projects");
+const project1 = new Directory("WebApp");
+project1.add(new File("index.html", 45));
+project1.add(new File("style.css", 120));
+project1.add(new File("script.js", 350));
 projects.add(project1);
 
 root.add(documents);
@@ -315,12 +333,11 @@ console.log(`\nTotal size: ${root.getSize()} KB`);
 console.log(`Total items in projects: ${projects.getItemCount()}`);
 
 // Find a file
-const found = root.findByName('script.js');
+const found = root.findByName("script.js");
 console.log(`\nFound: ${found?.getName()}`);
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import List, Optional
 

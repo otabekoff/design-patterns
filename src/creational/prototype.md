@@ -129,7 +129,7 @@ const documents = Array(1000)
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Prototype interface
 interface Prototype<T> {
   clone(): T;
@@ -222,7 +222,7 @@ console.log(`Player 1 health: ${player1.health}`); // 120
 console.log(`Player 2 health: ${player2.health}`); // 150 - unaffected!
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import Dict, List
 import copy
@@ -301,7 +301,7 @@ print(f"Player 1: {player1}")  # health=120
 print(f"Player 2: {player2}")  # health=150
 ```
 
-```java [java]
+```java [Java]
 import java.util.*;
 
 interface Prototype extends Cloneable {
@@ -388,7 +388,7 @@ public class PrototypeExample {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 type Prototype interface {
@@ -461,7 +461,7 @@ func (cf *CharacterFactory) CreateCharacter(name string) *GameCharacter {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 use std::collections::HashMap;
 
 trait Prototype {

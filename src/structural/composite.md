@@ -77,7 +77,7 @@ Composite solves this by giving both leaf and container objects the same interfa
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 interface ContentNode {
   getTitle(): string;
   render(): string;
@@ -180,7 +180,7 @@ page.add(guide);
 console.log(page.render());
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 
 class ContentNode(ABC):
@@ -270,7 +270,7 @@ page.add(guide)
 print(page.render())
 ```
 
-```java [java]
+```java [Java]
 interface ContentNode {
     String getTitle();
     String render();
@@ -375,7 +375,7 @@ class Page implements ContentNode {
 }
 ```
 
-```go [go]
+```go [Go]
 package main
 
 import "fmt"
@@ -438,7 +438,7 @@ func (p *Page) Render() string {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 trait ContentNode {
     fn get_title(&self) -> &str;
     fn render(&self) -> String;

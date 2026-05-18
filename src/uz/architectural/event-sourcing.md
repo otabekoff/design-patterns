@@ -75,7 +75,7 @@ Holatni tiklash uchun voqealarni qayta o'ynash
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Domain Events
 interface DomainEvent {
   eventId: string;
@@ -237,14 +237,16 @@ console.log(user.getState());
 
 console.log("\n=== Event History ===");
 const events = eventStore.getEventsByAggregateId("user-1");
-events.forEach((e) => console.log(`${e.timestamp.toISOString()}: ${e.eventType}`));
+events.forEach((e) =>
+  console.log(`${e.timestamp.toISOString()}: ${e.eventType}`),
+);
 
 console.log("\n=== Replay to Rebuild State ===");
 const replayedUser = repository.getById("user-1");
 console.log(replayedUser.getState());
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from dataclasses import dataclass, field

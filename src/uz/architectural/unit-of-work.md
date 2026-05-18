@@ -61,11 +61,13 @@ uow.commit(); // Ikkalasini ham saqlaydi yoki hech qaysisini saqlamaydi
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Entitilar
 class Entity {
   id: string;
-  constructor(id: string) { this.id = id; }
+  constructor(id: string) {
+    this.id = id;
+  }
 }
 
 class User extends Entity {
@@ -103,13 +105,13 @@ class UnitOfWork {
 
   commit(): void {
     console.log("--- Tranzaksiya Boshlandi ---");
-    
-    this.newEntities.forEach(e => console.log(`[DB] INSERT: ${e.id}`));
-    this.dirtyEntities.forEach(e => console.log(`[DB] UPDATE: ${e.id}`));
-    this.removedEntities.forEach(e => console.log(`[DB] DELETE: ${e.id}`));
-    
+
+    this.newEntities.forEach((e) => console.log(`[DB] INSERT: ${e.id}`));
+    this.dirtyEntities.forEach((e) => console.log(`[DB] UPDATE: ${e.id}`));
+    this.removedEntities.forEach((e) => console.log(`[DB] DELETE: ${e.id}`));
+
     console.log("✅ Tranzaksiya Muvaffaqiyatli Yakunlandi");
-    
+
     this.clear();
   }
 
@@ -132,7 +134,7 @@ uow.registerDirty(user2);
 uow.commit();
 ```
 
-```python [python]
+```python [Python]
 class Entity:
     def __init__(self, id: str):
         self.id = id
@@ -164,14 +166,14 @@ class UnitOfWork:
 
     def commit(self):
         print("--- Tranzaksiya Boshlandi ---")
-        
+
         for e in self.new_entities:
             print(f"[DB] INSERT: {e.id}")
         for e in self.dirty_entities:
             print(f"[DB] UPDATE: {e.id}")
         for e in self.removed_entities:
             print(f"[DB] DELETE: {e.id}")
-            
+
         print("✅ Tranzaksiya Muvaffaqiyatli Yakunlandi")
         self.clear()
 
@@ -197,12 +199,15 @@ uow.commit()
 ## Real Hayotdan Misollar
 
 ### Entity Framework (C# / .NET)
+
 `DbContext` ham Unit of Work, ham Repository konteyneri vazifasini bajaradi. `SaveChanges()` chaqirilganda barcha kuzatilgan o'zgarishlar saqlanadi.
 
 ### Hibernate / JPA (Java)
+
 `Session` (Hibernate) yoki `EntityManager` (JPA) entitilarni kuzatib boradi va tranzaksiya davomida ularni ma'lumotlar bazasi bilan sinxronlashtiradi.
 
 ### SQLAlchemy (Python)
+
 `Session` ob'ekti — ob'ektlar holatini boshqaradigan va ularni ma'lumotlar bazasiga yozadigan klassik Unit of Work implementatsiyasidir.
 
 ## Afzalliklari ✅

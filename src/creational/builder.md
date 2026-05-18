@@ -115,7 +115,7 @@ const config = new AppConfigBuilder()
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Immutable configuration object
 interface AppConfig {
   environment: string;
@@ -189,7 +189,7 @@ const prodConfig = new AppConfigBuilder()
 console.log(prodConfig);
 ```
 
-```python [python]
+```python [Python]
 from typing import List
 from dataclasses import dataclass
 from enum import Enum
@@ -262,7 +262,7 @@ config = (AppConfigBuilder()
 print(f"Config: {config}")
 ```
 
-```java [java]
+```java [Java]
 import java.util.*;
 
 public class AppConfig {
@@ -354,7 +354,7 @@ AppConfig config = new AppConfig.Builder()
     .build();
 ```
 
-```go [go]
+```go [Go]
 package main
 
 type AppConfig struct {
@@ -441,7 +441,7 @@ func (b *AppConfigBuilder) Build() *AppConfig {
 }
 ```
 
-```rust [rust]
+```rust [Rust]
 #[derive(Debug, Clone)]
 pub struct AppConfig {
     pub environment: String,

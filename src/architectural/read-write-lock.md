@@ -57,7 +57,7 @@ class SimpleCache {
 The Read-Write Lock splits the locking mechanism into two distinct roles:
 
 1.  **Read Lock (Shared Lock):** Can be acquired by multiple threads simultaneously as long as no thread holds or is waiting for the write lock.
-2.  **Write Lock (Exclusive Lock):** Can only be acquired by a single thread when no other threads hold *either* the read lock or the write lock.
+2.  **Write Lock (Exclusive Lock):** Can only be acquired by a single thread when no other threads hold _either_ the read lock or the write lock.
 
 To prevent **Writer Starvation** (a scenario where a constant stream of new readers prevents a waiting writer from ever acquiring the lock), production-grade implementations often include fairness policies or writer-preference queues. This ensures that once a writer requests access, new readers are blocked until the writer completes its task.
 
@@ -78,7 +78,7 @@ Modern languages often provide native, highly optimized implementations of Read-
 ::: code-group
 
 ```typescript [TypeScript]
-// In Node.js/TypeScript, concurrency issues typically arise when 
+// In Node.js/TypeScript, concurrency issues typically arise when
 // dealing with asynchronous operations (promises) interleaving.
 // We implement an async-aware Read-Write Lock.
 
@@ -103,7 +103,7 @@ class AsyncReadWriteLock {
   releaseRead(): void {
     if (this.readersActive === 0) throw new Error("No read locks to release");
     this.readersActive--;
-    
+
     // If no readers left and a writer is waiting, wake up the next writer
     if (this.readersActive === 0 && this.writeQueue.length > 0) {
       const nextWriter = this.writeQueue.shift();
@@ -133,7 +133,7 @@ class AsyncReadWriteLock {
       const readers = [...this.readQueue];
       this.readQueue = [];
       this.readersActive += readers.length;
-      readers.forEach(resolve => resolve());
+      readers.forEach((resolve) => resolve());
     } else if (this.writeQueue.length > 0) {
       const nextWriter = this.writeQueue.shift();
       this.writerActive = true;
@@ -237,11 +237,11 @@ class SharedDictionary:
     def __init__(self):
         self._data: Dict[str, Any] = {}
         self._lock = ReadWriteLock()
-    
+
     def get(self, key: str) -> Any:
         with ReadLockManager(self._lock):
             return self._data.get(key)
-            
+
     def set(self, key: str, value: Any) -> None:
         with WriteLockManager(self._lock):
             self._data[key] = value
@@ -283,7 +283,7 @@ public class ConcurrentConfigCache {
             lock.writeLock().unlock();
         }
     }
-    
+
     public void clear() {
         lock.writeLock().lock();
         try {
@@ -379,7 +379,7 @@ type SharedCache = Arc<RwLock<HashMap<String, String>>>;
 
 fn main() {
     let cache: SharedCache = Arc::new(RwLock::new(HashMap::new()));
-    
+
     // Initial write
     {
         let mut write_guard = cache.write().unwrap();
@@ -395,7 +395,7 @@ fn main() {
         let handle = thread::spawn(move || {
             // Acquire read lock. Multiple threads can hold this simultaneously.
             let read_guard = cache_clone.read().unwrap();
-            
+
             if let Some(val) = read_guard.get("config_a") {
                 println!("Reader {} saw: {}", i, val);
             }
@@ -411,7 +411,7 @@ fn main() {
         write_guard.insert("config_b".to_string(), "value_b".to_string());
         println!("Writer updated the cache.");
     });
-    
+
     handles.push(write_handle);
 
     for handle in handles {

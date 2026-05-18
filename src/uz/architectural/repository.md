@@ -91,7 +91,7 @@ Repository ma'lumotlarga kirish uchun abstraksiya (mavhumlik) qatlamini taqdim e
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Domain Entity
 interface User {
   id: number;
@@ -136,7 +136,9 @@ class DatabaseUserRepository implements IRepository<User> {
   }
 
   async update(user: User): Promise<User> {
-    console.log(`[DB] UPDATE users SET name = '${user.name}' WHERE id = ${user.id}`);
+    console.log(
+      `[DB] UPDATE users SET name = '${user.name}' WHERE id = ${user.id}`,
+    );
     return user;
   }
 
@@ -204,7 +206,14 @@ class ApiUserRepository implements IRepository<User> {
 
   async getAll(): Promise<User[]> {
     console.log(`[API] GET ${this.apiUrl}/users`);
-    return [{ id: 1, name: "API User 1", email: "user1@example.com", createdAt: new Date() }];
+    return [
+      {
+        id: 1,
+        name: "API User 1",
+        email: "user1@example.com",
+        createdAt: new Date(),
+      },
+    ];
   }
 
   async add(user: User): Promise<User> {
@@ -253,7 +262,9 @@ class UserService {
   }
 
   async findUsersByDomain(domain: string): Promise<User[]> {
-    return await this.userRepository.find((user) => user.email.endsWith(`@${domain}`));
+    return await this.userRepository.find((user) =>
+      user.email.endsWith(`@${domain}`),
+    );
   }
 
   async removeUser(id: number): Promise<boolean> {
@@ -289,7 +300,7 @@ async function main() {
 // main();
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import List, Optional, Callable, TypeVar, Generic
 from dataclasses import dataclass

@@ -90,142 +90,141 @@ function processCollection<T>(collection: Collection<T>) {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Iterator interface
-    interface Iterator<T> {
-      hasNext(): boolean;
-      next(): T;
-      reset(): void;
+interface Iterator<T> {
+  hasNext(): boolean;
+  next(): T;
+  reset(): void;
+}
+
+// Collection interface
+interface Collection<T> {
+  createIterator(): Iterator<T>;
+  createReverseIterator(): Iterator<T>;
+}
+
+// Concrete Iterator for Array
+class ArrayIterator<T> implements Iterator<T> {
+  private index: number = 0;
+
+  constructor(
+    private items: T[],
+    private reverse: boolean = false,
+  ) {}
+
+  hasNext(): boolean {
+    if (this.reverse) {
+      return this.index < this.items.length;
+    }
+    return this.index < this.items.length;
+  }
+
+  next(): T {
+    if (!this.hasNext()) {
+      throw new Error("No more elements");
     }
 
-    // Collection interface
-    interface Collection<T> {
-      createIterator(): Iterator<T>;
-      createReverseIterator(): Iterator<T>;
+    if (this.reverse) {
+      return this.items[this.items.length - 1 - this.index++];
     }
+    return this.items[this.index++];
+  }
 
-    // Concrete Iterator for Array
-    class ArrayIterator<T> implements Iterator<T> {
-      private index: number = 0;
+  reset(): void {
+    this.index = 0;
+  }
+}
 
-      constructor(
-        private items: T[],
-        private reverse: boolean = false
-      ) {}
+// Concrete Collection
+class ArrayList<T> implements Collection<T> {
+  private items: T[] = [];
 
-      hasNext(): boolean {
-        if (this.reverse) {
-          return this.index < this.items.length;
-        }
-        return this.index < this.items.length;
-      }
+  add(item: T): void {
+    this.items.push(item);
+  }
 
-      next(): T {
-        if (!this.hasNext()) {
-          throw new Error('No more elements');
-        }
-
-        if (this.reverse) {
-          return this.items[this.items.length - 1 - this.index++];
-        }
-        return this.items[this.index++];
-      }
-
-      reset(): void {
-        this.index = 0;
-      }
+  remove(item: T): boolean {
+    const index = this.items.indexOf(item);
+    if (index > -1) {
+      this.items.splice(index, 1);
+      return true;
     }
+    return false;
+  }
 
-    // Concrete Collection
-    class ArrayList<T> implements Collection<T> {
-      private items: T[] = [];
+  size(): number {
+    return this.items.length;
+  }
 
-      add(item: T): void {
-        this.items.push(item);
-      }
+  createIterator(): Iterator<T> {
+    return new ArrayIterator(this.items, false);
+  }
 
-      remove(item: T): boolean {
-        const index = this.items.indexOf(item);
-        if (index > -1) {
-          this.items.splice(index, 1);
-          return true;
-        }
-        return false;
-      }
+  createReverseIterator(): Iterator<T> {
+    return new ArrayIterator(this.items, true);
+  }
+}
 
-      size(): number {
-        return this.items.length;
-      }
+// Iterator for specific conditions
+class FilteredIterator<T> implements Iterator<T> {
+  private items: T[];
+  private index: number = 0;
 
-      createIterator(): Iterator<T> {
-        return new ArrayIterator(this.items, false);
-      }
+  constructor(
+    items: T[],
+    private predicate: (item: T) => boolean,
+  ) {
+    this.items = items.filter(this.predicate);
+  }
 
-      createReverseIterator(): Iterator<T> {
-        return new ArrayIterator(this.items, true);
-      }
+  hasNext(): boolean {
+    return this.index < this.items.length;
+  }
+
+  next(): T {
+    if (!this.hasNext()) {
+      throw new Error("No more elements");
     }
+    return this.items[this.index++];
+  }
 
-    // Iterator for specific conditions
-    class FilteredIterator<T> implements Iterator<T> {
-      private items: T[];
-      private index: number = 0;
+  reset(): void {
+    this.index = 0;
+  }
+}
 
-      constructor(
-        items: T[],
-        private predicate: (item: T) => boolean
-      ) {
-        this.items = items.filter(this.predicate);
-      }
+// Usage
+const list = new ArrayList<number>();
+list.add(1);
+list.add(2);
+list.add(3);
+list.add(4);
+list.add(5);
 
-      hasNext(): boolean {
-        return this.index < this.items.length;
-      }
+// Forward iteration
+const iterator = list.createIterator();
+while (iterator.hasNext()) {
+  console.log(iterator.next());
+}
 
-      next(): T {
-        if (!this.hasNext()) {
-          throw new Error('No more elements');
-        }
-        return this.items[this.index++];
-      }
+// Reverse iteration
+const reverseIterator = list.createReverseIterator();
+while (reverseIterator.hasNext()) {
+  console.log(reverseIterator.next());
+}
 
-      reset(): void {
-        this.index = 0;
-      }
-    }
-
-    // Usage
-    const list = new ArrayList<number>();
-    list.add(1);
-    list.add(2);
-    list.add(3);
-    list.add(4);
-    list.add(5);
-
-    // Forward iteration
-    const iterator = list.createIterator();
-    while (iterator.hasNext()) {
-      console.log(iterator.next());
-    }
-
-    // Reverse iteration
-    const reverseIterator = list.createReverseIterator();
-    while (reverseIterator.hasNext()) {
-      console.log(reverseIterator.next());
-    }
-
-    // Filtered iteration
-    const filteredIterator = new FilteredIterator(
-      [1, 2, 3, 4, 5],
-      (n) => n % 2 === 0 // Even numbers
-    );
-    while (filteredIterator.hasNext()) {
-      console.log(filteredIterator.next());
-    }
+// Filtered iteration
+const filteredIterator = new FilteredIterator(
+  [1, 2, 3, 4, 5],
+  (n) => n % 2 === 0, // Even numbers
+);
+while (filteredIterator.hasNext()) {
+  console.log(filteredIterator.next());
+}
 ```
 
-  
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
     from typing import Generic, TypeVar, List
 

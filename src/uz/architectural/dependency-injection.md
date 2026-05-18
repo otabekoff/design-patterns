@@ -73,7 +73,7 @@ class UserService {
 
 ::: code-group
 
-```typescript [typescript]
+```typescript [TypeScript]
 // Dependencies
 interface Logger {
   log(message: string): void;
@@ -159,7 +159,7 @@ const testService = new UserService(mockLogger, mockDb);
 testService.getUsers();
 ```
 
-```python [python]
+```python [Python]
 from abc import ABC, abstractmethod
 from typing import Dict, Callable, Any, TypeVar
 

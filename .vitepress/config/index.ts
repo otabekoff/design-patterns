@@ -167,7 +167,10 @@ export default defineConfig({
           'python': 'vscode-icons:file-type-python',
           'sh': 'vscode-icons:file-type-shell',
           'bash': 'vscode-icons:file-type-shell',
-          'java': 'logos:java'
+          'java': 'logos:java',
+          'rs': 'vscode-icons:file-type-rust',
+          'rust': 'vscode-icons:file-type-rust',
+          'go': 'vscode-icons:file-type-go'
         }
       })
     ],

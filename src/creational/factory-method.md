@@ -119,8 +119,6 @@ class ExcelHandler extends DocumentHandler {
 
 ## Implementation
 
-### TypeScript: Classic Factory Method
-
 ::: code-group
 
 ```typescript [typescript]
@@ -236,14 +234,6 @@ function main() {
 main();
 ```
 
-**Advantages of TypeScript approach:**
-
-- Explicit interface contracts via TypeScript interfaces.
-- Subclasses clearly override the factory method.
-- Easy to add new types without modifying existing code.
-
-### Python: Using Subclasses and Abstract Base Classes
-
 ```python [python]
 from abc import ABC, abstractmethod
 
@@ -342,14 +332,6 @@ if __name__ == "__main__":
         app.open_document()
         app.list_documents()
 ```
-
-**Advantages of Python approach:**
-
-- Uses `@abstractmethod` decorator for clear contracts.
-- Pythonic syntax with type hints.
-- Subclass override pattern is idiomatic.
-
-### Java: Factory Method with Generics
 
 ```java [java]
 import java.util.*;
@@ -458,14 +440,6 @@ public class Main {
 }
 ```
 
-**Advantages of Java approach:**
-
-- Clear separation of abstract and concrete classes.
-- Interfaces define contracts explicitly.
-- Works well in enterprise codebases.
-
-### Go: Using Functions as Factories
-
 ```go [go]
 package main
 
@@ -557,14 +531,6 @@ func main() {
     }
 }
 ```
-
-**Advantages of Go approach:**
-
-- Functions as first-class values replace the need for subclassing.
-- Composition over inheritance: Applications are composed with factories.
-- Idiomatic Go: simpler, more functional approach.
-
-### Rust: Using Trait Objects and Enum Dispatch
 
 ```rust [rust]
 // Product trait: All documents implement this.
@@ -664,13 +630,47 @@ fn main() {
 }
 ```
 
+:::
+
+### TypeScript: Classic Factory Method
+
+**Advantages of TypeScript approach:**
+
+- Explicit interface contracts via TypeScript interfaces.
+- Subclasses clearly override the factory method.
+- Easy to add new types without modifying existing code.
+
+### Python: Using Subclasses and Abstract Base Classes
+
+**Advantages of Python approach:**
+
+- Uses `@abstractmethod` decorator for clear contracts.
+- Pythonic syntax with type hints.
+- Subclass override pattern is idiomatic.
+
+### Java: Factory Method with Generics
+
+**Advantages of Java approach:**
+
+- Clear separation of abstract and concrete classes.
+- Interfaces define contracts explicitly.
+- Works well in enterprise codebases.
+
+### Go: Using Functions as Factories
+
+**Advantages of Go approach:**
+
+- Functions as first-class values replace the need for subclassing.
+- Composition over inheritance: Applications are composed with factories.
+- Idiomatic Go: simpler, more functional approach.
+
+### Rust: Using Trait Objects and Enum Dispatch
+
 **Advantages of Rust approach:**
 
 - Trait objects provide polymorphism safely.
 - Enum dispatch is type-safe and efficient.
 - Rust's pattern matching for factory selection is idiomatic.
-
-:::
 
 ## Real-World Example: Payment Processor
 

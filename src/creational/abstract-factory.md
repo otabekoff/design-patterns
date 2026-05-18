@@ -89,8 +89,6 @@ const scrollbar = factory.createScrollbar(); // Matching scrollbar
 
 ## Implementation
 
-### TypeScript: Classic Abstract Factory
-
 ::: code-group
 
 ```typescript [typescript]
@@ -235,8 +233,6 @@ const app = new Application(factory);
 console.log(app.render());
 ```
 
-### Python: Leveraging Duck Typing and Protocols
-
 ```python [python]
 from abc import ABC, abstractmethod
 
@@ -359,8 +355,6 @@ if __name__ == "__main__":
     app = Application(factory)
     print(app.render())
 ```
-
-### Java: Generics for Type Safety
 
 ```java [java]
 interface Button {
@@ -515,8 +509,6 @@ public class Main {
 }
 ```
 
-### Go: Struct Composition with Functions
-
 ```go [go]
 package main
 
@@ -656,8 +648,6 @@ func main() {
     fmt.Println(app.Render())
 }
 ```
-
-### Rust: Trait Objects with Dynamic Dispatch
 
 ```rust [rust]
 pub trait Button {
@@ -816,6 +806,26 @@ fn main() {
 ```
 
 :::
+
+### TypeScript: Classic Abstract Factory
+
+TypeScript uses `interface` declarations to define both the product contracts (`Button`, `Checkbox`, `Scrollbar`) and the factory contract (`UIFactory`). Concrete factories like `WindowsUIFactory` and `MacUIFactory` implement the factory interface, and the compiler statically verifies that every factory method returns the correct product type. The client receives a `UIFactory` reference and never touches concrete classes — swapping families is a one-line change at the injection point.
+
+### Python: Leveraging Duck Typing and Protocols
+
+Python uses `ABC` (Abstract Base Class) to enforce the factory and product contracts at class-definition time. Each abstract method decorated with `@abstractmethod` prevents instantiation of incomplete factories. Despite this formal structure, Python's duck typing means the client code (`Application`) only cares that the factory *has* `create_button()`, `create_checkbox()`, and `create_scrollbar()` methods — no type annotation is strictly required at runtime. The `if __name__ == "__main__"` guard keeps the wiring logic clean and testable.
+
+### Java: Generics for Type Safety
+
+Java relies on `interface` declarations and `@Override` annotations to lock down the contract at compile time. Every concrete product class explicitly implements its product interface, and every concrete factory implements `UIFactory`. The `@Override` annotation catches typos and signature mismatches early. Java's strict nominal typing guarantees that a `WindowsUIFactory` can never accidentally return a `MacButton` — the compiler rejects it before the code ever runs.
+
+### Go: Struct Composition with Functions
+
+Go has no classes or inheritance — instead, product contracts are defined as interfaces (`Button`, `Checkbox`, `Scrollbar`), and any struct with matching methods satisfies them implicitly. Concrete factories are plain structs whose methods return interface types. This implicit interface satisfaction means you never write `implements`; if the methods match, the type qualifies. The `Application` struct stores a `UIFactory` interface and calls its methods without knowing the underlying type, achieving full decoupling through structural typing.
+
+### Rust: Trait Objects with Dynamic Dispatch
+
+Rust defines product and factory contracts as `trait` declarations. Concrete types (`WindowsButton`, `MacButton`, etc.) implement these traits explicitly with `impl Trait for Type`. The factory returns `Box<dyn Trait>` — heap-allocated trait objects that enable dynamic dispatch at runtime. The client holds a `Box<dyn UIFactory>` and calls factory methods through vtable indirection. Rust's ownership system guarantees memory safety without a garbage collector, and the `dyn` keyword makes the runtime polymorphism explicit and intentional.
 
 ## Real-World Example: Database Abstraction Layer
 

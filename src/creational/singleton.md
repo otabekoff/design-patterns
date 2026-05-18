@@ -89,8 +89,6 @@ console.log(config1 === config2); // true
 3. Make the **constructor private** to prevent direct construction.
 4. Replace all `new ClassName()` calls with `ClassName.getInstance()`.
 
-### TypeScript: Simple Lazy Initialization
-
 ::: code-group
 
 ```typescript [typescript]
@@ -142,18 +140,6 @@ console.log(db1 === db2); // true
 db1.query("SELECT * FROM users");
 ```
 
-**Advantages of TypeScript approach:**
-
-- Simple and idiomatic to the language.
-- Works well in single-threaded JavaScript environments (browsers, Node.js event loop).
-- Lazy initialization saves resources if the database is never used.
-
-**Disadvantage:**
-
-- Not thread-safe (though JavaScript is single-threaded by nature).
-
-### Python: Thread-Safe Metaclass
-
 ```python [python]
 from threading import Lock
 
@@ -200,14 +186,6 @@ db2 = Database()  # No output (already created)
 print(db1 is db2)  # True
 db1.query('SELECT * FROM users')
 ```
-
-**Advantages of Python approach:**
-
-- Thread-safe via double-checked locking.
-- Scales to production multi-threaded environments.
-- Metaclass approach is idiomatic Python.
-
-### Java: Double-Checked Locking
 
 ```java [java]
 /**
@@ -273,14 +251,6 @@ public class Main {
 }
 ```
 
-**Advantages of Java approach:**
-
-- Explicit synchronization handles thread safety clearly.
-- Double-checked locking minimizes lock contention in production.
-- Works well for enterprise systems with heavy concurrency.
-
-### Go: Goroutine-Safe with sync.Once
-
 ```go [go]
 package main
 
@@ -334,15 +304,6 @@ func main() {
 }
 ```
 
-**Advantages of Go approach:**
-
-- `sync.Once` is idiomatic and minimizes boilerplate.
-- Goroutine-safe by design.
-- Cleaner than manual double-checked locking.
-- Reflects Go's philosophy of simplicity.
-
-### Rust: Safe via Type System
-
 ```rust [rust]
 use std::sync::{Arc, Mutex, Once};
 
@@ -393,13 +354,52 @@ fn main() {
 }
 ```
 
+:::
+
+### TypeScript: Simple Lazy Initialization
+
+**Advantages of TypeScript approach:**
+
+- Simple and idiomatic to the language.
+- Works well in single-threaded JavaScript environments (browsers, Node.js event loop).
+- Lazy initialization saves resources if the database is never used.
+
+**Disadvantage:**
+
+- Not thread-safe (though JavaScript is single-threaded by nature).
+
+### Python: Thread-Safe Metaclass
+
+**Advantages of Python approach:**
+
+- Thread-safe via double-checked locking.
+- Scales to production multi-threaded environments.
+- Metaclass approach is idiomatic Python.
+
+### Java: Double-Checked Locking
+
+**Advantages of Java approach:**
+
+- Explicit synchronization handles thread safety clearly.
+- Double-checked locking minimizes lock contention in production.
+- Works well for enterprise systems with heavy concurrency.
+
+### Go: Goroutine-Safe with sync.Once
+
+**Advantages of Go approach:**
+
+- `sync.Once` is idiomatic and minimizes boilerplate.
+- Goroutine-safe by design.
+- Cleaner than manual double-checked locking.
+- Reflects Go's philosophy of simplicity.
+
+### Rust: Safe via Type System
+
 **Advantages of Rust approach:**
 
 - Type system enforces thread safety and memory safety.
 - `Arc<Mutex<T>>` pattern is idiomatic for shared mutable state.
 - No data races possible at compile time.
-
-:::
 
 ## Thread Safety and Concurrency
 

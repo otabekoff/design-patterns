@@ -19,8 +19,10 @@ const walk = (dir) =>
 // Comments may be translated, code may not: compare code blocks with comments stripped.
 // The stripping is naive (a `//` inside a string is treated as a comment too), but it is applied to
 // both sides identically, so it only ever hides differences that are inside comments.
-const LINE_COMMENT = { python: '#', py: '#', bash: '#', sh: '#', ruby: '#' }
+const LINE_COMMENT = { python: '#', py: '#', bash: '#', sh: '#', ruby: '#', sql: '--' }
+const MARKUP = new Set(['html', 'vue', 'xml', 'svg'])
 function stripComments(lang, code) {
+  if (MARKUP.has(lang)) code = code.replace(/<!--[\s\S]*?-->/g, '')
   const marker = LINE_COMMENT[lang] ?? '//'
   if (marker === '//') code = code.replace(/\/\*[\s\S]*?\*\//g, '')
   // Python docstrings are documentation too

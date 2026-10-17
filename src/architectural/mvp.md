@@ -6,7 +6,7 @@ icon: Users
 
 # Model-View-Presenter (MVP)
 
-<CoverImage src="/covers/architectural/mvp.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvp.webp" alt="Cover">
   <h1>MVP</h1>
   <p>A theatrical stage where a flashy Presenter robot stands in the middle, actively passing script sheets back and forth between a shy Model robot behind the curtain and a blank View canvas facing the audience.</p>
 </CoverImage>
@@ -30,6 +30,45 @@ The MVP pattern aims to:
 - Make testing easier by decoupling views from presentation logic
 - Enable passive views that are easier to maintain
 - Improve code reusability and flexibility
+
+## Structure
+
+```mermaid
+classDiagram
+    class IUserView {
+        <<interface>>
+        +displayUsers(users) void
+        +displayError(message) void
+        +displaySuccess(message) void
+        +onAddUserClick(callback) void
+    }
+    class UserView {
+        +displayUsers(users) void
+        +displayError(message) void
+    }
+    class UserPresenter {
+        -model: UserModel
+        -view: IUserView
+        -handleAddUser(name, email, age) void
+        -handleViewUsers() void
+    }
+    class UserModel {
+        +addUser(name, email, age) User
+        +getAllUsers() User[]
+        +updateUser(id, updates) User
+        +deleteUser(id) boolean
+    }
+
+    IUserView <|.. UserView
+    UserView ..> UserPresenter : forwards user events
+    UserPresenter --> IUserView : tells what to display
+    UserPresenter --> UserModel : reads and updates
+```
+
+- **`UserView`** (View) is passive: it renders what it is told and forwards user events through callbacks registered via `IUserView`.
+- **`UserPresenter`** (Presenter) holds all presentation logic, reacts to view events, calls the model, and updates the view.
+- **`UserModel`** (Model) owns data and business rules and knows nothing about the view or presenter.
+- The presenter depends on the **`IUserView`** interface, so it can be unit-tested with a mock view.
 
 ## Problem
 

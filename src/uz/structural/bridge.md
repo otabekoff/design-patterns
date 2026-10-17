@@ -1,278 +1,195 @@
 ---
 title: Bridge Pattern
-description: Decouples an abstraction from its implementation so the two can vary independently
+description: Abstraksiyani uning amalga oshirilishidan ajratadi, shunda ikkalasi bir-biridan mustaqil ravishda o'zgarishi mumkin.
 icon: Layers
 ---
 
 # Bridge Pattern
 
-<CoverImage src="/covers/structural/bridge.png" alt="Cover">
+<CoverImage src="/covers/structural/bridge.webp" alt="Cover">
   <h1>Bridge</h1>
-  <p>A beautiful futuristic bridge separating a floating "Control Room" sphere (Abstraction) from various interchangeable "Engine/Power" docks below (Implementations) connected by flexible glowing tubes.</p>
+  <p>Suzib yuruvchi "Boshqaruv xonasi" sferasini (Abstraksiya) pastdagi turli almashtiriladigan "Dvigatel/Quvvat" doklaridan (Amalga oshirishlar) ajratib turuvchi, egiluvchan nurli quvurlar bilan bog'langan go'zal futuristik ko'prik.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The Bridge Pattern is a structural design pattern that decouples an abstraction from its implementation, allowing the two to vary independently. It's useful when you want to avoid a permanent binding between abstraction and implementation, or when changes in implementation should not affect clients.
+**Bridge** — bu abstraksiyani uning amalga oshirilishidan (implementation) ajratib, ikkalasining mustaqil rivojlanishiga imkon beruvchi strukturaviy (structural) dizayn patternidir. Har bir amalga oshirish tanlovini klasslar ierarxiyasiga singdirib yuborish o'rniga, Bridge abstraksiyani barqaror saqlaydi va ishni amalga oshirish obyektiga topshiradi.
 
-## Purpose
+**Asosiy afzalligi**: O'zgarishning ikki yoki undan ortiq o'lchovi (dimension) mavjud bo'lganda klasslar portlashining (class explosion) oldini oladi.
 
-- **Separate abstraction from implementation** allowing them to change independently
-- **Avoid exponential class hierarchy growth** when combining multiple dimensions of variation
-- **Share implementation** across multiple abstractions
-- **Reduce coupling** between high-level and low-level modules
+**Zamonaviy nuqtai nazar**: Bridge tizimda barqaror qolishi kerak bo'lgan interfeys mavjud bo'lib, bajaruvchi backend, rendering dvigateli, saqlash qatlami yoki platformaga xos xatti-harakat mustaqil ravishda o'zgarishi mumkin bo'lgan har qanday holatda foydali bo'lib qolmoqda.
 
-## Problem
+Adapter'dan farqi nozik, lekin muhim: Adapter mavjud nomuvofiqlikni tuzatadi, Bridge esa tizimga boshidanoq loyihalab kiritiladi.
 
-Consider a `Shape` hierarchy with `Circle`, `Rectangle`, etc. Now you also need to support different rendering implementations: `WindowsRenderer`, `LinuxRenderer`, `WebRenderer`.
+## Hayotiy o'xshatish (Real-World Analogy)
 
-Without the Bridge Pattern, you'd need to create classes like:
+**Pult va televizorni** tasavvur qiling. Pult — abstraksiya. Televizor — amalga oshirish. Ko'prik kontrakti o'zgarmas ekan, pultni qayta loyihalamasdan televizorni boshqa brend yoki turdagisiga almashtirishingiz mumkin.
 
-- `WindowsCircle`, `LinuxCircle`, `WebCircle`
-- `WindowsRectangle`, `LinuxRectangle`, `WebRectangle`
+Pult uchun qurilma televizormi, karnaymi yoki proyektormi — farqi yo'q. U faqat qurilma interfeysi bilan qanday muloqot qilishni biladi.
 
-This creates a **2D class hierarchy explosion** (N shapes × M renderers = N×M classes). When you add a new shape or renderer, you multiply the number of classes needed.
+## Tuzilma (Structure)
 
-The Bridge Pattern solves this by separating the shape abstraction from the rendering implementation.
+```mermaid
+classDiagram
+    class Shape {
+        <<abstract>>
+        #renderer: Renderer
+        +draw() void*
+    }
+    class Circle {
+        -radius: number
+        +draw() void
+    }
+    class Rectangle {
+        -width: number
+        -height: number
+        +draw() void
+    }
+    class Renderer {
+        <<interface>>
+        +renderCircle(radius) void
+        +renderRectangle(width, height) void
+    }
+    class SvgRenderer
+    class CanvasRenderer
 
-## Solution
+    Shape <|-- Circle
+    Shape <|-- Rectangle
+    Shape o-- Renderer : bridge
+    Renderer <|.. SvgRenderer
+    Renderer <|.. CanvasRenderer
+```
 
-The Bridge Pattern provides two hierarchies that bridge to each other:
+- **`Shape`** (Abstraction) `Renderer`'ga havolani saqlaydi va past darajadagi chizishni unga topshiradi.
+- **`Circle` / `Rectangle`** (Refined Abstractions) abstraksiyani shaklga xos ma'lumotlar bilan kengaytiradi.
+- **`Renderer`** (Implementor) primitiv operatsiyalarni belgilaydi; **`SvgRenderer` / `CanvasRenderer`** — Concrete Implementor'lar.
+- Ikkala ierarxiya mustaqil ravishda o'zgaradi: shakl yoki renderer qo'shish boshqa tomonda hech qanday o'zgarishni talab qilmaydi.
 
-1. **Abstraction Hierarchy**: `Shape` with concrete classes like `Circle`, `Rectangle`
-2. **Implementation Hierarchy**: `Renderer` with concrete classes like `WindowsRenderer`, `LinuxRenderer`
+## Muammo (The Problem)
 
-The abstraction holds a reference to an implementation, allowing them to vary independently:
+Ko'plab shakllar va ko'plab rendering dvigatellarini qo'llab-quvvatlashi kerak bo'lgan grafik kutubxonani tasavvur qiling:
 
-- Add new shapes without modifying existing renderers
-- Add new renderers without modifying existing shapes
+- Shakllar: Circle, Rectangle, Triangle, Polygon
+- Renderer'lar: SVG, Canvas, WebGL, PDF
 
-## Implementation
+Bridge'siz quyidagi kabi klasslarga ega bo'lasiz:
+
+- SvgCircle, CanvasCircle, WebGlCircle, PdfCircle
+- SvgRectangle, CanvasRectangle, WebGlRectangle, PdfRectangle
+
+Bu ko'paytirish muammosini keltirib chiqaradi. Bitta shakl qo'shsangiz, har bir renderer uchun bittadan versiya qo'shishingiz kerak. Bitta renderer qo'shsangiz, har bir shakl uchun bittadan versiya qo'shishingiz kerak.
+
+### Muammo misoli
+
+```typescript
+// ❌ Yomon: ierarxiya portlashi
+class SvgCircle {}
+class CanvasCircle {}
+class WebGlCircle {}
+class PdfCircle {}
+
+class SvgRectangle {}
+class CanvasRectangle {}
+class WebGlRectangle {}
+class PdfRectangle {}
+```
+
+Bunday tuzilmani kengaytirish qiyin va qo'llab-quvvatlash murakkab.
+
+## Yechim (The Solution)
+
+Bridge muammoni ikkita ierarxiyaga bo'lish orqali hal qiladi:
+
+1. **Abstraksiya (Abstraction)**: mijozlar foydalanadigan shakl, UI komponenti yoki biznes tushunchasi
+2. **Amalga oshirish (Implementation)**: renderer, saqlash qatlami, drayver yoki platformaga xos bajaruvchi
+
+Abstraksiya amalga oshirishga havolani saqlaydi va ishni unga topshiradi.
+
+```typescript
+// Abstraksiya
+abstract class Shape {
+  constructor(protected renderer: Renderer) {}
+  abstract draw(): void;
+}
+
+// Implementatsiya
+interface Renderer {
+  renderCircle(radius: number): void;
+  renderRectangle(width: number, height: number): void;
+}
+```
+
+## Amalga oshirish (Implementation)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// ========== Implementation Hierarchy ==========
 interface Renderer {
   renderCircle(radius: number): void;
   renderRectangle(width: number, height: number): void;
 }
 
-class WindowsRenderer implements Renderer {
-renderCircle(radius: number): void {
-console.log(`[Windows] Rendering circle with radius ${radius} using DirectX`);
+class SvgRenderer implements Renderer {
+  renderCircle(radius: number): void {
+    console.log(`SVG circle with radius ${radius}`);
+  }
+
+  renderRectangle(width: number, height: number): void {
+    console.log(`SVG rectangle ${width}x${height}`);
+  }
 }
 
-renderRectangle(width: number, height: number): void {
-console.log(`[Windows] Rendering rectangle ${width}x${height} using DirectX`);
-}
+class CanvasRenderer implements Renderer {
+  renderCircle(radius: number): void {
+    console.log(`Canvas circle with radius ${radius}`);
+  }
+
+  renderRectangle(width: number, height: number): void {
+    console.log(`Canvas rectangle ${width}x${height}`);
+  }
 }
 
-class LinuxRenderer implements Renderer {
-renderCircle(radius: number): void {
-console.log(`[Linux] Rendering circle with radius ${radius} using X11`);
-}
-
-renderRectangle(width: number, height: number): void {
-console.log(`[Linux] Rendering rectangle ${width}x${height} using X11`);
-}
-}
-
-class WebRenderer implements Renderer {
-renderCircle(radius: number): void {
-console.log(`[Web] Rendering circle with radius ${radius} using Canvas API`);
-}
-
-renderRectangle(width: number, height: number): void {
-console.log(`[Web] Rendering rectangle ${width}x${height} using SVG`);
-}
-}
-
-// ========== Abstraction Hierarchy ==========
 abstract class Shape {
-constructor(protected renderer: Renderer) {}
-
-abstract draw(): void;
+  constructor(protected readonly renderer: Renderer) {}
+  abstract draw(): void;
 }
 
 class Circle extends Shape {
-constructor(private radius: number, renderer: Renderer) {
-super(renderer);
-}
+  constructor(
+    private readonly radius: number,
+    renderer: Renderer,
+  ) {
+    super(renderer);
+  }
 
-draw(): void {
-console.log(`Drawing circle`);
-this.renderer.renderCircle(this.radius);
-}
-
-getArea(): number {
-return Math.PI _ this.radius _ this.radius;
-}
+  draw(): void {
+    this.renderer.renderCircle(this.radius);
+  }
 }
 
 class Rectangle extends Shape {
-constructor(private width: number, private height: number, renderer: Renderer) {
-super(renderer);
+  constructor(
+    private readonly width: number,
+    private readonly height: number,
+    renderer: Renderer,
+  ) {
+    super(renderer);
+  }
+
+  draw(): void {
+    this.renderer.renderRectangle(this.width, this.height);
+  }
 }
 
-draw(): void {
-console.log(`Drawing rectangle`);
-this.renderer.renderRectangle(this.width, this.height);
-}
+const circle = new Circle(10, new SvgRenderer());
+const rectangle = new Rectangle(20, 12, new CanvasRenderer());
 
-getArea(): number {
-return this.width \* this.height;
-}
-}
-
-// ========== Usage ==========
-const windowsRenderer = new WindowsRenderer();
-const linuxRenderer = new LinuxRenderer();
-const webRenderer = new WebRenderer();
-
-// Create same shapes with different renderers
-const windowsCircle = new Circle(5, windowsRenderer);
-const linuxCircle = new Circle(5, linuxRenderer);
-const webCircle = new Circle(5, webRenderer);
-
-// All shapes work independently of renderer
-windowsCircle.draw();
-linuxCircle.draw();
-webCircle.draw();
-
-console.log('---');
-
-const windowsRect = new Rectangle(10, 20, windowsRenderer);
-const linuxRect = new Rectangle(10, 20, linuxRenderer);
-
-windowsRect.draw();
-linuxRect.draw();
-
-// ========== Real-world example: Device & Remote Controls ==========
-
-interface Device {
-powerOn(): void;
-powerOff(): void;
-setChannel(channel: number): void;
-getStatus(): string;
-}
-
-class TV implements Device {
-private isOn: boolean = false;
-private currentChannel: number = 1;
-
-powerOn(): void {
-this.isOn = true;
-console.log('TV is now ON');
-}
-
-powerOff(): void {
-this.isOn = false;
-console.log('TV is now OFF');
-}
-
-setChannel(channel: number): void {
-if (this.isOn) {
-this.currentChannel = channel;
-console.log(`TV changed to channel ${channel}`);
-}
-}
-
-getStatus(): string {
-return this.isOn ? `TV is ON, channel: ${this.currentChannel}` : 'TV is OFF';
-}
-}
-
-class Radio implements Device {
-private isOn: boolean = false;
-private currentFrequency: number = 88.5;
-
-powerOn(): void {
-this.isOn = true;
-console.log('Radio is now ON');
-}
-
-powerOff(): void {
-this.isOn = false;
-console.log('Radio is now OFF');
-}
-
-setChannel(frequency: number): void {
-if (this.isOn) {
-this.currentFrequency = frequency;
-console.log(`Radio tuned to ${frequency} FM`);
-}
-}
-
-getStatus(): string {
-return this.isOn ? `Radio is ON, tuned to: ${this.currentFrequency} FM` : 'Radio is OFF';
-}
-}
-
-// Remote control abstraction
-abstract class RemoteControl {
-constructor(protected device: Device) {}
-
-togglePower(): void {
-if (this.device.getStatus().includes('ON')) {
-this.device.powerOff();
-} else {
-this.device.powerOn();
-}
-}
-
-changeChannel(channel: number): void {
-this.device.setChannel(channel);
-}
-
-getStatus(): void {
-console.log(this.device.getStatus());
-}
-
-abstract mute(): void;
-}
-
-class BasicRemote extends RemoteControl {
-mute(): void {
-console.log('Basic remote: muting device');
-}
-}
-
-class AdvancedRemote extends RemoteControl {
-mute(): void {
-console.log('Advanced remote: applying noise cancellation');
-}
-
-record(): void {
-console.log('Advanced remote: recording content');
-}
-
-// Add more advanced features
-}
-
-// ========== Usage ==========
-const tv = new TV();
-const basicRemote = new BasicRemote(tv);
-
-basicRemote.togglePower();
-basicRemote.changeChannel(10);
-basicRemote.getStatus();
-
-console.log('---');
-
-const radio = new Radio();
-const advancedRemote = new AdvancedRemote(radio);
-
-advancedRemote.togglePower();
-advancedRemote.changeChannel(102.3);
-advancedRemote.record();
-advancedRemote.getStatus();
+circle.draw();
+rectangle.draw();
 ```
 
 ```python [Python]
 from abc import ABC, abstractmethod
-
-# ========== Implementation Hierarchy ==========
 
 class Renderer(ABC):
     @abstractmethod
@@ -283,28 +200,19 @@ class Renderer(ABC):
     def render_rectangle(self, width: float, height: float) -> None:
         pass
 
-class WindowsRenderer(Renderer):
+class SvgRenderer(Renderer):
     def render_circle(self, radius: float) -> None:
-        print(f"[Windows] Rendering circle with radius {radius} using DirectX")
+        print(f"SVG circle with radius {radius}")
 
     def render_rectangle(self, width: float, height: float) -> None:
-        print(f"[Windows] Rendering rectangle {width}x{height} using DirectX")
+        print(f"SVG rectangle {width}x{height}")
 
-class LinuxRenderer(Renderer):
+class CanvasRenderer(Renderer):
     def render_circle(self, radius: float) -> None:
-        print(f"[Linux] Rendering circle with radius {radius} using X11")
+        print(f"Canvas circle with radius {radius}")
 
     def render_rectangle(self, width: float, height: float) -> None:
-        print(f"[Linux] Rendering rectangle {width}x{height} using X11")
-
-class WebRenderer(Renderer):
-    def render_circle(self, radius: float) -> None:
-        print(f"[Web] Rendering circle with radius {radius} using Canvas API")
-
-    def render_rectangle(self, width: float, height: float) -> None:
-        print(f"[Web] Rendering rectangle {width}x{height} using SVG")
-
-# ========== Abstraction Hierarchy ==========
+        print(f"Canvas rectangle {width}x{height}")
 
 class Shape(ABC):
     def __init__(self, renderer: Renderer):
@@ -320,12 +228,7 @@ class Circle(Shape):
         self._radius = radius
 
     def draw(self) -> None:
-        print("Drawing circle")
         self._renderer.render_circle(self._radius)
-
-    def get_area(self) -> float:
-        import math
-        return math.pi * self._radius ** 2
 
 class Rectangle(Shape):
     def __init__(self, width: float, height: float, renderer: Renderer):
@@ -334,222 +237,359 @@ class Rectangle(Shape):
         self._height = height
 
     def draw(self) -> None:
-        print("Drawing rectangle")
         self._renderer.render_rectangle(self._width, self._height)
 
-    def get_area(self) -> float:
-        return self._width * self._height
+circle = Circle(10, SvgRenderer())
+rectangle = Rectangle(20, 12, CanvasRenderer())
 
-# ========== Usage ==========
+circle.draw()
+rectangle.draw()
+```
 
-windows_renderer = WindowsRenderer()
-linux_renderer = LinuxRenderer()
-web_renderer = WebRenderer()
+```java [Java]
+interface Renderer {
+    void renderCircle(double radius);
+    void renderRectangle(double width, double height);
+}
 
-# Create same shapes with different renderers
-windows_circle = Circle(5, windows_renderer)
-linux_circle = Circle(5, linux_renderer)
-web_circle = Circle(5, web_renderer)
+class SvgRenderer implements Renderer {
+    @Override
+    public void renderCircle(double radius) {
+        System.out.println("SVG circle with radius " + radius);
+    }
 
-windows_circle.draw()
-linux_circle.draw()
-web_circle.draw()
+    @Override
+    public void renderRectangle(double width, double height) {
+        System.out.println("SVG rectangle " + width + "x" + height);
+    }
+}
 
-print('---')
+class CanvasRenderer implements Renderer {
+    @Override
+    public void renderCircle(double radius) {
+        System.out.println("Canvas circle with radius " + radius);
+    }
 
-windows_rect = Rectangle(10, 20, windows_renderer)
-linux_rect = Rectangle(10, 20, linux_renderer)
+    @Override
+    public void renderRectangle(double width, double height) {
+        System.out.println("Canvas rectangle " + width + "x" + height);
+    }
+}
 
-windows_rect.draw()
-linux_rect.draw()
+abstract class Shape {
+    protected final Renderer renderer;
 
-# ========== Real-world example: Device & Remote Controls ==========
+    protected Shape(Renderer renderer) {
+        this.renderer = renderer;
+    }
 
-class Device(ABC):
-    @abstractmethod
-    def power_on(self) -> None:
-        pass
+    public abstract void draw();
+}
 
-    @abstractmethod
-    def power_off(self) -> None:
-        pass
+class Circle extends Shape {
+    private final double radius;
 
-    @abstractmethod
-    def set_channel(self, channel: float) -> None:
-        pass
+    public Circle(double radius, Renderer renderer) {
+        super(renderer);
+        this.radius = radius;
+    }
 
-    @abstractmethod
-    def get_status(self) -> str:
-        pass
+    @Override
+    public void draw() {
+        renderer.renderCircle(radius);
+    }
+}
 
-class TV(Device):
-    def __init__(self):
-        self._is_on = False
-        self._current_channel = 1
+class Rectangle extends Shape {
+    private final double width;
+    private final double height;
 
-    def power_on(self) -> None:
-        self._is_on = True
-        print("TV is now ON")
+    public Rectangle(double width, double height, Renderer renderer) {
+        super(renderer);
+        this.width = width;
+        this.height = height;
+    }
 
-    def power_off(self) -> None:
-        self._is_on = False
-        print("TV is now OFF")
+    @Override
+    public void draw() {
+        renderer.renderRectangle(width, height);
+    }
+}
+```
 
-    def set_channel(self, channel: int) -> None:
-        if self._is_on:
-            self._current_channel = channel
-            print(f"TV changed to channel {channel}")
+```go [Go]
+package main
 
-    def get_status(self) -> str:
-        return f"TV is {'ON' if self._is_on else 'OFF'}, channel: {self._current_channel}" if self._is_on else "TV is OFF"
+import "fmt"
 
-class Radio(Device):
-    def __init__(self):
-        self._is_on = False
-        self._current_frequency = 88.5
+type Renderer interface {
+	RenderCircle(radius float64)
+	RenderRectangle(width, height float64)
+}
 
-    def power_on(self) -> None:
-        self._is_on = True
-        print("Radio is now ON")
+type SvgRenderer struct{}
 
-    def power_off(self) -> None:
-        self._is_on = False
-        print("Radio is now OFF")
+func (r *SvgRenderer) RenderCircle(radius float64) {
+	fmt.Printf("SVG circle with radius %.1f\n", radius)
+}
 
-    def set_channel(self, frequency: float) -> None:
-        if self._is_on:
-            self._current_frequency = frequency
-            print(f"Radio tuned to {frequency} FM")
+func (r *SvgRenderer) RenderRectangle(width, height float64) {
+	fmt.Printf("SVG rectangle %.1fx%.1f\n", width, height)
+}
 
-    def get_status(self) -> str:
-        return f"Radio is {'ON' if self._is_on else 'OFF'}, tuned to: {self._current_frequency} FM" if self._is_on else "Radio is OFF"
+type CanvasRenderer struct{}
 
-# Remote control abstraction
-class RemoteControl(ABC):
-    def __init__(self, device: Device):
-        self._device = device
+func (r *CanvasRenderer) RenderCircle(radius float64) {
+	fmt.Printf("Canvas circle with radius %.1f\n", radius)
+}
 
-    def toggle_power(self) -> None:
-        if "ON" in self._device.get_status():
-            self._device.power_off()
-        else:
-            self._device.power_on()
+func (r *CanvasRenderer) RenderRectangle(width, height float64) {
+	fmt.Printf("Canvas rectangle %.1fx%.1f\n", width, height)
+}
 
-    def change_channel(self, channel: float) -> None:
-        self._device.set_channel(channel)
+type Shape interface {
+	Draw()
+}
 
-    def get_status(self) -> None:
-        print(self._device.get_status())
+type Circle struct {
+	renderer Renderer
+	radius   float64
+}
 
-    @abstractmethod
-    def mute(self) -> None:
-        pass
+func NewCircle(radius float64, renderer Renderer) *Circle {
+	return &Circle{radius: radius, renderer: renderer}
+}
 
-class BasicRemote(RemoteControl):
-    def mute(self) -> None:
-        print("Basic remote: muting device")
+func (c *Circle) Draw() {
+	c.renderer.RenderCircle(c.radius)
+}
 
-class AdvancedRemote(RemoteControl):
-    def mute(self) -> None:
-        print("Advanced remote: applying noise cancellation")
+type Rectangle struct {
+	renderer Renderer
+	width     float64
+	height    float64
+}
 
-    def record(self) -> None:
-        print("Advanced remote: recording content")
+func NewRectangle(width, height float64, renderer Renderer) *Rectangle {
+	return &Rectangle{width: width, height: height, renderer: renderer}
+}
 
-# ========== Usage ==========
+func (r *Rectangle) Draw() {
+	r.renderer.RenderRectangle(r.width, r.height)
+}
+```
 
-tv = TV()
-basic_remote = BasicRemote(tv)
+```rust [Rust]
+trait Renderer {
+    fn render_circle(&self, radius: f64);
+    fn render_rectangle(&self, width: f64, height: f64);
+}
 
-basic_remote.toggle_power()
-basic_remote.change_channel(10)
-basic_remote.get_status()
+struct SvgRenderer;
 
-print('---')
+impl Renderer for SvgRenderer {
+    fn render_circle(&self, radius: f64) {
+        println!("SVG circle with radius {}", radius);
+    }
 
-radio = Radio()
-advanced_remote = AdvancedRemote(radio)
+    fn render_rectangle(&self, width: f64, height: f64) {
+        println!("SVG rectangle {}x{}", width, height);
+    }
+}
 
-advanced_remote.toggle_power()
-advanced_remote.change_channel(102.3)
-advanced_remote.record()
-advanced_remote.get_status()
+struct CanvasRenderer;
+
+impl Renderer for CanvasRenderer {
+    fn render_circle(&self, radius: f64) {
+        println!("Canvas circle with radius {}", radius);
+    }
+
+    fn render_rectangle(&self, width: f64, height: f64) {
+        println!("Canvas rectangle {}x{}", width, height);
+    }
+}
+
+trait Shape {
+    fn draw(&self);
+}
+
+struct Circle<'a> {
+    renderer: &'a dyn Renderer,
+    radius: f64,
+}
+
+impl<'a> Circle<'a> {
+    fn new(radius: f64, renderer: &'a dyn Renderer) -> Self {
+        Self { renderer, radius }
+    }
+}
+
+impl<'a> Shape for Circle<'a> {
+    fn draw(&self) {
+        self.renderer.render_circle(self.radius);
+    }
+}
+
+struct Rectangle<'a> {
+    renderer: &'a dyn Renderer,
+    width: f64,
+    height: f64,
+}
+
+impl<'a> Rectangle<'a> {
+    fn new(width: f64, height: f64, renderer: &'a dyn Renderer) -> Self {
+        Self { renderer, width, height }
+    }
+}
+
+impl<'a> Shape for Rectangle<'a> {
+    fn draw(&self) {
+        self.renderer.render_rectangle(self.width, self.height);
+    }
+}
 ```
 
 :::
 
-## Real-World Example
+## Haqiqiy hayotdagi misol (Real-World Example)
 
-A cross-platform drawing application needs to support:
+Amaliy bridge UI toolkit'larda uchraydi. Abstraksiya — tugma, modal oyna yoki diagramma kabi komponent. Amalga oshirish esa rendering backend'i: DOM, Canvas, mobil platformaning native boshqaruv elementlari yoki PDF chiqishi.
 
-- **Abstractions**: Different drawing tools (Pen, Brush, Eraser)
-- **Implementations**: Different graphics libraries (OpenGL, DirectX, Canvas)
+Amalga oshirish qatlamini almashtirish orqali bir xil tugma abstraksiyasidan brauzer ilovasida, desktop ilovada yoki hisobot generatorida foydalanish mumkin. Bu yuqori darajadagi API'ni barqaror saqlaydi va renderer'ning o'zgarishiga imkon beradi.
 
-Using the Bridge Pattern:
+```typescript
+interface ThemeRenderer {
+  drawButton(label: string, primary: boolean): void;
+  drawInput(placeholder: string): void;
+}
 
-- Adding a new drawing tool doesn't require changes to graphics implementations
-- Adding support for a new graphics library doesn't require changes to drawing tools
-- Any tool can use any graphics library seamlessly
+abstract class UIComponent {
+  constructor(protected renderer: ThemeRenderer) {}
+}
 
-Similarly, a multi-platform UI framework might have:
+class Button extends UIComponent {
+  constructor(
+    private label: string,
+    private primary: boolean,
+    renderer: ThemeRenderer,
+  ) {
+    super(renderer);
+  }
 
-- **Abstractions**: Button, TextBox, Window components
-- **Implementations**: Platform-specific renderers (WindowsRenderer, MacRenderer, AndroidRenderer)
+  render(): void {
+    this.renderer.drawButton(this.label, this.primary);
+  }
+}
+```
 
-## Advantages
+Bu foydali, chunki komponent API'si o'zi brauzerda, iOS'da, PDF'da yoki terminal UI'da chizilayotganini bilishi shart emas.
 
-::: tip
-✅ **Avoids Dimension Explosion**: Prevents N×M class explosion with multiple variations
+## Afzalliklari (Advantages)
 
-✅ **Independent Variation**: Abstraction and implementation can change independently
+- Klasslar ierarxiyasi portlashining oldini oladi
+- Abstraksiya va amalga oshirishning mustaqil rivojlanishiga imkon beradi
+- Platformaga xos tafsilotlarni alohida saqlaydi
+- Abstraksiyani test qilishni osonlashtiradi
+- Abstraksiyani takrorlamasdan bir nechta backend'ni qo'llab-quvvatlaydi
+- Merosdan ko'ra kompozitsiyani rag'batlantiradi
 
-✅ **Runtime Flexibility**: Switch implementations at runtime without changing code
+## Kamchiliklari (Disadvantages)
 
-✅ **Deferred Binding**: Implementation choice doesn't affect abstraction design
+- Yana bir bilvosita (indirection) qatlam qo'shadi
+- Juda kichik ierarxiyalar uchun ortiqcha bo'lishi mumkin
+- Interfeysni oldindan puxta loyihalashni talab qiladi
+- Oddiy meros daraxtiga qaraganda tushunish qiyinroq bo'lishi mumkin
+- Ko'proq obyektlar va topshirish (delegation) yo'llarini keltirib chiqarishi mumkin
 
-✅ **Promotes Abstraction**: Encourages thinking in terms of abstractions first
+## Qachon foydalanish kerak (When to Use)
 
-✅ **Easy to Extend**: Add new abstractions or implementations without modifying existing code
+- O'zgarishning ikkita mustaqil o'qi mavjud
+- Amalga oshirishlar tez-tez o'zgarishini kutyapsiz
+- N×M klasslar o'sishidan qochmoqchisiz
+- Bir nechta backend ustidan barqaror abstraksiya loyihalayapsiz
+- Platformaga xos xatti-harakatni toza tarzda qo'llab-quvvatlashingiz kerak
 
-✅ **Single Responsibility**: Reduces coupling by separating concerns
-:::
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-## Disadvantages
+- Faqat bitta amalga oshirish bor va real muqobil yo'q
+- Abstraksiya juda oddiy va o'sishi ehtimoldan yiroq
+- Oddiy strategy yoki factory yetarli
+- Qo'shimcha bilvositalik sezilarli moslashuvchanlik bermaydi
+- Domen modelini kuzatib borish allaqachon qiyin
 
-::: warning
-❌ **Added Complexity**: Introduces more classes and indirection
+## Keng tarqalgan xatolar (Common Mistakes)
 
-❌ **Harder to Understand**: The design can be complex for simple cases
+### 1-xato: Bridge'ni Adapter bilan adashtirish
 
-❌ **Performance Overhead**: Extra indirection adds method call overhead
+```typescript
+// ❌ Yomon: mavjud mos kelmaydigan API'ni go'yo bridge sifatida loyihalangandek ko'rish
+// Adapter mos kelmaslikni keyinchalik hal qiladi.
 
-❌ **Overkill for Simple Cases**: May be unnecessary when you have few variations
+// ✅ Yaxshi: ikkita mustaqil ierarxiyani ataylab loyihalaganda Bridge'dan foydalaning.
+```
 
-❌ **Difficult Design Upfront**: Requires identifying the right abstractions beforehand
+### 2-xato: Abstraksiyaning amalga oshirish tafsilotlarini bilishi
 
-❌ **Maintenance Burden**: Multiple hierarchies need to be kept in sync
-:::
+```typescript
+// ❌ Yomon: abstraksiya konkret renderer turlariga qarab tarmoqlanadi
+if (renderer instanceof CanvasRenderer) {
+  // maxsus holat
+}
 
-## When to Use
+// ✅ Yaxshi: abstraksiya konkret implementatsiyalardan bexabar bo'lsin
+renderer.renderCircle(radius);
+```
 
-- You want to avoid permanent binding between abstraction and implementation
-- Both abstraction and implementation need to be extended with new subclasses
-- You have multiple independent dimensions of variation
-- You want to share implementation among multiple objects
-- You're building platform-independent libraries or frameworks
-- You need to switch implementations at runtime
+### 3-xato: Amalga oshirishning mijoz kodiga sizib chiqishi
 
-## When NOT to Use
+```typescript
+// ❌ Yomon: mijozlar to'g'ridan-to'g'ri SvgRenderer'ga bog'liq
+const circle = new Circle(10, new SvgRenderer());
 
-- Your system has only one or two implementations (too simple)
-- The abstraction and implementation are tightly coupled by nature
-- The added complexity doesn't provide sufficient benefit
-- Performance is critical and you need minimal method call overhead
-- The design will remain stable with minimal future changes
+// ✅ Yaxshi: imkon qadar mijozlar Renderer abstraksiyasiga bog'liq bo'lsin
+```
 
-## Related Patterns
+### 4-xato: Oddiy strategy yetarli bo'lgan joyda Bridge'dan foydalanish
 
-- **Adapter Pattern**: Both involve working with different interfaces, but Adapter makes incompatible interfaces work together while Bridge separates abstraction from implementation.
-- **Abstract Factory Pattern**: Often used together with Bridge to create abstract and concrete implementations.
-- **Strategy Pattern**: Both involve encapsulating variations, but Bridge varies both abstraction and implementation while Strategy only varies algorithms.
-- **Decorator Pattern**: Both use composition for flexibility, but Decorator adds responsibilities while Bridge separates abstraction from implementation.
+```typescript
+// ❌ Yomon: bir martalik backend almashtirish uchun ortiqcha murakkablashtirish
+
+// ✅ Yaxshi: Bridge bir nechta uzoq muddatli implementatsiyaga ega barqaror abstraksiyalar uchun
+```
+
+## Aloqador patternlar (Related Patterns)
+
+- **[Adapter](/uz/structural/adapter)**: Mavjud nomuvofiqlikni tuzatadi
+- **[Strategy](/uz/behavioral/strategy)**: U ham xatti-harakatni topshiradi, lekin Bridge abstraksiya va amalga oshirishni loyihalash bosqichida ajratish haqida
+- **[Abstract Factory](/uz/creational/abstract-factory)**: Bridge uchun bir-biriga mos amalga oshirish oilalarini yaratishi mumkin
+- **[Decorator](/uz/structural/decorator)**: Abstraksiya va amalga oshirishni ajratmasdan mas'uliyatlar qo'shadi
+
+## Zamonaviy muqobillar (Modern Alternatives)
+
+- Interfeys kontraktlariga ega plagin arxitekturalari
+- Backend servislar bilan dependency injection
+- Konfiguratsiyaga asoslangan rendering quvurlari (pipeline)
+- Frontend freymvorklaridagi servis abstraksiyalari
+- Kompozitsiya bilan birga trait, protocol yoki interfeyslarni tilning o'zi qo'llab-quvvatlashi
+
+## Intervyu uchun maslahatlar (Interview Insights)
+
+**1-savol: Bridge'ning asosiy maqsadi nima?**
+
+J: Abstraksiyani amalga oshirishdan ajratish, shunda ikkalasi mustaqil ravishda o'zgara oladi. Aynan shu klasslar portlashining oldini oladi.
+
+**2-savol: Bridge Adapter'dan nimasi bilan farq qiladi?**
+
+J: Adapter mos kelmaydigan interfeyslarni yarashtiradi. Bridge esa dizaynga oldindan kiritiladi, shunda abstraksiya hech qachon bitta amalga oshirishga qattiq bog'lanib qolmaydi.
+
+**3-savol: Nega shunchaki merosdan foydalanmaslik kerak?**
+
+J: Meros o'zgarish o'qlarini bitta ierarxiyaga birlashtiradi. Bridge ularni alohida saqlaydi va N×M klasslar muammosidan qochadi.
+
+**4-savol: Bridge'ni dependency injection bilan ishlatish mumkinmi?**
+
+J: Ha. DI ko'pincha amalga oshirishni abstraksiyaga kiritish (inject) uchun ishlatiladi.
+
+**5-savol: Qachon Bridge yomon tanlov hisoblanadi?**
+
+J: O'zgarishning mazmunli ikkinchi o'qi bo'lmaganda yoki abstraksiya qo'shimcha bilvositalikni oqlash uchun juda kichik bo'lganda.

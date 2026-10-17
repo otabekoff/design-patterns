@@ -6,7 +6,7 @@ icon: Settings
 
 # Service Locator Pattern
 
-<CoverImage src="/covers/architectural/service-locator.png" alt="Cover">
+<CoverImage src="/covers/architectural/service-locator.webp" alt="Cover">
   <h1>Service Locator</h1>
   <p>A bright yellow "Information Desk" kiosk in a futuristic city where robots go to ask: "Where is the Database?" and the locator robot hands them a glowing card.</p>
 </CoverImage>
@@ -27,7 +27,7 @@ class OrderService {
   private paymentGateway = new StripeGateway(); // Hardcoded dependency
   private logger = new ConsoleLogger();         // Hardcoded dependency
 
-  public process() { ... }
+  public process() { /* ... */ }
 }
 ```
 
@@ -373,10 +373,9 @@ func main() {
 ```
 
 ```rust [Rust]
-use std::any::Any;
+use std::any::{Any, TypeId};
 use std::collections::HashMap;
-use std::sync::Mutex;
-use lazy_static::lazy_static; // Requires `lazy_static` crate
+use std::sync::{Arc, OnceLock, RwLock};
 
 // 1. Interfaces (Traits)
 pub trait ILogger: Send + Sync {
@@ -398,39 +397,35 @@ impl IDatabase for PostgresDatabase {
 }
 
 // 3. The Service Locator (Using global state in Rust is intentionally difficult)
-lazy_static! {
-    static ref LOCATOR: Mutex<HashMap<&'static str, Box<dyn Any + Send + Sync>>> = Mutex::new(HashMap::new());
-}
+// Services are keyed by their *interface* type (e.g. `Arc<dyn ILogger>`), so any implementation can be swapped in
+type Registry = RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>;
+static LOCATOR: OnceLock<Registry> = OnceLock::new();
 
 pub struct ServiceLocator;
 
 impl ServiceLocator {
-    pub fn register<T: Any + Send + Sync>(name: &'static str, service: T) {
-        let mut map = LOCATOR.lock().unwrap();
-        map.insert(name, Box::new(service));
+    fn registry() -> &'static Registry {
+        LOCATOR.get_or_init(|| RwLock::new(HashMap::new()))
     }
 
-    // A simplified fetch for demonstration. In a real app, downcasting requires care.
-    pub fn execute_logger(name: &'static str, msg: &str) {
-        let map = LOCATOR.lock().unwrap();
-        if let Some(service) = map.get(name) {
-            if let Some(logger) = service.downcast_ref::<ConsoleLogger>() {
-                logger.log(msg);
-            }
-        } else {
-            panic!("Service not found");
-        }
+    pub fn register<T: ?Sized + 'static>(service: Arc<T>)
+    where
+        Arc<T>: Send + Sync,
+    {
+        Self::registry().write().unwrap().insert(TypeId::of::<Arc<T>>(), Box::new(service));
     }
 
-    pub fn execute_db(name: &'static str) {
-        let map = LOCATOR.lock().unwrap();
-        if let Some(service) = map.get(name) {
-            if let Some(db) = service.downcast_ref::<PostgresDatabase>() {
-                db.save();
-            }
-        } else {
-            panic!("Service not found");
-        }
+    pub fn resolve<T: ?Sized + 'static>() -> Arc<T>
+    where
+        Arc<T>: Send + Sync,
+    {
+        Self::registry()
+            .read()
+            .unwrap()
+            .get(&TypeId::of::<Arc<T>>())
+            .and_then(|service| service.downcast_ref::<Arc<T>>())
+            .cloned()
+            .unwrap_or_else(|| panic!("Service not registered: {}", std::any::type_name::<T>()))
     }
 }
 
@@ -440,20 +435,23 @@ pub struct UserService;
 impl UserService {
     pub fn new() -> Self {
         // Dependencies are entirely hidden
-        Self {}
+        Self
     }
 
     pub fn register_user(&self, name: &str) {
-        ServiceLocator::execute_logger("Logger", &format!("Registering {}", name));
-        ServiceLocator::execute_db("Database");
+        let logger = ServiceLocator::resolve::<dyn ILogger>();
+        let db = ServiceLocator::resolve::<dyn IDatabase>();
+
+        logger.log(&format!("Registering {}", name));
+        db.save();
     }
 }
 
 // Client Code
 fn main() {
     println!("--- Application Startup ---");
-    ServiceLocator::register("Logger", ConsoleLogger);
-    ServiceLocator::register("Database", PostgresDatabase);
+    ServiceLocator::register::<dyn ILogger>(Arc::new(ConsoleLogger));
+    ServiceLocator::register::<dyn IDatabase>(Arc::new(PostgresDatabase));
 
     println!("\n--- Application Runtime ---");
     let service = UserService::new();

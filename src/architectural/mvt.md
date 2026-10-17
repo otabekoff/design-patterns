@@ -6,7 +6,7 @@ icon: Layout
 
 # Model-View-Template (MVT)
 
-<CoverImage src="/covers/architectural/mvt.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvt.webp" alt="Cover">
   <h1>MVT</h1>
   <p>A professional chef robot (View) taking a raw food package from a pantry (Model) and baking it perfectly into a beautiful heart-shaped geometric cake mold (Template).</p>
 </CoverImage>

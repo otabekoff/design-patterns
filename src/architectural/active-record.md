@@ -6,7 +6,7 @@ icon: Table
 
 # Active Record Pattern
 
-<CoverImage src="/covers/architectural/active-record.png" alt="Cover">
+<CoverImage src="/covers/architectural/active-record.webp" alt="Cover">
   <h1>Active Record</h1>
   <p>A funny file folder with giant, muscular cartoon arms and legs, carrying its own data sheets while confidently stomping towards a neat filing cabinet to file itself.</p>
 </CoverImage>

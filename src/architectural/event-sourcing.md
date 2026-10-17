@@ -6,7 +6,7 @@ icon: Zap
 
 # Event Sourcing
 
-<CoverImage src="/covers/architectural/event-sourcing.png" alt="Cover">
+<CoverImage src="/covers/architectural/event-sourcing.webp" alt="Cover">
   <h1>Event Sourcing</h1>
   <p>A neat, glowing ledger book where each page lists a simple transactional event ("+1 Apple", "-2 Apples", "+5 Apples"), and next to it, a basket of apples updates automatically as a robot plays back the pages.</p>
 </CoverImage>

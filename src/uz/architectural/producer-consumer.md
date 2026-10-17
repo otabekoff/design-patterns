@@ -1,274 +1,347 @@
 ---
-title: Producer-Consumer (Ishlab chiqaruvchi-Iste'molchi)
-description: Buffer yoki navbat yordamida ishlab chiqaruvchilar va iste'molchilarni ajratadi
+title: Producer-Consumer
+description: Asinxron navbat yoki bufer yordamida ma'lumot yaratishni uni qayta ishlashdan ajratadi.
 icon: Play
 ---
 
-# Producer-Consumer (Ishlab chiqaruvchi-Iste'molchi)
+# Producer-Consumer Pattern
 
-<CoverImage src="/covers/architectural/producer-consumer.png" alt="Cover">
+<CoverImage src="/covers/architectural/producer-consumer.webp" alt="Cover">
   <h1>Producer Consumer</h1>
-  <p>A fun conveyor belt: three enthusiastic baker robots (Producers) are tossing fresh donuts into a shared wooden crate, while three hungry customer robots (Consumers) grab and eat them from the other side.</p>
+  <p>Qiziqarli konveyer lentasi: uchta g'ayratli novvoy robot (Ishlab chiqaruvchilar) yangi pishgan donutlarni umumiy yog'och qutiga tashlamoqda, uchta och mijoz robot (Iste'molchilar) esa ularni narigi tomondan olib yemoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Producer-Consumer (Ishlab chiqaruvchi-Iste'molchi)** patterni bufer (buffer) yoki navbatdan (queue) foydalangan holda ma'lumotlarni ishlab chiqarishni ularni iste'mol qilishdan ajratadi (decouples). Ishlab chiqaruvchilar (producers) buferga elementlar qo'shadilar, iste'molchilar (consumers) esa ularni mustaqil ravishda olib, qayta ishlashadi.
+**Producer-Consumer** (Ishlab chiqaruvchi-Iste'molchi) patterni — fundamental parallellik (concurrency) va arxitektura dizayn patterni. U ma'lumot yaratadigan kodni (**Producer**) shu ma'lumotni qayta ishlaydigan koddan (**Consumer**) ular orasiga oraliq **Navbat (Queue)** yoki **Bufer** joylashtirish orqali ajratadi.
 
-Asosiy tushunchalar:
+Bu ikkala tomonga butunlay turli tezliklarda, turli oqimlarda (thread) yoki hatto butunlay boshqa serverlarda ishlash imkonini beradi.
 
-- **Producer (Ishlab chiqaruvchi)**: Ma'lumotlarni yoki ish elementlarini yaratadi
-- **Consumer (Iste'molchi)**: Ma'lumotlarni yoki ish elementlarini qayta ishlaydi
-- **Buffer/Queue (Bufer/Navbat)**: Oraliq ma'lumot saqlash joyi
-- **Decoupling (Ajratish)**: Ishlab chiqarish va iste'mol qilishning mustaqil tezliklari
+## Muammo (The Problem)
 
-## Maqsad (Purpose)
+Sinxron arxitekturada ish birligini yaratadigan jarayon keyingi vazifaga o'tishdan oldin shu ish to'liq tugashini kutishi kerak.
 
-Producer-Consumer patternining maqsadi:
-
-- Ishlab chiqarishni iste'mol qilishdan ajratish
-- Turli xil ishlab chiqarish va iste'mol tezliklarini boshqarish
-- Tizimning o'tkazuvchanligini (throughput) yaxshilash
-- Parallel qayta ishlashga imkon berish
-- Resurslarning bloklanishini kamaytirish
-- Asinxron ish jarayonlarini (workflows) qo'llab-quvvatlash
-
-## Muammo (Problem)
-
-Bu ajratishsiz tizimlardagi muammolar:
-
-- Ishlab chiqaruvchilar iste'molchilarni kutib bloklanib qoladi
-- Iste'molchilar ishlab chiqaruvchilarni kutib bloklanib qoladi
-- Resurslardan samarasiz foydalanish
-- Ish yukini muvozanatlash (balance) qiyin
-- Ishlash tezligida muammolar (Performance bottlenecks)
-
-```
-❌ To'g'ridan-to'g'ri Producer-Consumer
-Producer → bloklangan → Consumer
+```javascript
+// ❌ Yomon: Sinxron, bloklovchi arxitektura
+function handleImageUpload(image) {
+    saveToDisk(image);          // 10ms oladi
+    generateThumbnails(image);  // 5000ms oladi (BLOKLAYDI!)
+    return "Upload Complete";   // Foydalanuvchi buni ko'rish uchun 5 soniya kutadi
+}
 ```
 
-## Yechim (Solution)
+Bu jiddiy tor joylarni (bottleneck) keltirib chiqaradi:
+1. **Vaqt tugashi (Timeouts)**: Agar qayta ishlash juda uzoq davom etsa, kiruvchi HTTP so'rovining vaqti tugaydi.
+2. **Zanjirli nosozliklar (Cascading Failures)**: Agar eskiz (thumbnail) generatori qulasa, rasm yuklash butunlay muvaffaqiyatsiz bo'ladi.
+3. **Isrof qilingan resurslar**: Tez ishlovchi producer sekin consumer'ni kutib, bekor turishga majbur bo'ladi.
+4. **Trafik keskin oshishi (Traffic Spikes)**: Agar 1 000 ta foydalanuvchi aynan bir soniyada rasm yuklasa, serveringiz bir vaqtning o'zida 1 000 ta eskizni qayta ishlashga urinadi va CPU qulaydi.
 
-Bufer (buffer) ishlab chiqaruvchi va iste'molchini ajratadi:
+## Yechim (The Solution)
 
+Ular orasiga Bufer (Navbat) kiriting.
+
+1. **Producer** rasmni qabul qiladi, Navbatga xabar yozadi ("123-rasmni qayta ishlash") va foydalanuvchiga darhol muvaffaqiyat haqida javob qaytaradi.
+2. **Consumer** (alohida oqim/serverda ishlaydi) Navbatni doimiy kuzatib turadi. U xabarlarni birma-bir olib, ularni o'z sur'atida qayta ishlaydi.
+
+```mermaid
+flowchart LR
+    P1[Producer 1] --> Q
+    P2[Producer 2] --> Q
+    P3[Producer 3] --> Q
+    
+    subgraph Queue Layer
+        Q[Buffer / Queue]
+    end
+    
+    Q --> C1[Consumer 1]
+    Q --> C2[Consumer 2]
 ```
-✅ Buferga ega Producer-Consumer
-Producer → [Buffer/Queue] → Consumer
-        (Mustaqil tezliklar)
-```
 
-## Amalga oshirish (Implementation)
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Tezkor ovqatlanish restoranini** (Fast Food) tasavvur qiling.
+- **Kassir (Producer)**: Mijozlardan buyurtmalarni juda tez qabul qiladi. U ovqat pishirmaydi. U shunchaki buyurtmani chekka yozib, uni tokchaga suradi.
+- **Cheklar tokchasi (Bufer/Navbat)**: Buyurtmalarni navbatda saqlab turadi.
+- **Oshpazlar (Consumers)**: Cheklarni tokchadan birma-bir olib, ovqat pishiradi. Ovqat pishirish uzoq vaqt oladi.
+
+Agar 50 kishilik avtobus kelsa, kassir vahimaga tushmaydi. U shunchaki cheklar tokchasini to'ldiradi. Oshpazlar esa haddan tashqari yuklanmasdan maksimal tezlikda ishlashda davom etadi va oldingilarini tugatgan sari yangi cheklarni oladi.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+Mahalliy ilova parallelligi uchun buni oqimlar uchun xavfsiz (thread-safe) ma'lumot tuzilmalari (Channel'lar, BlockingQueue'lar) yordamida amalga oshirasiz. Taqsimlangan tizimlar uchun xabar brokerlaridan (Kafka, RabbitMQ, Redis, SQS) foydalanasiz.
+
+1. **Bufer**: Oqimlar uchun xavfsiz Navbat yarating. Xotira tugab qolmasligi uchun unga ixtiyoriy ravishda maksimal sig'im bering (Bounded Buffer — chegaralangan bufer).
+2. **Producer**: Elementlarni yaratib, ularni Navbatga qo'shadigan sikl yoki endpoint.
+3. **Consumer**: Alohida oqim/jarayonda ishlaydigan, Navbatdan elementlarni olib, og'ir ishni bajaradigan sikl.
+
+## Kod misollari (Code Examples)
+
+Biz mahalliy ko'p oqimli (yoki asinxron) Producer-Consumer tizimini amalga oshiramiz. E'tibor bering, turli tillar o'ziga xos idiomatik primitivlardan foydalanadi: Go `channels`, Rust `mpsc`, Java `BlockingQueue`, JS esa asinxron massivlardan foydalanadi.
 
 ::: code-group
 
-```typescript [TypeScript]
-// Queue implementation
-class Queue<T> {
+```typescript [TypeScript (Async/Await)]
+// TypeScript bir oqimli, shuning uchun pattern'ni async/await bilan simulyatsiya qilamiz,
+// bu event loop'ga bajarishni bo'shatib berish imkonini beradi.
+
+class AsyncQueue<T> {
   private items: T[] = [];
+  private resolvers: ((value: T) => void)[] = [];
 
-  enqueue(item: T): void {
-    this.items.push(item);
-  }
-
-  dequeue(): T | undefined {
-    return this.items.shift();
-  }
-
-  isEmpty(): boolean {
-    return this.items.length === 0;
-  }
-
-  size(): number {
-    return this.items.length;
-  }
-}
-
-// Work item
-interface WorkItem {
-  id: number;
-  data: string;
-}
-
-// Producer
-class DataProducer {
-  constructor(private queue: Queue<WorkItem>) {}
-
-  produce(count: number): void {
-    for (let i = 0; i < count; i++) {
-      const item: WorkItem = {
-        id: i,
-        data: `Item ${i}`,
-      };
-      this.queue.enqueue(item);
-      console.log(`✅ Produced: ${item.data}`);
-    }
-  }
-}
-
-// Consumer
-class DataConsumer {
-  constructor(private queue: Queue<WorkItem>) {}
-
-  consume(maxItems: number = 10): void {
-    let count = 0;
-    while (!this.queue.isEmpty() && count < maxItems) {
-      const item = this.queue.dequeue();
-      if (item) {
-        this.processItem(item);
-        count++;
-      }
+  // Producer buni chaqiradi
+  enqueue(item: T) {
+    if (this.resolvers.length > 0) {
+      const resolve = this.resolvers.shift()!;
+      resolve(item); // Kutib turgan consumer'ga to'g'ridan-to'g'ri uzatish
+    } else {
+      this.items.push(item);
     }
   }
 
-  private processItem(item: WorkItem): void {
-    console.log(`👤 Consumed: ${item.data}`);
+  // Consumer buni chaqiradi va kutadi
+  async dequeue(): Promise<T> {
+    if (this.items.length > 0) {
+      return this.items.shift()!;
+    }
+    return new Promise<T>(resolve => {
+      this.resolvers.push(resolve);
+    });
   }
 }
 
-// Usage
-const queue = new Queue<WorkItem>();
-const producer = new DataProducer(queue);
-const consumer = new DataConsumer(queue);
+// 1. Sozlash
+const queue = new AsyncQueue<string>();
 
-console.log("=== Producing items ===");
-producer.produce(5);
+// 2. Consumer sikli (fonda uzluksiz ishlaydi)
+async function startConsumer(id: number) {
+  while (true) {
+    const job = await queue.dequeue();
+    console.log(`Consumer ${id} processing: ${job}`);
+    // Og'ir ishni simulyatsiya qilish
+    await new Promise(r => setTimeout(r, 1000)); 
+  }
+}
 
-console.log("\n=== Consuming items ===");
-consumer.consume();
+// 3. Producer
+function handleUpload(filename: string) {
+  console.log(`Producer received: ${filename}`);
+  queue.enqueue(filename);
+}
 
-console.log(`\nQueue size: ${queue.size()}`);
+// Ishga tushirish
+startConsumer(1);
+startConsumer(2);
+
+// Tez ishlab chiqarish to'lqinlarini queue yutib oladi
+handleUpload("img_01.jpg");
+handleUpload("img_02.jpg");
+handleUpload("img_03.jpg");
+handleUpload("img_04.jpg");
 ```
 
-```python [Python]
-from typing import TypeVar, Generic, List, Optional
-from dataclasses import dataclass
+```python [Python (Multithreading)]
+import threading
 import time
+import queue
 
-T = TypeVar('T')
+# 1. Maksimal sig'imi 5 bo'lgan thread-safe bufer
+buffer = queue.Queue(maxsize=5)
 
-# Queue implementation
-class Queue(Generic[T]):
-    def __init__(self):
-        self.items: List[T] = []
+def producer():
+    for i in range(1, 6):
+        job = f"Job_{i}"
+        print(f"Producer creating {job}")
+        
+        # Queue to'la bo'lsa bloklanadi (Backpressure)
+        buffer.put(job) 
+        time.sleep(0.1) # Tez ishlab chiqaradi
+        
+    buffer.put(None) # Consumer'ni to'xtatish uchun "poison pill"
 
-    def enqueue(self, item: T) -> None:
-        self.items.append(item)
+def consumer():
+    while True:
+        # Element paydo bo'lguncha bloklanadi
+        job = buffer.get()
+        if job is None:
+            break # "Poison pill" qabul qilindi
+            
+        print(f"  Consumer processing {job}")
+        time.sleep(1) # Sekin iste'mol qiladi (og'ir ish)
+        buffer.task_done()
 
-    def dequeue(self) -> Optional[T]:
-        return self.items.pop(0) if self.items else None
-
-    def is_empty(self) -> bool:
-        return len(self.items) == 0
-
-    def size(self) -> int:
-        return len(self.items)
-
-# Work item
-@dataclass
-class WorkItem:
-    id: int
-    data: str
-
-# Producer
-class DataProducer:
-    def __init__(self, queue: Queue):
-        self.queue = queue
-
-    def produce(self, count: int) -> None:
-        for i in range(count):
-            item = WorkItem(id=i, data=f"Item {i}")
-            self.queue.enqueue(item)
-            print(f"✅ Produced: {item.data}")
-
-# Consumer
-class DataConsumer:
-    def __init__(self, queue: Queue):
-        self.queue = queue
-
-    def consume(self, max_items: int = 10) -> None:
-        count = 0
-        while not self.queue.is_empty() and count < max_items:
-            item = self.queue.dequeue()
-            if item:
-                self.process_item(item)
-                count += 1
-
-    def process_item(self, item: WorkItem) -> None:
-        print(f"👤 Consumed: {item.data}")
-
-# Usage
+# Ishga tushirish
 if __name__ == "__main__":
-    queue: Queue[WorkItem] = Queue()
-    producer = DataProducer(queue)
-    consumer = DataConsumer(queue)
+    t_producer = threading.Thread(target=producer)
+    t_consumer = threading.Thread(target=consumer)
 
-    print("=== Producing items ===")
-    producer.produce(5)
+    t_consumer.start()
+    t_producer.start()
 
-    print("\n=== Consuming items ===")
-    consumer.consume()
+    t_producer.join()
+    t_consumer.join()
+```
 
-    print(f"\nQueue size: {queue.size()}")
+```java [Java (Concurrency Package)]
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class ProducerConsumerDemo {
+    public static void main(String[] args) throws InterruptedException {
+        // 1. Thread-safe chegaralangan bufer
+        BlockingQueue<String> queue = new LinkedBlockingQueue<>(5);
+
+        // 2. Producer thread
+        Thread producer = new Thread(() -> {
+            try {
+                for (int i = 1; i <= 5; i++) {
+                    String job = "Job_" + i;
+                    System.out.println("Producer creating " + job);
+                    
+                    // Queue to'la bo'lsa bloklanadi
+                    queue.put(job); 
+                    Thread.sleep(100); // Tez
+                }
+                queue.put("EOF"); // "Poison pill"
+            } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        });
+
+        // 3. Consumer thread
+        Thread consumer = new Thread(() -> {
+            try {
+                while (true) {
+                    // Queue bo'sh bo'lsa bloklanadi
+                    String job = queue.take();
+                    if (job.equals("EOF")) break;
+                    
+                    System.out.println("  Consumer processing " + job);
+                    Thread.sleep(1000); // Sekin
+                }
+            } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        });
+
+        consumer.start();
+        producer.start();
+
+        producer.join();
+        consumer.join();
+    }
+}
+```
+
+```go [Go (Channels)]
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+// Go'da Channel'lar o'rnatilgan idiomatik queue hisoblanadi
+func producer(ch chan<- string) {
+	for i := 1; i <= 5; i++ {
+		job := fmt.Sprintf("Job_%d", i)
+		fmt.Println("Producer creating", job)
+		
+		ch <- job // Channel buferi to'la bo'lsa bloklanadi
+		time.Sleep(100 * time.Millisecond)
+	}
+	close(ch) // Consumer'larga to'xtash signalini xavfsiz beradi
+}
+
+func consumer(id int, ch <-chan string, done chan<- bool) {
+	// Channel bo'ylab range u yopilganda avtomatik to'xtaydi
+	for job := range ch {
+		fmt.Printf("  Consumer %d processing %s\n", id, job)
+		time.Sleep(1 * time.Second)
+	}
+	done <- true
+}
+
+func main() {
+	// 1. Hajmi 3 bo'lgan chegaralangan bufer
+	jobs := make(chan string, 3)
+	done := make(chan bool)
+
+	// Ikkita consumer'ni (worker) ishga tushirish
+	go consumer(1, jobs, done)
+	go consumer(2, jobs, done)
+
+	// Producer'ni ishga tushirish
+	go producer(jobs)
+
+	// Ikkala consumer tugashini kutish
+	<-done
+	<-done
+}
+```
+
+```rust [Rust (MPSC Channels)]
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    // 1. Multiple-Producer, Single-Consumer channel yaratish
+    let (tx, rx) = mpsc::channel();
+
+    // 2. Producer thread
+    let producer = thread::spawn(move || {
+        for i in 1..=5 {
+            let job = format!("Job_{}", i);
+            println!("Producer creating {}", job);
+            
+            tx.send(job).unwrap();
+            thread::sleep(Duration::from_millis(100)); // Tez
+        }
+        // Channel (tx) shu yerda avtomatik drop bo'ladi va yopiladi
+    });
+
+    // 3. Consumer thread
+    let consumer = thread::spawn(move || {
+        // Iterator xavfsiz bloklanadi va tx drop bo'lganda tugaydi
+        for job in rx {
+            println!("  Consumer processing {}", job);
+            thread::sleep(Duration::from_secs(1)); // Sekin
+        }
+    });
+
+    producer.join().unwrap();
+    consumer.join().unwrap();
+}
 ```
 
 :::
 
-## Haqiqiy hayotdagi misollar (Real-World Examples)
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-- **Thread Pools (Oqimlar hovuzi)**: Oqimlar vazifalarni (tasks) ishlab chiqaradi va iste'mol qiladi
-- **Xabarlar navbati (Message Queues)**: RabbitMQ, Kafka
-- **Ma'lumotlar quvurlari (Data Pipelines)**: ETL jarayonlari
-- **Veb Serverlar**: So'rov/javoblarni (request/response) qayta ishlash
-- **Oqimni qayta ishlash (Stream Processing)**: Spark, Flink
+### Afzalliklari (Advantages)
+- **Trafikni tekislash**: Agar ilovangiz trafikning keskin oshishiga duch kelsa (masalan, soniyasiga millionlab hodisalar), bufer bu sakrashni o'ziga yutadi va backend ma'lumotlar bazasini qulashdan himoya qiladi.
+- **Mustaqil masshtablash**: Agar vazifalarni ishlab chiqarish tez, ularni iste'mol qilish esa sekin bo'lsa, har 1 ta Producer uchun 10 ta Consumer oqimi (yoki serveri) ishga tushirishingiz mumkin.
+- **Nosozliklarga chidamlilik (Fault Tolerance)**: Agar consumer qulasa, xabarlar u qayta ishga tushguncha navbatda xavfsiz saqlanib turadi. Hech qanday ma'lumot yo'qolmaydi.
 
-## Afzalliklari (Advantages) ✅
+### Kamchiliklari (Disadvantages)
+- **Yakuniy izchillik / Kechiktirilgan javob**: Producer foydalanuvchiga "Rasm yaratish natijangiz X" deb ayta olmaydi. U faqat "So'rovingiz navbatda" deya oladi.
+- **Bufer to'lib ketishi (OOM)**: Agar Producer doimiy ravishda Consumer'dan tezroq bo'lsa, chegaralanmagan navbat server RAM'i tugab, qulaguncha cheksiz o'sib boradi.
+- **Murakkablikning oshishi**: Kod mantiqi bo'linib ketadi, bu so'rovlarni kuzatish va xatolarni debug qilishni ancha qiyinlashtiradi.
 
-- **Ajratish (Decoupling)**: Mustaqil ishlab chiqarish va iste'mol qilish
-- **O'tkazuvchanlik (Throughput)**: Yaxshiroq tizim tezligi
-- **Kengayuvchanlik (Scalability)**: Ishlab chiqaruvchilar yoki iste'molchilarni oson qo'shish
-- **Bufer (Buffer)**: Tezlikdagi nomuvofiqliklarni hal qiladi
-- **Moslashuvchanlik (Flexibility)**: Turli xil ishlash ritmi
-- **Reaksiya (Responsive)**: Bloklanishlarni kamaytiradi
-- **Yuklamani taqsimlash (Load Balancing)**: Ishni teng taqsimlaydi
-- **Chidamlilik (Resilience)**: Kutilmagan yuklama (spikes) bilan ishlash imkoniyati
+## Qachon foydalanish kerak (When to Use)
 
-## Kamchiliklari (Disadvantages) ❌
+- **Fon vazifalari (Background Jobs)**: Email yuborish, PDF yaratish, videolarni qayta ishlash yoki sekin uchinchi tomon API'larini chaqirish.
+- **Hodisalarga asoslangan mikroservislar**: Xabar brokerlari (Kafka/RabbitMQ) orqali asinxron muloqot qiladigan servislar.
+- **Loglarni yig'ish (Log Aggregation)**: Ilova loglari tez ishlab chiqariladi, lekin consumer tomonidan diskka/ElasticSearch'ga paketlab yoziladi.
 
-- **Murakkablik (Complexity)**: Ko'proq kod yozish kerak
-- **Xotira (Memory)**: Bufer xotira talab qiladi
-- **Kechikish (Latency)**: Navbat ma'lumot uzatishda kechikish qo'shishi mumkin
-- **Tartib (Ordering)**: Har doim ham tartibni saqlab qolmasligi mumkin
-- **Nosozliklarni topish (Debugging)**: Muammolarni qidirish qiyinroq
-- **To'lib ketish (Overflow)**: Bufer to'lib ketishi mumkin
-- **Bo'sh qolish (Underflow)**: Navbatda ma'lumot yetishmasligi mumkin
-- **Sinxronizatsiya (Synchronization)**: Murakkab oqimlarni boshqarish (threading)
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-## Qachon foydalanish kerak (When to Use) ✅
+- **Sinxron foydalanuvchi jarayonlari**: Agar foydalanuvchi keyingi ekranga o'tishidan oldin operatsiyaning yakuniy natijasini albatta ko'rishi shart bo'lsa.
+- **Oddiy monolitlar**: Oddiy CRUD ilovaga xabar brokerini qo'shmang. RabbitMQ yoki Kafka'ni boshqarishning operatsion xarajatlari juda katta.
 
-- **Parallel qayta ishlash**: Bir nechta oqimlarda (threads) ishlaganda
-- **Tezlik nomuvofiqligi**: Ishlab chiqarish va iste'mol qilish turli tezliklarda bo'lganda
-- **Asinxron vazifalar**: Bir-biridan ajratilgan ishlar uchun
-- **Buferlash (Buffering)**: Ish yukini silliqlashda
-- **Thread Pools**: Vazifalar navbatini (work queues) yaratishda
-- **Xabarlar tizimi (Message Systems)**: Xabarlar navbatidan foydalanilganda
-- **Real vaqt tizimlari (Real-Time Systems)**: Kutilmagan katta so'rovlarni (bursts) boshqarishda
-- **Ma'lumotlar quvurlari (Data Pipelines)**: ETL jarayonlarida
+## Keng tarqalgan xatolar (Common Mistakes)
 
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
+- **Chegaralanmagan navbatlar (Unbounded Queues)**: Cheksiz sig'imli navbat yaratish. Har doim **Chegaralangan navbatdan (Bounded Queue)** (maksimal hajmga ega navbat) foydalaning. Agar navbat to'lsa, Producer bloklanishi yoki xato qaytarishi kerak (Backpressure — teskari bosimni qo'llash).
+- **Jim nosozliklar (Silent Failures)**: Agar consumer vazifani qayta ishlash paytida halokatli xatoga duch kelsa, u vazifani "Dead Letter Queue"ga qo'yishi yoki nosozlikni logga yozishi kerak. Vazifani shunchaki tashlab yuborish ma'lumot yo'qolishiga olib keladi.
 
-- **Oddiy ketma-ketlikda (Simple Sequential)**: Ishlar birma-bir bajarilsa
-- **Kechikish muhim bo'lsa (Real-Time Critical)**: Latency o'ta muhim bo'lgan hollarda
-- **Xotira cheklangan bo'lsa (Limited Memory)**: Bufer uchun xotira yetishmasa
-- **Tartib muhim bo'lsa (Ordering Critical)**: Voqealar aniq tartibda saqlanishi shart bo'lsa
-- **Oddiy vazifalar**: Ortiqcha muhandislik (over-engineering) bo'lsa
-- **Past o'tkazuvchanlik (Low Throughput)**: Ushbu patterndan hech qanday foyda bo'lmasa
-- **Sinxron API (Synchronous API)**: So'rovlarga darhol javob qaytarish kerak bo'lsa
-- **Bitta oqimda (Single Threaded)**: Hech qanday parallel ishlash talab etilmasa
+## Aloqador patternlar (Related Patterns)
 
-## Aloqador Patternlar (Related Patterns)
-
-- **Observer Pattern**: Voqealar (event) xabarnomalari
-- **Mediator Pattern**: Markazlashtirilgan aloqa uchun
-- **Command Pattern**: Navbatdagi buyruqlar uchun
-- **Thread Pool Pattern**: Producer-consumer variantlaridan biri
+- **Message Broker**: Bu patternning taqsimlangan, infratuzilma darajasidagi versiyasi (masalan, Apache Kafka, RabbitMQ).
+- **Thread Pool**: Odatda Producer-Consumer patternini ichki tarzda amalga oshiradi. Siz vazifalarni navbatga yuborasiz (ishlab chiqarasiz), ishchi oqimlar esa ularni bajaradi (iste'mol qiladi).
+- **Pub-Sub**: Bitta ishlab chiqarilgan xabar nusxalanib, _bir nechta_ turli consumer'larga yetkaziladigan variant.

@@ -6,7 +6,7 @@ icon: Zap
 
 # Facade Pattern
 
-<CoverImage src="/covers/structural/facade.png" alt="Cover">
+<CoverImage src="/covers/structural/facade.webp" alt="Cover">
   <h1>Facade</h1>
   <p>A beautiful, pristine castle wall facade with a welcoming red carpet and a friendly robot butler standing in front of it, completely hiding the absolute chaotic mess of wild wires, spinning gears, and smoke behind the wall.</p>
 </CoverImage>
@@ -26,6 +26,42 @@ Facade is not about translating incompatible interfaces. It is about **simplifyi
 Think of the **reception desk in a hotel**. Guests do not need to talk to housekeeping, security, billing, maintenance, and room service separately. They tell the front desk what they need, and the desk coordinates the rest.
 
 That is a facade: one simple interface over many internal systems.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Client
+    class CheckoutFacade {
+        +placeOrder(orderId, items, cardToken) void
+    }
+    class PricingService {
+        +calculateTotal(items) number
+    }
+    class InventoryService {
+        +reserve(items) void
+    }
+    class PaymentService {
+        +authorize(amount, cardToken) string
+    }
+    class OrderRepository {
+        +save(orderId, amount, authCode) void
+    }
+    class NotificationService {
+        +sendOrderConfirmation(orderId) void
+    }
+
+    Client --> CheckoutFacade : placeOrder
+    CheckoutFacade --> PricingService
+    CheckoutFacade --> InventoryService
+    CheckoutFacade --> PaymentService
+    CheckoutFacade --> OrderRepository
+    CheckoutFacade --> NotificationService
+```
+
+- **`CheckoutFacade`** (Facade) exposes one high-level method and orchestrates the subsystem calls in the right order.
+- **`PricingService`, `InventoryService`, `PaymentService`, `OrderRepository`, `NotificationService`** (Subsystem classes) do the real work and know nothing about the facade.
+- **`Client`** calls only the facade, though subsystems remain accessible when finer control is needed.
 
 ## The Problem
 

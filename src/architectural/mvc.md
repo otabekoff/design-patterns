@@ -6,7 +6,7 @@ icon: Layers
 
 # Model-View-Controller (MVC)
 
-<CoverImage src="/covers/architectural/mvc.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvc.webp" alt="Cover">
   <h1>MVC</h1>
   <p>A three-station game: a cute Controller robot receiving a coin, directing a heavy Model robot (holding a database safe), which then projects data onto a View robot's colorful screen.</p>
 </CoverImage>

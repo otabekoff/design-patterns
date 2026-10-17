@@ -6,7 +6,7 @@ icon: Wand
 
 # Decorator Pattern
 
-<CoverImage src="/covers/structural/decorator.png" alt="Cover">
+<CoverImage src="/covers/structural/decorator.webp" alt="Cover">
   <h1>Decorator</h1>
   <p>A funny little white robot wearing way too many layers of winter clothing: a scarf, a hat, glowing earmuffs, a heavy jacket, and snowshoes, adding features without changing the core robot.</p>
 </CoverImage>
@@ -26,6 +26,47 @@ Decorator adds behavior. It does not translate incompatible interfaces.
 Think of **layering clothes**. A shirt works on its own, but you can add a jacket, a raincoat, or a scarf depending on the weather. Each layer keeps the same body underneath, but changes the overall result.
 
 That is exactly what decorators do: each layer adds something without changing the original object.
+
+## Structure
+
+```mermaid
+classDiagram
+    class ApiClient {
+        <<interface>>
+        +fetch(path) Promise
+    }
+    class HttpApiClient {
+        +fetch(path) Promise
+    }
+    class ApiClientDecorator {
+        <<abstract>>
+        #client: ApiClient
+        +fetch(path) Promise*
+    }
+    class LoggingDecorator {
+        +fetch(path) Promise
+    }
+    class CachingDecorator {
+        -cache: Map
+        +fetch(path) Promise
+    }
+    class RetryDecorator {
+        -maxRetries: number
+        +fetch(path) Promise
+    }
+
+    ApiClient <|.. HttpApiClient
+    ApiClient <|.. ApiClientDecorator
+    ApiClientDecorator o-- ApiClient : wraps
+    ApiClientDecorator <|-- LoggingDecorator
+    ApiClientDecorator <|-- CachingDecorator
+    ApiClientDecorator <|-- RetryDecorator
+```
+
+- **`ApiClient`** (Component) is the interface shared by the core object and every wrapper.
+- **`HttpApiClient`** (Concrete Component) provides the base behavior.
+- **`ApiClientDecorator`** (Base Decorator) implements `ApiClient` and holds a wrapped `ApiClient`, so decorators can be stacked.
+- **`LoggingDecorator` / `CachingDecorator` / `RetryDecorator`** (Concrete Decorators) add one behavior each before or after delegating.
 
 ## The Problem
 

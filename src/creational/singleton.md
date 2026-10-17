@@ -6,7 +6,7 @@ icon: CircleDot
 
 # Singleton Pattern
 
-<CoverImage src="/covers/creational/singleton.png" alt="Cover">
+<CoverImage src="/covers/creational/singleton.webp" alt="Cover">
   <h1>Singleton</h1>
   <p>One single, giant golden egg sitting in a carton of regular white eggs, guarded by a cute tiny security-guard robot with a flashlight.</p>
 </CoverImage>
@@ -530,7 +530,7 @@ class Settings {
   private static instance: Settings;
   public darkMode = false; // public + mutable = unpredictable
 
-  static getInstance(): Settings { ... }
+  static getInstance(): Settings { /* ... */ }
 }
 
 // ✅ Expose controlled mutation only
@@ -545,7 +545,7 @@ class Settings {
     this.emit("change", { darkMode: value }); // notify dependents
   }
 
-  static getInstance(): Settings { ... }
+  static getInstance(): Settings { /* ... */ }
 }
 ```
 
@@ -674,7 +674,7 @@ class AppState {
   theme = "light";
   notifications: Notification[] = [];
 
-  static getInstance(): AppState { ... }
+  static getInstance(): AppState { /* ... */ }
 }
 
 // Components reach into global state directly — untestable, unpredictable

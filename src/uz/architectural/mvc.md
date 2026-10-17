@@ -1,478 +1,407 @@
 ---
 title: Model-View-Controller (MVC)
-description: Ilova mantig'ini o'zaro bog'langan uchta komponentga ajratadi
+description: Ilova mantig'ini o'zaro bog'langan uchta komponentga ajratadigan, barcha arxitektura patternlarining "bobosi".
 icon: Layers
 ---
 
 # Model-View-Controller (MVC)
 
-<CoverImage src="/covers/architectural/mvc.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvc.webp" alt="Cover">
   <h1>MVC</h1>
-  <p>A three-station game: a cute Controller robot receiving a coin, directing a heavy Model robot (holding a database safe), which then projects data onto a View robot's colorful screen.</p>
+  <p>Uch bekatli o'yin: tanga qabul qilayotgan yoqimtoy Controller robot og'ir Model robotni (qo'lida ma'lumotlar bazasi seyfini tutgan) boshqaradi, Model robot esa ma'lumotlarni View robotning rang-barang ekraniga proyeksiya qiladi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-Controller (MVC)** patterni ilovani uchta o'zaro bog'liq komponentga ajratuvchi fundamental arxitektura patternidir:
+**Model-View-Controller (MVC)** patterni dasturiy injiniringdagi eng mashhur arxitektura patterni desak mubolag'a bo'lmaydi. U 1970-yillarda ilk grafik foydalanuvchi interfeyslari (Smalltalk) uchun yaratilgan va o'shandan beri backend veb freymvorklari (Ruby on Rails, Spring Boot, ASP.NET MVC, Laravel) uchun hukmron arxitekturaga aylangan.
 
-- **Model**: Ilova ma'lumotlari va biznes mantig'ini boshqaradi
-- **View (Ko'rinish)**: Ma'lumotlarni foydalanuvchiga taqdim etadi
-- **Controller (Boshqaruvchi)**: Foydalanuvchi kiritishini boshqaradi va modelni yangilaydi
+U ilovani uchta alohida mas'uliyatga ajratadi:
+- **Model**: Ma'lumotlar, biznes qoidalari va ma'lumotlar bazasi bilan o'zaro ishlashni boshqaradi.
+- **View (Ko'rinish)**: Foydalanuvchiga taqdim etiladigan UI ni (HTML/JSON) generatsiya qiladi.
+- **Controller (Boshqaruvchi)**: Foydalanuvchi kiritishlarini (HTTP so'rovlarini) tinglaydi, Model'ni boshqaradi va qaysi View'ni render qilishni tanlaydi.
 
-Vazifalarni bu tarzda ajratish kodni yaxshiroq tashkil qilish, texnik xizmat ko'rsatish va test qilish imkonini beradi.
+**Zamonaviy nuqtai nazar**: Dastlab View va Model doimiy ravishda bir-biri bilan muloqot qiladigan desktop UI'lar uchun mo'ljallangan bo'lsa-da, zamonaviy veb ishlab chiqishda chiziqli "Request/Response" MVC ishlatiladi. Frontend (React/Vue) endi butunlay alohida, backend MVC'lar esa odatda shunchaki JSON qaytaradi, bu esa "View" chegarasini xiralashtiradi.
 
-## Maqsad (Purpose)
+## Muammo (The Problem)
 
-MVC patterni quyidagilarni maqsad qiladi:
+MVC dan oldin dasturchilar ma'lumotlar bazasi so'rovlari, biznes mantig'i va HTML markup bitta faylda aralashib ketgan "Spagetti kod" yozishgan (ilk PHP yoki Classic ASP kabi).
 
-- Biznes mantig'ini taqdimotdan (presentation) ajratish
-- Komponentlarni mustaqil ishlab chiqishga imkon berish
-- Kodni qayta ishlashni osonlashtirish
-- Ilovani test qilishni yaxshilash
-- Bitta model uchun bir nechta ko'rinishlarga ruxsat berish
-
-## Muammo (Problem)
-
-To'g'ri ajratilmasa, ilovalar ko'pincha turli xil vazifalar aralashib ketgan monolitik (yaxlit) holatga keladi:
-
-- Biznes mantig'i UI (foydalanuvchi interfeysi) kodi bilan chalkashib ketadi
-- Har bir komponentni alohida test qilish qiyinlashadi
-- Texnik xizmat ko'rsatish va kengaytirish qiyin
-- Bir sohadagi o'zgarishlar unga aloqasi bo'lmagan qismlarga ta'sir qiladi
-- Bir xil ma'lumotlar uchun bir nechta ko'rinishlar kodni takrorlashni talab qiladi
-
-```
-❌ Monolitik Ilova
-┌───────────────────────────────────────────┐
-│   Biznes Mantiq + UI + Mantiq Aralashmasi │
-│   - Test qilish qiyin                     │
-│   - Texnik xizmat ko'rsatish qiyin        │
-│   - Kod takrorlanishi                     │
-└───────────────────────────────────────────┘
+```php
+<!-- ❌ Bad: Classic "Spaghetti" Code -->
+<?php
+  // Ma'lumotlar bazasi ulanishi HTML bilan aralashib ketgan
+  $conn = new mysqli("localhost", "user", "pass", "db");
+  $result = $conn->query("SELECT * FROM users");
+?>
+<html>
+  <body>
+    <h1>User List</h1>
+    <?php while($row = $result->fetch_assoc()): ?>
+      <!-- Logic mixed with markup -->
+      <?php if($row['age'] >= 18): ?>
+        <p><?= $row['name'] ?> (Adult)</p>
+      <?php else: ?>
+        <p><?= $row['name'] ?> (Minor)</p>
+      <?php endif; ?>
+    <?php endwhile; ?>
+  </body>
+</html>
 ```
 
-## Yechim (Solution)
+Bu jiddiy muammolarni keltirib chiqaradi:
+1. **Qo'llab-quvvatlab bo'lmaydi**: Ma'lumotlar bazasi sxemasini o'zgartirish HTML ni buzadi. CSS ni o'zgartirish esa tasodifan SQL so'rovni buzib qo'yishi mumkin.
+2. **Test qilib bo'lmaydi**: Haqiqiy ma'lumotlar bazasini ishga tushirmasdan va HTML natijani tahlil qilmasdan "Voyaga yetgan va Voyaga yetmagan" mantig'ini tekshiradigan avtomatlashtirilgan test yozib bo'lmaydi.
+3. **Hamkorlik imkonsiz**: Frontend dizayner va backend ma'lumotlar bazasi muhandisi bu fayl ustida bir vaqtda ishlay olmaydi.
 
-MVC patterni ilovani uchta qatlamga bo'lish orqali aniq ajratishni (clear separation) ta'minlaydi:
+## Yechim (The Solution)
 
-```
-✅ MVC Arxitekturasi
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│    Model     │      │    View      │      │  Controller  │
-├──────────────┤      ├──────────────┤      ├──────────────┤
-│ • Ma'lumotlar│◄─────│ • Shablonlar │◄─────│ • Marshrutlar│
-│ • Biznes     │      │ • Ekran      │      │ • Handlerlar │
-│   Mantig'i   │      │ • Foydal.    │      │ • So'rovlar  │
-│ • Ma'l. Bazasi│     │   Interaksiyasi│    │              │
-└──────────────┘      └──────────────┘      └──────────────┘
-      ▲                      ▲                      │
-      └──────────────────────┴──────────────────────┘
-            Yangilanishlar va Bildirishnomalar
+MVC vazifalarni qat'iy ajratishga majbur qiladi.
+
+```mermaid
+classDiagram
+    class User {
+        <<Actor>>
+    }
+
+    class Controller {
+        +handleRequest()
+    }
+
+    class Model {
+        +getData()
+        +updateData()
+    }
+
+    class View {
+        +renderUI()
+    }
+
+    User --> Controller : "1. Sends Input (HTTP Request)"
+    Controller --> Model : "2. Updates/Requests Data"
+    Model --> Controller : "3. Returns Data"
+    Controller --> View : "4. Passes Data to Template"
+    View --> User : "5. Renders Output (HTML/JSON)"
 ```
 
 **Jarayon (Flow):**
+1. **Controller**: `/users` ga HTTP GET so'rovini qabul qiladi. U Model'dan barcha foydalanuvchilarni so'raydi.
+2. **Model**: Ma'lumotlar bazasi so'rovini bajaradi, "Voyaga yetgan/Voyaga yetmagan" mantig'ini qo'llaydi va Controller'ga `User` obyektlarining toza massivini qaytaradi.
+3. **Controller**: Foydalanuvchilar massivini olib, uni `UserListView` ga uzatadi.
+4. **View**: Massiv bo'ylab yurib, faqat HTML ni render qiladi.
 
-1. Foydalanuvchi View bilan o'zaro aloqada bo'ladi
-2. Controller so'rovni qabul qiladi
-3. Controller Modelni yangilaydi
-4. Model o'zgarishlar haqida View-ni xabardor qiladi
-5. View yangilangan ma'lumotlarni ekranga chiqaradi
+## Hayotiy o'xshatish (Real-World Analogy)
 
-## Amalga oshirish (Implementation)
+**Restoran**ni tasavvur qiling.
+- **Mijoz (Foydalanuvchi)**: Menyuga qaraydi va buyurtma beradi.
+- **Ofitsiant (Controller)**: Buyurtmani qabul qiladi, tekshiradi va oshxonaga olib boradi. Keyinroq tayyor taomni stolga olib keladi.
+- **Oshpaz (Model)**: Retseptlarni (biznes mantig'ini) biladi, masalliqlarni muzlatgichdan (ma'lumotlar bazasidan) oladi va taomni pishiradi.
+- **Taomni bezash / taqdimot (View)**: Taomning likopchadagi vizual joylashuvi.
+
+Ofitsiant taom pishirmaydi. Oshpaz mijoz bilan gaplashmaydi. Mas'uliyatlar qat'iy ajratilgan.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation - Backend Web API)
+
+Zamonaviy kontekstda biz "View" shunchaki JSON render qilishdan iborat bo'lgan backend API quramiz.
+
+1. **Model**: Asosiy ma'lumotlar va biznes mantig'ini ifodalovchi klass yarating.
+2. **Controller**: HTTP so'rovlarini qayta ishlaydigan metodlarga (endpoint'larga) ega klass yarating.
+3. **View (API'lar uchun ixtiyoriy)**: API'larda freymvorkning JSON serializatori View vazifasini bajaradi. Eskiroq veb ilovalarda bu HTML shablon bo'lardi.
+
+## Kod misollari (Code Examples)
 
 ::: code-group
 
-```typescript [TypeScript]
-// Model - Manages application data and business logic
+```typescript [TypeScript (Express)]
+import express, { Request, Response } from 'express';
+
+// 1. Model: Ma'lumot va biznes mantiq bilan ishlaydi
 class UserModel {
-  private users: Map<number, User> = new Map();
-  private nextId: number = 1;
-  private observers: ModelObserver[] = [];
+  private users = [
+    { id: 1, name: "Alice", age: 25 },
+    { id: 2, name: "Bob", age: 17 }
+  ];
 
-  interface User {
-    id: number;
-    name: string;
-    email: string;
-    age: number;
+  public getAllAdults() {
+    // Biznes mantiq controller'da emas, shu yerda turadi
+    return this.users.filter(u => u.age >= 18);
   }
 
-  interface ModelObserver {
-    update(model: UserModel): void;
-  }
-
-  addObserver(observer: ModelObserver): void {
-    this.observers.push(observer);
-  }
-
-  notifyObservers(): void {
-    this.observers.forEach(observer => observer.update(this));
-  }
-
-  addUser(name: string, email: string, age: number): User {
-    const user: User = {
-      id: this.nextId++,
-      name,
-      email,
-      age
-    };
-    this.users.set(user.id, user);
-    this.notifyObservers();
-    return user;
-  }
-
-  getUser(id: number): User | undefined {
-    return this.users.get(id);
-  }
-
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
-  }
-
-  updateUser(id: number, updates: Partial<User>): User | null {
-    const user = this.users.get(id);
-    if (!user) return null;
-
-    const updated = { ...user, ...updates };
-    this.users.set(id, updated);
-    this.notifyObservers();
-    return updated;
-  }
-
-  deleteUser(id: number): boolean {
-    const deleted = this.users.delete(id);
-    if (deleted) {
-      this.notifyObservers();
-    }
-    return deleted;
+  public createUser(name: string, age: number) {
+    if (age < 0) throw new Error("Age cannot be negative");
+    const newUser = { id: Date.now(), name, age };
+    this.users.push(newUser);
+    return newUser;
   }
 }
 
-// View - Displays data to the user
-class UserView {
-  render(users: UserModel.User[]): void {
-    console.log('=== User List ===');
-    users.forEach(user => {
-      console.log(`ID: ${user.id}`);
-      console.log(`Name: ${user.name}`);
-      console.log(`Email: ${user.email}`);
-      console.log(`Age: ${user.age}`);
-      console.log('---');
-    });
-  }
-
-  renderForm(): void {
-    console.log('Please enter user details:');
-    console.log('- Name (string)');
-    console.log('- Email (string)');
-    console.log('- Age (number)');
-  }
-
-  displayError(message: string): void {
-    console.error(`❌ Error: ${message}`);
-  }
-
-  displaySuccess(message: string): void {
-    console.log(`✅ ${message}`);
-  }
-}
-
-// Controller - Handles user input and coordinates Model and View
+// 2. Controller: HTTP so'rovlarni qabul qiladi, Model bilan gaplashadi, View bilan javob beradi
 class UserController {
-  constructor(
-    private model: UserModel,
-    private view: UserView
-  ) {
-    // Model notifies controller when data changes
-    this.model.addObserver(this);
+  private model: UserModel;
+
+  constructor() {
+    this.model = new UserModel();
   }
 
-  update(model: UserModel): void {
-    this.view.render(model.getAllUsers());
-  }
-
-  handleAddUser(name: string, email: string, age: number): void {
-    if (!name || !email || age < 0) {
-      this.view.displayError('Invalid input data');
-      return;
-    }
-
-    const user = this.model.addUser(name, email, age);
-    this.view.displaySuccess(`User added with ID: ${user.id}`);
-  }
-
-  handleUpdateUser(id: number, name: string, email: string, age: number): void {
-    const updated = this.model.updateUser(id, { name, email, age });
-    if (updated) {
-      this.view.displaySuccess(`User ${id} updated`);
-    } else {
-      this.view.displayError(`User ${id} not found`);
+  public getAdults = (req: Request, res: Response) => {
+    try {
+      const adults = this.model.getAllAdults();
+      // 3. View: Framework ma'lumotni JSON'ga serializatsiya qiladi
+      res.status(200).json({ success: true, data: adults });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
     }
   }
 
-  handleDeleteUser(id: number): void {
-    const deleted = this.model.deleteUser(id);
-    if (deleted) {
-      this.view.displaySuccess(`User ${id} deleted`);
-    } else {
-      this.view.displayError(`User ${id} not found`);
+  public create = (req: Request, res: Response) => {
+    try {
+      const { name, age } = req.body;
+      const user = this.model.createUser(name, age);
+      res.status(201).json({ success: true, data: user });
+    } catch (error: any) {
+      // Biznes mantiq xatolarini qayta ishlash
+      res.status(400).json({ success: false, message: error.message });
     }
-  }
-
-  handleViewUsers(): void {
-    this.view.render(this.model.getAllUsers());
-  }
-
-  handleShowForm(): void {
-    this.view.renderForm();
   }
 }
 
-// Usage
-const model = new UserModel();
-const view = new UserView();
-const controller = new UserController(model, view);
+// Router'ni ulash
+const app = express();
+app.use(express.json());
+const controller = new UserController();
 
-controller.handleAddUser('John Doe', 'john@example.com', 30);
-controller.handleAddUser('Jane Smith', 'jane@example.com', 28);
-controller.handleViewUsers();
-
-controller.handleUpdateUser(1, 'John Updated', 'john.updated@example.com', 31);
-controller.handleDeleteUser(2);
-controller.handleViewUsers();
+app.get('/users/adults', controller.getAdults);
+app.post('/users', controller.create);
 ```
 
-```python [Python]
-from typing import Dict, List, Optional
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+```java [Java (Spring Boot)]
+import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-# Model - Manages application data and business logic
-@dataclass
-class User:
+// 1. Model (Entity + Servis/Biznes mantiq)
+class User {
+    public int id;
+    public String name;
+    public int age;
+    public User(int id, String name, int age) { this.id = id; this.name = name; this.age = age; }
+}
+
+@org.springframework.stereotype.Service
+class UserService {
+    private List<User> users = new ArrayList<>(List.of(
+        new User(1, "Alice", 25),
+        new User(2, "Bob", 17)
+    ));
+
+    public List<User> getAllAdults() {
+        return users.stream()
+            .filter(u -> u.age >= 18)
+            .collect(Collectors.toList());
+    }
+
+    public User createUser(String name, int age) {
+        if (age < 0) throw new IllegalArgumentException("Age cannot be negative");
+        User user = new User((int)System.currentTimeMillis(), name, age);
+        users.add(user);
+        return user;
+    }
+}
+
+// 2. Controller: HTTP marshrutlarini boshqaradi
+@RestController
+@RequestMapping("/users")
+class UserController {
+    
+    private final UserService userService;
+
+    // Model/Servis'ning Dependency Injection'i
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/adults")
+    public List<User> getAdults() {
+        // 3. View: Spring bu List'ni avtomatik ravishda JSON javobga aylantiradi
+        return userService.getAllAdults();
+    }
+
+    @PostMapping
+    public User create(@RequestBody User request) {
+        return userService.createUser(request.name, request.age);
+    }
+}
+```
+
+```python [Python (FastAPI)]
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List
+
+app = FastAPI()
+
+# 1. Model (Ma'lumot shakli va biznes mantiq)
+class User(BaseModel):
     id: int
     name: str
-    email: str
     age: int
-
-class ModelObserver(ABC):
-    @abstractmethod
-    def update(self, model: 'UserModel') -> None:
-        pass
 
 class UserModel:
     def __init__(self):
-        self.users: Dict[int, User] = {}
-        self.next_id: int = 1
-        self.observers: List[ModelObserver] = []
+        self.users = [
+            User(id=1, name="Alice", age=25),
+            User(id=2, name="Bob", age=17)
+        ]
 
-    def add_observer(self, observer: ModelObserver) -> None:
-        self.observers.append(observer)
+    def get_adults(self) -> List[User]:
+        return [u for u in self.users if u.age >= 18]
 
-    def notify_observers(self) -> None:
-        for observer in self.observers:
-            observer.update(self)
+    def create_user(self, name: str, age: int) -> User:
+        if age < 0:
+            raise ValueError("Age cannot be negative")
+        new_user = User(id=len(self.users)+1, name=name, age=age)
+        self.users.append(new_user)
+        return new_user
 
-    def add_user(self, name: str, email: str, age: int) -> User:
-        user = User(
-            id=self.next_id,
-            name=name,
-            email=email,
-            age=age
-        )
-        self.next_id += 1
-        self.users[user.id] = user
-        self.notify_observers()
-        return user
+db_model = UserModel()
 
-    def get_user(self, user_id: int) -> Optional[User]:
-        return self.users.get(user_id)
+# 2. Controller (Marshrut handler'lari)
+@app.get("/users/adults", response_model=List[User])
+def get_adults():
+    # 3. View: FastAPI avtomatik ravishda JSON'ga serializatsiya qiladi
+    return db_model.get_adults()
 
-    def get_all_users(self) -> List[User]:
-        return list(self.users.values())
+@app.post("/users", response_model=User)
+def create_user(name: str, age: int):
+    try:
+        return db_model.create_user(name, age)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
 
-    def update_user(self, user_id: int, **updates) -> Optional[User]:
-        user = self.users.get(user_id)
-        if not user:
-            return None
+```go [Go (Gin)]
+package main
 
-        for key, value in updates.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
+import (
+	"errors"
+	"net/http"
+	"github.com/gin-gonic/gin"
+)
 
-        self.notify_observers()
-        return user
+// 1. Model
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
 
-    def delete_user(self, user_id: int) -> bool:
-        if user_id in self.users:
-            del self.users[user_id]
-            self.notify_observers()
-            return True
-        return False
+type UserModel struct {
+	users []User
+}
 
-# View - Displays data to the user
-class UserView:
-    def render(self, users: List[User]) -> None:
-        print("=== User List ===")
-        for user in users:
-            print(f"ID: {user.id}")
-            print(f"Name: {user.name}")
-            print(f"Email: {user.email}")
-            print(f"Age: {user.age}")
-            print("---")
+func NewUserModel() *UserModel {
+	return &UserModel{
+		users: []User{
+			{ID: 1, Name: "Alice", Age: 25},
+			{ID: 2, Name: "Bob", Age: 17},
+		},
+	}
+}
 
-    def render_form(self) -> None:
-        print("Please enter user details:")
-        print("- Name (string)")
-        print("- Email (string)")
-        print("- Age (number)")
+func (m *UserModel) GetAdults() []User {
+	var adults []User
+	for _, u := range m.users {
+		if u.Age >= 18 {
+			adults = append(adults, u)
+		}
+	}
+	return adults
+}
 
-    def display_error(self, message: str) -> None:
-        print(f"❌ Error: {message}")
+func (m *UserModel) CreateUser(name string, age int) (User, error) {
+	if age < 0 {
+		return User{}, errors.New("Age cannot be negative")
+	}
+	user := User{ID: len(m.users) + 1, Name: name, Age: age}
+	m.users = append(m.users, user)
+	return user, nil
+}
 
-    def display_success(self, message: str) -> None:
-        print(f"✅ {message}")
+// 2. Controller
+type UserController struct {
+	model *UserModel
+}
 
-# Controller - Handles user input and coordinates Model and View
-class UserController(ModelObserver):
-    def __init__(self, model: UserModel, view: UserView):
-        self.model = model
-        self.view = view
-        self.model.add_observer(self)
+func (c *UserController) GetAdults(ctx *gin.Context) {
+	adults := c.model.GetAdults()
+	// 3. View: Gin map'ni JSON'ga serializatsiya qiladi
+	ctx.JSON(http.StatusOK, gin.H{"data": adults})
+}
 
-    def update(self, model: UserModel) -> None:
-        self.view.render(model.get_all_users())
+func (c *UserController) Create(ctx *gin.Context) {
+	var json struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-    def handle_add_user(self, name: str, email: str, age: int) -> None:
-        if not name or not email or age < 0:
-            self.view.display_error("Invalid input data")
-            return
+	user, err := c.model.CreateUser(json.Name, json.Age)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-        user = self.model.add_user(name, email, age)
-        self.view.display_success(f"User added with ID: {user.id}")
+	ctx.JSON(http.StatusCreated, gin.H{"data": user})
+}
 
-    def handle_update_user(self, user_id: int, name: str, email: str, age: int) -> None:
-        updated = self.model.update_user(user_id, name=name, email=email, age=age)
-        if updated:
-            self.view.display_success(f"User {user_id} updated")
-        else:
-            self.view.display_error(f"User {user_id} not found")
+func main() {
+	r := gin.Default()
+	model := NewUserModel()
+	controller := &UserController{model: model}
 
-    def handle_delete_user(self, user_id: int) -> None:
-        if self.model.delete_user(user_id):
-            self.view.display_success(f"User {user_id} deleted")
-        else:
-            self.view.display_error(f"User {user_id} not found")
-
-    def handle_view_users(self) -> None:
-        self.view.render(self.model.get_all_users())
-
-    def handle_show_form(self) -> None:
-        self.view.render_form()
-
-# Usage
-model = UserModel()
-view = UserView()
-controller = UserController(model, view)
-
-controller.handle_add_user("John Doe", "john@example.com", 30)
-controller.handle_add_user("Jane Smith", "jane@example.com", 28)
-controller.handle_view_users()
-
-controller.handle_update_user(1, "John Updated", "john.updated@example.com", 31)
-controller.handle_delete_user(2)
-controller.handle_view_users()
+	r.GET("/users/adults", controller.GetAdults)
+	r.POST("/users", controller.Create)
+	r.Run(":8080")
+}
 ```
 
 :::
 
-## Haqiqiy hayotdagi misollar (Real-World Examples)
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-### Web Framework (Express.js)
+### Afzalliklari (Advantages)
+- **Vazifalarni ajratish (Separation of Concerns)**: UI dizaynidagi o'zgarishlar ma'lumotlar bazasi mantig'ini o'zgartirishni talab qilmaydi.
+- **Parallel ishlab chiqish**: Frontend dasturchilar View'lar ustida, Backend dasturchilar esa Model/Controller'lar ustida bir vaqtda ishlaydi.
+- **Test qilinuvchanlik**: Model uchun unit testlarni Veb serverdan (Controller'dan) mustaqil ravishda yozishingiz mumkin.
 
-```javascript
-// Model
-const userDatabase = new Map();
+### Kamchiliklari (Disadvantages)
+- **Semiz Controller'lar (Fat Controllers)**: Vaqt o'tishi bilan dasturchilar erinib, biznes mantig'ini Model o'rniga Controller ichiga yoza boshlashadi. Bu patternni buzadi.
+- **Kichik ilovalar uchun ortiqcha**: Agar siz shunchaki statik HTML sahifani taqdim etayotgan bo'lsangiz, uni MVC router va model qatlami orqali o'tkazishga majburlash ortiqcha.
+- **Zamonaviy frontend uchun emas**: MVC yuqori interaktiv, reaktiv veb ilovalar (masalan, chat ilovasi) uchun juda yomon. Frontend olami MVC dan voz kechib, MVVM/Komponent arxitekturalarini (React, Vue) tanladi.
 
-// View (HTML shabloni)
-app.get("/users", (req, res) => {
-  const users = userDatabase.values();
-  res.render("users.html", { users });
-});
+## Qachon foydalanish kerak (When to Use)
 
-// Controller
-app.post("/users", (req, res) => {
-  const newUser = { id: Date.now(), ...req.body };
-  userDatabase.set(newUser.id, newUser);
-  res.redirect("/users");
-});
-```
+- **Backend Veb API'lar**: Deyarli har bir zamonaviy REST API freymvorki standart holda MVC (yoki MVC ga yaqin) tuzilmadan foydalanadi.
+- **Serverda render qilinadigan veb-saytlar**: Server HTML ni render qiladigan an'anaviy ilovalar (Laravel, Rails, ASP.NET).
 
-### Ruby on Rails
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-Rails MVC qoidalariga amal qiladi:
+- **Single Page Applications (SPA)**: MVC ni React, Vue yoki Angular ga majburan tiqishtirishga urinmang. Ular Komponentga asoslangan arxitekturalar yoki MVVM dan foydalanadi.
+- **Mikroservislar**: Faqat bitta fon vazifasini bajaradigan kichik mikroservisga odatda Controller yoki View'lar kerak emas.
 
-- **Modellar**: `app/models/user.rb`
-- **Viewlar**: `app/views/users/`
-- **Controllerlar**: `app/controllers/users_controller.rb`
+## Keng tarqalgan xatolar (Common Mistakes)
 
-### Django
+### 1. Semiz Controller / Ozg'in Model (Fat Controller / Skinny Model)
+Controller ichida xom SQL so'rovlar va murakkab validatsiya sikllarini yozish. *Yechim: Controller faqat HTTP mantig'ini (header'lar, status kodlari, JSON) boshqarishi kerak. Barcha ma'lumotlar qoidalari Model'ga (yoki Service qatlamiga) ko'chirilishi shart.*
 
-Django MVC ni MTV (Model-Template-View) sifatida amalga oshiradi:
+### 2. View mantig'i (View Logic)
+HTML shablonlar ichiga `if/else` operatorlari va ma'lumotlarni qayta ishlashni joylashtirish. *Yechim: Controller ma'lumotlarni View'ga uzatishdan oldin ularni yakuniy, ko'rsatishga tayyor holatga keltirishi kerak.*
 
-- **Modellar (Models)**: Ma'lumotlar bazasi sxemasi
-- **Shablonlar (Templates)**: HTML render qilish
-- **Ko'rinishlar (Views)**: So'rovlarni qayta ishlash (bu yerda Controller vazifasida)
+## Aloqador patternlar (Related Patterns)
 
-## Afzalliklari (Advantages) ✅
-
-- **Vazifalarni ajratish (Separation of Concerns)**: Har bir komponent yagona mas'uliyatga ega
-- **Qayta ishlash (Reusability)**: Modellar va controllerlarni turli viewlar bilan qayta ishlatish mumkin
-- **Test qilish osonligi (Testability)**: Har bir komponentni alohida unit test qilish oson
-- **Kengayuvchanlik (Scalability)**: Aniq tuzilma yangi xususiyatlarni qo'shishni osonlashtiradi
-- **Bir nechta ko'rinishlar**: Bir xil model turli xil viewlar orqali ko'rsatilishi mumkin
-- **Parallel ishlash**: Jamoalar bir vaqtning o'zida turli komponentlar ustida ishlashi mumkin
-- **Kodni tashkil qilish**: Fayllar va papkalarning aniq tuzilishi
-- **Freymvork qo'llab-quvvatlashi**: Ko'pgina freymvorklar MVC ni o'z ichiga oladi
-
-## Kamchiliklari (Disadvantages) ❌
-
-- **Murakkablik (Complexity)**: Kichik ilovalar uchun qo'shimcha abstraksiya qatlamini qo'shish
-- **O'rganish vaqti (Learning Curve)**: Dasturchilar patternni tushunishlari kerak
-- **Ishlash tezligi (Performance)**: Qo'shimcha abstraksiya kechikish (latency) qo'shishi mumkin
-- **Ikki tomonlama bog'lanish (Two-Way Binding) muammolari**: Model-View sinxronizatsiyasi murakkab bo'lishi mumkin
-- **View mantiqi**: Viewlar ba'zan o'z ichiga juda ko'p mantiqni oladi
-- **Fayllarni boshqarish**: Boshqarish uchun juda ko'p kichik fayllar paydo bo'lishiga olib kelishi mumkin
-- **Testlash murakkabligi**: View yangilanishlarini testlash qiyin bo'lishi mumkin
-- **O'ta murakkablashtirish (Over-Engineering)**: Oddiy ilovalar uchun ortiqcha bo'lishi mumkin
-
-## Qachon foydalanish kerak (When to Use) ✅
-
-- **Veb-ilovalar**: Ayniqsa dinamik veb-ilovalar
-- **Ish stoli ilovalari (Desktop Applications)**: Murakkab mantiqqa ega GUI ilovalari
-- **Mobil ilovalar**: Biznes mantig'ini foydalanuvchi interfeysidan ajratish uchun
-- **Katta jamoalar**: Bir loyiha ustida bir nechta dasturchilar ishlaganda
-- **Uzoq muddatli texnik xizmat ko'rsatish**: Yillar davomida qo'llab-quvvatlanadigan loyihalar
-- **Murakkab biznes mantig'i**: Murakkab qoidalar va ish oqimlariga ega ilovalar
-- **Bir nechta taqdimot qatlamlari (Presentation Layers)**: Ma'lumotlarni turli xil usullarda taqdim etish kerak bo'lganda
-- **Freymvorkka asoslangan loyihalar**: MVC freymvorklaridan foydalanilganda (Rails, Django va h.k.)
-
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
-
-- **Oddiy skriptlar**: Buyruqlar qatori yordamchi dasturlari yoki kichik skriptlar
-- **Real vaqt tizimlari**: Qat'iy kechikish talablari bo'lgan tizimlar
-- **Mikroservislar**: Har bir xizmat allaqachon alohida bo'lsa
-- **Statik tarkib**: Asosan statik tarkibga ega veb-saytlar
-- **Ishlash tezligi kritik bo'lganda**: Qo'shimcha yuklama muhim bo'lgan ilovalar
-- **Single-Page ilovalar (SPA)**: Buning o'rniga MVVM ni ko'rib chiqing
-- **Voqealarga asoslangan tizimlar**: MVC ning controller patterniga mos kelmaydigan tizimlar
-- **Prototiplar**: Tez tashlab yuboriladigan prototiplar
-
-## Aloqador Patternlar (Related Patterns)
-
-- **Model-View-Presenter (MVP)**: Test qilish imkoniyati yaxshilangan holda MVC dan kelib chiqqan
-- **Model-View-ViewModel (MVVM)**: Ma'lumotlarni bog'lash va reaktiv tizimlar uchun yaxshiroq
-- **Model-View-Whatever (MVW)**: MV\* patternlarining umumlashtirilishi
-- **Repository Pattern**: Ko'pincha modellarda ma'lumotlarga kirishni mavhumlashtirish (abstract) uchun ishlatiladi
-- **Observer Pattern**: Model-view aloqasi uchun ishlatiladi
-- **Strategy Pattern**: Turli xil view render qilish strategiyalarini o'zgartirish uchun ishlatiladi
-- **Command Pattern**: Ko'pincha controllerlarda so'rovlarni boshqarish uchun ishlatiladi
+- **[MVVM (Model-View-ViewModel)](/uz/architectural/mvvm)**: Zamonaviy Frontend freymvorklari ishlatadigan MVC ning rivojlangan shakli bo'lib, unda Controller o'rnini ikki tomonlama ma'lumotlarni bog'lash (two-way data binding) egallaydi.
+- **[MVP (Model-View-Presenter)](/uz/architectural/mvp)**: Asosan Android/Desktop ilovalarda ishlatiladi va to'liq passiv View'ga e'tibor qaratadi.
+- **[MVT (Model-View-Template)](/uz/architectural/mvt)**: Django ning MVC ga xos o'ziga xos varianti.

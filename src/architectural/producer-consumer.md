@@ -6,7 +6,7 @@ icon: Play
 
 # Producer-Consumer Pattern
 
-<CoverImage src="/covers/architectural/producer-consumer.png" alt="Cover">
+<CoverImage src="/covers/architectural/producer-consumer.webp" alt="Cover">
   <h1>Producer Consumer</h1>
   <p>A fun conveyor belt: three enthusiastic baker robots (Producers) are tossing fresh donuts into a shared wooden crate, while three hungry customer robots (Consumers) grab and eat them from the other side.</p>
 </CoverImage>

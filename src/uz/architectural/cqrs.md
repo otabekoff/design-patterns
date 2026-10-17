@@ -1,586 +1,454 @@
 ---
 title: Command Query Responsibility Segregation (CQRS)
-description: O'qish va yozish operatsiyalarini turli modellarga ajratadi
+description: O'qish operatsiyalarini yozish operatsiyalaridan qat'iy ravishda alohida modellarga ajratib, mustaqil masshtablash va optimallashtirish imkonini beradi.
 icon: Split
 ---
 
 # Command Query Responsibility Segregation (CQRS)
 
-<CoverImage src="/covers/architectural/cqrs.png" alt="Cover">
+<CoverImage src="/covers/architectural/cqrs.webp" alt="Cover">
   <h1>CQRS</h1>
-  <p>A double-sided workstation: the left side is a heavy-duty mechanical workshop with a giant hammer building objects (Write), and the right side is a clean, glass desk with a glowing magnifying glass displaying neat, pre-read sheets (Read).</p>
+  <p>Ikki tomonlama ish stoli: chap tomonda ulkan bolg'a bilan obyektlar yasayotgan og'ir mexanik ustaxona (Yozish), o'ng tomonda esa tartibli, oldindan tayyorlangan varaqlarni ko'rsatib turgan nurli lupa bilan toza shisha stol (O'qish).</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Command Query Responsibility Segregation (CQRS)** (Buyruq va so'rov mas'uliyatini ajratish) bu ilovani ikki qismga ajratuvchi arxitektura patternidir:
+**Command Query Responsibility Segregation (CQRS)** - ilovangizning konseptual modelini ikkita alohida qismga ajratadigan ilg'or arxitektura patternidir:
+- **Command tomoni (Yozish)**: Holatni o'zgartiradigan amallarni (mutatsiyalarni) qayta ishlaydi. U murakkab biznes qoidalari va validatsiyalarni majburiy qo'llaydi.
+- **Query tomoni (O'qish)**: Holatni qaytaradigan amallarni (ma'lumot olishni) qayta ishlaydi. U murakkab domen mantig'ini chetlab o'tadi va UI ga to'g'ridan-to'g'ri tekis, optimallashtirilgan ma'lumotlar tuzilmalarini qaytaradi.
 
-- **Buyruq qismi (Command Side)**: Yozish operatsiyalarini (o'zgarishlarni) bajaradi
-- **So'rov qismi (Query Side)**: O'qish operatsiyalarini (olishni) bajaradi
+Bu ikki mas'uliyatni qat'iy ajratish orqali siz o'qish va yozish yo'llaringizni bir-biridan butunlay mustaqil ravishda optimallashtirishingiz, masshtablashingiz va himoyalashingiz mumkin.
 
-Bu ajratish har bir tomonni o'z maqsadi uchun mustaqil ravishda optimallashtirish imkonini beradi.
+## Muammo (The Problem)
 
-## Maqsad (Purpose)
+An'anaviy N-Tier yoki CRUD (Create, Read, Update, Delete) arxitekturasida ma'lumotlarni o'qish uchun ham, yozish uchun ham aynan bir xil Domen modeli va ma'lumotlar bazasidan foydalaniladi.
 
-CQRS quyidagilarni maqsad qiladi:
+```mermaid
+classDiagram
+    class UserInterface {
+    }
+    class TraditionalModel {
+        <<Entity>>
+        +updateProfile()
+        +getProfileSummary()
+        +changePassword()
+        +listAllUsers()
+    }
+    class Database {
+        <<SQL>>
+    }
 
-- O'qish va yozish operatsiyalarini mustaqil optimallashtirish
-- Vazifalarni ajratish orqali kengayish qobiliyatini (scalability) yaxshilash
-- O'qish va yozish uchun turli ma'lumotlar modellarini qo'llab-quvvatlash
-- Murakkab domenlarni soddalashtirish
-- Har bir qism uchun turli saqlash mexanizmlarini qo'llab-quvvatlash
-- O'qish va yozish yuklamalarini (workload) mustaqil kengaytirish imkonini berish
-
-## Muammo (Problem)
-
-An'anaviy CRUD modellari ko'pincha quyidagi muammolarga duch keladi:
-
-- O'qish va yozish uchun bir xil model ishlatiladi
-- Yozishni optimallashtirish o'qishni optimallashtirish bilan zid keladi
-- Murakkab so'rovlar murakkab modellarni talab qiladi
-- O'qish va yozishni mustaqil kengaytirish qiyin
-- Ma'lumotlar bazasi so'rovlarini optimallashtirish qiyin
-- O'qish yoki yozishda ishlash tezligi muammolari yuzaga keladi (Performance bottlenecks)
-
-```
-❌ An'anaviy CRUD Modeli
-┌─────────────────────────┐
-│   Yagona Umumiy Model   │
-├─────────────────────────┤
-│ • Qo'shish()            │
-│ • Yangilash()           │
-│ • O'chirish()           │
-│ • Barchasini olish()    │
-│ • Qidirish()            │
-│ • Filtrlash()           │
-└─────────────────────────┘
-  (Ikkalasini optimallashtirish qiyin)
+    UserInterface --> TraditionalModel : Reads & Writes
+    TraditionalModel --> Database : Single Source
 ```
 
-## Yechim (Solution)
+Ilova o'sgani sari bu jiddiy tor joylarni (bottleneck) keltirib chiqaradi:
+1. **Nosimmetrik yuklama**: Aksariyat tizimlarda (Twitter yoki elektron tijorat kabi) har 1 ta yozishga 1000 ta o'qish to'g'ri keladi. Faqat ulkan o'qish trafigini ko'tarish uchun butun monolit ma'lumotlar bazasini masshtablash juda qimmat.
+2. **Bir-biriga zid optimallashtirishlar**:
+   - *Yozish* yaxlitlikni ta'minlash va anomaliyalardan qochish uchun normallashtirilgan (3NF) ma'lumotlarni xohlaydi.
+   - *O'qish* esa sekin SQL `JOIN` operatsiyalaridan qochish uchun kuchli denormallashtirilgan ma'lumotlarni (JSON blob'lar, NoSQL) xohlaydi.
+3. **Murakkab so'rovlar**: Dashboard ko'rinishini qaytarish 8 xil jadvalni birlashtirishni talab qilishi mumkin, bu esa dahshatli SQL ishlash tezligi va murakkab ORM mapping kodiga olib keladi.
 
-CQRS ikkita alohida modelga ajratadi:
+## Yechim (The Solution)
 
+CQRS arxitekturani ikkiga ajratadi.
+
+1. Foydalanuvchi **Command** (buyruq) yuboradi (masalan, `UpdateUserProfileCommand`).
+2. Command Handler biznes mantig'ini bajaradi, **Write Database** (yozish bazasi) ni yangilaydi va **Event** (hodisa) chiqaradi (`UserProfileUpdated`).
+3. Event Listener bu hodisani ushlab oladi va kuchli denormallashtirilgan **Read Database** (o'qish bazasi) ni yangilaydi (masalan, ElasticSearch, Redis yoki tekislangan SQL jadval).
+4. Foydalanuvchi **Query** (so'rov) yuboradi (masalan, `GetUserProfileQuery`).
+5. Query Handler domen modelini butunlay chetlab o'tadi, oldindan hisoblangan ma'lumotlarni Read Database'dan oladi va darhol qaytaradi.
+
+```mermaid
+flowchart TD
+    UI[User Interface]
+
+    subgraph Command Side ["Write Side (Commands)"]
+        CmdH[Command Handlers]
+        Domain[Domain Model]
+        WriteDB[(Write Database\nSQL/EventStore)]
+    end
+
+    subgraph Query Side ["Read Side (Queries)"]
+        QueryH[Query Handlers]
+        ReadDB[(Read Database\nNoSQL/Redis)]
+    end
+
+    Bus((Message Bus / Event Broker))
+
+    UI -- "1. Send Command" --> CmdH
+    CmdH --> Domain
+    Domain -- "2. Update State" --> WriteDB
+    Domain -- "3. Publish Event" --> Bus
+    
+    Bus -- "4. Sync Data" --> ReadDB
+    
+    UI -- "5. Send Query" --> QueryH
+    QueryH -- "6. Fast Fetch" --> ReadDB
 ```
-✅ CQRS Arxitekturasi
-┌──────────────────────────────────────────────────────────┐
-│                    Voqealar Shinasi (Event Bus) / Queue  │
-└────────┬──────────────────────────────────┬──────────────┘
-         │                                  │
-┌────────▼──────────────────┐   ┌──────────▼─────────────┐
-│   Yozish Modeli (Buyruq)  │   │  O'qish Modeli (So'rov) │
-├───────────────────────────┤   ├──────────────────────┤
-│ • Buyruqlar               │   │ • So'rov Obyektlari    │
-│ • Voqea Boshqaruvchilari  │   │ • Denormallashgan Ma'l.│
-│ • Validatsiya             │   │ • Optimallashtirilgan  │
-│ • Biznes Mantiq           │   │ • Keshlangan Natijalar │
-└───────────┬───────────────┘   └──────────┬──────────┘
-            │                              │
-     ┌──────▼──────┐              ┌───────▼────────┐
-     │Voqealar Baza │             │O'qish Bazas (DB)│
-     │(Faqat Qo'shi-│             │(Optimallashtir.│
-     │sh uchun)     │             │qilingan)       │
-     └─────────────┘              └────────────────┘
-```
 
-**Jarayon (Flow):**
+## Hayotiy o'xshatish (Real-World Analogy)
 
-1. Mijoz yozish modeliga buyruq yuboradi
-2. Yozish modeli jarayonni boshqaradi va voqeani saqlaydi
-3. Voqea voqealar shinasida e'lon qilinadi (publish)
-4. O'qish modeli obunachilari (subscribers) denormallashgan ma'lumotlarni yangilaydi
-5. Mijoz ma'lumotlar uchun o'qish modeliga so'rov yuboradi
+**Gazeta agentligi**ni tasavvur qiling.
+- **Command tomoni (Jurnalistlar va muharrirlar)**: Ular tadqiqot qiladi, faktlarni tekshiradi, qat'iy tahririyat qoidalarini (biznes mantig'ini) qo'llaydi va maqolani yozadi. Bu sekin va ehtiyotkor jarayon.
+- **Event Broker (Bosmaxona)**: Maqola yakunlangach, u minglab gazetalarga bosiladi.
+- **Query tomoni (Gazeta kiosklari)**: Xaridorlar shunchaki kelib, oldindan bosilgan gazetani olishadi va darhol o'qishadi. Ular jurnalistlar bilan gaplashmaydi.
 
-## Amalga oshirish (Implementation)
+Yangiliklarni *yaratish* jarayoni yangiliklarni *iste'mol qilish* jarayonidan butunlay ajratilgan.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **Command va Query'larni aniqlang**: Foydalanuvchi niyatini ifodalovchi oddiy ma'lumot obyektlarini yarating.
+2. **Handler'larni ajrating**: Command'larni (yozish) va Query'larni (o'qish) qayta ishlash uchun alohida klasslar yarating.
+3. **(Ixtiyoriy, lekin keng tarqalgan) Ma'lumotlar bazalarini ajrating**: Relyatsion bazaga (PostgreSQL) yozing va ma'lumotlarni tezkor o'qish omboriga (Redis, MongoDB yoki ElasticSearch) proyeksiya qiling.
+
+## Kod misollari (Code Examples)
+
+Biz oddiy CQRS tuzilmasini amalga oshiramiz. E'tibor bering, Query tomoni Domen modelini butunlay e'tiborsiz qoldiradi va shunchaki tekis Data Transfer Object'larni (DTO) qaytaradi.
 
 ::: code-group
 
-```typescript [TypeScript]
-// Events
-interface Event {
-  eventId: string;
-  timestamp: Date;
-  type: string;
+```typescript [TypeScript (NestJS Style)]
+// --- 1. COMMAND TOMONI (Yozish) ---
+
+class CreateUserCommand {
+  constructor(public email: string, public age: number) {}
 }
 
-interface UserCreatedEvent extends Event {
-  type: "UserCreated";
-  userId: number;
-  name: string;
-  email: string;
-}
+class CreateUserCommandHandler {
+  constructor(
+    private writeRepo: UserWriteRepository,
+    private eventBus: EventBus
+  ) {}
 
-interface UserUpdatedEvent extends Event {
-  type: "UserUpdated";
-  userId: number;
-  name?: string;
-  email?: string;
-}
-
-// Commands
-interface Command {
-  commandId: string;
-  timestamp: Date;
-}
-
-interface CreateUserCommand extends Command {
-  name: string;
-  email: string;
-}
-
-interface UpdateUserCommand extends Command {
-  userId: number;
-  name?: string;
-  email?: string;
-}
-
-// Event Store (Write Model)
-class EventStore {
-  private events: Event[] = [];
-  private subscribers: ((event: Event) => void)[] = [];
-
-  appendEvent(event: Event): void {
-    console.log(`[Event Store] Appended event: ${event.type}`);
-    this.events.push(event);
-    this.publish(event);
-  }
-
-  subscribe(callback: (event: Event) => void): void {
-    this.subscribers.push(callback);
-  }
-
-  private publish(event: Event): void {
-    this.subscribers.forEach((callback) => callback(event));
-  }
-
-  getEvents(): Event[] {
-    return [...this.events];
+  async execute(command: CreateUserCommand): Promise<void> {
+    // Biznes qoidalarini qo'llash
+    if (command.age < 18) throw new Error("User must be 18+");
+    
+    const userId = generateId();
+    await this.writeRepo.save({ id: userId, email: command.email, age: command.age });
+    
+    // Event'ni e'lon qilish
+    await this.eventBus.publish(new UserCreatedEvent(userId, command.email));
   }
 }
 
-// Command Handler (Write Model)
-class CommandHandler {
-  private nextUserId = 1;
-  private nextEventId = 1;
+// --- 2. KO'PRIK ---
 
-  constructor(private eventStore: EventStore) {}
+class UserCreatedEventHandler {
+  constructor(private readRepo: UserReadRepository) {}
 
-  handleCreateUser(command: CreateUserCommand): void {
-    console.log(`[Command Handler] Processing CreateUserCommand`);
-
-    const event: UserCreatedEvent = {
-      eventId: `event-${this.nextEventId++}`,
-      timestamp: new Date(),
-      type: "UserCreated",
-      userId: this.nextUserId++,
-      name: command.name,
-      email: command.email,
+  async handle(event: UserCreatedEvent) {
+    // Tez o'qiladigan formatga proyeksiya qilish (masalan, Redis)
+    const readModel = {
+      id: event.userId,
+      displayEmail: event.email.toLowerCase(),
     };
-
-    this.eventStore.appendEvent(event);
-  }
-
-  handleUpdateUser(command: UpdateUserCommand): void {
-    console.log(
-      `[Command Handler] Processing UpdateUserCommand for user ${command.userId}`,
-    );
-
-    const event: UserUpdatedEvent = {
-      eventId: `event-${this.nextEventId++}`,
-      timestamp: new Date(),
-      type: "UserUpdated",
-      userId: command.userId,
-      name: command.name,
-      email: command.email,
-    };
-
-    this.eventStore.appendEvent(event);
+    await this.readRepo.save(readModel);
   }
 }
 
-// Read Model (Query Side)
-interface UserReadModel {
-  userId: number;
-  name: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
+// --- 3. QUERY TOMONI (O'qish) ---
+
+class GetUserQuery {
+  constructor(public userId: string) {}
 }
 
-class QueryModel {
-  private users: Map<number, UserReadModel> = new Map();
-  private usersByEmail: Map<string, number> = new Map();
+class GetUserQueryHandler {
+  constructor(private readRepo: UserReadRepository) {}
 
-  constructor(eventStore: EventStore) {
-    eventStore.subscribe((event) => this.handleEvent(event));
-  }
-
-  private handleEvent(event: Event): void {
-    if (event.type === "UserCreated") {
-      const e = event as UserCreatedEvent;
-      const user: UserReadModel = {
-        userId: e.userId,
-        name: e.name,
-        email: e.email,
-        createdAt: e.timestamp,
-        updatedAt: e.timestamp,
-      };
-      this.users.set(e.userId, user);
-      this.usersByEmail.set(e.email, e.userId);
-      console.log(`[Query Model] Updated user ${e.userId}`);
-    } else if (event.type === "UserUpdated") {
-      const e = event as UserUpdatedEvent;
-      const user = this.users.get(e.userId);
-      if (user) {
-        if (e.name) user.name = e.name;
-        if (e.email) {
-          this.usersByEmail.delete(user.email);
-          user.email = e.email;
-          this.usersByEmail.set(e.email, e.userId);
-        }
-        user.updatedAt = e.timestamp;
-        console.log(`[Query Model] Updated user ${e.userId}`);
-      }
-    }
-  }
-
-  getUserById(userId: number): UserReadModel | undefined {
-    return this.users.get(userId);
-  }
-
-  getUserByEmail(email: string): UserReadModel | undefined {
-    const userId = this.usersByEmail.get(email);
-    return userId ? this.users.get(userId) : undefined;
-  }
-
-  getAllUsers(): UserReadModel[] {
-    return Array.from(this.users.values());
+  async execute(query: GetUserQuery): Promise<UserReadDto> {
+    // To'g'ridan-to'g'ri, chaqmoqdek tez o'qish. Biznes mantiq yo'q.
+    const data = await this.readRepo.findById(query.userId);
+    return new UserReadDto(data.id, data.displayEmail);
   }
 }
-
-// Application Facade
-class UserApplication {
-  private commandHandler: CommandHandler;
-  private queryModel: QueryModel;
-
-  constructor(eventStore: EventStore) {
-    this.commandHandler = new CommandHandler(eventStore);
-    this.queryModel = new QueryModel(eventStore);
-  }
-
-  createUser(name: string, email: string): void {
-    const command: CreateUserCommand = {
-      commandId: `cmd-${Date.now()}`,
-      timestamp: new Date(),
-      name,
-      email,
-    };
-    this.commandHandler.handleCreateUser(command);
-  }
-
-  updateUser(userId: number, name?: string, email?: string): void {
-    const command: UpdateUserCommand = {
-      commandId: `cmd-${Date.now()}`,
-      timestamp: new Date(),
-      userId,
-      name,
-      email,
-    };
-    this.commandHandler.handleUpdateUser(command);
-  }
-
-  getUserById(userId: number): UserReadModel | undefined {
-    return this.queryModel.getUserById(userId);
-  }
-
-  getAllUsers(): UserReadModel[] {
-    return this.queryModel.getAllUsers();
-  }
-}
-
-// Usage
-const eventStore = new EventStore();
-const app = new UserApplication(eventStore);
-
-app.createUser("John Doe", "john@example.com");
-app.createUser("Jane Smith", "jane@example.com");
-
-console.log("\n=== Query Results ===");
-const users = app.getAllUsers();
-console.log("All users:", users);
-
-app.updateUser(1, "John Updated", "john.updated@example.com");
-
-console.log("\n=== Updated Query Results ===");
-console.log("User 1:", app.getUserById(1));
 ```
 
-```python [Python]
-from abc import ABC, abstractmethod
-from typing import List, Optional, Callable, Dict
+```python [Python (FastAPI Style)]
+# --- 1. COMMAND TOMONI (Yozish) ---
 from dataclasses import dataclass
-from datetime import datetime
-
-# Events
-@dataclass
-class Event:
-    event_id: str
-    timestamp: datetime
-    event_type: str
 
 @dataclass
-class UserCreatedEvent(Event):
-    user_id: int
-    name: str
+class CreateUserCommand:
     email: str
+    age: int
 
+class CreateUserCommandHandler:
+    def __init__(self, write_db, event_bus):
+        self.write_db = write_db
+        self.event_bus = event_bus
+
+    def execute(self, command: CreateUserCommand):
+        if command.age < 18:
+            raise ValueError("Must be 18+")
+            
+        user_id = "uuid-123"
+        self.write_db.save({"id": user_id, "email": command.email, "age": command.age})
+        
+        self.event_bus.publish(UserCreatedEvent(user_id, command.email))
+
+# --- 2. KO'PRIK ---
+class UserCreatedEventHandler:
+    def __init__(self, read_db):
+        self.read_db = read_db
+
+    def handle(self, event):
+        # Tez o'qish uchun ma'lumotni proyeksiya qilish
+        self.read_db.save_view({
+            "id": event.user_id,
+            "display": event.email.lower()
+        })
+
+# --- 3. QUERY TOMONI (O'qish) ---
 @dataclass
-class UserUpdatedEvent(Event):
-    user_id: int
-    name: Optional[str] = None
-    email: Optional[str] = None
+class GetUserQuery:
+    user_id: str
 
-# Commands
-@dataclass
-class Command:
-    command_id: str
-    timestamp: datetime
+class GetUserQueryHandler:
+    def __init__(self, read_db):
+        self.read_db = read_db
 
-@dataclass
-class CreateUserCommand(Command):
-    name: str
-    email: str
+    def execute(self, query: GetUserQuery) -> dict:
+        # Domenni chetlab o'tib, proyeksiyani darhol olish
+        return self.read_db.get_view(query.user_id)
+```
 
-@dataclass
-class UpdateUserCommand(Command):
-    user_id: int
-    name: Optional[str] = None
-    email: Optional[str] = None
+```java [Java (Spring Boot Style)]
+// --- 1. COMMAND TOMONI (Yozish) ---
+record CreateUserCommand(String email, int age) {}
 
-# Event Store (Write Model)
-class EventStore:
-    def __init__(self):
-        self.events: List[Event] = []
-        self.subscribers: List[Callable] = []
+@Service
+class CreateUserCommandHandler {
+    private final WriteRepository writeRepo;
+    private final ApplicationEventPublisher publisher;
 
-    def append_event(self, event: Event) -> None:
-        print(f"[Event Store] Appended event: {event.event_type}")
-        self.events.append(event)
-        self.publish(event)
+    public CreateUserCommandHandler(WriteRepository writeRepo, ApplicationEventPublisher publisher) {
+        this.writeRepo = writeRepo;
+        this.publisher = publisher;
+    }
 
-    def subscribe(self, callback: Callable[[Event], None]) -> None:
-        self.subscribers.append(callback)
+    @Transactional
+    public void handle(CreateUserCommand command) {
+        if (command.age() < 18) throw new IllegalArgumentException("Must be 18+");
+        
+        String userId = UUID.randomUUID().toString();
+        writeRepo.save(new UserEntity(userId, command.email(), command.age()));
+        
+        publisher.publishEvent(new UserCreatedEvent(userId, command.email()));
+    }
+}
 
-    def publish(self, event: Event) -> None:
-        for callback in self.subscribers:
-            callback(event)
+// --- 2. KO'PRIK ---
+@Component
+class UserProjector {
+    private final ReadRepository readRepo;
+    public UserProjector(ReadRepository readRepo) { this.readRepo = readRepo; }
 
-    def get_events(self) -> List[Event]:
-        return self.events.copy()
+    @EventListener
+    public void onUserCreated(UserCreatedEvent event) {
+        // Redis / ElasticSearch'ga saqlash
+        readRepo.save(new UserReadModel(event.id(), event.email().toLowerCase()));
+    }
+}
 
-# Command Handler (Write Model)
-class CommandHandler:
-    def __init__(self, event_store: EventStore):
-        self.event_store = event_store
-        self.next_user_id = 1
-        self.next_event_id = 1
+// --- 3. QUERY TOMONI (O'qish) ---
+record GetUserQuery(String userId) {}
 
-    def handle_create_user(self, command: CreateUserCommand) -> None:
-        print(f"[Command Handler] Processing CreateUserCommand")
+@Service
+class GetUserQueryHandler {
+    private final ReadRepository readRepo;
+    public GetUserQueryHandler(ReadRepository readRepo) { this.readRepo = readRepo; }
 
-        event = UserCreatedEvent(
-            event_id=f"event-{self.next_event_id}",
-            timestamp=datetime.now(),
-            event_type="UserCreated",
-            user_id=self.next_user_id,
-            name=command.name,
-            email=command.email
-        )
-        self.next_user_id += 1
-        self.next_event_id += 1
-        self.event_store.append_event(event)
+    public UserReadModel handle(GetUserQuery query) {
+        return readRepo.findById(query.userId());
+    }
+}
+```
 
-    def handle_update_user(self, command: UpdateUserCommand) -> None:
-        print(f"[Command Handler] Processing UpdateUserCommand for user {command.user_id}")
+```go [Go]
+package main
 
-        event = UserUpdatedEvent(
-            event_id=f"event-{self.next_event_id}",
-            timestamp=datetime.now(),
-            event_type="UserUpdated",
-            user_id=command.user_id,
-            name=command.name,
-            email=command.email
-        )
-        self.next_event_id += 1
-        self.event_store.append_event(event)
+import (
+	"errors"
+	"fmt"
+)
 
-# Read Model (Query Side)
-@dataclass
-class UserReadModel:
-    user_id: int
-    name: str
-    email: str
-    created_at: datetime
-    updated_at: datetime
+// --- 1. COMMAND TOMONI ---
+type CreateUserCommand struct {
+	Email string
+	Age   int
+}
 
-class QueryModel:
-    def __init__(self, event_store: EventStore):
-        self.users: Dict[int, UserReadModel] = {}
-        self.users_by_email: Dict[str, int] = {}
-        event_store.subscribe(self.handle_event)
+type CommandHandler struct {
+	writeDB  *WriteDatabase
+	eventBus *EventBus
+}
 
-    def handle_event(self, event: Event) -> None:
-        if event.event_type == "UserCreated":
-            e = event
-            user = UserReadModel(
-                user_id=e.user_id,
-                name=e.name,
-                email=e.email,
-                created_at=e.timestamp,
-                updated_at=e.timestamp
-            )
-            self.users[e.user_id] = user
-            self.users_by_email[e.email] = e.user_id
-            print(f"[Query Model] Updated user {e.user_id}")
-        elif event.event_type == "UserUpdated":
-            e = event
-            if e.user_id in self.users:
-                user = self.users[e.user_id]
-                if e.name:
-                    user.name = e.name
-                if e.email:
-                    self.users_by_email.pop(user.email, None)
-                    user.email = e.email
-                    self.users_by_email[e.email] = e.user_id
-                user.updated_at = e.timestamp
-                print(f"[Query Model] Updated user {e.user_id}")
+func (h *CommandHandler) HandleCreateUser(cmd CreateUserCommand) error {
+	if cmd.Age < 18 {
+		return errors.New("must be 18+")
+	}
 
-    def get_user_by_id(self, user_id: int) -> Optional[UserReadModel]:
-        return self.users.get(user_id)
+	userId := "usr_123"
+	h.writeDB.Save(userId, cmd.Email, cmd.Age)
+	
+	h.eventBus.Publish(UserCreatedEvent{UserId: userId, Email: cmd.Email})
+	return nil
+}
 
-    def get_all_users(self) -> List[UserReadModel]:
-        return list(self.users.values())
+// --- 2. EVENT VA KO'PRIK ---
+type UserCreatedEvent struct {
+	UserId string
+	Email  string
+}
 
-# Application Facade
-class UserApplication:
-    def __init__(self, event_store: EventStore):
-        self.command_handler = CommandHandler(event_store)
-        self.query_model = QueryModel(event_store)
+type EventBus struct {
+	readDB *ReadDatabase
+}
 
-    def create_user(self, name: str, email: str) -> None:
-        command = CreateUserCommand(
-            command_id=f"cmd-{int(datetime.now().timestamp())}",
-            timestamp=datetime.now(),
-            name=name,
-            email=email
-        )
-        self.command_handler.handle_create_user(command)
+func (bus *EventBus) Publish(event UserCreatedEvent) {
+	// O'qish DB'siga proyeksiya qilish
+	bus.readDB.SaveView(event.UserId, event.Email)
+}
 
-    def update_user(self, user_id: int, name: Optional[str] = None, email: Optional[str] = None) -> None:
-        command = UpdateUserCommand(
-            command_id=f"cmd-{int(datetime.now().timestamp())}",
-            timestamp=datetime.now(),
-            user_id=user_id,
-            name=name,
-            email=email
-        )
-        self.command_handler.handle_update_user(command)
+// --- 3. QUERY TOMONI ---
+type GetUserQuery struct {
+	UserId string
+}
 
-    def get_user_by_id(self, user_id: int) -> Optional[UserReadModel]:
-        return self.query_model.get_user_by_id(user_id)
+type QueryHandler struct {
+	readDB *ReadDatabase
+}
 
-    def get_all_users(self) -> List[UserReadModel]:
-        return self.query_model.get_all_users()
+func (h *QueryHandler) HandleGetUser(query GetUserQuery) string {
+	return h.readDB.GetUserView(query.UserId)
+}
 
-# Usage
-if __name__ == "__main__":
-    event_store = EventStore()
-    app = UserApplication(event_store)
+// Soxta DB'lar
+type WriteDatabase struct{}
+func (db *WriteDatabase) Save(id string, email string, age int) { fmt.Println("Saved to Write DB (SQL)") }
 
-    app.create_user("John Doe", "john@example.com")
-    app.create_user("Jane Smith", "jane@example.com")
+type ReadDatabase struct{}
+func (db *ReadDatabase) SaveView(id string, email string) { fmt.Println("Projected to Read DB (Redis)") }
+func (db *ReadDatabase) GetUserView(id string) string { return "Fast JSON View for UI" }
+```
 
-    print("\n=== Query Results ===")
-    users = app.get_all_users()
-    print("All users:", users)
+```rust [Rust]
+use std::sync::{Arc, Mutex};
 
-    app.update_user(1, "John Updated", "john.updated@example.com")
+// --- 1. COMMAND TOMONI ---
+struct CreateUserCommand {
+    email: String,
+    age: u8,
+}
 
-    print("\n=== Updated Query Results ===")
-    print("User 1:", app.get_user_by_id(1))
+struct CommandHandler {
+    write_db: Arc<Mutex<WriteDatabase>>,
+    event_bus: Arc<Mutex<EventBus>>,
+}
+
+impl CommandHandler {
+    fn handle(&self, cmd: CreateUserCommand) -> Result<(), &'static str> {
+        if cmd.age < 18 {
+            return Err("must be 18+");
+        }
+
+        let user_id = "usr_123".to_string();
+        self.write_db.lock().unwrap().save(&user_id, &cmd.email, cmd.age);
+        
+        self.event_bus.lock().unwrap().publish(UserCreatedEvent {
+            user_id,
+            email: cmd.email,
+        });
+        
+        Ok(())
+    }
+}
+
+// --- 2. KO'PRIK ---
+struct UserCreatedEvent {
+    user_id: String,
+    email: String,
+}
+
+struct EventBus {
+    read_db: Arc<Mutex<ReadDatabase>>,
+}
+
+impl EventBus {
+    fn publish(&self, event: UserCreatedEvent) {
+        self.read_db.lock().unwrap().save_view(&event.user_id, &event.email);
+    }
+}
+
+// --- 3. QUERY TOMONI ---
+struct GetUserQuery {
+    user_id: String,
+}
+
+struct QueryHandler {
+    read_db: Arc<Mutex<ReadDatabase>>,
+}
+
+impl QueryHandler {
+    fn handle(&self, query: GetUserQuery) -> String {
+        self.read_db.lock().unwrap().get_view(&query.user_id)
+    }
+}
+
+// Soxta DB'lar
+struct WriteDatabase;
+impl WriteDatabase {
+    fn save(&self, id: &str, email: &str, age: u8) { println!("Saved to Write DB (SQL)"); }
+}
+
+struct ReadDatabase;
+impl ReadDatabase {
+    fn save_view(&self, id: &str, email: &str) { println!("Projected to Read DB (Redis)"); }
+    fn get_view(&self, id: &str) -> String { "Fast JSON View".to_string() }
+}
 ```
 
 :::
 
-## Haqiqiy hayotdagi misollar (Real-World Examples)
+## Yakuniy izchillik (Eventual Consistency) - murosaning narxi
 
-### E-Tijorat platformasi
+Agar O'qish va Yozish ma'lumotlar bazalarini ajratsangiz, **Eventual Consistency** (yakuniy izchillik) ni olib kirasiz.
+Foydalanuvchi o'z profilini yangilaganida (Command), Event Bus Read Database'ni yangilashi uchun bir necha millisekund vaqt ketadi. Agar foydalanuvchi sahifani darhol yangilasa (Query), u bir lahzaga o'zining *eski* profil ma'lumotlarini ko'rishi mumkin.
 
-- **Buyruqlar (Commands)**: BuyurtmaniQaytaIshlash (ProcessOrder), ZaxiraniYangilash (UpdateInventory)
-- **So'rovlar (Queries)**: MahsulotTafsilotlariniOlish (GetProductDetails), MavjudMahsulotlarniKorsatish (ListAvailableProducts)
-- Tezkor so'rovlar uchun alohida o'qish keshini saqlaydi
+UI ni bunga moslab loyihalashingiz kerak (masalan, optimistik UI yangilanishlari yoki polling).
 
-### Ijtimoiy tarmoqlar
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-- **Buyruqlar (Commands)**: TvitterYozish (PostTweet), PostgaLaykBosis (LikePost), IzohYaratish (CreateComment)
-- **So'rovlar (Queries)**: LentaOlish (GetTimeline), KuzatuvchilarniOlish (GetFollowers), XeshteglarniQidirish (SearchHashtags)
-- Ishlash tezligi uchun o'qish modeli sezilarli darajada denormallashgan (denormalized) bo'ladi
+### Afzalliklari (Advantages)
+- **Mustaqil masshtablash**: Agar ilovangiz o'qish trafigi ostida ezilib qolsa (masalan, Black Friday da), Write Database'ga tegmasdan Read Database'ni (Redis nusxalarini) masshtablashingiz mumkin.
+- **Ishlash tezligini optimallashtirish**: Ma'lumotlarni aynan UI ga kerakli formatda proyeksiya qilishingiz mumkin. O'qishda endi murakkab SQL `JOIN` lar yo'q.
+- **Soddaroq xavfsizlik**: Command'lar holatni o'zgartiradi va jiddiy avtorizatsiyani talab qiladi. Query'lar esa shunchaki ma'lumot qaytaradi. Ularni ajratish xavfsizlik auditini ancha osonlashtiradi.
 
-### Bank tizimi
+### Kamchiliklari (Disadvantages)
+- **O'ta yuqori murakkablik**: CQRS kod hajmini uch barobar oshiradi. Har bir funksiya uchun sizga Command, CommandHandler, Event, EventHandler, Query va QueryHandler kerak bo'ladi.
+- **Eventual Consistency**: Dasturchilar va UI dizaynerlar yozishdan keyin ma'lumotlar darhol mavjud bo'lmaydigan tizimlarni qurishni o'rganishlari kerak.
+- **Infratuzilma xarajatlari**: Endi ikki xil ma'lumotlar bazasi texnologiyasini va message broker'ni (masalan, Kafka yoki RabbitMQ) qo'llab-quvvatlashingizga to'g'ri keladi.
 
-- **Buyruqlar (Commands)**: Depozit (Deposit), Yechish (Withdraw), Otkazma (Transfer)
-- **So'rovlar (Queries)**: BalansniOlish (GetBalance), TranzaksiyaTarixiniOlish (GetTransactionHistory)
-- Muvofiqlik va audit tekshiruvlari uchun qat'iy ajratilgan
+## Qachon foydalanish kerak (When to Use)
 
-## Afzalliklari (Advantages) ✅
+- **Yuqori unumdorlikdagi mikroservislar**: O'qish/yozish nisbati keskin farq qiladigan tizimlar (masalan, Twitter, Netflix, Amazon).
+- **Vazifaga yo'naltirilgan UI'lar (Task-Based UIs)**: Umumiy CRUD formalari o'rniga aniq foydalanuvchi niyatlariga ("Parolni o'zgartirish", "Obunani yangilash") e'tibor qaratadigan UI'lar.
+- **Event Sourcing bilan birgalikda**: Agar Event Sourcing ishlatayotgan bo'lsangiz, CQRS deyarli majburiy, chunki faqat qo'shiladigan (append-only) hodisalar oqimidan o'qish UI so'rovlari uchun juda sekin.
 
-- **Mustaqil optimallashtirish**: O'qish va yozish yo'llari (paths) alohida optimallashtiriladi
-- **Kengayuvchanlik (Scalability)**: O'qish va yozish yuklamalari mustaqil ravishda kengaytirilishi mumkin
-- **Ishlash tezligi (Performance)**: So'rovlar modeli kuchli optimallashtirilishi mumkin (keshlash, denormallash)
-- **Soddaroq so'rovlar**: O'qish modeli o'ziga xos so'rovlar uchun moslashtirilgan
-- **Tekshiruv (Auditability)**: Barcha o'zgarishlar voqealar sifatida qayd etiladi
-- **Event Sourcing ga tayyor**: Event Sourcing bilan mukammal mos keladi
-- **Murakkab domenlar**: Murakkab biznes mantig'ini yaxshiroq boshqarish
-- **Mustaqil jamoalar**: O'qish va yozish guruhlari mustaqil ishlashi mumkin
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-## Kamchiliklari (Disadvantages) ❌
+- **Oddiy CRUD ilovalar**: Agar ilovangiz shunchaki yozuvlarni yangilash uchun admin panel bo'lsa, CQRS haddan tashqari ortiqcha murakkablikdir. MVC yoki Active Record dan foydalaning.
+- **Qat'iy izchillik talablari**: Agar biznes o'qish yozishning aynan o'sha millisekunddagi holatini *mutlaqo aks ettirishi shart* deb talab qilsa (masalan, qat'iy moliyaviy savdo algoritmlari), eventual consistency tizimingizni buzadi.
 
-- **Murakkablik**: Arxitektura murakkabligi oshadi
-- **O'rganish vaqti (Learning Curve)**: Dasturchilar CQRS ni tushunishlari kerak
-- **Muvofiqlik (Consistency)**: O'qish va yozish modellari o'rtasidagi kelajakdagi muvofiqlik (Eventual consistency)
-- **Sinxronizatsiya**: Modellarni sinxronlashtirish qiyin bo'lishi mumkin
-- **Sinov (Testing)**: Sinov ssenariylari murakkablashadi
-- **Nosozliklarni topish (Debugging)**: Modellar o'rtasida xatolarni kuzatish qiyinroq
-- **Saqlash xotirasi (Storage)**: Har ikkala model uchun ham saqlash joyi talab qilinadi
-- **Qo'shimcha yuklama (Overhead)**: Qo'shimcha infratuzilma va jarayonlar
+## Keng tarqalgan xatolar (Common Mistakes)
 
-## Qachon foydalanish kerak (When to Use) ✅
+- **Query'larda buyruq berish**: QueryHandler ichida tasodifan holatni o'zgartirish. Query'lar yon ta'sirlarsiz (side-effect free) bo'lishi SHART.
+- **Command'larda so'rov qilish**: CommandHandler'ning UI da ko'rsatish uchun murakkab ma'lumotlar tuzilmalarini qaytarishi. Command odatda faqat `void`, ID yoki xatolikni qaytarishi kerak.
 
-- **Katta yuklamali tizimlar (High-Volume Systems)**: O'qish/yozish namunalari farq qiluvchi tizimlar
-- **Murakkab domenlar**: Qiyin biznes qoidalariga ega tizimlar
-- **Kengayuvchanlik muhim bo'lganda**: Mustaqil kengaytirish zarur bo'lgan hollarda
-- **Hisobotga asoslangan (Reporting-Heavy)**: Katta hajmdagi hisobotlar talab qilinganda
-- **Voqealarga asoslangan (Event-Driven)**: Tizim allaqachon event sourcing ni ishlatsa
-- **Mikroservislar**: Turli xizmatlar o'qish/yozishni bajarganda
-- **Yuqori tezlikdagi o'qish (High-Performance Reads)**: So'rovlarni optimallashtirish o'ta muhim bo'lganda
-- **Audit talablari**: To'liq audit tarixi (audit trails) zarur bo'lgan hollarda
+## Aloqador patternlar (Related Patterns)
 
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
-
-- **Oddiy CRUD ilovalari**: Oddiy ilovalarni o'ta murakkablashtirish (Over-engineering)
-- **Muvozanatli o'qish/yozish**: Har ikkalasida o'xshash yuklama bo'lganda
-- **Kichik jamoalar**: Ortiqcha murakkablik oqlanmagan hollarda
-- **Real vaqtda muvofiqlik**: Qat'iy muvofiqlik talab qilinadigan tizimlar
-- **Prototiplar**: Tez tashlab yuboriladigan loyihalar
-- **Oddiy domenlar**: To'g'ridan-to'g'ri biznes mantiq
-- **Tezkor ishlab chiqish**: Tezlik birinchi o'rinda bo'lganda
-- **Dastlabki mikroservislar**: Birinchi xizmatlar uchun ortiqcha murakkablik
-
-## Aloqador Patternlar (Related Patterns)
-
-- **Event Sourcing**: CQRS bilan tez-tez birga qo'llaniladi
-- **Mediator Pattern**: Buyruqlar va so'rovlarni ajratish uchun
-- **Observer Pattern**: Voqealarga obuna bo'lish uchun
-- **Command Pattern**: Buyruqlarni boshqarish uchun
-- **Memento Pattern**: Voqealar holatini (snapshots) saqlash uchun
-- **Saga Pattern**: CQRS da taqsimlangan tranzaksiyalar uchun
+- **[Event Sourcing](/uz/architectural/event-sourcing)**: CQRS deyarli har doim Event Sourcing bilan birga ishlatiladi. "Write DB" faqat qo'shiladigan Event Store'ga aylanadi.
+- **[Unit of Work](/uz/architectural/unit-of-work) / [Repository](/uz/architectural/repository)**: Ko'pincha Command Handler ichida yozish operatsiyasi va hodisani e'lon qilish atomar ravishda muvaffaqiyatli bo'lishini ta'minlash uchun ishlatiladi.
+- **[Mediator](/uz/behavioral/mediator)**: Monolit CQRS implementatsiyalarida (masalan, C# dagi MediatR) Command va Query'larni qattiq bog'liqliksiz tegishli handler'larga yo'naltirish uchun Mediator patternidan foydalaniladi.

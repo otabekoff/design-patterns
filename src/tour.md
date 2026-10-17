@@ -6,7 +6,7 @@ icon: BookOpen
 
 # Documentation Tour
 
-<CoverImage src="/covers/getting-started/tour.png" alt="Cover">
+<CoverImage src="/covers/getting-started/tour.webp" alt="Cover">
   <h1>Tour</h1>
   <p>A cheerful robot tour guide driving a tiny, sleek futuristic hover-bus filled with little curious baby robots peering out of the windows at grand, floating monuments representing Creational, Structural, and Behavioral patterns.</p>
 </CoverImage>

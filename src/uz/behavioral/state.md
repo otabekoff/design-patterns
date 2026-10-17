@@ -1,473 +1,690 @@
 ---
-title: State
-description: Allow an object to alter its behavior when its internal state changes. Encapsulate state-specific behavior.
+title: State Pattern
+description: Obyektga ichki holati o'zgarganda o'z xulq-atvorini o'zgartirish imkonini beradi. Holatga xos xulq-atvorni inkapsulyatsiya qiladi.
 icon: Zap
 ---
 
-# State
+# State Pattern
 
-<CoverImage src="/covers/behavioral/state.png" alt="Cover">
+<CoverImage src="/covers/behavioral/state.webp" alt="Cover">
   <h1>State</h1>
-  <p>A quirky robot whose facial screen and body color changes dynamically: when fed a "battery" it turns yellow (happy), when fed a "broken gear" it turns red (angry), and when left idle it turns blue (sleeping).</p>
+  <p>Yuz ekrani va tana rangi dinamik ravishda o'zgaradigan g'alati robot: unga "batareya" berilsa, u sariq rangga kiradi (xursand), "singan tishli g'ildirak" berilsa, qizil rangga kiradi (jahldor), bekor qoldirilsa esa ko'k rangga kiradi (uxlayotgan).</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The **State** pattern is a behavioral design pattern that allows an object to alter its behavior when its internal state changes. It lets an object appear to change its class by changing its state object. This pattern encapsulates state-specific behavior and transitions between states.
+**State** — bu obyektga ichki holati (state) o'zgarganda o'z xulq-atvorini o'zgartirish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir. Go'yo obyekt o'z klassini o'zgartirgandek ko'rinadi.
 
-## Purpose
+**Asosiy afzalligi**: U holatga xos xulq-atvorlarni ulkan `switch/case` yoki `if/else` shartlaridan alohida, maxsus State klasslariga ajratib chiqaradi.
 
-The State pattern aims to:
+**Zamonaviy nuqtai nazar**: Klassik obyektga yo'naltirilgan State patterni chekli holatlar mashinasining (Finite State Machine, FSM) amalga oshirilishidir. UI freymvorklari (React yoki Vue kabi) ko'pincha funksional yoki deklarativ holat boshqaruvidan (masalan, XState, Redux) foydalansa-da, asosiy g'oya — obyektning hodisaga javobi qat'iy ravishda uning joriy holatiga bog'liq ekanligi — hamma joyda qo'llanilishicha qolmoqda.
 
-- Encapsulate state-specific behavior in separate classes
-- Eliminate complex conditional logic based on states
-- Make state transitions explicit and manageable
-- Allow objects to change behavior based on state
-- Simplify code by separating concerns
-- Make state machines easier to understand and maintain
+## Muammo (The Problem)
 
-## Problem
+Tasavvur qiling, siz **savdo avtomati (Vending Machine)** uchun dasturiy ta'minot yaratyapsiz.
 
-Consider a music player with different states (playing, paused, stopped):
+Savdo avtomatining aniq holatlari bor: `Idle` (kutish), `HasCoin` (tanga solingan), `Dispensing` (mahsulot berilmoqda) va `OutOfStock` (mahsulot tugagan).
+Foydalanuvchi "Berish" (Dispense) tugmasini bosganda, avtomatning xulq-atvori butunlay uning holatiga bog'liq:
+
+- Agar `Idle` bo'lsa: "Iltimos, tanga soling."
+- Agar `HasCoin` bo'lsa: "Mahsulotingiz berilmoqda."
+- Agar `Dispensing` bo'lsa: "Iltimos, kuting, mahsulot allaqachon berilmoqda."
+- Agar `OutOfStock` bo'lsa: "Berib bo'lmaydi, mahsulot tugagan."
 
 ```typescript
-// Without State pattern - complex conditionals
-class MusicPlayer {
-  private state: string = "stopped";
+// ❌ Yomon: Hamma joyda ulkan switch operatorlari
+class VendingMachine {
+  private state = "IDLE";
 
-  play(): void {
-    if (this.state === "stopped") {
-      console.log("Starting playback");
-      this.state = "playing";
-    } else if (this.state === "paused") {
-      console.log("Resuming playback");
-      this.state = "playing";
-    } else if (this.state === "playing") {
-      console.log("Already playing");
+  insertCoin() {
+    switch (this.state) {
+      case "IDLE":
+        this.state = "HAS_COIN";
+        break;
+      case "HAS_COIN":
+        console.log("Coin already inserted.");
+        break;
+      // ... yana case'lar ...
     }
   }
 
-  pause(): void {
-    if (this.state === "playing") {
-      console.log("Pausing playback");
-      this.state = "paused";
-    }
-  }
-
-  stop(): void {
-    if (this.state === "playing" || this.state === "paused") {
-      console.log("Stopping playback");
-      this.state = "stopped";
+  dispense() {
+    switch (this.state) {
+      case "IDLE":
+        console.log("Insert coin first.");
+        break;
+      case "HAS_COIN":
+        this.state = "DISPENSING";
+        // berish mantig'i
+        break;
+      // ... yana case'lar ...
     }
   }
 }
 ```
 
-Issues with this approach:
+Bu kod mo'rt. Agar yangi holat qo'shsangiz (masalan, `MaintenanceMode` — texnik xizmat rejimi), `VendingMachine` klassidagi har bir `switch` operatorini qidirib topib, yangi `case` qo'shishingiz kerak. Bu Ochiq/Yopiqlik tamoyilini (Open/Closed Principle) buzadi.
 
-- Complex nested conditionals for each state
-- Adding new states requires modifying existing code
-- State-specific logic is scattered throughout the class
-- Hard to test individual states
-- Transitions become implicit and hard to track
+## Yechim (The Solution)
 
-## Solution
+State patterni obyektning barcha mumkin bo'lgan holatlari uchun yangi klasslar yaratishni va holatga xos barcha xulq-atvorlarni ushbu klasslarga ajratib chiqarishni taklif qiladi.
 
-The State pattern encapsulates each state in its own class:
+1. **Context (Kontekst)**: Asl obyekt (`VendingMachine`). U `State` obyektiga havolani saqlaydi.
+2. **State interfeysi**: Har bir aniq holat amalga oshirishi kerak bo'lgan metodlarni belgilaydi (masalan, `insertCoin()`, `dispense()`).
+3. **Concrete State'lar (Aniq holatlar)**: Har bir holatni ifodalovchi klasslar (`IdleState`, `HasCoinState` va h.k.). Ular o'sha holatga xos xulq-atvorni amalga oshiradi.
 
-```typescript
-// State interface
-interface State {
-  play(player: MusicPlayer): void;
-  pause(player: MusicPlayer): void;
-  stop(player: MusicPlayer): void;
-}
+`Context` so'rov olganda, ishni o'zining joriy `State` obyektiga topshiradi (delegate qiladi).
 
-// Concrete states
-class PlayingState implements State {
-  play(player: MusicPlayer): void {
-    console.log("Already playing");
-  }
+## Tuzilma (Structure)
 
-  pause(player: MusicPlayer): void {
-    console.log("Pausing playback");
-    player.setState(new PausedState());
-  }
+```mermaid
+classDiagram
+    class Context {
+        -state: State
+        +request()
+        +changeState(s: State)
+    }
+    class State {
+        <<interface>>
+        +handle(context: Context)
+    }
+    class ConcreteStateA {
+        +handle(context: Context)
+    }
+    class ConcreteStateB {
+        +handle(context: Context)
+    }
 
-  stop(player: MusicPlayer): void {
-    console.log("Stopping playback");
-    player.setState(new StoppedState());
-  }
-}
+    Context o--> State
+    State <|.. ConcreteStateA
+    State <|.. ConcreteStateB
+    ConcreteStateA --> Context : triggers transition
+    ConcreteStateB --> Context : triggers transition
 ```
 
-## Implementation
+## Ishlash oqimi (Flow)
+
+1. **Context** boshlang'ich **ConcreteState** bilan ishga tushiriladi.
+2. Mijoz **Context**'dagi metodni chaqiradi (masalan, `vendingMachine.dispense()`).
+3. **Context** buni joriy holatga topshiradi: `this.state.dispense(this)`.
+4. **ConcreteState** amalni bajaradi.
+5. Agar holatga o'tish talab qilinsa, **ConcreteState** `context.changeState(new NextState())` ni chaqiradi.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Smartfonni** tasavvur qiling.
+Agar telefoningiz **Qulfdan chiqarilgan (Unlocked)** holatda bo'lsa, Home tugmasini bosish bosh ekranga olib boradi.
+Agar telefoningiz **Qulflangan (Locked)** holatda bo'lsa, Home tugmasini bosish ekranni uyg'otib, qulfdan chiqarish oynasini ko'rsatadi.
+Agar telefoningiz **Kamera (Camera)** holatida bo'lsa, Home tugmasini bosish kameradan chiqaradi.
+Apparat tugmasi (harakat) aynan bir xil, lekin xulq-atvor operatsion tizimning ichki holatiga qarab butunlay o'zgaradi.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **State interfeysini aniqlang**: Context'ning holatga bog'liq metodlarini aks ettiring.
+2. **Concrete State klasslarini yarating**: Har bir aniq holat uchun interfeysni amalga oshiring.
+3. **Context'ni o'zgartiring**: Joriy State'ni saqlash uchun private maydon qo'shing. `changeState(State)` metodini qo'shing.
+4. **State'ga topshiring**: Context metodlarida bajarishni `this.state.method(this)` ga topshiring.
+5. **O'tishlarni amalga oshiring**: O'tishlarni Context yoki Concrete State'lar boshlashini hal qiling. Odatda Concrete State'lar `context.changeState()` ni chaqirish orqali o'tishlarni boshqaradi.
+
+## Kod misollari (Code Examples)
+
+Keling, **Hujjatni nashr qilish ish oqimini (Document Publishing Workflow)** amalga oshiramiz. Hujjat `Draft` (qoralama), `Moderation` (moderatsiya) yoki `Published` (nashr qilingan) holatida bo'lishi mumkin. Faqat adminlar to'g'ridan-to'g'ri nashr qila oladi; mualliflar esa moderatsiyadan o'tishi kerak.
 
 ::: code-group
 
 ```typescript [TypeScript]
-// State interface
-interface PlayerState {
-  play(player: MediaPlayer): void;
-  pause(player: MediaPlayer): void;
-  stop(player: MediaPlayer): void;
-  getStateName(): string;
-}
+// 1. Context (Kontekst)
+class Document {
+  private state!: State;
+  public currentUserRole: string;
 
-// Concrete States
-class StoppedState implements PlayerState {
-  play(player: MediaPlayer): void {
-    console.log("Starting playback from stopped state");
-    player.setState(new PlayingState());
+  constructor(role: string) {
+    this.currentUserRole = role;
+    this.changeState(new DraftState());
   }
 
-  pause(player: MediaPlayer): void {
-    console.log("Cannot pause - not playing");
-  }
-
-  stop(player: MediaPlayer): void {
-    console.log("Already stopped");
-  }
-
-  getStateName(): string {
-    return "STOPPED";
-  }
-}
-
-class PlayingState implements PlayerState {
-  play(player: MediaPlayer): void {
-    console.log("Already playing");
-  }
-
-  pause(player: MediaPlayer): void {
-    console.log("Pausing playback");
-    player.setState(new PausedState());
-  }
-
-  stop(player: MediaPlayer): void {
-    console.log("Stopping playback");
-    player.setState(new StoppedState());
-  }
-
-  getStateName(): string {
-    return "PLAYING";
-  }
-}
-
-class PausedState implements PlayerState {
-  play(player: MediaPlayer): void {
-    console.log("Resuming playback from pause");
-    player.setState(new PlayingState());
-  }
-
-  pause(player: MediaPlayer): void {
-    console.log("Already paused");
-  }
-
-  stop(player: MediaPlayer): void {
-    console.log("Stopping playback from pause");
-    player.setState(new StoppedState());
-  }
-
-  getStateName(): string {
-    return "PAUSED";
-  }
-}
-
-// Context
-class MediaPlayer {
-  private state: PlayerState;
-  private currentTrack: string = "";
-
-  constructor() {
-    this.state = new StoppedState();
-  }
-
-  setState(state: PlayerState): void {
-    console.log(`Transitioning to ${state.getStateName()}`);
+  changeState(state: State): void {
     this.state = state;
+    this.state.setContext(this);
   }
 
-  play(): void {
-    this.state.play(this);
+  // Topshirish (delegation)
+  publish(): void {
+    this.state.publish();
   }
 
-  pause(): void {
-    this.state.pause(this);
-  }
-
-  stop(): void {
-    this.state.stop(this);
-  }
-
-  setTrack(track: string): void {
-    this.currentTrack = track;
-    console.log(`Loaded track: ${track}`);
-  }
-
-  getState(): string {
-    return this.state.getStateName();
+  reject(): void {
+    this.state.reject();
   }
 }
 
-// Usage
-const player = new MediaPlayer();
-player.setTrack("Song.mp3");
+// 2. State asosi / interfeysi
+abstract class State {
+  protected context!: Document;
 
-player.play(); // Starting playback from stopped state
-player.play(); // Already playing
-player.pause(); // Pausing playback
-player.play(); // Resuming playback from pause
-player.stop(); // Stopping playback
-player.pause(); // Cannot pause - not playing
+  setContext(context: Document) {
+    this.context = context;
+  }
+
+  abstract publish(): void;
+  abstract reject(): void;
+}
+
+// 3. Konkret State'lar
+class DraftState extends State {
+  publish(): void {
+    if (this.context.currentUserRole === "admin") {
+      console.log("Draft -> Published (Admin override)");
+      this.context.changeState(new PublishedState());
+    } else {
+      console.log("Draft -> Moderation");
+      this.context.changeState(new ModerationState());
+    }
+  }
+
+  reject(): void {
+    console.log("Drafts cannot be rejected.");
+  }
+}
+
+class ModerationState extends State {
+  publish(): void {
+    if (this.context.currentUserRole === "admin") {
+      console.log("Moderation -> Published");
+      this.context.changeState(new PublishedState());
+    } else {
+      console.log("Only admins can approve documents in moderation.");
+    }
+  }
+
+  reject(): void {
+    if (this.context.currentUserRole === "admin") {
+      console.log("Moderation -> Draft (Rejected by admin)");
+      this.context.changeState(new DraftState());
+    } else {
+      console.log("Only admins can reject documents.");
+    }
+  }
+}
+
+class PublishedState extends State {
+  publish(): void {
+    console.log("Document is already published.");
+  }
+
+  reject(): void {
+    console.log("Published -> Draft (Retracted)");
+    this.context.changeState(new DraftState());
+  }
+}
+
+// 4. Mijoz
+const doc = new Document("author");
+
+console.log("\n--- Author Actions ---");
+doc.publish(); // Draft -> Moderation
+doc.publish(); // Xato: Faqat adminlar tasdiqlay oladi
+
+doc.currentUserRole = "admin";
+console.log("\n--- Admin Actions ---");
+doc.reject(); // Moderation -> Draft
+doc.publish(); // Draft -> Published (Admin huquqi bilan)
 ```
 
 ```python [Python]
+from __future__ import annotations
 from abc import ABC, abstractmethod
 
-    class PlayerState(ABC):
-        @abstractmethod
-        def play(self, player: 'MediaPlayer') -> None:
-            pass
+# 1. State interfeysi
+class State(ABC):
+    @property
+    def context(self) -> Document:
+        return self._context
 
-        @abstractmethod
-        def pause(self, player: 'MediaPlayer') -> None:
-            pass
+    @context.setter
+    def context(self, context: Document) -> None:
+        self._context = context
 
-        @abstractmethod
-        def stop(self, player: 'MediaPlayer') -> None:
-            pass
+    @abstractmethod
+    def publish(self) -> None:
+        pass
 
-        @abstractmethod
-        def get_state_name(self) -> str:
-            pass
+    @abstractmethod
+    def reject(self) -> None:
+        pass
 
-    class StoppedState(PlayerState):
-        def play(self, player: 'MediaPlayer') -> None:
-            print("Starting playback from stopped state")
-            player.set_state(PlayingState())
+# 2. Context (Kontekst)
+class Document:
+    def __init__(self, role: str):
+        self.current_user_role = role
+        # Boshlang'ich holatni o'rnatish
+        self.change_state(DraftState())
 
-        def pause(self, player: 'MediaPlayer') -> None:
-            print("Cannot pause - not playing")
+    def change_state(self, state: State) -> None:
+        self._state = state
+        self._state.context = self
 
-        def stop(self, player: 'MediaPlayer') -> None:
-            print("Already stopped")
+    def publish(self) -> None:
+        self._state.publish()
 
-        def get_state_name(self) -> str:
-            return "STOPPED"
+    def reject(self) -> None:
+        self._state.reject()
 
-    class PlayingState(PlayerState):
-        def play(self, player: 'MediaPlayer') -> None:
-            print("Already playing")
+# 3. Konkret State'lar
+class DraftState(State):
+    def publish(self) -> None:
+        if self.context.current_user_role == "admin":
+            print("Draft -> Published (Admin override)")
+            self.context.change_state(PublishedState())
+        else:
+            print("Draft -> Moderation")
+            self.context.change_state(ModerationState())
 
-        def pause(self, player: 'MediaPlayer') -> None:
-            print("Pausing playback")
-            player.set_state(PausedState())
+    def reject(self) -> None:
+        print("Drafts cannot be rejected.")
 
-        def stop(self, player: 'MediaPlayer') -> None:
-            print("Stopping playback")
-            player.set_state(StoppedState())
+class ModerationState(State):
+    def publish(self) -> None:
+        if self.context.current_user_role == "admin":
+            print("Moderation -> Published")
+            self.context.change_state(PublishedState())
+        else:
+            print("Only admins can approve documents in moderation.")
 
-        def get_state_name(self) -> str:
-            return "PLAYING"
+    def reject(self) -> None:
+        if self.context.current_user_role == "admin":
+            print("Moderation -> Draft (Rejected by admin)")
+            self.context.change_state(DraftState())
+        else:
+            print("Only admins can reject documents.")
 
-    class PausedState(PlayerState):
-        def play(self, player: 'MediaPlayer') -> None:
-            print("Resuming playback from pause")
-            player.set_state(PlayingState())
+class PublishedState(State):
+    def publish(self) -> None:
+        print("Document is already published.")
 
-        def pause(self, player: 'MediaPlayer') -> None:
-            print("Already paused")
+    def reject(self) -> None:
+        print("Published -> Draft (Retracted)")
+        self.context.change_state(DraftState())
 
-        def stop(self, player: 'MediaPlayer') -> None:
-            print("Stopping playback from pause")
-            player.set_state(StoppedState())
+# 4. Mijoz
+if __name__ == "__main__":
+    doc = Document("author")
 
-        def get_state_name(self) -> str:
-            return "PAUSED"
+    print("\n--- Author Actions ---")
+    doc.publish() # Draft -> Moderation
+    doc.publish() # Xato
 
-    class MediaPlayer:
-        def __init__(self):
-            self.state: PlayerState = StoppedState()
-            self.current_track = ""
+    doc.current_user_role = "admin"
+    print("\n--- Admin Actions ---")
+    doc.reject()  # Moderation -> Draft
+    doc.publish() # Draft -> Published
+```
 
-        def set_state(self, state: PlayerState) -> None:
-            print(f"Transitioning to {state.get_state_name()}")
-            self.state = state
+```java [Java]
+// 1. Context (Kontekst)
+class Document {
+    private State state;
+    private String currentUserRole;
 
-        def play(self) -> None:
-            self.state.play(self)
+    public Document(String role) {
+        this.currentUserRole = role;
+        changeState(new DraftState());
+    }
 
-        def pause(self) -> None:
-            self.state.pause(self)
+    public void changeState(State state) {
+        this.state = state;
+        this.state.setContext(this);
+    }
 
-        def stop(self) -> None:
-            self.state.stop(self)
+    public String getCurrentUserRole() { return currentUserRole; }
+    public void setCurrentUserRole(String role) { this.currentUserRole = role; }
 
-        def set_track(self, track: str) -> None:
-            self.current_track = track
-            print(f"Loaded track: {track}")
+    public void publish() { state.publish(); }
+    public void reject() { state.reject(); }
+}
 
-        def get_state(self) -> str:
-            return self.state.get_state_name()
+// 2. State asosi
+abstract class State {
+    protected Document context;
 
-    # Usage
-    player = MediaPlayer()
-    player.set_track("Song.mp3")
+    public void setContext(Document context) {
+        this.context = context;
+    }
 
-    player.play()     # Starting playback from stopped state
-    player.play()     # Already playing
-    player.pause()    # Pausing playback
-    player.play()     # Resuming playback from pause
-    player.stop()     # Stopping playback
-    player.pause()    # Cannot pause - not playing
+    public abstract void publish();
+    public abstract void reject();
+}
+
+// 3. Konkret State'lar
+class DraftState extends State {
+    @Override
+    public void publish() {
+        if ("admin".equals(context.getCurrentUserRole())) {
+            System.out.println("Draft -> Published (Admin override)");
+            context.changeState(new PublishedState());
+        } else {
+            System.out.println("Draft -> Moderation");
+            context.changeState(new ModerationState());
+        }
+    }
+
+    @Override
+    public void reject() {
+        System.out.println("Drafts cannot be rejected.");
+    }
+}
+
+class ModerationState extends State {
+    @Override
+    public void publish() {
+        if ("admin".equals(context.getCurrentUserRole())) {
+            System.out.println("Moderation -> Published");
+            context.changeState(new PublishedState());
+        } else {
+            System.out.println("Only admins can approve documents in moderation.");
+        }
+    }
+
+    @Override
+    public void reject() {
+        if ("admin".equals(context.getCurrentUserRole())) {
+            System.out.println("Moderation -> Draft (Rejected by admin)");
+            context.changeState(new DraftState());
+        } else {
+            System.out.println("Only admins can reject documents.");
+        }
+    }
+}
+
+class PublishedState extends State {
+    @Override
+    public void publish() {
+        System.out.println("Document is already published.");
+    }
+
+    @Override
+    public void reject() {
+        System.out.println("Published -> Draft (Retracted)");
+        context.changeState(new DraftState());
+    }
+}
+
+// 4. Mijoz
+public class StateDemo {
+    public static void main(String[] args) {
+        Document doc = new Document("author");
+
+        System.out.println("\n--- Author Actions ---");
+        doc.publish(); // Draft -> Moderation
+        doc.publish(); // Xato
+
+        doc.setCurrentUserRole("admin");
+        System.out.println("\n--- Admin Actions ---");
+        doc.reject();  // Moderation -> Draft
+        doc.publish(); // Draft -> Published
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. State interfeysi
+type State interface {
+	Publish(doc *Document)
+	Reject(doc *Document)
+}
+
+// 2. Context (Kontekst)
+type Document struct {
+	state           State
+	CurrentUserRole string
+}
+
+func NewDocument(role string) *Document {
+	doc := &Document{
+		CurrentUserRole: role,
+	}
+	// Boshlang'ich holat
+	doc.SetState(&DraftState{})
+	return doc
+}
+
+func (d *Document) SetState(s State) {
+	d.state = s
+}
+
+func (d *Document) Publish() {
+	d.state.Publish(d)
+}
+
+func (d *Document) Reject() {
+	d.state.Reject(d)
+}
+
+// 3. Konkret State'lar
+type DraftState struct{}
+
+func (s *DraftState) Publish(doc *Document) {
+	if doc.CurrentUserRole == "admin" {
+		fmt.Println("Draft -> Published (Admin override)")
+		doc.SetState(&PublishedState{})
+	} else {
+		fmt.Println("Draft -> Moderation")
+		doc.SetState(&ModerationState{})
+	}
+}
+
+func (s *DraftState) Reject(doc *Document) {
+	fmt.Println("Drafts cannot be rejected.")
+}
+
+type ModerationState struct{}
+
+func (s *ModerationState) Publish(doc *Document) {
+	if doc.CurrentUserRole == "admin" {
+		fmt.Println("Moderation -> Published")
+		doc.SetState(&PublishedState{})
+	} else {
+		fmt.Println("Only admins can approve documents in moderation.")
+	}
+}
+
+func (s *ModerationState) Reject(doc *Document) {
+	if doc.CurrentUserRole == "admin" {
+		fmt.Println("Moderation -> Draft (Rejected by admin)")
+		doc.SetState(&DraftState{})
+	} else {
+		fmt.Println("Only admins can reject documents.")
+	}
+}
+
+type PublishedState struct{}
+
+func (s *PublishedState) Publish(doc *Document) {
+	fmt.Println("Document is already published.")
+}
+
+func (s *PublishedState) Reject(doc *Document) {
+	fmt.Println("Published -> Draft (Retracted)")
+	doc.SetState(&DraftState{})
+}
+
+// 4. Mijoz
+func main() {
+	doc := NewDocument("author")
+
+	fmt.Println("\n--- Author Actions ---")
+	doc.Publish() // Draft -> Moderation
+	doc.Publish() // Xato
+
+	doc.CurrentUserRole = "admin"
+	fmt.Println("\n--- Admin Actions ---")
+	doc.Reject()  // Moderation -> Draft
+	doc.Publish() // Draft -> Published
+}
+```
+
+```rust [Rust]
+// 1. State trait
+// Rust'da Option<Box<dyn State>> o'tish paytida State egaligini olib,
+// uni Context'dan chiqarib olish imkonini beradi.
+trait State {
+    fn publish(self: Box<Self>, doc: &mut Document) -> Box<dyn State>;
+    fn reject(self: Box<Self>, doc: &mut Document) -> Box<dyn State>;
+}
+
+// 2. Context (Kontekst)
+struct Document {
+    state: Option<Box<dyn State>>,
+    pub current_user_role: String,
+}
+
+impl Document {
+    fn new(role: &str) -> Self {
+        Self {
+            state: Some(Box::new(DraftState)),
+            current_user_role: role.to_string(),
+        }
+    }
+
+    fn publish(&mut self) {
+        if let Some(state) = self.state.take() {
+            self.state = Some(state.publish(self));
+        }
+    }
+
+    fn reject(&mut self) {
+        if let Some(state) = self.state.take() {
+            self.state = Some(state.reject(self));
+        }
+    }
+}
+
+// 3. Konkret State'lar
+struct DraftState;
+
+impl State for DraftState {
+    fn publish(self: Box<Self>, doc: &mut Document) -> Box<dyn State> {
+        if doc.current_user_role == "admin" {
+            println!("Draft -> Published (Admin override)");
+            Box::new(PublishedState)
+        } else {
+            println!("Draft -> Moderation");
+            Box::new(ModerationState)
+        }
+    }
+
+    fn reject(self: Box<Self>, _doc: &mut Document) -> Box<dyn State> {
+        println!("Drafts cannot be rejected.");
+        self // DraftState'da qolamiz
+    }
+}
+
+struct ModerationState;
+
+impl State for ModerationState {
+    fn publish(self: Box<Self>, doc: &mut Document) -> Box<dyn State> {
+        if doc.current_user_role == "admin" {
+            println!("Moderation -> Published");
+            Box::new(PublishedState)
+        } else {
+            println!("Only admins can approve documents in moderation.");
+            self // ModerationState'da qolamiz
+        }
+    }
+
+    fn reject(self: Box<Self>, doc: &mut Document) -> Box<dyn State> {
+        if doc.current_user_role == "admin" {
+            println!("Moderation -> Draft (Rejected by admin)");
+            Box::new(DraftState)
+        } else {
+            println!("Only admins can reject documents.");
+            self // ModerationState'da qolamiz
+        }
+    }
+}
+
+struct PublishedState;
+
+impl State for PublishedState {
+    fn publish(self: Box<Self>, _doc: &mut Document) -> Box<dyn State> {
+        println!("Document is already published.");
+        self // PublishedState'da qolamiz
+    }
+
+    fn reject(self: Box<Self>, _doc: &mut Document) -> Box<dyn State> {
+        println!("Published -> Draft (Retracted)");
+        Box::new(DraftState)
+    }
+}
+
+// 4. Mijoz
+fn main() {
+    let mut doc = Document::new("author");
+
+    println!("\n--- Author Actions ---");
+    doc.publish(); // Draft -> Moderation
+    doc.publish(); // Xato
+
+    doc.current_user_role = "admin".into();
+    println!("\n--- Admin Actions ---");
+    doc.reject();  // Moderation -> Draft
+    doc.publish(); // Draft -> Published
+}
 ```
 
 :::
 
-## Real-World Example
+## Afzallik va kamchiliklar (Pros and Cons)
 
-### Order Processing State Machine
+### Afzalliklari (Advantages)
 
-```typescript
-interface OrderState {
-  confirm(order: Order): void;
-  pay(order: Order): void;
-  ship(order: Order): void;
-  cancel(order: Order): void;
-  getStatus(): string;
-}
+- **Yagona javobgarlik tamoyili (Single Responsibility Principle)**: Muayyan holatlarga oid kodni alohida klasslarga ajratib tartibga soladi.
+- **Ochiq/Yopiqlik tamoyili (Open/Closed Principle)**: Mavjud holat klasslarini yoki kontekstni o'zgartirmasdan yangi holatlarni qo'shing.
+- **Context'ni soddalashtiradi**: Context klassidagi ulkan `switch/case` yoki `if/else` shart mantig'ini yo'q qiladi.
 
-class PendingState implements OrderState {
-  confirm(order: Order): void {
-    console.log("Order confirmed");
-    order.setState(new ConfirmedState());
-  }
-  pay(order: Order): void {
-    console.log("Cannot pay - order not confirmed");
-  }
-  ship(order: Order): void {
-    console.log("Cannot ship - order not paid");
-  }
-  cancel(order: Order): void {
-    order.setState(new CancelledState());
-  }
-  getStatus(): string {
-    return "PENDING";
-  }
-}
+### Kamchiliklari (Disadvantages)
 
-class ConfirmedState implements OrderState {
-  confirm(order: Order): void {
-    console.log("Already confirmed");
-  }
-  pay(order: Order): void {
-    console.log("Payment processed");
-    order.setState(new PaidState());
-  }
-  ship(order: Order): void {
-    console.log("Cannot ship - not paid");
-  }
-  cancel(order: Order): void {
-    order.setState(new CancelledState());
-  }
-  getStatus(): string {
-    return "CONFIRMED";
-  }
-}
+- **Klasslar portlashi (Class Explosion)**: Agar sizda kamdan-kam o'zgaradigan ikkitagina oddiy holat bo'lsa, to'liq State ierarxiyasini yaratish jiddiy ortiqcha murakkablashtirish (overengineering) bo'ladi.
+- **Holat o'tish mantig'i**: Holat o'tishlari _qayerda_ sodir bo'lishini (Context'dami yoki State klasslaridami) hal qilish, agar State klasslari bir-biri haqida bilishga majbur bo'lsa, ularning qattiq bog'lanishiga olib kelishi mumkin.
 
-class PaidState implements OrderState {
-  confirm(order: Order): void {
-    console.log("Already confirmed and paid");
-  }
-  pay(order: Order): void {
-    console.log("Already paid");
-  }
-  ship(order: Order): void {
-    console.log("Order shipped");
-    order.setState(new ShippedState());
-  }
-  cancel(order: Order): void {
-    console.log("Cannot cancel - order already paid");
-  }
-  getStatus(): string {
-    return "PAID";
-  }
-}
+## Qachon foydalanish kerak (When to Use)
 
-class Order {
-  private state: OrderState = new PendingState();
+- **Obyekt xulq-atvori holatga qarab o'zgarganda**: Obyekt joriy holatiga qarab turlicha ishlaydi, holatlar soni ko'p va holatga xos kod tez-tez o'zgaradi.
+- **Ulkan shartlar**: Klass maydonlari qiymatlariga qarab uning xulq-atvorini o'zgartiradigan ulkan shartlar bilan to'ldirilgan klassingiz bo'lganda.
 
-  setState(state: OrderState): void {
-    this.state = state;
-  }
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-  confirm(): void {
-    this.state.confirm(this);
-  }
-  pay(): void {
-    this.state.pay(this);
-  }
-  ship(): void {
-    this.state.ship(this);
-  }
-  cancel(): void {
-    this.state.cancel(this);
-  }
-  getStatus(): string {
-    return this.state.getStatus();
-  }
-}
+- **Oddiy holatlar**: Agar sizda faqat ikki yoki uchta oddiy holat bo'lsa (masalan, `isOn` true/false), oddiy boolean bayroqlardan foydalaning.
+- **Qat'iy chiziqli ish oqimlari**: Agar o'tishlar qat'iy chiziqli bo'lsa va ma'lumotlarni bosqichma-bosqich qayta ishlasa, **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)** yoki **Pipes and Filters** patterni mosroq bo'lishi mumkin.
 
-// Usage
-const order = new Order();
-order.confirm(); // Order confirmed
-order.pay(); // Payment processed
-order.ship(); // Order shipped
-```
+## Keng tarqalgan xatolar (Common Mistakes)
 
-## Advantages
+### 1. O'tishlarni Context'ga qattiq yozib qo'yish
 
-✅ **Eliminates Conditionals** - No complex if-else chains based on state
-✅ **Single Responsibility** - Each state class has one responsibility
-✅ **Easy to Add States** - New states can be added without modifying existing code
-✅ **Explicit Transitions** - State transitions are clear and explicit
-✅ **Testability** - Each state can be tested independently
-✅ **Maintainability** - Code is easier to understand and maintain
-✅ **Encapsulation** - State-specific behavior is encapsulated
+Agar keyingi holatni Context (shartlar yordamida) aniqlasa, siz patterndan to'liq foydalanmagan bo'lasiz. O'tishlarni odatda Concrete State'larning o'zlari boshqargani ma'qul.
 
-## Disadvantages
+### 2. State nusxalarini qayta-qayta yaratish
 
-❌ **Increased Classes** - Can create many state classes
-❌ **Complexity** - Adds complexity for simple state machines
-❌ **Performance** - Extra object creation and method calls
-❌ **Memory Overhead** - Multiple state objects consume memory
-❌ **Overhead for Simple Enums** - Overkill if state is just a simple enum
-❌ **State Sharing** - Handling shared data between states can be complex
+Agar holat obyektlarining maydonlari bo'lmasa (ular ma'lumotlar uchun butunlay Context'ga tayansa), o'tishlar paytida ortiqcha xotira ajratilishining oldini olish uchun ularni Singleton yoki statik nusxalar sifatida amalga oshirish mumkin. (Eslatma: Rust misolimiz xotira ajratishdan butunlay qochish uchun holatlarni ko'chiradi (move qiladi)).
 
-## When to Use
+## Aloqador patternlar (Related Patterns)
 
-- An object has complex behavior that varies significantly based on state
-- You want to eliminate large conditional statements
-- You need explicit state machine transitions
-- Different states have different operations
-- You want to reuse state logic
-- You need to test states independently
-- State transitions are frequent and complex
+- **[Strategy](/uz/behavioral/strategy)**: Strategy va State bir xil klass tuzilmasiga ega. Farq maqsadda: Strategy _bir xil_ ishni bajarishning butunlay turli usullarini taqdim etadi, State esa obyektga o'z holatiga qarab _turli_ ishlarni bajarish imkonini beradi. Strategiyalar odatda bir-birini bilmaydi; State'lar esa o'tish uchun ko'pincha boshqa holatlarning nusxalarini yaratadi.
+- **[Singleton](/uz/creational/singleton)**: Concrete state'lar nusxa ma'lumotlarini saqlamasa, ko'pincha Singleton sifatida amalga oshiriladi.
+- **State Machine (Holatlar mashinasi)**: State patterni chekli holatlar mashinasini (FSM) amalga oshirishning obyektga yo'naltirilgan usulidir.
 
-## When NOT to Use
+## Intervyu uchun maslahatlar (Interview Insights)
 
-- Only a few states with simple logic
-- State is just a simple flag or enum
-- Performance is critical
-- The number of states is very large
-- State transitions are very simple
-- You can use simpler patterns like Strategy
-- State logic is trivial
+- **Savol**: "Strategy va State o'rtasidagi tuzilmaviy farq nima?"
+  - **Javob**: "Tuzilma jihatidan ular bir xil (Context ishni interfeysga topshiradi). Semantik jihatdan esa ular qarama-qarshi. Strategiyalar mustaqil va bir-biridan bexabar. State'lar esa obyektning hayot siklini ifodalaydi va bir-biri haqida yaxshi biladi, doimiy ravishda bir State'dan keyingisiga o'tishlarni ishga tushiradi."
+- **Savol**: "Holat ma'lumotlarini qanday boshqarasiz?"
+  - **Javob**: "Holat ma'lumotlari Context obyektida qolishi kerak. State klasslari ideal holda holatsiz (stateless) xulq-atvor o'ramlari bo'lishi kerak. Ular ma'lumotlarni o'qish yoki o'zgartirish uchun Context'ni argument sifatida qabul qiladi."
 
-## Related Patterns
+## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Strategy** - Similar structure but used for algorithms, not state-driven behavior
-- **Template Method** - Can work with State for state-specific algorithms
-- **Singleton** - State objects can be implemented as singletons
-- **Factory** - Can create appropriate state objects
+- **Funksional holatlar mashinalari (XState)**: Zamonaviy frontend ekotizimida (JavaScript/TypeScript) obyektga yo'naltirilgan State patternlari ko'pincha XState kabi maxsus State Machine kutubxonalari bilan almashtiriladi. Ular o'tishlar, himoya shartlari (guards) va amallarni sof, funksional JSON konfiguratsiyasida e'lon qiladi.
+- **Union turlari / Algebraik ma'lumot turlari (ADT)**: Rust, TypeScript va Swift kabi tillarda holatlarni Enum yoki Union turi sifatida ifodalash va polimorfizm o'rniga to'liq Pattern Matching'dan (`match` yoki `switch`) foydalanish mumkin. Ko'plab jamoalar uchun bu o'nlab klasslarni yaratishdan ko'ra tozaroq.

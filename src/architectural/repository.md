@@ -6,7 +6,7 @@ icon: Database
 
 # Repository Pattern
 
-<CoverImage src="/covers/architectural/repository.png" alt="Cover">
+<CoverImage src="/covers/architectural/repository.webp" alt="Cover">
   <h1>Repository</h1>
   <p>A beautiful marble temple entrance labeled "Data" with a clean catalog desk; behind the desk, the database query monster and the API monster are kept completely out of sight.</p>
 </CoverImage>

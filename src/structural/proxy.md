@@ -6,7 +6,7 @@ icon: Shield
 
 # Proxy Pattern
 
-<CoverImage src="/covers/structural/proxy.png" alt="Cover">
+<CoverImage src="/covers/structural/proxy.webp" alt="Cover">
   <h1>Proxy</h1>
   <p>A massive, intimidating bouncer robot wearing sunglasses and a tuxedo, blocking a gate, checking the credentials of a tiny nervous robot before letting it talk to the main supercomputer behind it.</p>
 </CoverImage>
@@ -26,6 +26,43 @@ Proxy is about control of access, not interface translation.
 Think of a **security guard at a private archive**. Visitors do not walk directly to the vault. The guard checks permissions, decides whether to unlock the door, and only then lets the visitor see the archive.
 
 The guard is the proxy. The archive is the real object.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Client
+    class DocumentSource {
+        <<interface>>
+        +getContent() string
+        +display() void
+    }
+    class RealDocument {
+        -filename: string
+        -content: string
+        +getContent() string
+        +display() void
+    }
+    class ProtectedDocumentProxy {
+        -realDocument: RealDocument
+        -currentUser: User
+        -requiredRole: UserRole
+        -hasAccess() boolean
+        -ensureLoaded() void
+        +getContent() string
+        +display() void
+    }
+
+    Client --> DocumentSource : uses
+    DocumentSource <|.. RealDocument
+    DocumentSource <|.. ProtectedDocumentProxy
+    ProtectedDocumentProxy o-- RealDocument : lazily creates
+```
+
+- **`DocumentSource`** (Subject) is the interface shared by the real object and the proxy.
+- **`RealDocument`** (Real Subject) does the expensive work of loading content from disk.
+- **`ProtectedDocumentProxy`** (Proxy) checks access, creates the real document only on first use, then delegates.
+- **`Client`** works with `DocumentSource` and cannot tell whether it holds the proxy or the real object.
 
 ## The Problem
 

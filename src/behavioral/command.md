@@ -6,7 +6,7 @@ icon: Command
 
 # Command Pattern
 
-<CoverImage src="/covers/behavioral/command.png" alt="Cover">
+<CoverImage src="/covers/behavioral/command.webp" alt="Cover">
   <h1>Command</h1>
   <p>A funny "Mission Control" panel where a little general robot presses a button, generating a glowing cartridge labeled "JUMP" that is loaded into a simple worker robot.</p>
 </CoverImage>

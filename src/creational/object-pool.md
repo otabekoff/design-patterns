@@ -6,7 +6,7 @@ icon: Database
 
 # Object Pool Pattern
 
-<CoverImage src="/covers/creational/object-pool.png" alt="Cover">
+<CoverImage src="/covers/creational/object-pool.webp" alt="Cover">
   <h1>Object Pool</h1>
   <p>A luxury swimming pool where cute, tired little robot workers are resting on floaties, while a manager robot stands at the edge with a clipboard, sending one out to work and welcoming another back to rest.</p>
 </CoverImage>
@@ -43,6 +43,46 @@ Consider **a car rental service**:
 - Next customer gets the ready-to-use car
 
 This avoids manufacturing overhead and improves utilization.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Poolable {
+        <<interface>>
+        +reset() void
+        +isAvailable() boolean
+    }
+    class PooledConnection {
+        -id: string
+        -inUse: boolean
+        +acquire() void
+        +execute(sql) Promise
+        +reset() void
+        +isAvailable() boolean
+    }
+    class ConnectionPool {
+        -available: PooledConnection[]
+        -inUse: Set
+        -maxSize: number
+        +acquire() PooledConnection
+        +release(conn) void
+        +drainPool() void
+    }
+    class Client {
+        +processRequest(query) void
+    }
+
+    Poolable <|.. PooledConnection
+    ConnectionPool o-- PooledConnection : manages
+    Client --> ConnectionPool : acquire and release
+    Client ..> PooledConnection : uses temporarily
+```
+
+- **`Poolable`** defines the contract every pooled object must satisfy, most importantly `reset()` to clear state before reuse.
+- **`PooledConnection`** (Reusable) is the expensive object created once and handed out many times.
+- **`ConnectionPool`** (Pool) pre-creates objects, tracks available vs. in-use instances, and enforces `maxSize`.
+- **`Client`** borrows an object with `acquire()` and must always give it back with `release()`.
 
 ## The Problem
 

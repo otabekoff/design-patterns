@@ -6,7 +6,7 @@ icon: Clock
 
 # Scheduler Pattern
 
-<CoverImage src="/covers/architectural/scheduler.png" alt="Cover">
+<CoverImage src="/covers/architectural/scheduler.webp" alt="Cover">
   <h1>Scheduler</h1>
   <p>A tiny conductor robot sitting on top of a giant clockwork machine, holding a checklist and pointing a baton at different worker robots, telling them exactly when to start running.</p>
 </CoverImage>

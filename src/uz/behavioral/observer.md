@@ -1,496 +1,616 @@
 ---
-title: Observer
-description: Define a one-to-many dependency between objects. When one object changes state, all dependents are notified automatically.
+title: Observer Pattern
+description: Obyektlar o'rtasida birga-ko'p (one-to-many) bog'liqlikni belgilaydi. Bitta obyekt holati o'zgarganda, unga bog'liq barcha obyektlar avtomatik ravishda xabardor qilinadi.
 icon: Bell
 ---
 
-# Observer
+# Observer Pattern
 
-<CoverImage src="/covers/behavioral/observer.png" alt="Cover">
+<CoverImage src="/covers/behavioral/observer.webp" alt="Cover">
   <h1>Observer</h1>
-  <p>A superstar robot walking down a red carpet, while dozens of tiny paparazzi-robot observers with massive cameras flash and sync their movements in perfect coordination.</p>
+  <p>Qizil gilam bo'ylab yurib kelayotgan superyulduz robot, uning atrofida esa ulkan kameralarga ega o'nlab kichkina paparatsi-robot kuzatuvchilar chaqnab, harakatlarini mukammal muvofiqlikda sinxronlashtirmoqda.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The **Observer** pattern is a behavioral design pattern that defines a one-to-many relationship between objects so that when one object changes state, all its dependents are notified automatically. It promotes loose coupling between objects that need to communicate.
+**Observer** — bu obyektlar o'rtasida birga-ko'p (one-to-many) obuna mexanizmini o'rnatuvchi xulq-atvor (behavioral) dizayn patternidir. Kuzatilayotgan obyekt (**Subject** yoki Publisher — nashr qiluvchi) o'z holatini o'zgartirganda, u ro'yxatdan o'tgan barcha bog'liq obyektlarni (**Observer**'lar yoki Subscriber'lar — obunachilar) avtomatik ravishda xabardor qiladi.
 
-## Purpose
+**Asosiy afzalligi**: U dinamik, bo'sh bog'lanishni (loose coupling) ta'minlaydi. Subject o'zini kuzatayotgan klasslar haqida hech narsa bilishi shart emas, bu esa asosiy mantiqni o'zgartirmasdan ish vaqtida (runtime) tinglovchilarni qo'shish yoki olib tashlash imkonini beradi.
 
-The Observer pattern aims to:
+**Zamonaviy nuqtai nazar**: Observer patterni zamonaviy reaktiv dasturlash, UI freymvorklari (React, Vue, SwiftUI), Event Bus'lar, WebSocket'lar va Pub/Sub xabar almashish tizimlarining (Kafka, RabbitMQ) shubhasiz asosidir.
 
-- Establish a one-to-many dependency between objects
-- Notify multiple objects about state changes automatically
-- Promote loose coupling between objects
-- Support event-driven programming
-- Enable dynamic subscription/unsubscription
-- Facilitate real-time updates across the system
+## Muammo (The Problem)
 
-## Problem
+Tasavvur qiling, siz fond bozori ilovasini yaratyapsiz. Sizda Apple (AAPL) aksiyasi narxini ifodalovchi `Stock` obyekti bor.
+Shuningdek, sizda bir nechta UI komponentlari mavjud: Portfel paneli (Portfolio Dashboard), Chiziqli grafik (Line Chart) va Email ogohlantirish tizimi.
 
-Consider updating multiple UI components when data changes:
+UI komponentlari aksiya narxi o'zgarganini qanday biladi?
 
 ```typescript
-// Without Observer pattern - tightly coupled
-class DataModel {
-  private data: string = "";
-  private displays: Display[] = [];
+// ❌ Yomon: Qattiq bog'langan, polling va hardcode qilingan
+class LineChart {
+  constructor(private stock: Stock) {
+    // Samarasiz polling: har soniyada tekshirish
+    setInterval(() => {
+      this.draw(stock.getPrice());
+    }, 1000);
+  }
+}
 
-  setData(data: string): void {
-    this.data = data;
-    // Manually update each display - tightly coupled
-    displays[0].update(data);
-    displays[1].update(data);
-    displays[2].update(data);
+class Stock {
+  private price: number;
+  // Ma'lumotni push qilmoqchi bo'lsak, aniq klasslarga qattiq bog'lanamiz
+  constructor(
+    private chart: LineChart,
+    private emailer: EmailAlert,
+  ) {}
+
+  updatePrice(newPrice: number) {
+    this.price = newPrice;
+    this.chart.draw(this.price); // Hardcode qilingan!
+    this.emailer.send(this.price); // Hardcode qilingan!
+    // Har safar yangi funksiya qo'shganda Stock klassini o'zgartirishimiz kerak.
   }
 }
 ```
 
-Issues with this approach:
+Agar so'rov (polling) usulidan foydalansak, CPU sikllarini behuda sarflaymiz. Agar yangilanishlarni `Stock` klassiga qattiq yozib qo'ysak (hardcode), Ochiq/Yopiqlik tamoyilini (Open/Closed Principle) buzamiz. `Stock` klassi UI chizish va email'lar bilan emas, moliyaviy ma'lumotlar bilan shug'ullanishi kerak.
 
-- Tight coupling between model and views
-- Adding new views requires modifying the model
-- Views can't dynamically subscribe or unsubscribe
-- Hard to manage multiple views
-- Not scalable for systems with many observers
+## Yechim (The Solution)
 
-## Solution
+Observer patterni Subject Observer'lar ro'yxatini saqlashi va `subscribe` (obuna bo'lish) hamda `unsubscribe` (obunani bekor qilish) metodlarini taqdim etishi kerakligini belgilaydi.
 
-The Observer pattern decouples observers from the subject:
+1. **Subject** umumiy `Observer` interfeysini amalga oshiruvchi obyektlarga havolalar massivini saqlaydi.
+2. Subject holati o'zgargan har safar, u ushbu massiv bo'ylab aylanib chiqadi va har bir Observer'da ma'lum bir xabardor qilish metodini (masalan, `update()`) chaqiradi.
+3. **Observer'lar** o'zgarishga qanday javob berish kerakligi haqidagi haqiqiy biznes mantig'ini o'z ichiga oladi.
 
-```typescript
-// Observer interface
-interface Observer {
-  update(data: any): void;
-}
+## Tuzilma (Structure)
 
-// Subject interface
-interface Subject {
-  attach(observer: Observer): void;
-  detach(observer: Observer): void;
-  notify(): void;
-}
-
-// Concrete subject
-class DataModel implements Subject {
-  private observers: Observer[] = [];
-  private data: string = "";
-
-  attach(observer: Observer): void {
-    this.observers.push(observer);
-  }
-
-  detach(observer: Observer): void {
-    const index = this.observers.indexOf(observer);
-    if (index > -1) {
-      this.observers.splice(index, 1);
+```mermaid
+classDiagram
+    class Subject {
+        <<interface>>
+        +subscribe(o: Observer)
+        +unsubscribe(o: Observer)
+        +notify()
     }
-  }
+    class ConcreteSubject {
+        -state
+        -observers: Observer[]
+        +getState()
+        +setState()
+    }
+    class Observer {
+        <<interface>>
+        +update(subject: Subject)
+    }
+    class ConcreteObserverA {
+        +update(subject: Subject)
+    }
+    class ConcreteObserverB {
+        +update(subject: Subject)
+    }
 
-  notify(): void {
-    this.observers.forEach((obs) => obs.update(this.data));
-  }
-
-  setData(data: string): void {
-    this.data = data;
-    this.notify();
-  }
-}
+    Subject <|.. ConcreteSubject
+    Observer <|.. ConcreteObserverA
+    Observer <|.. ConcreteObserverB
+    ConcreteSubject o--> Observer
+    ConcreteObserverA --> ConcreteSubject : observes
 ```
 
-## Implementation
+## Ishlash oqimi (Flow)
+
+1. **ConcreteObserver** o'zini **ConcreteSubject**'da `subject.subscribe(this)` orqali ro'yxatdan o'tkazadi.
+2. Qandaydir ichki yoki tashqi hodisa **ConcreteSubject** holatining o'zgarishiga sabab bo'ladi.
+3. **ConcreteSubject** o'zining `notify()` metodini chaqiradi.
+4. `notify()` metodi ro'yxatdan o'tgan kuzatuvchilar ro'yxati bo'ylab aylanib, `observer.update(this)` ni chaqiradi.
+5. **ConcreteObserver** subject'dan yangi holatni oladi va shunga mos ravishda javob beradi.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**YouTube kanaliga obuna bo'lishni** tasavvur qiling.
+Kontent yaratuvchi (**Subject**) yangi video yuklaganida, u har bir tomoshabinga qo'lda shaxsiy email yubormaydi. Buning o'rniga tomoshabinlar (**Observer**'lar) "Obuna bo'lish" (Subscribe) tugmasini bosadilar.
+YouTube obunachilar ro'yxatini yuritadi. Yangi video chop etilganda, tizim ushbu ro'yxatdagi hammaga avtomatik ravishda bildirishnoma yuboradi. Tomoshabinlar yangilanishlarni olishni xohlamasalar, istalgan vaqtda obunani bekor qilishlari mumkin.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **Observer interfeysini aniqlang**: Odatda `update(context)` kabi bitta metodni o'z ichiga oladi.
+2. **Subject interfeysini aniqlang**: Kuzatuvchilarni qo'shish, olib tashlash va xabardor qilish metodlarini o'z ichiga oladi.
+3. **Concrete Subject'ni amalga oshiring**: Kuzatuvchilarni saqlash uchun ro'yxat va kuzatiladigan holat kerak. Holat o'zgarganda ro'yxat bo'ylab aylanib, `update` ni chaqiring.
+4. **Concrete Observer'larni amalga oshiring**: Kerakli javob harakatini bajarish uchun `update` metodini amalga oshiring.
+
+## Kod misollari (Code Examples)
+
+Biz oddiy `Newsletter` (axborot byulleteni) nashr qiluvchisini yaratamiz. Turli obunachilar (oddiy foydalanuvchi va korporativ arxivlovchi) yangi maqolalarni tinglaydi.
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Observer interface
-interface Observer {
-  update(subject: Subject): void;
-  getId(): string;
+// 1. Observer interfeysi
+interface Subscriber {
+  update(publisher: Newsletter): void;
 }
 
-// Subject interface
-interface Subject {
-  attach(observer: Observer): void;
-  detach(observer: Observer): void;
-  notify(): void;
+// 2. Subject interfeysi
+interface Publisher {
+  subscribe(s: Subscriber): void;
+  unsubscribe(s: Subscriber): void;
+  notifySubscribers(): void;
 }
 
-// Concrete Subject
-class Stock implements Subject {
-  private observers: Observer[] = [];
-  private symbol: string;
-  private price: number = 0;
+// 3. Konkret Subject
+class Newsletter implements Publisher {
+  private subscribers: Subscriber[] = [];
+  private latestArticle: string = "";
 
-  constructor(symbol: string) {
-    this.symbol = symbol;
-  }
-
-  attach(observer: Observer): void {
-    if (!this.observers.includes(observer)) {
-      this.observers.push(observer);
-      console.log(`${observer.getId()} subscribed to ${this.symbol}`);
+  subscribe(s: Subscriber): void {
+    if (!this.subscribers.includes(s)) {
+      this.subscribers.push(s);
     }
   }
 
-  detach(observer: Observer): void {
-    const index = this.observers.indexOf(observer);
+  unsubscribe(s: Subscriber): void {
+    const index = this.subscribers.indexOf(s);
     if (index > -1) {
-      this.observers.splice(index, 1);
-      console.log(`${observer.getId()} unsubscribed from ${this.symbol}`);
+      this.subscribers.splice(index, 1);
     }
   }
 
-  notify(): void {
-    this.observers.forEach((observer) => observer.update(this));
-  }
-
-  setPrice(price: number): void {
-    console.log(`\nStock price changed: ${this.symbol} -> $${price}`);
-    this.price = price;
-    this.notify();
-  }
-
-  getPrice(): number {
-    return this.price;
-  }
-
-  getSymbol(): string {
-    return this.symbol;
-  }
-}
-
-// Concrete Observer 1
-class PortfolioObserver implements Observer {
-  private id: string;
-  private portfolio: Map<string, number> = new Map();
-
-  constructor(id: string) {
-    this.id = id;
-  }
-
-  update(subject: Stock): void {
-    const symbol = subject.getSymbol();
-    const price = subject.getPrice();
-    this.portfolio.set(symbol, price);
-    console.log(`Portfolio ${this.id}: ${symbol} price updated to $${price}`);
-  }
-
-  getId(): string {
-    return this.id;
-  }
-}
-
-// Concrete Observer 2
-class AlertObserver implements Observer {
-  private id: string;
-  private threshold: number;
-
-  constructor(id: string, threshold: number) {
-    this.id = id;
-    this.threshold = threshold;
-  }
-
-  update(subject: Stock): void {
-    const price = subject.getPrice();
-    if (price > this.threshold) {
-      console.log(
-        `ALERT ${this.id}: ${subject.getSymbol()} price ($${price}) exceeds threshold ($${this.threshold})`,
-      );
+  notifySubscribers(): void {
+    for (const sub of this.subscribers) {
+      sub.update(this);
     }
   }
 
-  getId(): string {
-    return this.id;
+  // Biznes mantiq
+  publishArticle(title: string): void {
+    console.log(`\n📰 Newsletter: Publishing new article - "${title}"`);
+    this.latestArticle = title;
+    this.notifySubscribers();
+  }
+
+  getLatestArticle(): string {
+    return this.latestArticle;
   }
 }
 
-// Concrete Observer 3
-class AnalystObserver implements Observer {
-  private id: string;
-  private priceHistory: Map<string, number[]> = new Map();
+// 4. Konkret Observer'lar
+class EmailSubscriber implements Subscriber {
+  constructor(private email: string) {}
 
-  constructor(id: string) {
-    this.id = id;
-  }
-
-  update(subject: Stock): void {
-    const symbol = subject.getSymbol();
-    const price = subject.getPrice();
-
-    if (!this.priceHistory.has(symbol)) {
-      this.priceHistory.set(symbol, []);
-    }
-    this.priceHistory.get(symbol)!.push(price);
-
-    const history = this.priceHistory.get(symbol)!;
-    const average = history.reduce((a, b) => a + b) / history.length;
+  update(publisher: Newsletter): void {
     console.log(
-      `Analyst ${this.id}: ${symbol} moving average: $${average.toFixed(2)}`,
+      `[Email to ${this.email}]: Read our new article "${publisher.getLatestArticle()}"`,
     );
   }
+}
 
-  getId(): string {
-    return this.id;
+class CorporateArchive implements Subscriber {
+  update(publisher: Newsletter): void {
+    console.log(
+      `[Archive System]: Saving "${publisher.getLatestArticle()}" to database.`,
+    );
   }
 }
 
-// Usage
-const stock = new Stock("ACME");
+// 5. Mijoz
+const techNewsletter = new Newsletter();
 
-const portfolio = new PortfolioObserver("Portfolio1");
-const alert = new AlertObserver("Alert1", 100);
-const analyst = new AnalystObserver("Analyst1");
+const alice = new EmailSubscriber("alice@example.com");
+const bob = new EmailSubscriber("bob@example.com");
+const archiver = new CorporateArchive();
 
-stock.attach(portfolio);
-stock.attach(alert);
-stock.attach(analyst);
+techNewsletter.subscribe(alice);
+techNewsletter.subscribe(bob);
+techNewsletter.subscribe(archiver);
 
-stock.setPrice(95);
-stock.setPrice(105);
-stock.setPrice(98);
+// Yangilanishlarni ishga tushirish
+techNewsletter.publishArticle("The Future of AI");
 
-stock.detach(alert);
-stock.setPrice(110);
+console.log("\n(Bob unsubscribes)\n");
+techNewsletter.unsubscribe(bob);
+
+techNewsletter.publishArticle("TypeScript 6.0 Released");
 ```
 
 ```python [Python]
 from abc import ABC, abstractmethod
-    from typing import List, Dict
+from typing import List
 
-    class Observer(ABC):
-        @abstractmethod
-        def update(self, subject: 'Subject') -> None:
-            pass
+# 1. Observer interfeysi
+class Subscriber(ABC):
+    @abstractmethod
+    def update(self, publisher: 'Newsletter') -> None:
+        pass
 
-        @abstractmethod
-        def get_id(self) -> str:
-            pass
+# 2. Subject interfeysi
+class Publisher(ABC):
+    @abstractmethod
+    def subscribe(self, s: Subscriber) -> None:
+        pass
 
-    class Subject(ABC):
-        @abstractmethod
-        def attach(self, observer: Observer) -> None:
-            pass
+    @abstractmethod
+    def unsubscribe(self, s: Subscriber) -> None:
+        pass
 
-        @abstractmethod
-        def detach(self, observer: Observer) -> None:
-            pass
+    @abstractmethod
+    def notify_subscribers(self) -> None:
+        pass
 
-        @abstractmethod
-        def notify(self) -> None:
-            pass
+# 3. Konkret Subject
+class Newsletter(Publisher):
+    def __init__(self):
+        self._subscribers: List[Subscriber] = []
+        self._latest_article: str = ""
 
-    class Stock(Subject):
-        def __init__(self, symbol: str):
-            self.observers: List[Observer] = []
-            self.symbol = symbol
-            self.price = 0
+    def subscribe(self, s: Subscriber) -> None:
+        if s not in self._subscribers:
+            self._subscribers.append(s)
 
-        def attach(self, observer: Observer) -> None:
-            if observer not in self.observers:
-                self.observers.append(observer)
-                print(f"{observer.get_id()} subscribed to {self.symbol}")
+    def unsubscribe(self, s: Subscriber) -> None:
+        if s in self._subscribers:
+            self._subscribers.remove(s)
 
-        def detach(self, observer: Observer) -> None:
-            if observer in self.observers:
-                self.observers.remove(observer)
-                print(f"{observer.get_id()} unsubscribed from {self.symbol}")
+    def notify_subscribers(self) -> None:
+        for sub in self._subscribers:
+            sub.update(self)
 
-        def notify(self) -> None:
-            for observer in self.observers:
-                observer.update(self)
+    # Biznes mantiq
+    def publish_article(self, title: str) -> None:
+        print(f"\n📰 Newsletter: Publishing new article - \"{title}\"")
+        self._latest_article = title
+        self.notify_subscribers()
 
-        def set_price(self, price: float) -> None:
-            print(f"\nStock price changed: {self.symbol} -> ${price}")
-            self.price = price
-            self.notify()
+    def get_latest_article(self) -> str:
+        return self._latest_article
 
-        def get_price(self) -> float:
-            return self.price
+# 4. Konkret Observer'lar
+class EmailSubscriber(Subscriber):
+    def __init__(self, email: str):
+        self.email = email
 
-        def get_symbol(self) -> str:
-            return self.symbol
+    def update(self, publisher: Newsletter) -> None:
+        print(f"[Email to {self.email}]: Read our new article \"{publisher.get_latest_article()}\"")
 
-    class PortfolioObserver(Observer):
-        def __init__(self, observer_id: str):
-            self.id = observer_id
-            self.portfolio: Dict[str, float] = {}
+class CorporateArchive(Subscriber):
+    def update(self, publisher: Newsletter) -> None:
+        print(f"[Archive System]: Saving \"{publisher.get_latest_article()}\" to database.")
 
-        def update(self, subject: Stock) -> None:
-            symbol = subject.get_symbol()
-            price = subject.get_price()
-            self.portfolio[symbol] = price
-            print(f"Portfolio {self.id}: {symbol} price updated to ${price}")
+# 5. Mijoz
+if __name__ == "__main__":
+    tech_newsletter = Newsletter()
 
-        def get_id(self) -> str:
-            return self.id
+    alice = EmailSubscriber("alice@example.com")
+    bob = EmailSubscriber("bob@example.com")
+    archiver = CorporateArchive()
 
-    class AlertObserver(Observer):
-        def __init__(self, observer_id: str, threshold: float):
-            self.id = observer_id
-            self.threshold = threshold
+    tech_newsletter.subscribe(alice)
+    tech_newsletter.subscribe(bob)
+    tech_newsletter.subscribe(archiver)
 
-        def update(self, subject: Stock) -> None:
-            price = subject.get_price()
-            if price > self.threshold:
-                print(
-                    f"ALERT {self.id}: {subject.get_symbol()} price (${price}) exceeds threshold (${self.threshold})"
-                )
+    tech_newsletter.publish_article("The Future of AI")
 
-        def get_id(self) -> str:
-            return self.id
+    print("\n(Bob unsubscribes)\n")
+    tech_newsletter.unsubscribe(bob)
 
-    class AnalystObserver(Observer):
-        def __init__(self, observer_id: str):
-            self.id = observer_id
-            self.price_history: Dict[str, List[float]] = {}
+    tech_newsletter.publish_article("Python 4.0 Released")
+```
 
-        def update(self, subject: Stock) -> None:
-            symbol = subject.get_symbol()
-            price = subject.get_price()
+```java [Java]
+import java.util.ArrayList;
+import java.util.List;
 
-            if symbol not in self.price_history:
-                self.price_history[symbol] = []
+// 1. Observer interfeysi
+interface Subscriber {
+    void update(Newsletter publisher);
+}
 
-            self.price_history[symbol].append(price)
+// 2. Subject interfeysi
+interface Publisher {
+    void subscribe(Subscriber s);
+    void unsubscribe(Subscriber s);
+    void notifySubscribers();
+}
 
-            history = self.price_history[symbol]
-            average = sum(history) / len(history)
-            print(f"Analyst {self.id}: {symbol} moving average: ${average:.2f}")
+// 3. Konkret Subject
+class Newsletter implements Publisher {
+    private List<Subscriber> subscribers = new ArrayList<>();
+    private String latestArticle = "";
 
-        def get_id(self) -> str:
-            return self.id
+    @Override
+    public void subscribe(Subscriber s) {
+        if (!subscribers.contains(s)) {
+            subscribers.add(s);
+        }
+    }
 
-    # Usage
-    stock = Stock("ACME")
+    @Override
+    public void unsubscribe(Subscriber s) {
+        subscribers.remove(s);
+    }
 
-    portfolio = PortfolioObserver("Portfolio1")
-    alert = AlertObserver("Alert1", 100)
-    analyst = AnalystObserver("Analyst1")
+    @Override
+    public void notifySubscribers() {
+        // Iteratsiya paytida kimdir obunani bekor qilsa, ConcurrentModificationException bo'lmasligi uchun nusxa olamiz
+        List<Subscriber> copy = new ArrayList<>(subscribers);
+        for (Subscriber sub : copy) {
+            sub.update(this);
+        }
+    }
 
-    stock.attach(portfolio)
-    stock.attach(alert)
-    stock.attach(analyst)
+    public void publishArticle(String title) {
+        System.out.println("\n📰 Newsletter: Publishing new article - \"" + title + "\"");
+        this.latestArticle = title;
+        notifySubscribers();
+    }
 
-    stock.set_price(95)
-    stock.set_price(105)
-    stock.set_price(98)
+    public String getLatestArticle() {
+        return latestArticle;
+    }
+}
 
-    stock.detach(alert)
-    stock.set_price(110)
+// 4. Konkret Observer'lar
+class EmailSubscriber implements Subscriber {
+    private String email;
+
+    public EmailSubscriber(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public void update(Newsletter publisher) {
+        System.out.println("[Email to " + email + "]: Read our new article \"" + publisher.getLatestArticle() + "\"");
+    }
+}
+
+class CorporateArchive implements Subscriber {
+    @Override
+    public void update(Newsletter publisher) {
+        System.out.println("[Archive System]: Saving \"" + publisher.getLatestArticle() + "\" to database.");
+    }
+}
+
+// 5. Mijoz
+public class ObserverDemo {
+    public static void main(String[] args) {
+        Newsletter techNewsletter = new Newsletter();
+
+        Subscriber alice = new EmailSubscriber("alice@example.com");
+        Subscriber bob = new EmailSubscriber("bob@example.com");
+        Subscriber archiver = new CorporateArchive();
+
+        techNewsletter.subscribe(alice);
+        techNewsletter.subscribe(bob);
+        techNewsletter.subscribe(archiver);
+
+        techNewsletter.publishArticle("The Future of AI");
+
+        System.out.println("\n(Bob unsubscribes)\n");
+        techNewsletter.unsubscribe(bob);
+
+        techNewsletter.publishArticle("Java 25 Released");
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. Observer interfeysi
+type Subscriber interface {
+	Update(publisher *Newsletter)
+}
+
+// 2. Konkret Subject
+type Newsletter struct {
+	subscribers   []Subscriber
+	latestArticle string
+}
+
+func (n *Newsletter) Subscribe(s Subscriber) {
+	n.subscribers = append(n.subscribers, s)
+}
+
+func (n *Newsletter) Unsubscribe(s Subscriber) {
+	for i, sub := range n.subscribers {
+		if sub == s {
+			n.subscribers = append(n.subscribers[:i], n.subscribers[i+1:]...)
+			break
+		}
+	}
+}
+
+func (n *Newsletter) NotifySubscribers() {
+	for _, sub := range n.subscribers {
+		sub.Update(n)
+	}
+}
+
+func (n *Newsletter) PublishArticle(title string) {
+	fmt.Printf("\n📰 Newsletter: Publishing new article - \"%s\"\n", title)
+	n.latestArticle = title
+	n.NotifySubscribers()
+}
+
+func (n *Newsletter) GetLatestArticle() string {
+	return n.latestArticle
+}
+
+// 3. Konkret Observer'lar
+type EmailSubscriber struct {
+	email string
+}
+
+func (e *EmailSubscriber) Update(publisher *Newsletter) {
+	fmt.Printf("[Email to %s]: Read our new article \"%s\"\n", e.email, publisher.GetLatestArticle())
+}
+
+type CorporateArchive struct{}
+
+func (c *CorporateArchive) Update(publisher *Newsletter) {
+	fmt.Printf("[Archive System]: Saving \"%s\" to database.\n", publisher.GetLatestArticle())
+}
+
+// 4. Mijoz
+func main() {
+	techNewsletter := &Newsletter{}
+
+	alice := &EmailSubscriber{email: "alice@example.com"}
+	bob := &EmailSubscriber{email: "bob@example.com"}
+	archiver := &CorporateArchive{}
+
+	techNewsletter.Subscribe(alice)
+	techNewsletter.Subscribe(bob)
+	techNewsletter.Subscribe(archiver)
+
+	techNewsletter.PublishArticle("The Future of AI")
+
+	fmt.Println("\n(Bob unsubscribes)")
+	techNewsletter.Unsubscribe(bob)
+
+	techNewsletter.PublishArticle("Go 1.30 Released")
+}
+```
+
+```rust [Rust]
+use std::cell::RefCell;
+use std::rc::Rc;
+
+// 1. Observer trait
+trait Subscriber {
+    fn update(&self, latest_article: &str);
+}
+
+// 2. Konkret Subject
+struct Newsletter {
+    // Observer'larga havolalarni saqlash uchun Rc ishlatamiz.
+    // Ko'p oqimli Rust'da Arc<Mutex<dyn Subscriber + Send + Sync>> ishlatiladi
+    subscribers: Vec<Rc<dyn Subscriber>>,
+    latest_article: String,
+}
+
+impl Newsletter {
+    fn new() -> Self {
+        Self {
+            subscribers: Vec::new(),
+            latest_article: String::new(),
+        }
+    }
+
+    fn subscribe(&mut self, s: Rc<dyn Subscriber>) {
+        self.subscribers.push(s);
+    }
+
+    // Rust'da pointerlar orqali obunani bekor qilish noyob ID yoki Rc::ptr_eq talab qiladi
+    // Soddalik uchun bu oddiy trait sozlamasida unsubscribe'ni tashlab ketamiz,
+    // lekin production'da obuna ID'larini berish kerak bo'ladi.
+
+    fn notify_subscribers(&self) {
+        for sub in &self.subscribers {
+            // Eslatma: Borrowing muammolarining oldini olish uchun holatni to'g'ridan-to'g'ri uzatamiz (Push modeli)
+            sub.update(&self.latest_article);
+        }
+    }
+
+    fn publish_article(&mut self, title: &str) {
+        println!("\n📰 Newsletter: Publishing new article - \"{}\"", title);
+        self.latest_article = title.to_string();
+        self.notify_subscribers();
+    }
+}
+
+// 3. Konkret Observer'lar
+struct EmailSubscriber {
+    email: String,
+}
+
+impl Subscriber for EmailSubscriber {
+    fn update(&self, latest_article: &str) {
+        println!("[Email to {}]: Read our new article \"{}\"", self.email, latest_article);
+    }
+}
+
+struct CorporateArchive;
+
+impl Subscriber for CorporateArchive {
+    fn update(&self, latest_article: &str) {
+        println!("[Archive System]: Saving \"{}\" to database.", latest_article);
+    }
+}
+
+// 4. Mijoz
+fn main() {
+    let mut tech_newsletter = Newsletter::new();
+
+    let alice = Rc::new(EmailSubscriber { email: "alice@example.com".into() });
+    let bob = Rc::new(EmailSubscriber { email: "bob@example.com".into() });
+    let archiver = Rc::new(CorporateArchive);
+
+    tech_newsletter.subscribe(alice);
+    tech_newsletter.subscribe(bob);
+    tech_newsletter.subscribe(archiver);
+
+    tech_newsletter.publish_article("The Future of AI");
+    tech_newsletter.publish_article("Rust 2.0 Released");
+}
 ```
 
 :::
 
-## Real-World Example
+## Afzallik va kamchiliklar (Pros and Cons)
 
-### Event-Driven UI System
+### Afzalliklari (Advantages)
 
-```typescript
-interface UIObserver {
-  onThemeChange(theme: "light" | "dark"): void;
-}
+- **Ochiq/Yopiqlik tamoyili (Open/Closed Principle)**: Nashr qiluvchi kodini o'zgartirmasdan yangi obunachi klasslarini qo'shishingiz mumkin.
+- **Bo'sh bog'lanish (Loose Coupling)**: Nashr qiluvchi faqat kuzatuvchi ma'lum bir interfeysni amalga oshirishini biladi. U aniq (concrete) klassni bilmaydi.
+- **Dinamik obunalar**: Obyektlar o'rtasidagi aloqalarni ish vaqtida (runtime) o'rnatishingiz mumkin.
 
-class ThemeManager {
-  private observers: UIObserver[] = [];
-  private currentTheme: "light" | "dark" = "light";
+### Kamchiliklari (Disadvantages)
 
-  subscribe(observer: UIObserver): void {
-    this.observers.push(observer);
-  }
+- **Xotira sizishi (The Lapsed Listener Problem — "unutilgan tinglovchi" muammosi)**: Agar kuzatuvchi obuna bo'lsa-yu, hech qachon obunani bekor qilmasa, nashr qiluvchi unga kuchli havolani saqlab qoladi va bu garbage collection'ga to'sqinlik qiladi. Bu Java/C#/UI dasturlashda xotira sizishining mashhur sababidir.
+- **Oldindan aytib bo'lmaydigan tartib**: Kuzatuvchilar tasodifiy/ketma-ket tartibda xabardor qilinadi. Agar kuzatuvchilar bir-biriga bog'liq bo'lsa, bu tartibsizlikka olib keladi.
+- **Zanjirli yangilanishlar (Cascade Updates)**: Agar kuzatuvchi yangilanishga javoban subject'ni yangilasa, osongina bildirishnomalarning cheksiz siklini keltirib chiqarishingiz mumkin.
 
-  unsubscribe(observer: UIObserver): void {
-    const index = this.observers.indexOf(observer);
-    if (index > -1) {
-      this.observers.splice(index, 1);
-    }
-  }
+## Qachon foydalanish kerak (When to Use)
 
-  setTheme(theme: "light" | "dark"): void {
-    if (this.currentTheme !== theme) {
-      this.currentTheme = theme;
-      this.notifyAll();
-    }
-  }
+- **Hodisaga asoslangan arxitekturalar (Event-Driven Architectures)**: Bir obyekt holatining o'zgarishi boshqa obyektlarni o'zgartirishni talab qilishi mumkin bo'lganda va obyektlarning haqiqiy to'plami oldindan noma'lum bo'lganda yoki dinamik ravishda o'zgarganda.
+- **UI ma'lumotlarini bog'lash (Data Binding)**: Model'ni View'ga bog'lashda View Model'ni kuzatishi va Model o'zgarganda qayta chizilishi kerak.
+- **Pub/Sub xabar almashish**: Ilovaning bir nechta qismlariga bir vaqtning o'zida xabar tarqatish kerak bo'lganda.
 
-  private notifyAll(): void {
-    this.observers.forEach((obs) => obs.onThemeChange(this.currentTheme));
-  }
-}
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-class Button implements UIObserver {
-  constructor(private name: string) {}
+- **Ketma-ket ma'lumotlar quvurlari (Sequential Data Pipelines)**: Agar sizga bajarilish tartibi ustidan qat'iy nazorat kerak bo'lsa (A qadam -> B qadam -> C qadam), **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)** yoki maxsus ish oqimi (workflow) dvigatelidan foydalaning.
+- **Murakkab muvofiqlashtirish**: Agar bir nechta nashr qiluvchilar va obunachilar chigallashib ketayotgan bo'lsa, mantiqni markazlashtirish uchun **[Mediator](/uz/behavioral/mediator)** patterniga o'tishingiz kerak.
 
-  onThemeChange(theme: "light" | "dark"): void {
-    const color = theme === "light" ? "black" : "white";
-    console.log(`${this.name} button text color: ${color}`);
-  }
-}
+## Keng tarqalgan xatolar (Common Mistakes)
 
-class Panel implements UIObserver {
-  constructor(private name: string) {}
+### 1. "Unutilgan tinglovchi" muammosi (The Lapsed Listener Problem — xotira sizishi)
 
-  onThemeChange(theme: "light" | "dark"): void {
-    const bgColor = theme === "light" ? "white" : "gray";
-    console.log(`${this.name} panel background: ${bgColor}`);
-  }
-}
+Kuzatuvchi yo'q qilinganda uning obunasini bekor qilmaslik.
+**Yechim**: Kuzatuvchilarni saqlash uchun kuchsiz havolalardan (Weak References — Java'da `WeakReference` yoki JS'da `WeakMap`/`WeakRef` kabi) foydalaning yoki komponentlar o'zlarining teardown/destructor hayot sikli metodlarida obunani aniq bekor qilishiga ishonch hosil qiling (masalan, React'dagi `useEffect` cleanup).
 
-// Usage
-const themeManager = new ThemeManager();
-const button = new Button("Submit");
-const panel = new Panel("MainPanel");
+### 2. Juda ko'p (yoki juda kam) ma'lumot uzatish
 
-themeManager.subscribe(button);
-themeManager.subscribe(panel);
+- **Push modeli**: Subject o'zining barcha ma'lumotlarini kuzatuvchiga uzatadi (`update(data)`). Bu kuzatuvchini aniq ma'lumotlar tuzilmasiga bog'lab qo'yadi.
+- **Pull modeli**: Subject o'ziga havolani uzatadi (`update(this)`) va kuzatuvchi o'ziga kerakli narsani so'raydi. Odatda bu afzalroq, lekin subject'dan ochiq (public) getter metodlarni taqdim etishni talab qiladi.
 
-themeManager.setTheme("dark");
-```
+## Aloqador patternlar (Related Patterns)
 
-## Advantages
+- **[Mediator](/uz/behavioral/mediator)**: Aloqani markazlashtiradi. Obyektlar bir-birini to'g'ridan-to'g'ri kuzatish o'rniga Mediator'ni kuzatadi.
+- **[Singleton](/uz/creational/singleton)**: Ko'pincha Subject (masalan, Event Bus) global ravishda foydalanish mumkin bo'lishi uchun Singleton sifatida amalga oshiriladi.
+- **[Command](/uz/behavioral/command)**: Kuzatuvchilar ko'pincha bildirishnoma olishga javoban Command'larni bajaradi.
 
-✅ **Loose Coupling** - Subjects and observers are loosely coupled
-✅ **Dynamic Relationships** - Observers can subscribe/unsubscribe at runtime
-✅ **Scalability** - Easy to add new observers without changing existing code
-✅ **Event-Driven** - Supports reactive, event-driven architectures
-✅ **Separation of Concerns** - Subjects focus on business logic, observers on responses
-✅ **Reusability** - Observers and subjects can be reused independently
-✅ **One-to-Many** - Efficiently supports one-to-many communication
+## Intervyu uchun maslahatlar (Interview Insights)
 
-## Disadvantages
+- **Savol**: "Observer va Pub/Sub o'rtasidagi farq nima?"
+  - **Javob**: "Klassik Observer patternida Subject va Observer bir-biridan xabardor (Subject Observer'lar ro'yxatini saqlaydi). Publish/Subscribe'da esa uchinchi komponent bor — Event Bus yoki Message Broker. Nashr qiluvchilar Broker'ga yuboradi, obunachilar esa Broker'dan oladi. Ular bir-biridan butunlay ajratilgan."
+- **Savol**: "Observer patternida xotira sizishining oldini qanday olasiz?"
+  - **Javob**: "Kuzatuvchi yo'q qilinganda `unsubscribe()` metodi chaqirilishiga ishonch hosil qiling yoki Garbage Collector o'lik kuzatuvchilarni tozalay olishi uchun Subject'ning kuzatuvchilar ro'yxatida kuchsiz havolalardan (Weak References) foydalaning."
 
-❌ **Order of Notification** - No control over order observers are notified
-❌ **Memory Leaks** - Forgetting to unsubscribe can cause memory leaks
-❌ **Performance** - Notifying many observers can be slow
-❌ **Debugging Complexity** - Hard to trace which observer is causing issues
-❌ **Unexpected Updates** - Observers might receive updates they don't expect
-❌ **Testing Difficulty** - Can be complex to test observer interactions
-❌ **Over-Engineering** - May be overkill for simple systems
+## Zamonaviy muqobillar (Modern Alternatives)
 
-## When to Use
-
-- You need to update multiple objects based on state changes
-- An object should notify others without assuming who those objects are
-- You want to support dynamic subscription/unsubscription
-- You're building event-driven systems
-- You want to create loosely coupled components
-- You need real-time notifications
-- You're building publish-subscribe systems
-
-## When NOT to Use
-
-- Only one or two objects need to know about state changes
-- Direct method calls would be more efficient
-- The system is simple enough that loose coupling isn't needed
-- You need guaranteed notification order
-- Performance is critical with many observers
-- You can use simpler mechanisms like callbacks
-- Observers always need to be created at compile time
-
-## Related Patterns
-
-- **Mediator** - Alternative for complex object interactions
-- **Event Aggregator** - Centralized event management
-- **Reactive Extensions** - Advanced event handling
-- **Publisher-Subscriber** - Similar but typically with separate infrastructure
-- **Weak References** - Can help prevent memory leaks in observers
+- **Reactive Extensions (RxJS, RxJava)**: Hodisalar oqimlarini filtrlash, map qilish va birlashtirish imkonini beruvchi Observer patternining ilg'or, kompozitsiyalanadigan amalga oshirilishlari.
+- **Event Emitter'lar / Event Target'lar**: Node.js (`EventEmitter`) va brauzer DOM'iga (`EventTarget`) o'rnatilgan, yuqori darajada optimallashtirilgan tabiiy amalga oshirilishlar.
+- **Signals / Observables (Vue, SolidJS, Angular, MobX)**: Zamonaviy frontend freymvorklari o'qilganda obunalarni avtomatik kuzatadigan reaktiv primitivlardan (Signals) foydalanadi, bu esa qo'lda `subscribe`/`unsubscribe` chaqiruvlariga bo'lgan ehtiyojni butunlay yo'qotadi.

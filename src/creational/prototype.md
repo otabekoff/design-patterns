@@ -6,7 +6,7 @@ icon: Copy
 
 # Prototype Pattern
 
-<CoverImage src="/covers/creational/prototype.png" alt="Cover">
+<CoverImage src="/covers/creational/prototype.webp" alt="Cover">
   <h1>Prototype</h1>
   <p>A playful futuristic cloning machine with one original green slime monster going in, and a row of identical, freshly popped-out green slime clones coming out of the chutes.</p>
 </CoverImage>
@@ -35,6 +35,39 @@ Consider **photocopying a document**:
 - Photocopy: The new object with same structure
 
 If the original has a paper clip, a shallow copy machine copies the reference (both documents share one clip). A deep copy machine creates a separate clip for the copy.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Prototype {
+        <<interface>>
+        +clone() Prototype
+    }
+    class GameCharacter {
+        +name: string
+        +health: number
+        +inventory: string[]
+        +clone() GameCharacter
+        +deepClone() GameCharacter
+    }
+    class CharacterFactory {
+        -prototypes: Map
+        +registerPrototype(name, prototype) void
+        +createCharacter(prototypeName) GameCharacter
+    }
+    class Client
+
+    Prototype <|.. GameCharacter
+    CharacterFactory o-- GameCharacter : stores prototypes
+    Client --> CharacterFactory : requests copies
+    GameCharacter ..> GameCharacter : clones itself
+```
+
+- **`Prototype`** declares the `clone()` operation (generic `Prototype<T>` in the code examples).
+- **`GameCharacter`** (Concrete Prototype) implements `clone()` (shallow) and `deepClone()` (deep) to copy its own state.
+- **`CharacterFactory`** (Prototype Registry) keeps pre-configured prototypes by name and returns clones on request.
+- **`Client`** obtains new objects by cloning instead of calling constructors directly.
 
 ## The Problem
 

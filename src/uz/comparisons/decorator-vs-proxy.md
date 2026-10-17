@@ -1,0 +1,162 @@
+---
+title: Decorator va Proxy
+description: Ikkalasi ham obyektni bir xil interfeys ortiga o'raydi — biri mas'uliyat qo'shadi, ikkinchisi kirishni boshqaradi.
+icon: GitCompare
+---
+
+# Decorator va Proxy
+
+[Decorator](/uz/structural/decorator) va [Proxy](/uz/structural/proxy) kodda deyarli bir xil ko'rinadi: klass boshqa obyekt bilan bir xil interfeysni implementatsiya qiladi, unga havola saqlaydi va chaqiruvlarni uzatadi. Ikkalasi ham mijoz uchun shaffof. Ikkalasi bilan ham keshlash yoki logging qo'shish mumkin. Ularning chalkashtirilishi ajablanarli emas.
+
+GoF farqi **maqsad va hayot sikli** haqida:
+
+- **Decorator** obyektga dinamik ravishda _mas'uliyatlar qo'shadi_. Decoratorlar ustma-ust qo'yish uchun mo'ljallangan va bu stekni mijoz (yoki composition root) o'zida allaqachon bor obyekt atrofida yig'adi.
+- **Proxy** obyektga _kirishni boshqaradi_. Proxy odatda aniq bitta subyekt o'rnida turadi, ko'pincha o'sha subyektning hayot siklini boshqaradi (uni kechiktirib yaratadi, masofadan ulanadi) va ustma-ust qo'yish uchun mo'ljallanmagan.
+
+## Umumiy tuzilma
+
+```mermaid
+classDiagram
+    class Subject {
+        <<interface>>
+        +request() Result
+    }
+    class RealSubject
+    class Wrapper {
+        -inner: Subject
+        +request() Result
+    }
+    Subject <|.. RealSubject
+    Subject <|.. Wrapper
+    Wrapper o-- Subject
+```
+
+Shakl bir xil. Farq `Wrapper` uzatilgan chaqiruv atrofida nima qilishida va `inner` ni kim yaratganida.
+
+## Yonma-yon taqqoslash
+
+| Jihat                              | Decorator                                                        | Proxy                                                                       |
+| ---------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Maqsad (GoF)**                   | Obyektga qo'shimcha mas'uliyatlarni dinamik biriktirish          | Boshqa obyektga kirishni boshqarish uchun o'rinbosar taqdim etish           |
+| **Ichki obyektni kim yaratadi**    | Mijoz mavjud obyektni uzatadi                                    | Ko'pincha proxy'ning o'zi (kechiktirilgan yaratish, masofaviy handle)       |
+| **Ustma-ust qo'yish**              | Shunga mo'ljallangan: `new Retry(new Log(new Http()))`           | Odatda har bir subyekt uchun bitta proxy                                    |
+| **Har doim uzatadimi?**            | Ha; u boyitadi, rad etmaydi                                      | Shart emas; chaqiruvni bloklashi, kechiktirishi yoki qisqa tutashtirishi mumkin |
+| **Mijozning xabardorligi**         | Qaysi decoratorlarni qo'llashni mijoz tanlaydi                   | Mijoz odatda proxy borligini bilmaydi                                       |
+| **Odatiy qo'llanilishi**           | Logging, metrikalar, qayta urinish, siqish, middleware qatlamlari | Lazy loading, masofaviy kirish, ruxsat nazorati, keshlash, ORM lazy bog'lanishlari |
+| **Xatarlar**                       | Tartibga bog'liq steklar; identity tekshiruvlari buziladi; chuqur o'ram zanjirlari | Yashirin kechikish (remote/lazy); "oddiy" chaqiruv ortidagi kutilmagan xatolar |
+
+### GoF Proxy turlari
+
+| Tur                   | Nimani boshqaradi                                            |
+| --------------------- | ------------------------------------------------------------ |
+| **Virtual proxy**     | Qimmat subyekt qachon yaratilishini (lazy loading)           |
+| **Remote proxy**      | Subyekt qayerda joylashganini (boshqa jarayon yoki mashina)  |
+| **Protection proxy**  | Uni kim chaqirishi mumkinligini                              |
+| **Smart reference**   | Qo'shimcha hisob-kitob: havolalarni sanash, qulflash, keshlash |
+
+Bularning har biri subyektga _kirish_ haqida, unga yangi imkoniyat qo'shish haqida emas.
+
+## Koddagi hal qiluvchi farq
+
+::: code-group
+
+```typescript [Decorator]
+interface HttpClient {
+  get(url: string): Promise<string>;
+}
+
+class FetchClient implements HttpClient {
+  async get(url: string) {
+    return (await fetch(url)).text();
+  }
+}
+
+// Mas'uliyat qo'shadi; har doim delegatsiya qiladi.
+class LoggingClient implements HttpClient {
+  constructor(private inner: HttpClient) {}
+  async get(url: string) {
+    console.log(`GET ${url}`);
+    return this.inner.get(url);
+  }
+}
+
+class RetryClient implements HttpClient {
+  constructor(private inner: HttpClient, private attempts = 3) {}
+  async get(url: string) {
+    for (let i = 1; ; i++) {
+      try { return await this.inner.get(url); }
+      catch (e) { if (i >= this.attempts) throw e; }
+    }
+  }
+}
+
+// Mijoz stekni mavjud obyekt atrofida yig'adi.
+const client = new RetryClient(new LoggingClient(new FetchClient()));
+```
+
+```typescript [Proxy]
+interface ImageSource {
+  render(): string;
+}
+
+class HighResImage implements ImageSource {
+  constructor(private path: string) {
+    console.log(`Loading ${path} from disk...`); // qimmat
+  }
+  render() { return `<img src="${this.path}">`; }
+}
+
+// Kirishni boshqaradi: subyektni o'zi yaratadi va umuman yaratmasligi ham mumkin.
+class LazyImage implements ImageSource {
+  private real?: HighResImage;
+  constructor(private path: string, private canView: () => boolean) {}
+
+  render() {
+    if (!this.canView()) return "<span>Restricted</span>"; // qisqa tutashtirish
+    this.real ??= new HighResImage(this.path);             // kechiktirilgan yaratish
+    return this.real.render();
+  }
+}
+
+const img: ImageSource = new LazyImage("/photos/raw.tiff", () => user.isAdmin);
+```
+
+:::
+
+Decoratorlar allaqachon qurilgan `HttpClient` ni oladi va har doim chaqiruvni uzatadi. `LazyImage` esa o'z subyektini o'zi yaratadi, uni umuman yaratmasligi mumkin va chaqiruvni rad etishi ham mumkin.
+
+::: tip Foydali test
+"Buni turli variantlar bilan ikki marta o'rash mantiqqa to'g'ri keladimi?" deb so'rang. Ha bo'lsa — bu Decorator. "Bu o'ram haqiqiy ish _bajarilish-bajarilmasligini_, _qachon_ yoki _qayerda_ bajarilishini hal qiladimi?" deb so'rang. Ha bo'lsa — bu Proxy.
+:::
+
+## Kulrang hududlar
+
+- **Keshlash** ikkalasiga ham mos keladi. Middleware stekiga qo'shilgan keshlovchi decorator — Decorator; tarmoqni yashirib, masofaviy servis oldida turgan keshlovchi proxy — Proxy. Unga dizayningizda bajaradigan roliga qarab nom bering.
+- **JavaScript `Proxy`** — xususiyatlarga kirishni ushlab qolish uchun til imkoniyati. U har ikki patternni ham amalga oshirishi mumkin; nom maqsadni belgilamaydi.
+- **Adapter** ham o'raydi, lekin u interfeysni _o'zgartiradi_. Decorator va Proxy uni _saqlab qoladi_. Qarang: [Adapter, Facade va Bridge](/uz/comparisons/adapter-vs-facade-vs-bridge).
+
+## Qaysi birini qachon tanlash kerak
+
+**Decorator'ni tanlang, agar:**
+
+- Sizga ixtiyoriy, birlashtiriladigan imkoniyatlar kerak bo'lsa (logging, metrikalar, qayta urinish, siqish).
+- Turli chaqiruv joylariga bu imkoniyatlarning turli kombinatsiyalari kerak bo'lsa.
+- Subklass yaratish `LoggingRetryingClient` kabi kombinatorik klasslarni keltirib chiqarsa.
+
+**Proxy'ni tanlang, agar:**
+
+- Haqiqiy obyekt qimmat bo'lib, faqat birinchi foydalanishda yaratilishi kerak bo'lsa.
+- Haqiqiy obyekt boshqa joyda yashasa va sizga mahalliy o'rinbosar kerak bo'lsa.
+- Chaqiruvlar subyektga yetib borishidan oldin avtorizatsiya qilinishi, cheklanishi yoki audit qilinishi kerak bo'lsa.
+- Subyektning hayot siklini mijozga sezdirmasdan boshqarishingiz kerak bo'lsa.
+
+::: warning Identity va tartibga e'tibor bering
+Ikkala pattern ham ichki obyektga nisbatan `===` tekshiruvlarini buzadi. Decorator steklari bundan tashqari tartibga sezgir: logging'dan tashqaridagi retry har bir urinishni loglaydi, retry'dan tashqaridagi logging esa bir marta loglaydi. Tartibni composition root'da aniq ko'rsating.
+:::
+
+## Tegishli sahifalar
+
+- [Decorator](/uz/structural/decorator)
+- [Proxy](/uz/structural/proxy)
+- [Chain of Responsibility](/uz/behavioral/chain-of-responsibility) — zanjir to'xtashi mumkin; decorator har doim uzatadi
+- [Patternni tanlash](/uz/choosing-a-pattern)

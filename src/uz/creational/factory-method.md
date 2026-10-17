@@ -1,67 +1,178 @@
 ---
-title: Factory Method Pattern
-description: Defines an interface for creating objects, but lets subclasses decide which class to instantiate.
+title: Factory Method patterni
+description: Obyektlarni yaratish uchun interfeys belgilaydi va qaysi klassning instansiyasini yaratishni subklasslarga hal qilishga imkon beradi.
 icon: Package
 ---
 
-# Factory Method Pattern
+# Factory Method patterni
 
-<CoverImage src="/covers/creational/factory-method.png" alt="Cover">
+<CoverImage src="/covers/creational/factory-method.webp" alt="Cover">
   <h1>Factory Method</h1>
-  <p>A quirky assembly line with a single mechanical arm stamping out different shapes of little toy cars (sedan, truck) depending on which blueprint card is fed into it.</p>
+  <p>Qiziq yig'uv liniyasi: unga qaysi chizma kartasi berilishiga qarab, yagona mexanik qo'l turli shakldagi kichik o'yinchoq mashinalarni (sedan, yuk mashinasi) tamg'alab chiqaradi.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The Factory Method pattern is a creational design pattern that provides an interface for creating objects in a superclass, but allows subclasses to alter the type of objects that will be created.
+**Factory Method** patterni yaratuvchi (creational) dizayn patterni bo'lib, obyektlarni yaratish uchun interfeys belgilaydi, ammo qaysi konkret klassning instansiyasini yaratishni subklasslarga hal qilishga imkon beradi. Bu pattern kod yaratayotgan obyektlarning aniq klasslarini ko'rsatish zaruratini yo'qotib, bo'sh bog'liqlikni (loose coupling) rag'batlantiradi.
 
-### Purpose
+`new ConcreteProduct()` ni to'g'ridan-to'g'ri chaqirish (qattiq bog'liqlik) o'rniga, siz umumiy interfeysni amalga oshiruvchi obyektni qaytaradigan factory metodini chaqirasiz. Haqiqiy tur factory metodini amalga oshiruvchi subklass tomonidan aniqlanadi.
 
-- Define a common interface for object creation
-- Delegate the actual instantiation to subclasses
-- Reduce coupling between classes
-- Encapsulate object creation logic
+**Zamonaviy nuqtai nazar**: Funksiyalar birinchi darajali (first-class) obyekt bo'lgan funksional va dinamik tillarda Factory Method unchalik ko'zga tashlanmaydi. Biroq u tiplashtirilgan tillarda (Java, TypeScript) hamon muhim bo'lib qolmoqda va ko'pincha dependency injection freymvorklari bilan birgalikda qo'llaniladi.
 
-## Problem
+## Hayotiy o'xshatish (Real-World Analogy)
 
-When you have multiple related classes and need to decide which one to instantiate at runtime, hardcoding the instantiation logic leads to tight coupling and makes the code difficult to extend.
+**Logistika kompaniyasini** tasavvur qiling. Yukni yuk mashinasida, kemada yoki samolyotda jo'natasizmi — kompaniya yagona jo'natish interfeysini taqdim etadi. Aniq transport usuli mijoz kodida qattiq yozilmaydi, balki masofa, og'irlik va narx kabi mezonlar asosida ish vaqtida (runtime) aniqlanadi.
+
+Xuddi shunday, kodda turli ma'lumotlar bazasi adapterlari (MySQL, PostgreSQL, MongoDB) bo'lishi mumkin, ammo mijoz kodi qaysi implementatsiya qaytarilishini bilmasdan va bunga e'tibor bermasdan shunchaki factory metodini chaqiradi.
+
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class Application {
+        <<abstract>>
+        #documents: Document[]
+        +createDocument() Document*
+        +openDocument() void
+    }
+    class PDFApplication {
+        +createDocument() Document
+    }
+    class WordApplication {
+        +createDocument() Document
+    }
+    class Document {
+        <<interface>>
+        +open() void
+        +save() void
+        +close() void
+    }
+    class PDFDocument
+    class WordDocument
+
+    Application <|-- PDFApplication
+    Application <|-- WordApplication
+    Document <|.. PDFDocument
+    Document <|.. WordDocument
+    Application ..> Document : uses
+    PDFApplication ..> PDFDocument : creates
+    WordApplication ..> WordDocument : creates
+```
+
+- **`Application`** (Creator — yaratuvchi) abstrakt factory metodi `createDocument()` ni e'lon qiladi va faqat `Document` interfeysi bilan ishlaydigan biznes mantig'ini (`openDocument()`) o'z ichiga oladi.
+- **`PDFApplication` / `WordApplication`** (Concrete Creators — konkret yaratuvchilar) qaysi konkret mahsulot instansiyasini yaratishni hal qilish uchun factory metodini qayta aniqlaydi (override).
+- **`Document`** (Product — mahsulot) umumiy interfeys; **`PDFDocument` / `WordDocument`** esa konkret mahsulotlar. `ExcelApplication` + `ExcelDocument` qo'shish mavjud kodga hech qanday o'zgartirish kiritishni talab qilmaydi.
+
+## Muammo (Problem)
+
+Kod konkret klasslarning instansiyasini to'g'ridan-to'g'ri yaratganda, u qattiq bog'langan va kengaytirish qiyin bo'lib qoladi:
+
+### Stsenariy: Bir nechta hujjat turlari
 
 ```typescript
-// Without Factory Method - Hard to extend
-function createDocument(type: string) {
+// ❌ Muammo: Konkret klasslarga qattiq bog'liqlik
+function createDocument(type: string): Document {
   if (type === "pdf") {
-    return new PDFDocument();
+    return new PDFDocument(); // To'g'ridan-to'g'ri instansiya yaratish
   } else if (type === "word") {
     return new WordDocument();
   } else if (type === "excel") {
     return new ExcelDocument();
   }
-  throw new Error("Unknown document type");
+  throw new Error("Unknown type");
+}
+
+// Yangi hujjat turini qo'shish bu funksiyani o'zgartirishni talab qiladi (Open/Closed tamoyilini buzadi)
+```
+
+**Muammolar:**
+
+- Yangi hujjat turini qo'shish factory funksiyasini o'zgartirishni talab qiladi.
+- Funksiya barcha konkret implementatsiyalar haqida biladi.
+- Testlash qiyin; mock implementatsiyalarni osongina almashtirib bo'lmaydi.
+- Mantiq tarqoq; jamoaviy ishlab chiqish uchun kengaytiriladigan emas.
+
+### Stsenariy: To'lovlarni qayta ishlash
+
+```typescript
+// ❌ Muammo: To'lov usullarini qo'shish og'riqli
+class OrderProcessor {
+  processPayment(method: string, amount: number) {
+    if (method === "credit_card") {
+      const processor = new CreditCardProcessor();
+      processor.charge(amount);
+    } else if (method === "paypal") {
+      const processor = new PayPalProcessor();
+      processor.charge(amount);
+    } else if (method === "apple_pay") {
+      const processor = new ApplePayProcessor();
+      processor.charge(amount);
+    }
+    // Har bir yangi to'lov usuli bu klassni o'zgartirishni talab qiladi!
+  }
 }
 ```
 
-## Solution
+## Yechim (Solution)
 
-The Factory Method pattern solves this by:
+Factory Method patterni buni quyidagicha hal qiladi:
 
-1. Defining an interface for object creation
-2. Letting subclasses implement the factory method
-3. Using polymorphism to create the right object
+1. Barcha mahsulotlar uchun **umumiy interfeys belgilash** (abstrakt klass yoki interfeys).
+2. Abstrakt yaratuvchi klassda interfeys turini qaytaradigan **factory metodini yaratish**.
+3. **Subklasslar factory metodini qayta aniqlaydi** va o'zlarining konkret turini qaytaradi.
+4. Mijoz kodi konkret implementatsiyalarga emas, **interfeysga bog'liq** bo'ladi.
 
-## Implementation
+```typescript
+// ✅ Yechim: Implementatsiyalarga emas, interfeyslarga bog'laning
+abstract class DocumentHandler {
+  abstract createDocument(): Document;
+
+  openDocument(): void {
+    const doc = this.createDocument(); // Factory metodi
+    doc.open(); // Interfeysdan foydalanish
+  }
+}
+
+class PDFHandler extends DocumentHandler {
+  createDocument(): Document {
+    return new PDFDocument(); // Turni subklass hal qiladi
+  }
+}
+
+class WordHandler extends DocumentHandler {
+  createDocument(): Document {
+    return new WordDocument();
+  }
+}
+
+// Yangi hujjat turini qo'shish:
+class ExcelHandler extends DocumentHandler {
+  createDocument(): Document {
+    return new ExcelDocument(); // Mavjud kod o'zgartirilmadi!
+  }
+}
+```
+
+**Asosiy tamoyil**: Factory metodi mavjud mijoz kodini o'zgartirmasdan yangi konkret mahsulotlarni qo'shish imkonini beradi — bu **Open/Closed tamoyili** (Open/Closed Principle).
+
+## Amalga oshirish (Implementation)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Abstract product
-abstract class Document {
-  abstract open(): void;
-  abstract save(): void;
-  abstract close(): void;
+/**
+ * Mahsulot interfeysi: Barcha hujjatlar buni amalga oshirishi kerak.
+ */
+interface Document {
+  open(): void;
+  save(): void;
+  close(): void;
 }
 
-// Concrete products
-class PDFDocument extends Document {
+/**
+ * Konkret mahsulotlar: Muayyan hujjat implementatsiyalari.
+ */
+class PDFDocument implements Document {
   open(): void {
     console.log("Opening PDF document...");
   }
@@ -73,7 +184,7 @@ class PDFDocument extends Document {
   }
 }
 
-class WordDocument extends Document {
+class WordDocument implements Document {
   open(): void {
     console.log("Opening Word document...");
   }
@@ -85,20 +196,47 @@ class WordDocument extends Document {
   }
 }
 
-// Abstract creator
+class ExcelDocument implements Document {
+  open(): void {
+    console.log("Opening Excel document...");
+  }
+  save(): void {
+    console.log("Saving as Excel...");
+  }
+  close(): void {
+    console.log("Closing Excel document");
+  }
+}
+
+/**
+ * Yaratuvchi abstrakt klass: Factory metodini belgilaydi.
+ * Subklasslar muayyan turlarni qaytarish uchun createDocument() ni amalga oshiradi.
+ */
 abstract class Application {
   protected documents: Document[] = [];
 
+  /**
+   * Factory metodi: Subklasslar o'z mahsulot turini qaytarish uchun buni qayta aniqlaydi.
+   */
   abstract createDocument(): Document;
 
+  /**
+   * Biznes mantig'i: Konkret turlardan emas, mahsulot interfeysidan foydalanadi.
+   */
   openDocument(): void {
     const doc = this.createDocument();
     doc.open();
     this.documents.push(doc);
   }
+
+  listDocuments(): void {
+    console.log(`Total documents: ${this.documents.length}`);
+  }
 }
 
-// Concrete creators
+/**
+ * Konkret yaratuvchilar: Har biri qaysi mahsulotni yaratishni aniqlaydi.
+ */
 class PDFApplication extends Application {
   createDocument(): Document {
     return new PDFDocument();
@@ -111,186 +249,784 @@ class WordApplication extends Application {
   }
 }
 
-// Usage
-const pdfApp = new PDFApplication();
-pdfApp.openDocument(); // Opening PDF document...
+class ExcelApplication extends Application {
+  createDocument(): Document {
+    return new ExcelDocument();
+  }
+}
 
-const wordApp = new WordApplication();
-wordApp.openDocument(); // Opening Word document...
+// Foydalanish
+function main() {
+  const apps: Application[] = [
+    new PDFApplication(),
+    new WordApplication(),
+    new ExcelApplication(),
+  ];
+
+  apps.forEach((app) => {
+    app.openDocument();
+    app.listDocuments();
+  });
+}
+
+main();
 ```
 
 ```python [Python]
 from abc import ABC, abstractmethod
 
-    # Abstract product
-    class Document(ABC):
-        @abstractmethod
-        def open(self):
-            pass
+class Document(ABC):
+    """Mahsulot interfeysi: Barcha hujjatlar buni amalga oshiradi."""
 
-        @abstractmethod
-        def save(self):
-            pass
+    @abstractmethod
+    def open(self) -> None:
+        pass
 
-    # Concrete products
-    class PDFDocument(Document):
-        def open(self):
-            print("Opening PDF document...")
+    @abstractmethod
+    def save(self) -> None:
+        pass
 
-        def save(self):
-            print("Saving as PDF...")
+    @abstractmethod
+    def close(self) -> None:
+        pass
 
-    class WordDocument(Document):
-        def open(self):
-            print("Opening Word document...")
+class PDFDocument(Document):
+    """Konkret mahsulot: PDF hujjat."""
 
-        def save(self):
-            print("Saving as Word...")
+    def open(self) -> None:
+        print("Opening PDF document...")
 
-    # Abstract creator
-    class Application(ABC):
-        def __init__(self):
-            self.documents = []
+    def save(self) -> None:
+        print("Saving as PDF...")
 
-        @abstractmethod
-        def create_document(self):
-            pass
+    def close(self) -> None:
+        print("Closing PDF document")
 
-        def open_document(self):
-            doc = self.create_document()
-            doc.open()
-            self.documents.append(doc)
+class WordDocument(Document):
+    """Konkret mahsulot: Word hujjat."""
 
-    # Concrete creators
-    class PDFApplication(Application):
-        def create_document(self):
-            return PDFDocument()
+    def open(self) -> None:
+        print("Opening Word document...")
 
-    class WordApplication(Application):
-        def create_document(self):
-            return WordDocument()
+    def save(self) -> None:
+        print("Saving as Word...")
 
-    # Usage
-    pdf_app = PDFApplication()
-    pdf_app.open_document()  # Opening PDF document...
+    def close(self) -> None:
+        print("Closing Word document")
+
+class ExcelDocument(Document):
+    """Konkret mahsulot: Excel hujjat."""
+
+    def open(self) -> None:
+        print("Opening Excel document...")
+
+    def save(self) -> None:
+        print("Saving as Excel...")
+
+    def close(self) -> None:
+        print("Closing Excel document")
+
+class Application(ABC):
+    """Yaratuvchi: Factory metodini belgilaydigan abstrakt bazaviy klass."""
+
+    def __init__(self) -> None:
+        self.documents: list[Document] = []
+
+    @abstractmethod
+    def create_document(self) -> Document:
+        """Factory metodi: Subklasslar buni qayta aniqlaydi."""
+        pass
+
+    def open_document(self) -> None:
+        """Biznes mantig'i: Mahsulot interfeysidan foydalanadi."""
+        doc = self.create_document()
+        doc.open()
+        self.documents.append(doc)
+
+    def list_documents(self) -> None:
+        print(f"Total documents: {len(self.documents)}")
+
+class PDFApplication(Application):
+    """Konkret yaratuvchi: PDF hujjatlarni yaratadi."""
+
+    def create_document(self) -> Document:
+        return PDFDocument()
+
+class WordApplication(Application):
+    """Konkret yaratuvchi: Word hujjatlarni yaratadi."""
+
+    def create_document(self) -> Document:
+        return WordDocument()
+
+# Foydalanish
+if __name__ == "__main__":
+    apps: list[Application] = [
+        PDFApplication(),
+        WordApplication(),
+        ExcelApplication(),
+    ]
+
+    for app in apps:
+        app.open_document()
+        app.list_documents()
+```
+
+```java [Java]
+import java.util.*;
+
+/**
+ * Mahsulot interfeysi: Barcha hujjatlar buni amalga oshiradi.
+ */
+interface Document {
+    void open();
+    void save();
+    void close();
+}
+
+/**
+ * Konkret mahsulotlar.
+ */
+class PDFDocument implements Document {
+    @Override
+    public void open() {
+        System.out.println("Opening PDF document...");
+    }
+
+    @Override
+    public void save() {
+        System.out.println("Saving as PDF...");
+    }
+
+    @Override
+    public void close() {
+        System.out.println("Closing PDF document");
+    }
+}
+
+class WordDocument implements Document {
+    @Override
+    public void open() {
+        System.out.println("Opening Word document...");
+    }
+
+    @Override
+    public void save() {
+        System.out.println("Saving as Word...");
+    }
+
+    @Override
+    public void close() {
+        System.out.println("Closing Word document");
+    }
+}
+
+/**
+ * Yaratuvchi abstrakt klass: Factory metodini belgilaydi.
+ */
+abstract class Application {
+    protected List<Document> documents = new ArrayList<>();
+
+    /**
+     * Factory metodi: Subklasslar buni qayta aniqlaydi.
+     */
+    abstract Document createDocument();
+
+    /**
+     * Biznes mantig'i: Mahsulot interfeysidan foydalanadi.
+     */
+    public void openDocument() {
+        Document doc = createDocument();
+        doc.open();
+        documents.add(doc);
+    }
+
+    public void listDocuments() {
+        System.out.println("Total documents: " + documents.size());
+    }
+}
+
+/**
+ * Konkret yaratuvchilar.
+ */
+class PDFApplication extends Application {
+    @Override
+    Document createDocument() {
+        return new PDFDocument();
+    }
+}
+
+class WordApplication extends Application {
+    @Override
+    Document createDocument() {
+        return new WordDocument();
+    }
+}
+
+// Foydalanish
+public class Main {
+    public static void main(String[] args) {
+        Application[] apps = {
+            new PDFApplication(),
+            new WordApplication(),
+        };
+
+        for (Application app : apps) {
+            app.openDocument();
+            app.listDocuments();
+        }
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// Document interfeysi: Barcha hujjatlar buni amalga oshiradi.
+type Document interface {
+    Open()
+    Save()
+    Close()
+}
+
+// Konkret mahsulotlar.
+type PDFDocument struct{}
+
+func (d *PDFDocument) Open() {
+    fmt.Println("Opening PDF document...")
+}
+
+func (d *PDFDocument) Save() {
+    fmt.Println("Saving as PDF...")
+}
+
+func (d *PDFDocument) Close() {
+    fmt.Println("Closing PDF document")
+}
+
+type WordDocument struct{}
+
+func (d *WordDocument) Open() {
+    fmt.Println("Opening Word document...")
+}
+
+func (d *WordDocument) Save() {
+    fmt.Println("Saving as Word...")
+}
+
+func (d *WordDocument) Close() {
+    fmt.Println("Closing Word document")
+}
+
+// Application: Factory method patternidan foydalanadi.
+type Application struct {
+    documents []Document
+    factory   DocumentFactory
+}
+
+// DocumentFactory: Hujjatlarni yaratish uchun funksiya turi.
+type DocumentFactory func() Document
+
+// NewApplication: Factoryni qabul qiluvchi konstruktor.
+func NewApplication(factory DocumentFactory) *Application {
+    return &Application{
+        documents: []Document{},
+        factory:   factory,
+    }
+}
+
+// OpenDocument: Factory metodidan foydalanadi.
+func (a *Application) OpenDocument() {
+    doc := a.factory()
+    doc.Open()
+    a.documents = append(a.documents, doc)
+}
+
+func (a *Application) ListDocuments() {
+    fmt.Printf("Total documents: %d\n", len(a.documents))
+}
+
+// Factory funksiyalari: Aynan shular factory metodlaridir.
+func CreatePDFDocument() Document {
+    return &PDFDocument{}
+}
+
+func CreateWordDocument() Document {
+    return &WordDocument{}
+}
+
+// Foydalanish
+func main() {
+    apps := []*Application{
+        NewApplication(CreatePDFDocument),
+        NewApplication(CreateWordDocument),
+    }
+
+    for _, app := range apps {
+        app.OpenDocument()
+        app.ListDocuments()
+    }
+}
+```
+
+```rust [Rust]
+// Mahsulot traiti: Barcha hujjatlar buni amalga oshiradi.
+trait Document {
+    fn open(&self);
+    fn save(&self);
+    fn close(&self);
+}
+
+// Konkret mahsulotlar.
+struct PDFDocument;
+
+impl Document for PDFDocument {
+    fn open(&self) {
+        println!("Opening PDF document...");
+    }
+
+    fn save(&self) {
+        println!("Saving as PDF...");
+    }
+
+    fn close(&self) {
+        println!("Closing PDF document");
+    }
+}
+
+struct WordDocument;
+
+impl Document for WordDocument {
+    fn open(&self) {
+        println!("Opening Word document...");
+    }
+
+    fn save(&self) {
+        println!("Saving as Word...");
+    }
+
+    fn close(&self) {
+        println!("Closing Word document");
+    }
+}
+
+// DocumentType enum: Qaysi factorydan foydalanishni aniqlaydi.
+enum DocumentType {
+    PDF,
+    Word,
+}
+
+// Factory funksiyasi: Trait obyektini qaytaradi.
+fn create_document(doc_type: DocumentType) -> Box<dyn Document> {
+    match doc_type {
+        DocumentType::PDF => Box::new(PDFDocument),
+        DocumentType::Word => Box::new(WordDocument),
+    }
+}
+
+// Application: Factorydan foydalanadi.
+struct Application {
+    documents: Vec<Box<dyn Document>>,
+    document_type: DocumentType,
+}
+
+impl Application {
+    fn new(document_type: DocumentType) -> Self {
+        Application {
+            documents: Vec::new(),
+            document_type,
+        }
+    }
+
+    fn open_document(&mut self) {
+        let doc = create_document(self.document_type.clone());
+        doc.open();
+        self.documents.push(doc);
+    }
+
+    fn list_documents(&self) {
+        println!("Total documents: {}", self.documents.len());
+    }
+}
+
+// Foydalanish (DocumentType uchun Clone talab qilinadi)
+#[derive(Clone)]
+enum DocumentType {
+    PDF,
+    Word,
+}
+
+fn main() {
+    let mut pdf_app = Application::new(DocumentType::PDF);
+    pdf_app.open_document();
+    pdf_app.list_documents();
+
+    let mut word_app = Application::new(DocumentType::Word);
+    word_app.open_document();
+    word_app.list_documents();
+}
 ```
 
 :::
 
-## Real-World Example: Payment Processor
+### TypeScript: Klassik Factory Method
+
+**TypeScript yondashuvining afzalliklari:**
+
+- TypeScript interfeyslari orqali aniq interfeys shartnomalari (contracts).
+- Subklasslar factory metodini aniq qayta aniqlaydi.
+- Mavjud kodni o'zgartirmasdan yangi turlarni qo'shish oson.
+
+### Python: Subklasslar va abstrakt bazaviy klasslardan foydalanish
+
+**Python yondashuvining afzalliklari:**
+
+- Aniq shartnomalar uchun `@abstractmethod` dekoratoridan foydalanadi.
+- Tip izohlari (type hints) bilan Python uslubidagi (Pythonic) sintaksis.
+- Subklassda qayta aniqlash usuli Python uchun tabiiy (idiomatic).
+
+### Java: Generiklar bilan Factory Method
+
+**Java yondashuvining afzalliklari:**
+
+- Abstrakt va konkret klasslarning aniq ajratilishi.
+- Interfeyslar shartnomalarni aniq belgilaydi.
+- Korporativ (enterprise) kod bazalarida yaxshi ishlaydi.
+
+### Go: Funksiyalardan factory sifatida foydalanish
+
+**Go yondashuvining afzalliklari:**
+
+- Birinchi darajali qiymat sifatidagi funksiyalar subklasslash zaruratini almashtiradi.
+- Vorislikdan ko'ra kompozitsiya: ilovalar factorylar bilan tuziladi.
+- Go uslubiga mos (idiomatic): soddaroq, ko'proq funksional yondashuv.
+
+### Rust: Trait obyektlari va enum dispatch'dan foydalanish
+
+**Rust yondashuvining afzalliklari:**
+
+- Trait obyektlari polimorfizmni xavfsiz ta'minlaydi.
+- Enum dispatch tip jihatdan xavfsiz va samarali.
+- Factoryni tanlash uchun Rust'ning pattern matching'i tilga xos (idiomatic) usul.
+
+## Real hayotdagi qo'llanilishi: To'lov protsessori (Payment Processor)
+
+To'lov tizimi bir nechta to'lov usullarini qo'llab-quvvatlashi kerak. Factory Method yordamida yangi usul qo'shish mavjud kodni o'zgartirishni talab qilmaydi:
 
 ```typescript
-interface Payment {
-  process(amount: number): void;
-  refund(amount: number): void;
+// Mahsulot interfeysi
+interface PaymentProcessor {
+  validate(data: any): boolean;
+  charge(amount: number): Promise<boolean>;
+  refund(transactionId: string): Promise<boolean>;
 }
 
-class CreditCardPayment implements Payment {
-  process(amount: number): void {
-    console.log(`Processing credit card payment of $${amount}`);
+// Konkret protsessorlar
+class CreditCardProcessor implements PaymentProcessor {
+  validate(data: any): boolean {
+    return data.cardNumber && data.cvv && data.expiry;
   }
-  refund(amount: number): void {
-    console.log(`Refunding credit card $${amount}`);
-  }
-}
 
-class PayPalPayment implements Payment {
-  process(amount: number): void {
-    console.log(`Processing PayPal payment of $${amount}`);
+  async charge(amount: number): Promise<boolean> {
+    console.log(`Charging credit card: $${amount}`);
+    return true;
   }
-  refund(amount: number): void {
-    console.log(`Refunding PayPal $${amount}`);
-  }
-}
 
-class ApplePayPayment implements Payment {
-  process(amount: number): void {
-    console.log(`Processing Apple Pay payment of $${amount}`);
-  }
-  refund(amount: number): void {
-    console.log(`Refunding Apple Pay $${amount}`);
+  async refund(transactionId: string): Promise<boolean> {
+    console.log(`Refunding credit card transaction: ${transactionId}`);
+    return true;
   }
 }
 
-abstract class PaymentProcessor {
-  abstract createPayment(): Payment;
+class PayPalProcessor implements PaymentProcessor {
+  validate(data: any): boolean {
+    return data.email && data.password;
+  }
 
-  checkout(amount: number): void {
-    const payment = this.createPayment();
-    payment.process(amount);
+  async charge(amount: number): Promise<boolean> {
+    console.log(`Charging PayPal account: $${amount}`);
+    return true;
+  }
+
+  async refund(transactionId: string): Promise<boolean> {
+    console.log(`Refunding PayPal transaction: ${transactionId}`);
+    return true;
   }
 }
 
-class CreditCardProcessor extends PaymentProcessor {
-  createPayment(): Payment {
-    return new CreditCardPayment();
+class ApplePayProcessor implements PaymentProcessor {
+  validate(data: any): boolean {
+    return data.token;
+  }
+
+  async charge(amount: number): Promise<boolean> {
+    console.log(`Charging via Apple Pay: $${amount}`);
+    return true;
+  }
+
+  async refund(transactionId: string): Promise<boolean> {
+    console.log(`Refunding Apple Pay transaction: ${transactionId}`);
+    return true;
   }
 }
 
-class PayPalProcessor extends PaymentProcessor {
-  createPayment(): Payment {
-    return new PayPalPayment();
+// Yaratuvchi: To'lov shlyuzi
+abstract class PaymentGateway {
+  abstract createProcessor(): PaymentProcessor;
+
+  async processPayment(amount: number, data: any): Promise<boolean> {
+    const processor = this.createProcessor();
+
+    if (!processor.validate(data)) {
+      console.error("Invalid payment data");
+      return false;
+    }
+
+    return await processor.charge(amount);
   }
 }
 
-// Usage
-const cardProcessor = new CreditCardProcessor();
-cardProcessor.checkout(99.99);
+class CreditCardGateway extends PaymentGateway {
+  createProcessor(): PaymentProcessor {
+    return new CreditCardProcessor();
+  }
+}
 
-const paypalProcessor = new PayPalProcessor();
-paypalProcessor.checkout(49.99);
+class PayPalGateway extends PaymentGateway {
+  createProcessor(): PaymentProcessor {
+    return new PayPalProcessor();
+  }
+}
+
+class ApplePayGateway extends PaymentGateway {
+  createProcessor(): PaymentProcessor {
+    return new ApplePayProcessor();
+  }
+}
+
+// Foydalanish
+async function handleCheckout(method: string, amount: number, data: any) {
+  let gateway: PaymentGateway;
+
+  switch (method) {
+    case "credit-card":
+      gateway = new CreditCardGateway();
+      break;
+    case "paypal":
+      gateway = new PayPalGateway();
+      break;
+    case "apple-pay":
+      gateway = new ApplePayGateway();
+      break;
+    default:
+      throw new Error("Unknown payment method");
+  }
+
+  const success = await gateway.processPayment(amount, data);
+  console.log(`Payment ${success ? "successful" : "failed"}`);
+}
+
+// Yangi to'lov usulini (masalan, Stripe) qo'shish uchun faqat quyidagilar kerak:
+// 1. StripeProcessor yaratish
+// 2. StripeGateway yaratish
+// Mavjud kod o'zgartirilmaydi!
 ```
 
-## Advantages
+## Afzalliklari va kamchiliklari
 
-- ✅ Reduces coupling between concrete classes
-- ✅ Easy to add new product types
-- ✅ Follows Open/Closed Principle
-- ✅ Centralizes object creation logic
+### ✅ Afzalliklari
 
-## Disadvantages
+- **To'g'ridan-to'g'ri klass bog'liqliklarini yo'qotadi**: Kod konkret implementatsiyalarga emas, interfeyslarga bog'liq bo'ladi.
+- **Open/Closed tamoyiliga amal qiladi**: Mavjud kodni o'zgartirmasdan yangi mahsulotlar qo'shish mumkin.
+- **Testlanuvchanlikni oshiradi**: Testlash uchun mock implementatsiyalarni yaratish oson.
+- **Ish vaqtida qaror qabul qilish imkonini beradi**: Mahsulot turi shartlarga qarab ish vaqtida aniqlanishi mumkin.
+- **Plagin arxitekturalarini qo'llab-quvvatlaydi**: Yangi factorylarni dinamik ravishda yuklash mumkin.
 
-- ❌ Can result in many subclasses
-- ❌ More complex than direct instantiation
-- ❌ Requires inheritance hierarchy
+### ❌ Kamchiliklari
 
-## Variations
+- **Kod murakkabligi ortadi**: Hatto oddiy holatlar uchun ham abstrakt klasslar va subklasslar yaratishni talab qiladi.
+- **Ko'proq fayl va klasslar**: Oddiy obyekt yaratish endi factory klassi va mahsulot interfeysini talab qiladi.
+- **Kichik loyihalar uchun ortiqcha yuk**: Mahsulot turlari kam bo'lgan ilovalar uchun haddan tashqari murakkablashtirilgandek (over-engineered) tuyulishi mumkin.
+- **O'rganish qiyinligi**: Junior dasturchilar bilvositalikni (indirection) chalkash deb topishi mumkin.
+- **Unumdorlik**: Virtual metod chaqiruvlaridan biroz qo'shimcha xarajat (amalda ahamiyatsiz).
 
-### Simple Factory Pattern
+## Variatsiyalar (Variations)
+
+### Simple Factory (antipattern)
+
+Ba'zi kod bazalari subklasslash o'rniga statik `SimpleFactory` klassidan foydalanadi:
 
 ```typescript
 class DocumentFactory {
-  static createDocument(type: string): Document {
+  static create(type: string): Document {
     switch (type) {
       case "pdf":
         return new PDFDocument();
       case "word":
         return new WordDocument();
       default:
-        throw new Error("Unknown document type");
+        throw new Error("Unknown type");
     }
   }
 }
 
-// Usage
-const doc = DocumentFactory.createDocument("pdf");
+const doc = DocumentFactory.create("pdf");
 ```
 
-## When to Use
+**Eslatma**: Bu Open/Closed tamoyilini buzadi — yangi tur qo'shish factory metodini o'zgartirishni talab qiladi. Buning o'rniga haqiqiy Factory Method'dan (subklasslash bilan) foydalaning.
 
-- Multiple related classes that should be instantiated polymorphically
-- The exact type to create is determined at runtime
-- Object creation logic is complex
-- You want to decouple client code from concrete classes
+## Qachon ishlatish kerak
 
-## When NOT to Use
+::: tip QUYIDAGI HOLLARDA ISHLATING...
 
-- Simple cases with only one or two types
-- Object creation is straightforward
-- Performance is critical (minor overhead)
+- **Bir nechta o'zaro bog'liq mahsulot turlari** mavjud va kelajakda yana qo'shilishi mumkin.
+- **Mijoz kodi konkret mahsulot klasslariga bog'liq bo'lmasligi kerak**.
+- **Aniq mahsulot turi ish vaqtida** shartlarga qarab aniqlanadi.
+- **Yangi mahsulotlar dinamik yuklanadigan plagin arxitekturasini qo'llab-quvvatlamoqchisiz**.
+- **Open/Closed tamoyiliga amal qilmoqchisiz** (kengaytirish uchun ochiq, o'zgartirish uchun yopiq).
 
-## Related Patterns
+:::
 
-- **Abstract Factory**: Often works together with Factory Method
-- **Template Method**: Factory Method is often called by Template Method
-- **Singleton**: Can be combined with Factory Method
+::: warning QUYIDAGI HOLLARDA SAQLANING...
+
+- **Faqat bir yoki ikkita mahsulot turi bor** va boshqa qo'shilmaydi; oddiy konstruktsiya yetarli.
+- **Mahsulot mantig'i juda oddiy** yoki bilvositalik keraksiz murakkablik qo'shadi.
+- **Funksional yondashuv** (factory funksiyalarini uzatish) sizning tilingizda soddaroq.
+- **Dependency injection'dan foydalanib**, mahsulotni factorysiz to'g'ridan-to'g'ri uzatishingiz mumkin.
+
+:::
+
+## Keng tarqalgan xatolar (Common Mistakes)
+
+### ❌ Xato 1: Factory Method o'rniga Simple Factory'dan foydalanish
+
+```typescript
+// ❌ Antipattern: Yangi tur qo'shish factoryni o'zgartirishni talab qiladi
+class DocumentFactory {
+  static create(type: string): Document {
+    if (type === "pdf") return new PDFDocument();
+    if (type === "word") return new WordDocument();
+    if (type === "excel") return new ExcelDocument(); // O'zgartirish talab qilinadi!
+    throw new Error("Unknown type");
+  }
+}
+
+// ✅ Yaxshiroq: Subklasslar bilan factory method patternidan foydalaning
+abstract class Application {
+  abstract createDocument(): Document; // Subklasslar qayta aniqlaydi
+}
+
+class ExcelApplication extends Application {
+  createDocument(): Document {
+    return new ExcelDocument(); // Mavjud kod o'zgartirilmadi
+  }
+}
+```
+
+### ❌ Xato 2: Factory metodidan noto'g'ri turni qaytarish
+
+```typescript
+// ❌ Factory metodi konkret turni emas, interfeysni qaytarishi kerak
+abstract class Application {
+  abstract createDocument(): WordDocument; // Noto'g'ri!
+}
+
+// ✅ Interfeysni qaytaring
+abstract class Application {
+  abstract createDocument(): Document; // To'g'ri!
+}
+```
+
+### ❌ Xato 3: Biznes mantig'ini factory mantig'i bilan aralashtirish
+
+```typescript
+// ❌ Factory metodi haddan tashqari ko'p ish qilmoqda
+class PaymentGateway {
+  private processor: PaymentProcessor;
+
+  processPayment(method: string, amount: number) {
+    if (method === "card") {
+      this.processor = new CreditCardProcessor();
+    } else {
+      this.processor = new PayPalProcessor();
+    }
+    // ... 100 qator validatsiya, loglash, xatolarni qayta ishlash
+  }
+}
+
+// ✅ Vazifalarni ajrating
+abstract class PaymentGateway {
+  abstract createProcessor(): PaymentProcessor;
+
+  async processPayment(amount: number, data: any): Promise<boolean> {
+    const processor = this.createProcessor();
+    return await processor.charge(amount);
+  }
+}
+```
+
+## Bog'liq patternlar (Related Patterns)
+
+- **Abstract Factory**: Mahsulot oilalarini yaratish uchun ko'pincha Factory Method'dan foydalanadi.
+- **Template Method**: Obyektlarni yaratish uchun Factory Method ko'pincha Template Method tomonidan chaqiriladi.
+- **Singleton**: Mahsulotlar singleton bo'lishini ta'minlash uchun Factory Method bilan birlashtirilishi mumkin.
+- **Strategy**: Niyati o'xshash, ammo maqsadi boshqa; Strategy algoritmlarni tanlaydi, Factory Method esa obyektlarni yaratadi.
+- **Dependency Injection**: Zamonaviy muqobil; bog'liqliklarni ichkarida yaratish o'rniga ularni tashqaridan uzatish.
+
+## Zamonaviy muqobillar
+
+### Konfiguratsiyaga asoslangan factory (deklarativ)
+
+```typescript
+// Subklasslash o'rniga factorylarni sozlang:
+const factoryConfig = {
+  pdf: () => new PDFDocument(),
+  word: () => new WordDocument(),
+  excel: () => new ExcelDocument(),
+};
+
+function createDocument(type: keyof typeof factoryConfig): Document {
+  return factoryConfig[type]();
+}
+```
+
+### Dependency Injection konteyneri
+
+```typescript
+const container = new Container();
+container.register("pdf", PDFDocument);
+container.register("word", WordDocument);
+
+const doc = container.resolve("pdf");
+```
+
+Bu yondashuv an'anaviy Factory Method'ga qaraganda moslashuvchanroq va testlash osonroq.
+
+## Intervyu savollari (Interview Insights)
+
+**S: Factory Method va Abstract Factory o'rtasidagi farq nima?**
+
+J: Factory Method vorislik orqali bitta mahsulot turini yaratadi. Abstract Factory kompozitsiya orqali o'zaro bog'liq mahsulotlar oilalarini yaratadi. Bitta tur ierarxiyasi bo'lsa Factory Method'dan, bir nechta o'zaro bog'liq ierarxiyalar bo'lsa (masalan, turli operatsion tizimlar uchun UI elementlari) Abstract Factory'dan foydalaning.
+
+**S: Nega Simple Factory o'rniga Factory Method'dan foydalanish kerak?**
+
+J: Simple Factory Open/Closed tamoyilini buzadi — yangi tur qo'shish mavjud kodni o'zgartirishni talab qiladi. Factory Method subklasslashdan foydalanadi, shuning uchun yangi turlarni mavjud kodni o'zgartirmasdan qo'shish mumkin.
+
+**S: Factory Method Dependency Injection bilan qanday bog'liq?**
+
+J: Ikkalasi ham kodni konkret implementatsiyalardan ajratish muammosini hal qiladi. Factory Method vorislikdan foydalanadi; Dependency Injection esa bog'liqliklarni uzatadi. Zamonaviy kodda DI odatda afzalroq, chunki u moslashuvchanroq va testlash osonroq.
+
+**S: Python kabi dinamik tilda Factory Method'dan qachon foydalanasiz?**
+
+J: Hatto dinamik tillarda ham, shartnomani (interfeysni) majburlash va obyekt yaratishni nazorat qilish kerak bo'lganda Factory Method foydali. Biroq birinchi darajali obyekt sifatidagi funksiyalar ba'zan aniq factorylar zaruratini almashtiradi.
+
+**S: Factory Method'ni Singleton bilan birlashtirish mumkinmi?**
+
+J: Ha. Har bir factory metodi singleton instansiya yaratishi mumkin, bu esa har bir turdan faqat bitta mahsulot mavjud bo'lishini ta'minlaydi.
+
+## Manbalar (References)
+
+- Gang of Four: "Design Patterns: Elements of Reusable Object-Oriented Software"
+- Refactoring.Guru: Factory Method patterni bo'yicha qo'llanma
+- Dependency Injection freymvorklari: Spring (Java), Angular (TypeScript), Django (Python)

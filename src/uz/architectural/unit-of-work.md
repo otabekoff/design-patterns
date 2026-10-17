@@ -1,233 +1,671 @@
 ---
-title: Unit of Work Pattern
-description: Tranzaksiya davomida ob'ektlardagi barcha o'zgarishlarni kuzatib boradi va ularni atomar tarzda yozadi.
+title: Unit of Work Pattern (Ish birligi)
+description: Biznes tranzaksiyasi ta'sir qilgan obyektlar ro'yxatini yuritadigan va ularni yagona atomar paketda yozishni muvofiqlashtiradigan arxitektura patterni.
 icon: Boxes
 ---
 
-# Unit of Work Pattern
+# Unit of Work Pattern (Ish birligi)
 
-<CoverImage src="/covers/architectural/unit-of-work.png" alt="Cover">
+<CoverImage src="/covers/architectural/unit-of-work.webp" alt="Cover">
   <h1>Unit of Work</h1>
-  <p>A funny banker robot with a cart full of transactions; it holds all transactions until the cart is full, then pulls a single giant lever to commit them all at once.</p>
+  <p>Tranzaksiyalarga to'la aravacha bilan yurgan kulgili bankir robot; u aravacha to'lguncha barcha tranzaksiyalarni ushlab turadi, so'ng hammasini birdaniga commit qilish uchun bitta ulkan dastakni tortadi.</p>
 </CoverImage>
 
-## Umumiy Tavsif
+## Umumiy ko'rinish (Overview)
 
-**Unit of Work** (Ish Birligi) namunasi — bu biznes tranzaksiyasi natijasida o'zgargan ob'ektlar ro'yxatini yurituvchi va o'zgarishlarni yozish hamda konkurensiya (bir vaqtning o'zida ishlash) muammolarini hal qilishni muvofiqlashtiruvchi arxitektura namunasidir.
+**Unit of Work (Ish birligi)** patterni - biznes tranzaksiyasi davomida obyektlar to'plamiga kiritilgan barcha o'zgarishlarni kuzatib boradigan arxitektura patternidir. Tranzaksiya oxirida u barcha o'zgarishlarni (insert, update va delete) ma'lumotlar bazasiga yagona, atomar paketda yozishni muvofiqlashtiradi.
 
-Asosiy tushunchalar:
+**Asosiy afzalligi**: U ma'lumotlar yaxlitligini kafolatlaydi. Agar murakkab biznes jarayoni ma'lumotlar bazasidagi beshta turli jadvalni o'zgartirsa, Unit of Work beshala o'zgarish ham muvaffaqiyatli bo'lishini yoki beshalasi ham muvaffaqiyatsiz bo'lib, orqaga qaytarilishini (rollback) ta'minlaydi.
 
-- **Tranzaksiyalarni Kuzatish**: Bitta tranzaksiya davomida ob'ektlardagi barcha o'zgarishlarni (yaratish, yangilash, o'chirish) kuzatib boradi.
-- **Atomar Amallar**: Barcha o'zgarishlarni ma'lumotlar bazasiga bitta paket sifatida yuboradi (commit).
-- **Samaradorlik**: Ma'lumotlar bazasiga murojaatlarni guruhlash orqali ularning sonini kamaytiradi.
-- **Konkurensiya Nazorati**: Bir xil ma'lumotlarga bir nechta o'zgarishlar kiritilishini boshqaradi.
+**Zamonaviy nuqtai nazar**: Agar siz Entity Framework (.NET), Hibernate/JPA (Java), SQLAlchemy (Python) yoki TypeORM/MikroORM (TypeScript) kabi zamonaviy korporativ ORM'lardan (Object-Relational Mapper) foydalangan bo'lsangiz, demak siz allaqachon "parda ortida" Unit of Work patternidan foydalanayapsiz. Bu taqsimlangan yoki kuchli normallashtirilgan domen modellarida murakkab yozish operatsiyalarini boshqarish uchun ajralmas patterndir.
 
-## Maqsad
+## Muammo (The Problem)
 
-Unit of Work quyidagilarga qaratilgan:
+Elektron tijorat to'lov jarayonini ko'rib chiqaylik. Sizga quyidagilar kerak:
 
-- O'zgarishlarni atomar tarzda saqlash orqali ma'lumotlar yaxlitligini ta'minlash.
-- Ma'lumotlar bazasiga borib-kelishlar sonini kamaytirish orqali samaradorlikni oshirish.
-- Ma'lumotlar bazasi tranzaksiyalarini boshqarish mantiqini markazlashtirish.
-- Domen modelini saqlashni kuzatish mantiqidan xoli saqlash.
+1. Yangi `Order` yaratish.
+2. Har bir `OrderItem` uchun ombordagi qoldiqni kamaytirish.
+3. `Customer` ning sodiqlik ballarini yangilash.
+4. `Shipping` jadvaliga yozuv qo'shish.
 
-## Muammo
+Unit of Work bo'lmasa, quyidagicha kod yozishingiz mumkin:
 
-Unit of Work ishlatilmaganda, ma'lumotlar bazasi bilan ishlashda quyidagi muammolar yuzaga kelishi mumkin:
+```typescript
+// ❌ Yomon: Tranzaksiyasiz, darhol ma'lumotlar bazasiga yozish
+class CheckoutService {
+  public async checkout(cart: Cart, customer: Customer) {
+    const order = new Order(cart);
+    await orderRepository.save(order); // DB yozuvi 1
 
-- Agar bitta yangilash muvaffaqiyatli bo'lib, ikkinchisi muvaffaqiyatsiz bo'lsa, ma'lumotlar mos kelmasligi.
-- Ko'plab kichik so'rovlar tufayli past samaradorlik.
-- Qaysi ob'ektlar o'zgarganligini va saqlash kerakligini qo'lda kuzatishning qiyinligi.
+    for (const item of cart.items) {
+      const inventory = await inventoryRepo.get(item.productId);
+      inventory.deduct(item.quantity);
+      await inventoryRepo.save(inventory); // DB yozuvlari 2, 3, 4... (Biri muvaffaqiyatsiz bo'lsa-chi?)
+    }
 
-```
-❌ Qo'lda Kuzatish
-repo1.update(user);
-repo2.update(order);
-// Agar order xato bersa-chi? user allaqachon saqlangan bo'ladi.
-```
-
-## Yechim
-
-Unit of Work tranzaksiya hayotiy tsiklini boshqaradi:
-
-```
-✅ Unit of Work
-uow.registerDirty(user);
-uow.registerNew(newOrder);
-uow.commit(); // Ikkalasini ham saqlaydi yoki hech qaysisini saqlamaydi
+    customer.addLoyaltyPoints(100);
+    await customerRepository.save(customer); // DB yozuvi N
+  }
+}
 ```
 
-## Amalga Oshirish (Implementation)
+Bu jiddiy muammolarni keltirib chiqaradi:
+
+1. **Qisman muvaffaqiyatsizliklar**: Agar tizim 2-DB yozuvidan keyin qulasa, mijozdan pul yechilgan, buyurtma mavjud, lekin ombor qoldig'i to'liq kamaytirilmagan va sodiqlik ballari qo'shilmagan bo'ladi. Endi ma'lumotlar bazasi buzilgan holatda.
+2. **Ishlash tezligi ("Chatty" DB muammosi)**: Bitta to'lov uchun tarmoq orqali ma'lumotlar bazasiga 50 ta alohida borib-kelish chaqiruvini amalga oshirish nihoyatda sekin.
+
+## Yechim (The Solution)
+
+Unit of Work patterni vositachini joriy etadi. To'g'ridan-to'g'ri ma'lumotlar bazasiga saqlash o'rniga, siz saqlash, yangilash yoki o'chirish niyatingizni Unit of Work'da ro'yxatdan o'tkazasiz. `.commit()` ni chaqirmaguningizcha ma'lumotlar bazasiga tegilmaydi.
+
+```typescript
+// ✅ Yaxshi: O'zgarishlarni xotirada ro'yxatga olish, atomar commit qilish
+class CheckoutService {
+  constructor(private uow: IUnitOfWork) {}
+
+  public async checkout(cart: Cart, customer: Customer) {
+    const order = new Order(cart);
+    this.uow.registerNew(order); // Faqat xotirada
+
+    for (const item of cart.items) {
+      const inventory = await this.uow.inventoryRepo.get(item.productId);
+      inventory.deduct(item.quantity);
+      this.uow.registerDirty(inventory); // Faqat xotirada
+    }
+
+    customer.addLoyaltyPoints(100);
+    this.uow.registerDirty(customer); // Faqat xotirada
+
+    // Barcha SQL so'rovlarini yagona DB tranzaksiyasida atomar bajarish
+    await this.uow.commit();
+  }
+}
+```
+
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class BusinessTransaction {
+        +execute()
+    }
+
+    class UnitOfWork {
+        -newObjects: List
+        -dirtyObjects: List
+        -deletedObjects: List
+        +registerNew(obj)
+        +registerDirty(obj)
+        +registerDeleted(obj)
+        +commit()
+        +rollback()
+    }
+
+    class Database {
+        <<external>>
+        +beginTransaction()
+        +commit()
+        +rollback()
+    }
+
+    BusinessTransaction --> UnitOfWork : "registers changes"
+    UnitOfWork --> Database : "executes atomic batch"
+```
+
+## Jarayon (Flow)
+
+1. **Ishga tushirish (Initialization)**: Biznes tranzaksiyasi boshida (masalan, HTTP so'rov boshida) yangi Unit of Work yaratiladi.
+2. **Ro'yxatdan o'tkazish (Registration)**: Biznes mantig'i ishlayotganda u obyektlarni yaratadi, o'zgartiradi yoki o'chiradi. Bu obyektlar Unit of Work'da ro'yxatdan o'tkaziladi (ko'pincha proxy'lar yoki Identity Map orqali avtomatik tarzda).
+3. **Commit**: Biznes mantig'i yakunlanadi. Ilova Unit of Work'da `commit()` ni chaqiradi.
+4. **Bajarish (Execution)**: Unit of Work ma'lumotlar bazasi tranzaksiyasini ochadi, kerakli SQL (INSERT, UPDATE, DELETE) larni generatsiya qiladi, ularni bajaradi va ma'lumotlar bazasi tranzaksiyasini commit qiladi.
+5. **Rollback (xatolik yuz berganda)**: Agar biror SQL buyrug'i muvaffaqiyatsiz bo'lsa, ma'lumotlar bazasi tranzaksiyasi orqaga qaytariladi va xotiradagi holatlar ham tiklanishi mumkin.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Supermarket kassasi**ni tasavvur qiling.
+Rastalar orasida yurganingizda, sut uchun kassirga $3 berib, keyingi rastaga borib, tuxum olib, yana kassirga $4 bermaysiz. Bu tartibsiz va sekin bo'lardi.
+
+Buning o'rniga xarid aravachangiz **Unit of Work** vazifasini bajaradi. Siz yangi mahsulotlarni yig'asiz (registerNew). Balki biror mahsulotni javonga qaytarib qo'yarsiz (registerDeleted). Nihoyat kassaga yetganingizda, barcha operatsiyalar (skanerlash, qadoqlash, to'lash) bitta uzluksiz, atomar paketda amalga oshadi (`commit()`). Agar kredit kartangiz rad etilsa (`rollback()`), uyga hech qanday mahsulot olib ketmaysiz.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **Kuzatuvchilarni yarating**: `new`, `dirty` (o'zgartirilgan) va `deleted` obyektlarni saqlash uchun to'plamlar/ro'yxatlar yarating.
+2. **Ro'yxatdan o'tkazish metodlarini yarating**: `registerNew()`, `registerDirty()` va `registerDeleted()` ni yarating.
+3. **Commit metodini yarating**: `commit()` ichida ma'lumotlar bazasi tranzaksiyasini oching. `new` ro'yxati bo'ylab yurib, INSERT'larni bajaring. `dirty` bo'ylab yurib, UPDATE'larni bajaring. `deleted` bo'ylab yurib, DELETE'larni bajaring.
+4. **Parallellikni boshqaring (ixtiyoriy)**: Bu orada qatorni boshqa hech kim o'zgartirmaganiga ishonch hosil qilish uchun obyekt versiya raqamlarini tekshiring.
+5. **Tozalash**: Muvaffaqiyatli commit yoki rollback'dan keyin ro'yxatlarni tozalang.
+
+## Kod misollari (Code Examples)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Entitilar
-class Entity {
-  id: string;
-  constructor(id: string) {
-    this.id = id;
-  }
+// 1. Domen Entity'lari
+abstract class Entity {
+  constructor(public id: string) {}
 }
 
 class User extends Entity {
-  name: string;
-  constructor(id: string, name: string) {
+  constructor(
+    id: string,
+    public name: string,
+  ) {
     super(id);
-    this.name = name;
   }
 }
 
-// Unit of Work
+// 2. Unit of Work
 class UnitOfWork {
   private newEntities: Set<Entity> = new Set();
   private dirtyEntities: Set<Entity> = new Set();
-  private removedEntities: Set<Entity> = new Set();
+  private deletedEntities: Set<Entity> = new Set();
 
-  registerNew(entity: Entity): void {
+  public registerNew(entity: Entity): void {
+    if (this.dirtyEntities.has(entity) || this.deletedEntities.has(entity)) {
+      throw new Error("Invalid state: Entity already tracked");
+    }
     this.newEntities.add(entity);
   }
 
-  registerDirty(entity: Entity): void {
+  public registerDirty(entity: Entity): void {
+    if (this.deletedEntities.has(entity)) {
+      throw new Error("Cannot modify a deleted entity");
+    }
+    // Agar u allaqachon newEntities ichida bo'lsa, eng so'nggi ma'lumot bilan insert qilinadi,
+    // shuning uchun uni dirtyEntities'ga qo'shish shart emas.
     if (!this.newEntities.has(entity)) {
       this.dirtyEntities.add(entity);
     }
   }
 
-  registerRemoved(entity: Entity): void {
+  public registerDeleted(entity: Entity): void {
     if (this.newEntities.has(entity)) {
+      // Agar u bitta tranzaksiyada yaratilib, o'chirilgan bo'lsa, hech narsa qilmaymiz!
       this.newEntities.delete(entity);
       return;
     }
     this.dirtyEntities.delete(entity);
-    this.removedEntities.add(entity);
+    this.deletedEntities.add(entity);
   }
 
-  commit(): void {
-    console.log("--- Tranzaksiya Boshlandi ---");
+  public async commit(): Promise<void> {
+    console.log("--- 🏁 BEGIN DB TRANSACTION ---");
 
-    this.newEntities.forEach((e) => console.log(`[DB] INSERT: ${e.id}`));
-    this.dirtyEntities.forEach((e) => console.log(`[DB] UPDATE: ${e.id}`));
-    this.removedEntities.forEach((e) => console.log(`[DB] DELETE: ${e.id}`));
+    try {
+      // Barcha INSERT'larni bajarish
+      for (const entity of this.newEntities) {
+        console.log(`[SQL] INSERT INTO table VALUES ('${entity.id}')`);
+      }
 
-    console.log("✅ Tranzaksiya Muvaffaqiyatli Yakunlandi");
+      // Barcha UPDATE'larni bajarish
+      for (const entity of this.dirtyEntities) {
+        console.log(`[SQL] UPDATE table SET ... WHERE id = '${entity.id}'`);
+      }
 
-    this.clear();
+      // Barcha DELETE'larni bajarish
+      for (const entity of this.deletedEntities) {
+        console.log(`[SQL] DELETE FROM table WHERE id = '${entity.id}'`);
+      }
+
+      console.log("--- ✅ COMMIT DB TRANSACTION ---");
+    } catch (error) {
+      console.log("--- ❌ ROLLBACK DB TRANSACTION ---");
+      throw error;
+    } finally {
+      this.clear(); // Keyingi tranzaksiya uchun holatni tozalash
+    }
   }
 
   private clear(): void {
     this.newEntities.clear();
     this.dirtyEntities.clear();
-    this.removedEntities.clear();
+    this.deletedEntities.clear();
   }
 }
 
-// Foydalanish
-const uow = new UnitOfWork();
-const user1 = new User("1", "John");
-const user2 = new User("2", "Jane");
+// 3. Mijoz kodi (Biznes mantiq)
+async function processBusinessTransaction() {
+  const uow = new UnitOfWork();
 
-uow.registerNew(user1);
-user2.name = "Jane Doe";
-uow.registerDirty(user2);
+  // Simulyatsiya qilingan domen mantiqi
+  const user1 = new User("u1", "Alice");
+  const user2 = new User("u2", "Bob"); // Bu DB'dan yuklangan deb faraz qilamiz
 
-uow.commit();
+  // Niyatlarni ro'yxatga olish
+  uow.registerNew(user1);
+
+  user2.name = "Robert";
+  uow.registerDirty(user2);
+
+  // Hammasini DB'ga atomar yuborish
+  await uow.commit();
+}
+
+processBusinessTransaction();
 ```
 
 ```python [Python]
+from typing import Set
+
+# 1. Domen Entity'lari
 class Entity:
-    def __init__(self, id: str):
-        self.id = id
+    def __init__(self, entity_id: str):
+        self.id = entity_id
 
 class User(Entity):
-    def __init__(self, id: str, name: str):
-        super().__init__(id)
+    def __init__(self, entity_id: str, name: str):
+        super().__init__(entity_id)
         self.name = name
 
+# 2. Unit of Work
 class UnitOfWork:
     def __init__(self):
-        self.new_entities = set()
-        self.dirty_entities = set()
-        self.removed_entities = set()
+        self.new_entities: Set[Entity] = set()
+        self.dirty_entities: Set[Entity] = set()
+        self.deleted_entities: Set[Entity] = set()
 
-    def register_new(self, entity):
+    def register_new(self, entity: Entity) -> None:
+        if entity in self.dirty_entities or entity in self.deleted_entities:
+            raise ValueError("Invalid state: Entity already tracked")
         self.new_entities.add(entity)
 
-    def register_dirty(self, entity):
+    def register_dirty(self, entity: Entity) -> None:
+        if entity in self.deleted_entities:
+            raise ValueError("Cannot modify a deleted entity")
         if entity not in self.new_entities:
             self.dirty_entities.add(entity)
 
-    def register_removed(self, entity):
+    def register_deleted(self, entity: Entity) -> None:
         if entity in self.new_entities:
             self.new_entities.remove(entity)
             return
         self.dirty_entities.discard(entity)
-        self.removed_entities.add(entity)
+        self.deleted_entities.add(entity)
 
-    def commit(self):
-        print("--- Tranzaksiya Boshlandi ---")
+    def commit(self) -> None:
+        print("--- 🏁 BEGIN DB TRANSACTION ---")
+        try:
+            for e in self.new_entities:
+                print(f"[SQL] INSERT INTO table VALUES ('{e.id}')")
 
-        for e in self.new_entities:
-            print(f"[DB] INSERT: {e.id}")
-        for e in self.dirty_entities:
-            print(f"[DB] UPDATE: {e.id}")
-        for e in self.removed_entities:
-            print(f"[DB] DELETE: {e.id}")
+            for e in self.dirty_entities:
+                print(f"[SQL] UPDATE table SET ... WHERE id = '{e.id}'")
 
-        print("✅ Tranzaksiya Muvaffaqiyatli Yakunlandi")
-        self.clear()
+            for e in self.deleted_entities:
+                print(f"[SQL] DELETE FROM table WHERE id = '{e.id}'")
 
-    def clear(self):
+            print("--- ✅ COMMIT DB TRANSACTION ---")
+        except Exception as err:
+            print("--- ❌ ROLLBACK DB TRANSACTION ---")
+            raise err
+        finally:
+            self._clear()
+
+    def _clear(self) -> None:
         self.new_entities.clear()
         self.dirty_entities.clear()
-        self.removed_entities.clear()
+        self.deleted_entities.clear()
 
-# Foydalanish
-uow = UnitOfWork()
-user1 = User("1", "John")
-user2 = User("2", "Jane")
+# 3. Mijoz kodi
+if __name__ == "__main__":
+    uow = UnitOfWork()
 
-uow.register_new(user1)
-user2.name = "Jane Doe"
-uow.register_dirty(user2)
+    user1 = User("u1", "Alice")
+    user2 = User("u2", "Bob")
 
-uow.commit()
+    uow.register_new(user1)
+
+    user2.name = "Robert"
+    uow.register_dirty(user2)
+
+    uow.commit()
+```
+
+```java [Java]
+import java.util.HashSet;
+import java.util.Set;
+
+// 1. Domen Entity'lari
+abstract class Entity {
+    protected String id;
+    public Entity(String id) { this.id = id; }
+    public String getId() { return id; }
+}
+
+class User extends Entity {
+    public String name;
+    public User(String id, String name) { super(id); this.name = name; }
+}
+
+// 2. Unit of Work
+class UnitOfWork {
+    private Set<Entity> newEntities = new HashSet<>();
+    private Set<Entity> dirtyEntities = new HashSet<>();
+    private Set<Entity> deletedEntities = new HashSet<>();
+
+    public void registerNew(Entity entity) {
+        if (dirtyEntities.contains(entity) || deletedEntities.contains(entity)) {
+            throw new IllegalStateException("Invalid state: Entity already tracked");
+        }
+        newEntities.add(entity);
+    }
+
+    public void registerDirty(Entity entity) {
+        if (deletedEntities.contains(entity)) {
+            throw new IllegalStateException("Cannot modify a deleted entity");
+        }
+        if (!newEntities.contains(entity)) {
+            dirtyEntities.add(entity);
+        }
+    }
+
+    public void registerDeleted(Entity entity) {
+        if (newEntities.contains(entity)) {
+            newEntities.remove(entity);
+            return;
+        }
+        dirtyEntities.remove(entity);
+        deletedEntities.add(entity);
+    }
+
+    public void commit() throws Exception {
+        System.out.println("--- 🏁 BEGIN DB TRANSACTION ---");
+        try {
+            for (Entity e : newEntities) {
+                System.out.println("[SQL] INSERT INTO table VALUES ('" + e.getId() + "')");
+            }
+            for (Entity e : dirtyEntities) {
+                System.out.println("[SQL] UPDATE table SET ... WHERE id = '" + e.getId() + "'");
+            }
+            for (Entity e : deletedEntities) {
+                System.out.println("[SQL] DELETE FROM table WHERE id = '" + e.getId() + "'");
+            }
+            System.out.println("--- ✅ COMMIT DB TRANSACTION ---");
+        } catch (Exception err) {
+            System.out.println("--- ❌ ROLLBACK DB TRANSACTION ---");
+            throw err;
+        } finally {
+            clear();
+        }
+    }
+
+    private void clear() {
+        newEntities.clear();
+        dirtyEntities.clear();
+        deletedEntities.clear();
+    }
+}
+
+// 3. Mijoz kodi
+public class UnitOfWorkDemo {
+    public static void main(String[] args) {
+        UnitOfWork uow = new UnitOfWork();
+
+        User user1 = new User("u1", "Alice");
+        User user2 = new User("u2", "Bob");
+
+        uow.registerNew(user1);
+
+        user2.name = "Robert";
+        uow.registerDirty(user2);
+
+        try {
+            uow.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+)
+
+// 1. Domen Entity'lari
+type Entity interface {
+	GetID() string
+}
+
+type User struct {
+	ID   string
+	Name string
+}
+
+func (u *User) GetID() string { return u.ID }
+
+// 2. Unit of Work
+type UnitOfWork struct {
+	newEntities     map[Entity]bool
+	dirtyEntities   map[Entity]bool
+	deletedEntities map[Entity]bool
+}
+
+func NewUnitOfWork() *UnitOfWork {
+	return &UnitOfWork{
+		newEntities:     make(map[Entity]bool),
+		dirtyEntities:   make(map[Entity]bool),
+		deletedEntities: make(map[Entity]bool),
+	}
+}
+
+func (uow *UnitOfWork) RegisterNew(entity Entity) error {
+	if uow.dirtyEntities[entity] || uow.deletedEntities[entity] {
+		return fmt.Errorf("invalid state: Entity already tracked")
+	}
+	uow.newEntities[entity] = true
+	return nil
+}
+
+func (uow *UnitOfWork) RegisterDirty(entity Entity) error {
+	if uow.deletedEntities[entity] {
+		return fmt.Errorf("cannot modify a deleted entity")
+	}
+	if !uow.newEntities[entity] {
+		uow.dirtyEntities[entity] = true
+	}
+	return nil
+}
+
+func (uow *UnitOfWork) RegisterDeleted(entity Entity) {
+	if uow.newEntities[entity] {
+		delete(uow.newEntities, entity)
+		return
+	}
+	delete(uow.dirtyEntities, entity)
+	uow.deletedEntities[entity] = true
+}
+
+func (uow *UnitOfWork) Commit() error {
+	fmt.Println("--- 🏁 BEGIN DB TRANSACTION ---")
+
+	// Go'da map iteratsiyasi tasodifiy, bu insert'lar update'lardan oldin
+	// bajarilsa (yoki bu yerda tartib unchalik muhim bo'lmasa) muammo emas
+	for e := range uow.newEntities {
+		fmt.Printf("[SQL] INSERT INTO table VALUES ('%s')\n", e.GetID())
+	}
+	for e := range uow.dirtyEntities {
+		fmt.Printf("[SQL] UPDATE table SET ... WHERE id = '%s'\n", e.GetID())
+	}
+	for e := range uow.deletedEntities {
+		fmt.Printf("[SQL] DELETE FROM table WHERE id = '%s'\n", e.GetID())
+	}
+
+	fmt.Println("--- ✅ COMMIT DB TRANSACTION ---")
+	uow.clear()
+	return nil
+}
+
+func (uow *UnitOfWork) clear() {
+	uow.newEntities = make(map[Entity]bool)
+	uow.dirtyEntities = make(map[Entity]bool)
+	uow.deletedEntities = make(map[Entity]bool)
+}
+
+// 3. Mijoz kodi
+func main() {
+	uow := NewUnitOfWork()
+
+	user1 := &User{ID: "u1", Name: "Alice"}
+	user2 := &User{ID: "u2", Name: "Bob"}
+
+	uow.RegisterNew(user1)
+
+	user2.Name = "Robert"
+	uow.RegisterDirty(user2)
+
+	uow.Commit()
+}
+```
+
+```rust [Rust]
+use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
+
+// 1. Domen Entity'lari
+#[derive(Clone, Debug)]
+pub struct User {
+    pub id: String,
+    pub name: String,
+}
+
+// User'ni HashSet'da saqlash uchun Hash va PartialEq'ni implement qilish
+impl Hash for User {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+impl Eq for User {}
+
+// 2. Unit of Work
+pub struct UnitOfWork {
+    new_entities: HashSet<User>,
+    dirty_entities: HashSet<User>,
+    deleted_entities: HashSet<User>,
+}
+
+impl UnitOfWork {
+    pub fn new() -> Self {
+        Self {
+            new_entities: HashSet::new(),
+            dirty_entities: HashSet::new(),
+            deleted_entities: HashSet::new(),
+        }
+    }
+
+    pub fn register_new(&mut self, entity: User) -> Result<(), &'static str> {
+        if self.dirty_entities.contains(&entity) || self.deleted_entities.contains(&entity) {
+            return Err("Invalid state: Entity already tracked");
+        }
+        self.new_entities.insert(entity);
+        Ok(())
+    }
+
+    pub fn register_dirty(&mut self, entity: User) -> Result<(), &'static str> {
+        if self.deleted_entities.contains(&entity) {
+            return Err("Cannot modify a deleted entity");
+        }
+        if !self.new_entities.contains(&entity) {
+            self.dirty_entities.insert(entity);
+        }
+        Ok(())
+    }
+
+    pub fn register_deleted(&mut self, entity: User) {
+        if self.new_entities.contains(&entity) {
+            self.new_entities.remove(&entity);
+            return;
+        }
+        self.dirty_entities.remove(&entity);
+        self.deleted_entities.insert(entity);
+    }
+
+    pub fn commit(&mut self) {
+        println!("--- 🏁 BEGIN DB TRANSACTION ---");
+
+        for e in &self.new_entities {
+            println!("[SQL] INSERT INTO table VALUES ('{}')", e.id);
+        }
+        for e in &self.dirty_entities {
+            println!("[SQL] UPDATE table SET ... WHERE id = '{}'", e.id);
+        }
+        for e in &self.deleted_entities {
+            println!("[SQL] DELETE FROM table WHERE id = '{}'", e.id);
+        }
+
+        println!("--- ✅ COMMIT DB TRANSACTION ---");
+        self.clear();
+    }
+
+    fn clear(&mut self) {
+        self.new_entities.clear();
+        self.dirty_entities.clear();
+        self.deleted_entities.clear();
+    }
+}
+
+// 3. Mijoz kodi
+fn main() {
+    let mut uow = UnitOfWork::new();
+
+    let user1 = User { id: "u1".to_string(), name: "Alice".to_string() };
+    let mut user2 = User { id: "u2".to_string(), name: "Bob".to_string() };
+
+    uow.register_new(user1).unwrap();
+
+    user2.name = "Robert".to_string();
+    uow.register_dirty(user2).unwrap();
+
+    uow.commit();
+}
 ```
 
 :::
 
-## Real Hayotdan Misollar
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-### Entity Framework (C# / .NET)
+### Afzalliklari (Advantages)
 
-`DbContext` ham Unit of Work, ham Repository konteyneri vazifasini bajaradi. `SaveChanges()` chaqirilganda barcha kuzatilgan o'zgarishlar saqlanadi.
+- **Atomar izchillik**: Yoki butun biznes tranzaksiyasi muvaffaqiyatli bo'ladi, yoki butun tranzaksiya muvaffaqiyatsiz bo'ladi. Ma'lumotlar bazasi hech qachon buzilgan "yarim saqlangan" holatda qolmaydi.
+- **Maksimal ishlash tezligi**: Operatsiyalarni paketlab, ularni faqat oxirida bajarish orqali u ma'lumotlar bazasi ulanishlarini kamaytiradi, tarmoq kechikishi xarajatlarini qisqartiradi va jadvallarni bloklash vaqtini minimallashtiradi.
+- **Rollback'ni soddalashtiradi**: U nima qilishni rejalashtirganini kuzatib borgani uchun, orqaga qaytarish teskari SQL buyruqlarini yuborish o'rniga shunchaki xotiradagi ro'yxatlarni tashlab yuborishdan iborat.
 
-### Hibernate / JPA (Java)
+### Kamchiliklari (Disadvantages)
 
-`Session` (Hibernate) yoki `EntityManager` (JPA) entitilarni kuzatib boradi va tranzaksiya davomida ularni ma'lumotlar bazasi bilan sinxronlashtiradi.
+- **Og'ir abstraksiya**: Bu patternni noldan to'g'ri amalga oshirish qiyinligi bilan mashhur (ayniqsa ichma-ich joylashgan obyekt munosabatlarini kuzatishda).
+- **Yuqori xotira sarfi**: Unit of Work tranzaksiya davomida har bir yuklangan, o'zgartirilgan va yaratilgan obyektni kuzatib borgani uchun, millionlab yozuvlardan iborat paketni qayta ishlayotgan bo'lsangiz, u juda katta hajmdagi xotirani egallashi mumkin.
+- **Eskirgan ma'lumotlar xavfi**: Agar tranzaksiya yakunlanishi uchun 5 daqiqa ketsa, Unit of Work xotirasidagi ma'lumotlar haqiqiy ma'lumotlar bazasi bilan umidsiz darajada nomuvofiq bo'lib qolishi mumkin.
 
-### SQLAlchemy (Python)
+## Qachon foydalanish kerak (When to Use)
 
-`Session` ob'ekti — ob'ektlar holatini boshqaradigan va ularni ma'lumotlar bazasiga yozadigan klassik Unit of Work implementatsiyasidir.
+- **Murakkab domen o'zgarishlari**: Foydalanuvchining bitta harakati bir nechta domen aggregate'lari/jadvallariga ta'sir qiladigan har qanday korporativ ilova.
+- **Repository'lardan foydalanganda**: Odatda Repository'lar ma'lumotlar bazasiga darhol `save()` qilmaydi. Ular obyektni Unit of Work'ga qo'shadi, Unit of Work esa Repository'larga yoki Service qatlamiga inyeksiya qilinadi.
 
-## Afzalliklari ✅
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Yaxlitlik (Consistency)**: O'zgarishlar atomar; yo hamma narsa saqlanadi, yo hech narsa.
-- **Samaradorlik**: Tarmoq kechikishini kamaytirish uchun ma'lumotlar bazasi amallarini guruhlaydi.
-- **Soddalashtirilgan Kod**: Mijoz kodi o'zgarishlarni qo'lda kuzatishi shart emas.
+- **Oddiy CRUD ilovalar**: Agar har bir veb so'rov faqat bitta jadvalni yangilasa, Unit of Work haddan tashqari ortiqcha. Oddiy Active Record `.save()` yetarli.
+- **Ulkan paketli qayta ishlash (Massive Batch Processing)**: Agar 10GB lik CSV faylni tahlil qilib, ma'lumotlar bazasiga kiritayotgan bo'lsangiz, 10GB obyektlarni Unit of Work'ga yuklash serveringizni qulatadi (OOM Error). Buning o'rniga xom SQL Bulk Insert'lardan foydalanishingiz kerak.
 
-## Kamchiliklari ❌
+## Keng tarqalgan xatolar (Common Mistakes)
 
-- **Murakkablik**: Debug qilish qiyin bo'lishi mumkin bo'lgan qo'shimcha qatlam qo'shadi.
-- **Xotira Sarfi**: Commit qilinguncha barcha o'zgargan ob'ektlarni xotirada ushlab turadi.
+### 1. Proxy'lar o'rniga qo'lda kuzatish
 
-## Qachon Ishlatish Kerak ✅
+Yuqoridagi kod misollarida mijoz `uow.registerDirty()` ni aniq chaqirdi. Haqiqiy zamonaviy implementatsiyada (masalan, Entity Framework da) ORM xususiyat qachon o'zgarganini avtomatik aniqlash uchun Proxy klasslar yoki Identity Map dan foydalanadi. Dasturchilarni `registerDirty()` ni qo'lda chaqirishga majburlash ko'pincha o'zgarishlar unutilib qoladigan xatolarga olib keladi.
 
-- **Murakkab Biznes Tranzaksiyalari**: Bir vaqtning o'zida bir nechta ob'ektlar o'zgartirilganda.
-- **Yuqori Samaradorlik Kerak Bo'lganda**: Ma'lumotlar bazasiga so'rovlarni minimallashtirish kerak bo'lganda.
+### 2. Yashash muddati juda uzun
 
-## Bog'liq Namunalar
+Unit of Work qisqa muddatli bo'lishi kerak. Veb ilovada u faqat bitta HTTP so'rov davomida yashashi kerak. Unit of Work'ni bir nechta so'rovlar davomida (masalan, foydalanuvchi sessiyalarida) tirik saqlash dahshatli xotira sizishlari va eskirgan ma'lumotlar bilan bog'liq parallellik xatolariga olib keladi.
 
-- **Repository Pattern**: Ko'pincha Unit of Work bilan birga ishlatiladi.
-- **Data Mapper**: Kuzatilgan ob'ektlarni saqlash uchun fonda ishlaydi.
-- **Identity Map**: Ob'ektlarning yagonaligini ta'minlash uchun Unit of Work tomonidan ishlatiladi.
+## Aloqador patternlar (Related Patterns)
+
+- **[Identity Map](/uz/architectural/identity-map)**: Unit of Work hozirda _qaysi_ obyekt nusxalari yuklangan va kuzatilayotganini bilish uchun deyarli har doim Identity Map ga tayanadi.
+- **[Repository](/uz/architectural/repository)**: Obyektlarni Unit of Work'ga olib keladigan to'plam interfeysi vazifasini bajaradi va ko'pincha ularni oxir-oqibat saqlash uchun Unit of Work'ga tayanadi.
+- **[Data Mapper](/uz/architectural/data-mapper)**: Unit of Work'ning `commit()` metodi chaqirilganda ma'lumotlar bazasiga yakuniy SQL buyruqlarini amalda bajaradi.

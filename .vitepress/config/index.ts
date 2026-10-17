@@ -10,6 +10,9 @@ import { MermaidMarkdown } from './mermaid-markdown'
 
 const SITE_URL = 'https://otabekoff.github.io/design-patterns/'
 
+// GitHub Pages serves the site under /design-patterns/; other hosts (Netlify) set SITE_BASE=/
+const BASE = process.env.SITE_BASE || '/design-patterns/'
+
 const pageUrl = (relativePath: string) =>
   joinURL(SITE_URL, withoutTrailingSlash(relativePath.replace(/(index)?\.md$/, '')))
 
@@ -33,7 +36,7 @@ function processLocale(localeObj: any) {
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   srcDir: 'src',
-  base: '/design-patterns/',
+  base: BASE,
   title: "Design Patterns",
   description: "Complete Reference Guide",
   sitemap: {
@@ -43,12 +46,12 @@ export default defineConfig({
   mpa: false,
   lastUpdated: true,
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/design-patterns/favicon-96x96.png?v=20260516', sizes: '96x96' }],
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/design-patterns/favicon.svg?v=20260516' }],
-    ['link', { rel: 'shortcut icon', href: '/design-patterns/favicon.ico?v=20260516' }],
-    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/design-patterns/apple-touch-icon.png?v=20260516' }],
+    ['link', { rel: 'icon', type: 'image/png', href: `${BASE}favicon-96x96.png?v=20260516`, sizes: '96x96' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${BASE}favicon.svg?v=20260516` }],
+    ['link', { rel: 'shortcut icon', href: `${BASE}favicon.ico?v=20260516` }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: `${BASE}apple-touch-icon.png?v=20260516` }],
     ['meta', { name: 'apple-mobile-web-app-title', content: 'Design Patterns' }],
-    ['link', { rel: 'manifest', href: '/design-patterns/site.webmanifest?v=20260516' }],
+    ['link', { rel: 'manifest', href: `${BASE}site.webmanifest?v=20260516` }],
     ['meta', { name: 'twitter:site', content: '@otabekoff' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { property: 'og:image:width', content: '1200' }],

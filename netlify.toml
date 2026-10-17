@@ -1,0 +1,9 @@
+# Netlify build for this VitePress site (GitHub Pages is built by .github/workflows/deploy.yml).
+# Settings here override the Netlify UI, which still pointed at the old TanStack output (dist/client).
+[build]
+  command = "npm run build"
+  publish = ".vitepress/dist"
+
+[build.environment]
+  # Netlify serves the site from the domain root, not GitHub Pages' /design-patterns/ path
+  SITE_BASE = "/"

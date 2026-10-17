@@ -1,83 +1,73 @@
-# Dokumentation zu Entwurfsmustern
+# Entwurfsmuster
 
 Languages: [English](README.md) | [Oʻzbek](README.uz.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [العربية](README.ar.md) | [Deutsch](README.de.md) | [Español](README.es.md)
 
-Eine moderne, schnelle und durchsuchbare Dokumentationsseite für Software‑Entwurfsmuster. Erstellt mit TanStack Start und Fumadocs und optimiert für ein sauberes Leseerlebnis zu Erzeugungs‑, Struktur‑, Verhaltens‑ und Architekturmustern.
+Eine vollständige, durchsuchbare Referenz für Software-Entwurfsmuster — Erzeugungs-, Struktur-, Verhaltens- und Architekturmuster — mit Diagrammen und Beispielen in TypeScript, Python, Java, Go und Rust im direkten Vergleich.
+
+**Live-Seite:** https://otabekoff.github.io/design-patterns/
 
 ## Funktionen
 
-- Sauberes, gut lesbares Layout
-- Schnelle Navigation und Volltextsuche
-- MDX‑Inhalte in `content/docs`
-- Responsives UI, optimiert fürs Lesen
-- Integrierte Docs‑Routen und Seitenbaum
+- 41 Muster, jeweils mit einer Analogie, einem Mermaid-Strukturdiagramm, Implementierungen in fünf Sprachen, typischen Fehlern und Interviewfragen
+- Ein Entscheidungsleitfaden „Ein Muster wählen“ und Vergleichsseiten (Strategy vs State, Decorator vs Proxy, …)
+- Englische und usbekische Ausgabe
+- Lokale Volltextsuche, helles/dunkles Theme und eine seitenübergreifend gespeicherte Wahl der Code-Sprache
+- Aktionen „Copy Markdown“ und „Open in ChatGPT / Claude“ auf jeder Seite
 
-## Technologie‑Stack
+## Technologie-Stack
 
-- **TanStack Start**
-- **Fumadocs UI + Core**
-- **React**
-- **Vite**
-- **Tailwind CSS**
+[VitePress](https://vitepress.dev) (Vue 3 + Vite), Mermaid, Lucide-Icons, bereitgestellt auf GitHub Pages. [Bun](https://bun.sh) dient als Paketmanager und Skript-Runner.
 
 ## Schnellstart
 
-Abhängigkeiten installieren:
-
 ```bash
-npm install
-# or
-pnpm install
-# or
-yarn
+bun install
+bun run dev        # http://localhost:5173/design-patterns/
 ```
 
-Dev‑Server starten:
+## Skripte
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
-
-## Nützliche Skripte
-
-```bash
-npm run dev        # Dev‑Server starten
-npm run build      # Produktion builden
-npm run preview    # Production‑Build ansehen
-npm run types:check
-npm run lint
-```
+| Befehl | Funktion |
+| --- | --- |
+| `bun run dev` | Startet den Dev-Server |
+| `bun run build` | Baut die statische Seite nach `.vitepress/dist` (schlägt bei toten Links fehl) |
+| `bun run preview` | Stellt den Production-Build lokal bereit |
+| `bun run check` | Führt alle unten aufgeführten Inhaltsprüfungen aus |
+| `bun run check:mermaid` | Parst jedes Mermaid-Diagramm |
+| `bun run check:code` | Prüft die Syntax jedes Codebeispiels (TS/JS über esbuild, Python, Java, Go, Rust — fehlende Toolchains werden übersprungen) |
+| `bun run check:i18n` | Vergleicht jede englische Seite mit ihrer usbekischen Übersetzung (fehlende Seiten, Abweichungen in Code/Diagrammen) |
+| `bun run images` | Kodiert Cover-/Kartenbilder neu als WebP und erzeugt die Social-Media-Bilder neu (benötigt Python + Pillow) |
 
 ## Projektstruktur
 
 ```
-content/docs/        # Dokumentationsinhalte (MDX)
-src/routes/          # Routen (home, docs, api)
-src/lib/             # Geteilte Konfiguration und Helper
-src/components/      # UI‑Komponenten
-src/styles/          # Globale Styles
+src/                     # Inhalte (Englisch auf oberster Ebene)
+  creational/ structural/ behavioral/ architectural/
+  comparisons/           # Seiten zum Vergleich von Mustern
+  uz/                    # Usbekische Übersetzung mit denselben Pfaden
+public/                  # Statische Dateien: covers/, cards/, og/ (Social-Media-Bilder), Icons
+.vitepress/
+  config/                # Seitenkonfiguration, Navigation/Sidebar pro Sprache (langs/), Markdown-Plugins
+  theme/                 # Theme-Anpassungen und Vue-Komponenten (CoverImage, Card, Mermaid, …)
+scripts/                 # Inhaltsprüfungen und Bild-Pipeline
 ```
 
-## Konfiguration
+## Inhalte schreiben
 
-- **Site‑Name**: `src/lib/shared.ts` aktualisieren
-- **Navbar‑Links**: `src/lib/layout.shared.tsx` aktualisieren
-- **Docs‑Inhalte**: Dateien in `content/docs` hinzufügen oder bearbeiten
+- Jede Seite beginnt mit Frontmatter: `title`, `description` und `icon` (ein [Lucide](https://lucide.dev/icons)-Iconname in PascalCase, der in der Sidebar angezeigt wird).
+- Gruppiere Implementierungen mit `::: code-group` und beschrifte die Tabs nach Sprache, z. B. ` ```python [Python] `.
+- Diagramme gehören in ` ```mermaid `-Blöcke.
+- Füge neue Seiten der Sidebar in `.vitepress/config/langs/en.ts` und `uz.ts` hinzu.
+- Übersetzungen liegen unter demselben Pfad in `src/uz/`; halte Codeblöcke identisch zum Englischen (Kommentare dürfen übersetzt werden) und führe `bun run check:i18n` aus.
 
 ## Unterstützung
 
-Wenn dir das Projekt hilft, unterstütze es gerne:
-
-- https://tirikchilik.uz/uzhandy
+Wenn dir dieses Projekt nützlich ist, freuen wir uns über deine Unterstützung: https://taps.uz/uzhandy
 
 ## Mitwirken
 
-Beiträge sind willkommen. Öffne ein Issue oder PR mit deinen Änderungen.
+Beiträge sind willkommen — öffne ein Issue oder einen Pull Request. Bitte führe vor dem Einreichen `bun run check` und `bun run build` aus.
 
 ## Lizenz
 
-Dieses Projekt steht unter der MIT‑Lizenz.
+[MIT](LICENSE) © 2025-present Otabek Sadiridinov

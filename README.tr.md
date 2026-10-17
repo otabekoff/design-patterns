@@ -1,83 +1,73 @@
-# Tasarım Desenleri Dokümantasyonu
+# Tasarım Desenleri
 
 Languages: [English](README.md) | [Oʻzbek](README.uz.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [العربية](README.ar.md) | [Deutsch](README.de.md) | [Español](README.es.md)
 
-Yazılım tasarım desenleri için modern, hızlı ve araması kolay bir dokümantasyon sitesi. TanStack Start ve Fumadocs ile oluşturuldu; yaratıcı, yapısal, davranışsal ve mimari desenler için temiz bir okuma deneyimi sunar.
+Yazılım tasarım desenleri — yaratımsal, yapısal, davranışsal ve mimari — için diyagramlar ve TypeScript, Python, Java, Go ve Rust ile yan yana örnekler içeren, eksiksiz ve aranabilir bir başvuru kaynağı.
+
+**Canlı site:** https://otabekoff.github.io/design-patterns/
 
 ## Özellikler
 
-- Temiz ve okunabilir dokümantasyon düzeni
-- Hızlı gezinme ve tam metin arama
-- `content/docs` içinde MDX içerik
-- Okuma için optimize edilmiş duyarlı arayüz
-- Yerleşik docs yönlendirmesi ve sayfa ağacı
+- 41 desen; her biri için bir benzetme, bir Mermaid yapı diyagramı, beş dilde uygulamalar, yaygın hatalar ve mülakat soruları
+- "Desen Seçimi" karar rehberi ve yan yana karşılaştırma sayfaları (Strategy vs State, Decorator vs Proxy, …)
+- İngilizce ve Özbekçe sürümler
+- Yerel tam metin arama, açık/koyu temalar ve sayfalar arasında hatırlanan kod dili tercihi
+- Her sayfada "Copy Markdown" ve "Open in ChatGPT / Claude" eylemleri
 
 ## Teknoloji Yığını
 
-- **TanStack Start**
-- **Fumadocs UI + Core**
-- **React**
-- **Vite**
-- **Tailwind CSS**
+[VitePress](https://vitepress.dev) (Vue 3 + Vite), Mermaid, Lucide simgeleri; GitHub Pages üzerinde yayınlanır. Paket yöneticisi ve betik çalıştırıcı olarak [Bun](https://bun.sh) kullanılır.
 
 ## Hızlı Başlangıç
 
-Bağımlılıkları kurun:
-
 ```bash
-npm install
-# or
-pnpm install
-# or
-yarn
+bun install
+bun run dev        # http://localhost:5173/design-patterns/
 ```
 
-Geliştirme sunucusunu başlatın:
+## Betikler
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
-
-## Yararlı Komutlar
-
-```bash
-npm run dev        # Geliştirme sunucusu
-npm run build      # Production derlemesi
-npm run preview    # Production önizleme
-npm run types:check
-npm run lint
-```
+| Komut | Ne yapar |
+| --- | --- |
+| `bun run dev` | Geliştirme sunucusunu başlatır |
+| `bun run build` | Statik siteyi `.vitepress/dist` içine derler (kırık bağlantılarda başarısız olur) |
+| `bun run preview` | Production derlemesini yerel olarak sunar |
+| `bun run check` | Aşağıdaki tüm içerik kontrollerini çalıştırır |
+| `bun run check:mermaid` | Her Mermaid diyagramını ayrıştırır |
+| `bun run check:code` | Her kod örneğinin sözdizimini denetler (TS/JS esbuild ile, Python, Java, Go, Rust — kurulu olmayan araç zincirleri atlanır) |
+| `bun run check:i18n` | Her İngilizce sayfayı Özbekçe çevirisiyle karşılaştırır (eksik sayfalar, kod/diyagram farklılıkları) |
+| `bun run images` | Kapak/kart görsellerini WebP olarak yeniden kodlar ve sosyal medya görsellerini yeniden üretir (Python + Pillow gerekir) |
 
 ## Proje Yapısı
 
 ```
-content/docs/        # Dokümantasyon içeriği (MDX)
-src/routes/          # Rotalar (home, docs, api)
-src/lib/             # Paylaşılan yapılandırma ve yardımcılar
-src/components/      # UI bileşenleri
-src/styles/          # Global stiller
+src/                     # İçerik (İngilizce kök dizinde)
+  creational/ structural/ behavioral/ architectural/
+  comparisons/           # Desen karşılaştırma sayfaları
+  uz/                    # Aynı yolları izleyen Özbekçe çeviri
+public/                  # Statik dosyalar: covers/, cards/, og/ (sosyal medya görselleri), simgeler
+.vitepress/
+  config/                # Site yapılandırması, dile göre nav/sidebar (langs/), markdown eklentileri
+  theme/                 # Tema özelleştirmeleri ve Vue bileşenleri (CoverImage, Card, Mermaid, …)
+scripts/                 # İçerik kontrolleri ve görsel işleme hattı
 ```
 
-## Yapılandırma
+## İçerik Yazma
 
-- **Site adı**: `src/lib/shared.ts` dosyasını güncelleyin
-- **Navbar linkleri**: `src/lib/layout.shared.tsx` dosyasını güncelleyin
-- **Docs içeriği**: `content/docs` içine dosya ekleyin veya düzenleyin
+- Her sayfa frontmatter ile başlar: `title`, `description` ve `icon` (PascalCase biçiminde bir [Lucide](https://lucide.dev/icons) simge adı; kenar çubuğunda gösterilir).
+- Uygulamaları `::: code-group` ile gruplayın ve sekmeleri dile göre etiketleyin, ör. ` ```python [Python] `.
+- Diyagramlar ` ```mermaid ` bloklarına yazılır.
+- Yeni sayfaları `.vitepress/config/langs/en.ts` ve `uz.ts` içindeki kenar çubuğuna ekleyin.
+- Çeviriler `src/uz/` altında aynı yolda bulunur; kod bloklarını İngilizce sürümle aynı tutun (yorumlar çevrilebilir) ve `bun run check:i18n` komutunu çalıştırın.
 
 ## Destek
 
-Bu proje işinize yarıyorsa destek olabilirsiniz:
-
-- https://tirikchilik.uz/uzhandy
+Bu projeyi faydalı bulduysanız desteklemeyi düşünebilirsiniz: https://taps.uz/uzhandy
 
 ## Katkıda Bulunma
 
-Katkılar memnuniyetle karşılanır. Önerileriniz için issue veya PR açın.
+Katkılarınızı memnuniyetle karşılıyoruz — bir issue veya pull request açın. Göndermeden önce lütfen `bun run check` ve `bun run build` komutlarını çalıştırın.
 
 ## Lisans
 
-Bu proje MIT lisansı ile lisanslanmıştır.
+[MIT](LICENSE) © 2025-present Otabek Sadiridinov

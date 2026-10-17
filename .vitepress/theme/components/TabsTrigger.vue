@@ -1,26 +1,30 @@
 <template>
-  <button 
-    @click="activeTab = value" 
+  <button
+    type="button"
+    role="tab"
+    :id="`${tabsId}-tab-${value}`"
+    :aria-selected="activeTab === value"
+    :aria-controls="`${tabsId}-panel-${value}`"
+    :tabindex="activeTab === value ? 0 : -1"
+    @click="activeTab = value"
     :class="{ 'active': activeTab === value }"
     class="vp-tabs-trigger"
-    :style="activeTab === value ? 'color: var(--vp-c-brand-1); border-bottom-color: var(--vp-c-brand-1);' : ''"
   >
     <slot></slot>
   </button>
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue'
+import { inject } from 'vue'
 
 const props = defineProps({
   value: String
 })
 const activeTab = inject('activeTab')
+const tabsId = inject('tabsId')
 const registerTab = inject('registerTab')
 
-onMounted(() => {
-  if (props.value) registerTab(props.value)
-})
+if (props.value) registerTab(props.value)
 </script>
 
 <style scoped>
@@ -37,5 +41,13 @@ onMounted(() => {
 }
 .vp-tabs-trigger:hover {
   color: var(--vp-c-text-1);
+}
+.vp-tabs-trigger.active {
+  color: var(--vp-c-brand-1);
+  border-bottom-color: var(--vp-c-brand-1);
+}
+.vp-tabs-trigger:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: -2px;
 }
 </style>

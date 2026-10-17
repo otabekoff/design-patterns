@@ -14,31 +14,6 @@ const translations = {
     title: 'SAHIFA TOPILMADI',
     quote: "Lekin yo'nalishingizni o'zgartirmasangiz va qidirishda davom etsangiz, oxiri boradigan joyingizga yetib borasiz.",
     linkText: 'Bosh sahifaga qaytish'
-  },
-  ru: {
-    title: 'СТРАНИЦА НЕ НАЙДЕНА',
-    quote: "Но если вы не измените направление и продолжите искать, вы можете оказаться там, куда направляетесь.",
-    linkText: 'На главную'
-  },
-  tr: {
-    title: 'SAYFA BULUNAMADI',
-    quote: "Ancak yönünüzü değiştirmezseniz ve bakmaya devam ederseniz, gitmekte olduğunuz yere varabilirsiniz.",
-    linkText: 'Ana sayfaya dön'
-  },
-  de: {
-    title: 'SEITE NICHT GEFUNDEN',
-    quote: "Aber wenn Sie Ihre Richtung nicht ändern und weiter suchen, landen Sie vielleicht dort, wo Sie hinwollen.",
-    linkText: 'Zurück zur Startseite'
-  },
-  es: {
-    title: 'PÁGINA NO ENCONTRADA',
-    quote: "Pero si no cambias de dirección y sigues buscando, puede que acabes donde te diriges.",
-    linkText: 'Ir al inicio'
-  },
-  ar: {
-    title: 'الصفحة غير موجودة',
-    quote: "ولكن إذا لم تغير اتجاهك، وإذا استمررت في البحث، فقد ينتهي بك الأمر إلى حيث تتجه.",
-    linkText: 'العودة إلى الصفحة الرئيسية'
   }
 }
 

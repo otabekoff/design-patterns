@@ -28,46 +28,6 @@ const translations = {
     copying: 'Nusxalanmoqda...',
     open: 'Ochish',
     share: 'Sahifa havolasini ulashish'
-  },
-  ru: {
-    copy: 'Скопировать Markdown',
-    copyShort: 'Копировать',
-    copied: 'Скопировано',
-    copying: 'Копирование...',
-    open: 'Открыть',
-    share: 'Поделиться ссылкой'
-  },
-  tr: {
-    copy: 'Markdown\'ı Kopyala',
-    copyShort: 'Kopyala',
-    copied: 'Kopyalandı',
-    copying: 'Kopyalanıyor...',
-    open: 'Aç',
-    share: 'Sayfa bağlantısını paylaş'
-  },
-  de: {
-    copy: 'Markdown kopieren',
-    copyShort: 'Kopieren',
-    copied: 'Kopiert',
-    copying: 'Kopieren...',
-    open: 'Öffnen',
-    share: 'Seitenlink teilen'
-  },
-  es: {
-    copy: 'Copiar Markdown',
-    copyShort: 'Copiar',
-    copied: 'Copiado',
-    copying: 'Copiando...',
-    open: 'Abrir',
-    share: 'Compartir enlace de la página'
-  },
-  ar: {
-    copy: 'نسخ Markdown',
-    copyShort: 'نسخ',
-    copied: 'تم النسخ',
-    copying: 'جاري النسخ...',
-    open: 'فتح',
-    share: 'مشاركة رابط الصفحة'
   }
 };
 

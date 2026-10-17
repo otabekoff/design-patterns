@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import fs from 'fs'
 import path from 'path'
 import { joinURL, withoutTrailingSlash } from 'ufo'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
@@ -6,6 +7,21 @@ import { en } from './langs/en'
 import { uz } from './langs/uz'
 import { injectSidebarIcons } from './icon-injector'
 import { MermaidMarkdown } from './mermaid-markdown'
+
+const SITE_URL = 'https://otabekoff.github.io/design-patterns/'
+
+const pageUrl = (relativePath: string) =>
+  joinURL(SITE_URL, withoutTrailingSlash(relativePath.replace(/(index)?\.md$/, '')))
+
+// Social preview image: the page's <CoverImage> cover, pre-cropped to 1200x630 JPEG in public/og
+// by scripts/optimize-images.py, falling back to the site-wide character image
+function ogImageFor(filePath: string) {
+  try {
+    const cover = fs.readFileSync(filePath, 'utf8').match(/<CoverImage\s+src="\/covers\/([^"]+)\.(?:png|webp)"/)
+    if (cover) return joinURL(SITE_URL, 'og', `${cover[1]}.jpg`)
+  } catch {}
+  return joinURL(SITE_URL, 'og', 'character.jpg')
+}
 
 function processLocale(localeObj: any) {
   if (localeObj.themeConfig && localeObj.themeConfig.sidebar) {
@@ -21,9 +37,8 @@ export default defineConfig({
   title: "Design Patterns",
   description: "Complete Reference Guide",
   sitemap: {
-    hostname: 'https://otabekoff.github.io/design-patterns/'
+    hostname: SITE_URL
   },
-  ignoreDeadLinks: true,
   metaChunk: true,
   mpa: false,
   lastUpdated: true,
@@ -38,7 +53,7 @@ export default defineConfig({
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { property: 'og:image:type', content: 'image/png' }],
+    ['meta', { property: 'og:image:type', content: 'image/jpeg' }],
     ['meta', { property: 'og:site_name', content: 'Design Patterns' }],
     ['meta', { property: 'og:type', content: 'website' }]
   ],
@@ -50,24 +65,7 @@ export default defineConfig({
       const fence = md.renderer.rules.fence!
       md.renderer.rules.fence = function (tokens, idx, options, env, self) {
         const { localeIndex = 'root' } = env
-        const codeCopyButtonTitle = (() => {
-          switch (localeIndex) {
-            case 'uz':
-              return 'Kodni nusxalash'
-            case 'tr':
-              return 'Kodu kopyala'
-            case 'ru':
-              return 'Скопировать код'
-            case 'de':
-              return 'Code kopieren'
-            case 'es':
-              return 'Copiar código'
-            case 'ar':
-              return 'نسخ الكود'
-            default:
-              return 'Copy code'
-          }
-        })()
+        const codeCopyButtonTitle = localeIndex === 'uz' ? 'Kodni nusxalash' : 'Copy code'
         return fence(tokens, idx, options, env, self).replace(
           '<button title="Copy Code" class="copy"></button>',
           `<button title="${codeCopyButtonTitle}" class="copy"></button>`
@@ -84,6 +82,8 @@ export default defineConfig({
       pageData.frontmatter.navbar = false
       pageData.frontmatter.aside = true
     }
+
+    const ogImage = ogImageFor(path.join(siteConfig.srcDir, pageData.relativePath))
 
     pageData.frontmatter.head.push(
       [
@@ -114,27 +114,22 @@ export default defineConfig({
           content: pageData.frontmatter.description || pageData.description || siteConfig.site.description,
         },
       ],
-      [
-        'link',
-        {
-          rel: 'canonical',
-          href: joinURL(
-            'https://otabekoff.github.io/design-patterns/',
-            withoutTrailingSlash(pageData.filePath.replace(/(index)?\.md$/, '')),
-          ),
-        },
-      ],
-      [
-        'meta',
-        {
-          property: 'og:url',
-          content: joinURL(
-            'https://otabekoff.github.io/design-patterns/',
-            withoutTrailingSlash(pageData.filePath.replace(/(index)?\.md$/, '')),
-          ),
-        },
-      ]
+      ['meta', { property: 'og:image', content: ogImage }],
+      ['meta', { name: 'twitter:image', content: ogImage }],
+      ['link', { rel: 'canonical', href: pageUrl(pageData.relativePath) }],
+      ['meta', { property: 'og:url', content: pageUrl(pageData.relativePath) }]
     )
+
+    // hreflang alternates between the English (root) and Uzbek versions of a page
+    const enPath = pageData.relativePath.replace(/^uz\//, '')
+    const uzPath = `uz/${enPath}`
+    if (fs.existsSync(path.join(siteConfig.srcDir, enPath)) && fs.existsSync(path.join(siteConfig.srcDir, uzPath))) {
+      pageData.frontmatter.head.push(
+        ['link', { rel: 'alternate', hreflang: 'en', href: pageUrl(enPath) }],
+        ['link', { rel: 'alternate', hreflang: 'uz', href: pageUrl(uzPath) }],
+        ['link', { rel: 'alternate', hreflang: 'x-default', href: pageUrl(enPath) }]
+      )
+    }
   },
   locales: {
     root: processLocale(en),
@@ -155,7 +150,7 @@ export default defineConfig({
       }
     },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+      { icon: 'github', link: 'https://github.com/otabekoff/design-patterns' }
     ]
   },
   vite: {

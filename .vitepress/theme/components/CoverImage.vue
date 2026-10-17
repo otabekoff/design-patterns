@@ -19,7 +19,16 @@ const showOverlay = ref(false);
 
 <template>
   <div class="cover-image-container">
-    <img :src="withBase(src)" :alt="alt" class="cover-image" />
+    <!-- Above the fold: load eagerly; explicit size reserves space and avoids layout shift -->
+    <img
+      :src="withBase(src)"
+      :alt="alt"
+      class="cover-image"
+      width="1360"
+      height="851"
+      decoding="async"
+      fetchpriority="high"
+    />
 
     <button
       class="info-btn"

@@ -5,7 +5,10 @@
         :src="withBase(image)"
         class="card-image"
         :alt="title"
+        width="1024"
+        height="1024"
         loading="lazy"
+        decoding="async"
       />
       <button @click.stop.prevent="openDialog" class="zoom-btn" title="Zoom image">
         <Maximize2 :size="16" />
@@ -23,7 +26,10 @@
         :src="withBase(image)"
         class="card-image"
         :alt="title"
+        width="1024"
+        height="1024"
         loading="lazy"
+        decoding="async"
       />
       <button @click.stop.prevent="openDialog" class="zoom-btn" title="Zoom image">
         <Maximize2 :size="16" />

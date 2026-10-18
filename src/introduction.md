@@ -6,7 +6,7 @@ icon: Palette
 
 # Introduction to Design Patterns
 
-<CoverImage src="/covers/getting-started/introduction.png" alt="Cover">
+<CoverImage src="/covers/getting-started/introduction.webp" alt="Cover">
   <h1>Introduction</h1>
   <p>A charming, tiny white robot holding a giant glowing "Hello World" handbook, standing excitedly at the grand stone entrance of a beautiful, shimmering maze of futuristic geometric architecture.</p>
 </CoverImage>
@@ -38,37 +38,37 @@ Control how objects are created. Use these to improve flexibility, support testi
     title="Singleton"
     description="Ensures a class has only one instance"
     href="/creational/singleton"
-    image="/cards/singleton.png"
+    image="/cards/singleton.webp"
   />
   <Card
     title="Factory Method"
     description="Creates objects without specifying the exact class"
     href="/creational/factory-method"
-    image="/cards/factory-method.png"
+    image="/cards/factory-method.webp"
   />
   <Card
     title="Abstract Factory"
     description="Creates families of related objects"
     href="/creational/abstract-factory"
-    image="/cards/abstract-factory.png"
+    image="/cards/abstract-factory.webp"
   />
   <Card
     title="Builder"
     description="Constructs complex objects step by step"
     href="/creational/builder"
-    image="/cards/builder.png"
+    image="/cards/builder.webp"
   />
   <Card
     title="Prototype"
     description="Clones existing objects"
     href="/creational/prototype"
-    image="/cards/prototype.png"
+    image="/cards/prototype.webp"
   />
   <Card
     title="Object Pool"
     description="Reuses expensive objects"
     href="/creational/object-pool"
-    image="/cards/object-pool.png"
+    image="/cards/object-pool.webp"
   />
 </Cards>
 
@@ -81,43 +81,43 @@ Describe how to compose objects and classes into larger structures while keeping
     title="Adapter"
     description="Converts incompatible interfaces"
     href="/structural/adapter"
-    image="/cards/adapter.png"
+    image="/cards/adapter.webp"
   />
   <Card
     title="Bridge"
     description="Decouples an abstraction from its implementation"
     href="/structural/bridge"
-    image="/cards/bridge.png"
+    image="/cards/bridge.webp"
   />
   <Card
     title="Composite"
     description="Composes objects into tree structures"
     href="/structural/composite"
-    image="/cards/composite.png"
+    image="/cards/composite.webp"
   />
   <Card
     title="Decorator"
     description="Adds responsibilities to objects dynamically"
     href="/structural/decorator"
-    image="/cards/decorator.png"
+    image="/cards/decorator.webp"
   />
   <Card
     title="Facade"
     description="Provides a simplified interface to a library"
     href="/structural/facade"
-    image="/cards/facade.png"
+    image="/cards/facade.webp"
   />
   <Card
     title="Flyweight"
     description="Minimizes memory usage by sharing data"
     href="/structural/flyweight"
-    image="/cards/flyweight.png"
+    image="/cards/flyweight.webp"
   />
   <Card
     title="Proxy"
     description="Provides a placeholder for another object"
     href="/structural/proxy"
-    image="/cards/proxy.png"
+    image="/cards/proxy.webp"
   />
 </Cards>
 
@@ -130,73 +130,73 @@ Define how objects collaborate and divide responsibility. Use these to decouple 
     title="Chain of Responsibility"
     description="Passes requests along a chain of handlers"
     href="/behavioral/chain-of-responsibility"
-    image="/cards/chain-of-responsibility.png"
+    image="/cards/chain-of-responsibility.webp"
   />
   <Card
     title="Command"
     description="Turns a request into a stand-alone object"
     href="/behavioral/command"
-    image="/cards/command.png"
+    image="/cards/command.webp"
   />
   <Card
     title="Interpreter"
     description="Defines a grammar and an interpreter to evaluate it"
     href="/behavioral/interpreter"
-    image="/cards/interpreter.png"
+    image="/cards/interpreter.webp"
   />
   <Card
     title="Iterator"
     description="Traverses elements of a collection"
     href="/behavioral/iterator"
-    image="/cards/iterator.png"
+    image="/cards/iterator.webp"
   />
   <Card
     title="Mediator"
     description="Reduces chaotic dependencies between objects"
     href="/behavioral/mediator"
-    image="/cards/mediator.png"
+    image="/cards/mediator.webp"
   />
   <Card
     title="Memento"
     description="Captures and restores an object's internal state"
     href="/behavioral/memento"
-    image="/cards/memento.png"
+    image="/cards/memento.webp"
   />
   <Card
     title="Null Object"
     description="Provides a default no-op behavior to avoid null checks"
     href="/behavioral/null-object"
-    image="/cards/null-object.png"
+    image="/cards/null-object.webp"
   />
   <Card
     title="Observer"
     description="Lets objects notify others about changes"
     href="/behavioral/observer"
-    image="/cards/observer.png"
+    image="/cards/observer.webp"
   />
   <Card
     title="State"
     description="Alters an object's behavior when its state changes"
     href="/behavioral/state"
-    image="/cards/state.png"
+    image="/cards/state.webp"
   />
   <Card
     title="Strategy"
     description="Defines a family of interchangeable algorithms"
     href="/behavioral/strategy"
-    image="/cards/strategy.png"
+    image="/cards/strategy.webp"
   />
   <Card
     title="Template Method"
     description="Defines the skeleton of an algorithm"
     href="/behavioral/template-method"
-    image="/cards/template-method.png"
+    image="/cards/template-method.webp"
   />
   <Card
     title="Visitor"
     description="Separates algorithms from the objects on which they operate"
     href="/behavioral/visitor"
-    image="/cards/visitor.png"
+    image="/cards/visitor.webp"
   />
 </Cards>
 
@@ -209,97 +209,97 @@ Address system-level concerns: data flow, service boundaries, concurrency, and p
     title="Active Record"
     description="Wraps a database table row in an object, combining data and behavior"
     href="/architectural/active-record"
-    image="/cards/active-record.png"
+    image="/cards/active-record.webp"
   />
   <Card
     title="CQRS"
     description="Separates read and write operations to optimize performance"
     href="/architectural/cqrs"
-    image="/cards/cqrs.png"
+    image="/cards/cqrs.webp"
   />
   <Card
     title="Data Mapper"
     description="Decouples in-memory domain objects from the database schema"
     href="/architectural/data-mapper"
-    image="/cards/data-mapper.png"
+    image="/cards/data-mapper.webp"
   />
   <Card
     title="Dependency Injection"
     description="Passes dependent objects in rather than hardcoding them"
     href="/architectural/dependency-injection"
-    image="/cards/dependency-injection.png"
+    image="/cards/dependency-injection.webp"
   />
   <Card
     title="Event Sourcing"
     description="Saves application state as a sequence of events"
     href="/architectural/event-sourcing"
-    image="/cards/event-sourcing.png"
+    image="/cards/event-sourcing.webp"
   />
   <Card
     title="Identity Map"
     description="Ensures each database record is loaded only once per transaction"
     href="/architectural/identity-map"
-    image="/cards/identity-map.png"
+    image="/cards/identity-map.webp"
   />
   <Card
     title="MVC"
     description="Separates application logic into Model, View, and Controller"
     href="/architectural/mvc"
-    image="/cards/mvc.png"
+    image="/cards/mvc.webp"
   />
   <Card
     title="MVP"
     description="Presenter handles UI logic and coordinates View updates"
     href="/architectural/mvp"
-    image="/cards/mvp.png"
+    image="/cards/mvp.webp"
   />
   <Card
     title="MVT"
     description="Separates application into Model, View, and Template layers"
     href="/architectural/mvt"
-    image="/cards/mvt.png"
+    image="/cards/mvt.webp"
   />
   <Card
     title="MVVM"
     description="Binds the user interface to a reactive View Model"
     href="/architectural/mvvm"
-    image="/cards/mvvm.png"
+    image="/cards/mvvm.webp"
   />
   <Card
     title="Producer-Consumer"
     description="Decouples work-producing threads from work-consuming threads"
     href="/architectural/producer-consumer"
-    image="/cards/producer-consumer.png"
+    image="/cards/producer-consumer.webp"
   />
   <Card
     title="Read-Write Lock"
     description="Allows concurrent reads while ensuring exclusive write access"
     href="/architectural/read-write-lock"
-    image="/cards/read-write-lock.png"
+    image="/cards/read-write-lock.webp"
   />
   <Card
     title="Repository"
     description="Mediates between domain and data layers using a collection-like interface"
     href="/architectural/repository"
-    image="/cards/repository.png"
+    image="/cards/repository.webp"
   />
   <Card
     title="Scheduler"
     description="Controls execution scheduling of thread tasks"
     href="/architectural/scheduler"
-    image="/cards/scheduler.png"
+    image="/cards/scheduler.webp"
   />
   <Card
     title="Service Locator"
     description="Resolves dependencies from a central registry"
     href="/architectural/service-locator"
-    image="/cards/service-locator.png"
+    image="/cards/service-locator.webp"
   />
   <Card
     title="Unit of Work"
     description="Tracks business objects changed during a transaction and coordinates writes"
     href="/architectural/unit-of-work"
-    image="/cards/unit-of-work.png"
+    image="/cards/unit-of-work.webp"
   />
 </Cards>
 

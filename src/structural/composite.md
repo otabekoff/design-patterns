@@ -6,7 +6,7 @@ icon: GitBranch
 
 # Composite Pattern
 
-<CoverImage src="/covers/structural/composite.png" alt="Cover">
+<CoverImage src="/covers/structural/composite.webp" alt="Cover">
   <h1>Composite</h1>
   <p>A high-tech modular Matryoshka doll structure made of geometric boxes, where opening a large box reveals smaller boxes, some containing actual microchips (leafs) and some containing even smaller boxes.</p>
 </CoverImage>
@@ -26,6 +26,43 @@ Composite is about uniform treatment of part and whole.
 Think of a **company organization chart**. An individual employee can be a leaf. A manager is also an employee, but that manager can contain reports. The same questions still make sense for both: who is your manager, what is your name, and what is your role?
 
 That shared shape is what Composite models.
+
+## Structure
+
+```mermaid
+classDiagram
+    class ContentNode {
+        <<interface>>
+        +getTitle() string
+        +render() string
+    }
+    class TextBlock {
+        +getTitle() string
+        +render() string
+    }
+    class ImageBlock {
+        +getTitle() string
+        +render() string
+    }
+    class Section {
+        -children: ContentNode[]
+        +add(child) void
+        +remove(child) void
+        +render() string
+    }
+    class Client
+
+    ContentNode <|.. TextBlock
+    ContentNode <|.. ImageBlock
+    ContentNode <|.. Section
+    Section o-- ContentNode : children
+    Client --> ContentNode : uses
+```
+
+- **`ContentNode`** (Component) is the shared interface for both single items and containers.
+- **`TextBlock` / `ImageBlock`** (Leaves) do the actual work and have no children.
+- **`Section`** (Composite) stores child `ContentNode`s and implements `render()` by delegating to each child recursively.
+- **`Client`** treats leaves and composites uniformly through `ContentNode`.
 
 ## The Problem
 

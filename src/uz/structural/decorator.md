@@ -1,596 +1,581 @@
 ---
 title: Decorator Pattern
-description: Dynamically attaches additional responsibilities to objects, providing a flexible alternative to subclassing
+description: Obyektlarni decorator obyektlariga o'rash orqali ularga dinamik ravishda mas'uliyatlar qo'shadi.
 icon: Wand
 ---
 
 # Decorator Pattern
 
-<CoverImage src="/covers/structural/decorator.png" alt="Cover">
+<CoverImage src="/covers/structural/decorator.webp" alt="Cover">
   <h1>Decorator</h1>
-  <p>A funny little white robot wearing way too many layers of winter clothing: a scarf, a hat, glowing earmuffs, a heavy jacket, and snowshoes, adding features without changing the core robot.</p>
+  <p>Haddan tashqari ko'p qavat qishki kiyim kiyib olgan kulgili kichkina oq robot: sharf, shapka, nurli quloqchinlar, qalin kurtka va qor poyabzallari — asosiy robotni o'zgartirmasdan unga imkoniyatlar qo'shilmoqda.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The Decorator Pattern is a structural design pattern that dynamically attaches additional responsibilities to objects. It provides a flexible alternative to subclassing for extending functionality by allowing you to "decorate" objects with new behavior at runtime.
+**Decorator** — bu obyektni xuddi shu interfeysni amalga oshiruvchi boshqa obyektga o'rash orqali unga dinamik ravishda xatti-harakat qo'shadigan strukturaviy (structural) dizayn patternidir. Har bir decorator chaqiruvni o'ralgan komponentga uzatadi va chaqiruvdan oldin yoki keyin o'z ishini qo'shadi.
 
-## Purpose
+**Asosiy afzalligi**: Quyi klasslar portlashisiz (subclass explosion) ish vaqtida (runtime) mas'uliyatlarni qatlam-qatlam qo'shishingiz mumkin.
 
-- **Add new responsibilities** to objects dynamically without modifying their classes
-- **Provide flexible alternative to subclassing** by using composition
-- **Avoid class explosion** that occurs with inheritance-based extensions
-- **Combine features** through multiple decorators
-- **Maintain single responsibility** while building complex behavior
+**Zamonaviy nuqtai nazar**: Bugungi kunda Decorator production kodida hamma joyda uchraydi: middleware, stream o'ramlari, HTTP klientlar, keshlash qatlamlari, loglash qatlamlari, qayta urinish (retry) siyosatlari va xavfsizlik o'ramlari.
 
-## Problem
+Decorator xatti-harakat qo'shadi. U mos kelmaydigan interfeyslarni tarjima qilmaydi.
 
-Consider a coffee shop that needs to calculate prices for different beverages with various add-ons:
+## Hayotiy o'xshatish (Real-World Analogy)
 
-- Base coffee: $3
-- Coffee with milk: $3.50
-- Coffee with milk and sugar: $3.75
-- Coffee with milk, sugar, and vanilla: $4.25
+**Kiyimlarni qavatma-qavat kiyishni** tasavvur qiling. Ko'ylak o'zi ham yetarli, lekin ob-havoga qarab ustidan kurtka, yomg'irpo'sh yoki sharf qo'shishingiz mumkin. Har bir qavat ostidagi tanani o'zgarishsiz qoldiradi, lekin umumiy natijani o'zgartiradi.
 
-Without the Decorator Pattern, you might create classes like:
+Decorator'lar aynan shunday qiladi: har bir qavat asl obyektni o'zgartirmasdan unga nimadir qo'shadi.
 
-- `SimpleCoffee`
-- `CoffeeWithMilk`
-- `CoffeeWithMilkAndSugar`
-- `CoffeeWithMilkSugarAndVanilla`
-- ...many more combinations
+## Tuzilma (Structure)
 
-With N options and each having 2 states (present/absent), you'd need 2^N classes—exponential growth! The Decorator Pattern solves this through composition.
+```mermaid
+classDiagram
+    class ApiClient {
+        <<interface>>
+        +fetch(path) Promise
+    }
+    class HttpApiClient {
+        +fetch(path) Promise
+    }
+    class ApiClientDecorator {
+        <<abstract>>
+        #client: ApiClient
+        +fetch(path) Promise*
+    }
+    class LoggingDecorator {
+        +fetch(path) Promise
+    }
+    class CachingDecorator {
+        -cache: Map
+        +fetch(path) Promise
+    }
+    class RetryDecorator {
+        -maxRetries: number
+        +fetch(path) Promise
+    }
 
-## Solution
+    ApiClient <|.. HttpApiClient
+    ApiClient <|.. ApiClientDecorator
+    ApiClientDecorator o-- ApiClient : wraps
+    ApiClientDecorator <|-- LoggingDecorator
+    ApiClientDecorator <|-- CachingDecorator
+    ApiClientDecorator <|-- RetryDecorator
+```
 
-The Decorator Pattern provides a solution by:
+- **`ApiClient`** (Component) — asosiy obyekt va har bir o'ram uchun umumiy interfeys.
+- **`HttpApiClient`** (Concrete Component) asosiy xatti-harakatni ta'minlaydi.
+- **`ApiClientDecorator`** (Base Decorator) `ApiClient`'ni amalga oshiradi va o'ralgan `ApiClient`'ni saqlaydi, shuning uchun decorator'larni ustma-ust qo'yish mumkin.
+- **`LoggingDecorator` / `CachingDecorator` / `RetryDecorator`** (Concrete Decorators) chaqiruvni uzatishdan oldin yoki keyin har biri bittadan xatti-harakat qo'shadi.
 
-1. **Component Interface**: Define interface that both real objects and decorators implement
-2. **Concrete Component**: The original object being decorated
-3. **Decorator Classes**: Wrap the component and add functionality
-4. **Wrapping**: Each decorator holds a reference to the component it decorates
-5. **Transparent Replacement**: Decorators can wrap components or other decorators
+## Muammo (The Problem)
 
-This allows unlimited combinations of features through composition instead of inheritance explosion.
+Faraz qilaylik, sizda oddiy API klient bor, lekin turli chaqiruv joylariga loglash, keshlash, qayta urinishlar va metrikalarning turli kombinatsiyalari kerak.
 
-## Implementation
+Agar merosdan foydalansangiz, tezda klasslar portlashiga duch kelasiz:
+
+- BasicClient
+- LoggedClient
+- CachedClient
+- RetryingClient
+- LoggedCachedClient
+- LoggedRetryingClient
+- CachedRetryingClient
+- LoggedCachedRetryingClient
+
+Imkoniyatlar ko'paygan sari bu juda yomon o'sadi.
+
+### Muammo misoli
+
+```typescript
+// ❌ Yomon: vorislik kombinatorikasi
+class LoggedCachedRetryingApiClient extends ApiClient {}
+class CachedRetryingApiClient extends ApiClient {}
+class LoggedApiClient extends ApiClient {}
+```
+
+## Yechim (The Solution)
+
+Decorator obyektni o'rab, xuddi shu interfeysni saqlab qolish orqali bu muammoni hal qiladi.
+
+1. Umumiy komponent interfeysini aniqlang
+2. Asosiy obyektni bir marta amalga oshiring
+3. Har bir xatti-harakat uchun bittadan decorator klass qo'shing
+4. Ish vaqtida decorator'larni kerakli tarzda birlashtiring (compose)
+
+Bu asosiy obyektni sodda saqlaydi va imkoniyatlarni faqat kerakli joyda qo'shish imkonini beradi.
+
+## Amalga oshirish (Implementation)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// ========== Component Interface ==========
-interface Beverage {
-  getDescription(): string;
-  getCost(): number;
+interface ApiClient {
+  fetch(path: string): Promise<string>;
 }
 
-// ========== Concrete Component ==========
-class SimpleCoffee implements Beverage {
-  getDescription(): string {
-    return "Simple Coffee";
-  }
-
-  getCost(): number {
-    return 3.0;
+class HttpApiClient implements ApiClient {
+  async fetch(path: string): Promise<string> {
+    return `response from ${path}`;
   }
 }
 
-class Tea implements Beverage {
-  getDescription(): string {
-    return "Tea";
-  }
+abstract class ApiClientDecorator implements ApiClient {
+  constructor(protected readonly client: ApiClient) {}
+  abstract fetch(path: string): Promise<string>;
+}
 
-  getCost(): number {
-    return 2.5;
+class LoggingDecorator extends ApiClientDecorator {
+  async fetch(path: string): Promise<string> {
+    console.log(`[LOG] fetching ${path}`);
+    const result = await this.client.fetch(path);
+    console.log(`[LOG] received ${result}`);
+    return result;
   }
 }
 
-// ========== Decorator Classes ==========
-abstract class BeverageDecorator implements Beverage {
-  constructor(protected beverage: Beverage) {}
+class CachingDecorator extends ApiClientDecorator {
+  private cache = new Map<string, string>();
 
-  abstract getDescription(): string;
+  async fetch(path: string): Promise<string> {
+    if (this.cache.has(path)) {
+      console.log(`[CACHE] hit for ${path}`);
+      return this.cache.get(path)!;
+    }
 
-  getCost(): number {
-    return this.beverage.getCost();
+    const result = await this.client.fetch(path);
+    this.cache.set(path, result);
+    return result;
   }
 }
 
-class MilkDecorator extends BeverageDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Milk`;
-  }
-
-  getCost(): number {
-    return this.beverage.getCost() + 0.5;
-  }
-}
-
-class SugarDecorator extends BeverageDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Sugar`;
-  }
-
-  getCost(): number {
-    return this.beverage.getCost() + 0.25;
-  }
-}
-
-class VanillaDecorator extends BeverageDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Vanilla`;
-  }
-
-  getCost(): number {
-    return this.beverage.getCost() + 0.75;
-  }
-}
-
-class WhippedCreamDecorator extends BeverageDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Whipped Cream`;
-  }
-
-  getCost(): number {
-    return this.beverage.getCost() + 0.5;
-  }
-}
-
-// ========== Usage ==========
-let beverage: Beverage = new SimpleCoffee();
-console.log(`${beverage.getDescription()}: $${beverage.getCost()}`);
-
-// Decorate with milk
-beverage = new MilkDecorator(beverage);
-console.log(`${beverage.getDescription()}: $${beverage.getCost()}`);
-
-// Add sugar
-beverage = new SugarDecorator(beverage);
-console.log(`${beverage.getDescription()}: $${beverage.getCost()}`);
-
-// Add vanilla
-beverage = new VanillaDecorator(beverage);
-console.log(`${beverage.getDescription()}: $${beverage.getCost()}`);
-
-// Add whipped cream
-beverage = new WhippedCreamDecorator(beverage);
-console.log(`${beverage.getDescription()}: $${beverage.getCost()}\n`);
-
-// Different combination
-let tea: Beverage = new Tea();
-tea = new MilkDecorator(tea);
-tea = new WhippedCreamDecorator(tea);
-console.log(`${tea.getDescription()}: $${tea.getCost()}`);
-
-// ========== Real-world example: Data Stream Encryption & Compression ==========
-
-interface DataStream {
-  read(): string;
-  write(data: string): void;
-}
-
-class FileDataStream implements DataStream {
-  constructor(private filename: string) {}
-
-  read(): string {
-    return `Reading from ${this.filename}`;
-  }
-
-  write(data: string): void {
-    console.log(`Writing to ${this.filename}: ${data}`);
-  }
-}
-
-// Decorator for compression
-class CompressionDecorator implements DataStream {
-  constructor(private stream: DataStream) {}
-
-  read(): string {
-    return `[Compressed] ${this.stream.read()}`;
-  }
-
-  write(data: string): void {
-    const compressed = this.compressData(data);
-    this.stream.write(compressed);
-  }
-
-  private compressData(data: string): string {
-    return `compressed(${data})`;
-  }
-}
-
-// Decorator for encryption
-class EncryptionDecorator implements DataStream {
-  constructor(private stream: DataStream) {}
-
-  read(): string {
-    return `[Encrypted] ${this.stream.read()}`;
-  }
-
-  write(data: string): void {
-    const encrypted = this.encryptData(data);
-    this.stream.write(encrypted);
-  }
-
-  private encryptData(data: string): string {
-    return `encrypted(${data})`;
-  }
-}
-
-// Decorator for logging
-class LoggingDecorator implements DataStream {
-  constructor(private stream: DataStream) {}
-
-  read(): string {
-    const data = this.stream.read();
-    console.log(`[LOG] Reading: ${data}`);
-    return data;
-  }
-
-  write(data: string): void {
-    console.log(`[LOG] Writing: ${data}`);
-    this.stream.write(data);
-  }
-}
-
-// ========== Stream Usage ==========
-console.log("\n--- Stream Decorators ---");
-let stream: DataStream = new FileDataStream("data.txt");
-stream = new CompressionDecorator(stream);
-stream = new EncryptionDecorator(stream);
-stream = new LoggingDecorator(stream);
-
-stream.write("sensitive data");
-stream.read();
-
-// ========== Real-world example: UI Components ==========
-
-interface UIComponent {
-  render(): string;
-}
-
-class Button implements UIComponent {
-  constructor(private label: string) {}
-
-  render(): string {
-    return `<button>${this.label}</button>`;
-  }
-}
-
-class BorderDecorator implements UIComponent {
-  constructor(private component: UIComponent) {}
-
-  render(): string {
-    return `<div style="border: 1px solid black;">${this.component.render()}</div>`;
-  }
-}
-
-class PaddingDecorator implements UIComponent {
+class RetryDecorator extends ApiClientDecorator {
   constructor(
-    private component: UIComponent,
-    private padding: number = 10,
-  ) {}
+    client: ApiClient,
+    private readonly maxRetries: number = 3,
+  ) {
+    super(client);
+  }
 
-  render(): string {
-    return `<div style="padding: ${this.padding}px;">${this.component.render()}</div>`;
+  async fetch(path: string): Promise<string> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await this.client.fetch(path);
+      } catch (error) {
+        lastError = error;
+        console.log(`[RETRY] attempt ${attempt} failed`);
+      }
+    }
+
+    throw lastError;
   }
 }
 
-class ShadowDecorator implements UIComponent {
-  constructor(private component: UIComponent) {}
+const client: ApiClient = new LoggingDecorator(
+  new RetryDecorator(new CachingDecorator(new HttpApiClient())),
+);
 
-  render(): string {
-    return `<div style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">${this.component.render()}</div>`;
-  }
-}
-
-// ========== UI Component Usage ==========
-console.log("\n--- UI Component Decorators ---");
-let button: UIComponent = new Button("Click me");
-button = new PaddingDecorator(button, 15);
-button = new BorderDecorator(button);
-button = new ShadowDecorator(button);
-
-console.log(button.render());
+client.fetch("/users");
 ```
 
 ```python [Python]
 from abc import ABC, abstractmethod
 
-# ========== Component Interface ==========
-
-class Beverage(ABC):
+class ApiClient(ABC):
     @abstractmethod
-    def get_description(self) -> str:
+    def fetch(self, path: str) -> str:
         pass
 
-    @abstractmethod
-    def get_cost(self) -> float:
-        pass
+class HttpApiClient(ApiClient):
+    def fetch(self, path: str) -> str:
+        return f"response from {path}"
 
-# ========== Concrete Component ==========
+class ApiClientDecorator(ApiClient):
+    def __init__(self, client: ApiClient):
+        self._client = client
 
-class SimpleCoffee(Beverage):
-    def get_description(self) -> str:
-        return "Simple Coffee"
+class LoggingDecorator(ApiClientDecorator):
+    def fetch(self, path: str) -> str:
+        print(f"[LOG] fetching {path}")
+        result = self._client.fetch(path)
+        print(f"[LOG] received {result}")
+        return result
 
-    def get_cost(self) -> float:
-        return 3.0
+class CachingDecorator(ApiClientDecorator):
+    def __init__(self, client: ApiClient):
+        super().__init__(client)
+        self._cache = {}
 
-class Tea(Beverage):
-    def get_description(self) -> str:
-        return "Tea"
+    def fetch(self, path: str) -> str:
+        if path in self._cache:
+            print(f"[CACHE] hit for {path}")
+            return self._cache[path]
+        result = self._client.fetch(path)
+        self._cache[path] = result
+        return result
 
-    def get_cost(self) -> float:
-        return 2.5
+class RetryDecorator(ApiClientDecorator):
+    def __init__(self, client: ApiClient, max_retries: int = 3):
+        super().__init__(client)
+        self._max_retries = max_retries
 
-# ========== Decorator Classes ==========
+    def fetch(self, path: str) -> str:
+        last_error = None
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                return self._client.fetch(path)
+            except Exception as error:
+                last_error = error
+                print(f"[RETRY] attempt {attempt} failed")
+        raise last_error
 
-class BeverageDecorator(Beverage):
-    def __init__(self, beverage: Beverage):
-        self._beverage = beverage
+client = LoggingDecorator(RetryDecorator(CachingDecorator(HttpApiClient())))
+print(client.fetch("/users"))
+```
 
-    @abstractmethod
-    def get_description(self) -> str:
-        pass
+```java [Java]
+interface ApiClient {
+    String fetch(String path);
+}
 
-    def get_cost(self) -> float:
-        return self._beverage.get_cost()
+class HttpApiClient implements ApiClient {
+    @Override
+    public String fetch(String path) {
+        return "response from " + path;
+    }
+}
 
-class MilkDecorator(BeverageDecorator):
-    def get_description(self) -> str:
-        return f"{self._beverage.get_description()}, Milk"
+abstract class ApiClientDecorator implements ApiClient {
+    protected final ApiClient client;
 
-    def get_cost(self) -> float:
-        return self._beverage.get_cost() + 0.5
+    protected ApiClientDecorator(ApiClient client) {
+        this.client = client;
+    }
+}
 
-class SugarDecorator(BeverageDecorator):
-    def get_description(self) -> str:
-        return f"{self._beverage.get_description()}, Sugar"
+class LoggingDecorator extends ApiClientDecorator {
+    LoggingDecorator(ApiClient client) {
+        super(client);
+    }
 
-    def get_cost(self) -> float:
-        return self._beverage.get_cost() + 0.25
+    @Override
+    public String fetch(String path) {
+        System.out.println("[LOG] fetching " + path);
+        String result = client.fetch(path);
+        System.out.println("[LOG] received " + result);
+        return result;
+    }
+}
 
-class VanillaDecorator(BeverageDecorator):
-    def get_description(self) -> str:
-        return f"{self._beverage.get_description()}, Vanilla"
+class CachingDecorator extends ApiClientDecorator {
+    private final java.util.Map<String, String> cache = new java.util.HashMap<>();
 
-    def get_cost(self) -> float:
-        return self._beverage.get_cost() + 0.75
+    CachingDecorator(ApiClient client) {
+        super(client);
+    }
 
-class WhippedCreamDecorator(BeverageDecorator):
-    def get_description(self) -> str:
-        return f"{self._beverage.get_description()}, Whipped Cream"
+    @Override
+    public String fetch(String path) {
+        if (cache.containsKey(path)) {
+            System.out.println("[CACHE] hit for " + path);
+            return cache.get(path);
+        }
+        String result = client.fetch(path);
+        cache.put(path, result);
+        return result;
+    }
+}
 
-    def get_cost(self) -> float:
-        return self._beverage.get_cost() + 0.5
+class RetryDecorator extends ApiClientDecorator {
+    private final int maxRetries;
 
-# ========== Usage ==========
+    RetryDecorator(ApiClient client, int maxRetries) {
+        super(client);
+        this.maxRetries = maxRetries;
+    }
 
-beverage: Beverage = SimpleCoffee()
-print(f"{beverage.get_description()}: ${beverage.get_cost()}")
+    @Override
+    public String fetch(String path) {
+        RuntimeException last = null;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return client.fetch(path);
+            } catch (RuntimeException error) {
+                last = error;
+                System.out.println("[RETRY] attempt " + attempt + " failed");
+            }
+        }
+        throw last;
+    }
+}
+```
 
-# Decorate with milk
-beverage = MilkDecorator(beverage)
-print(f"{beverage.get_description()}: ${beverage.get_cost()}")
+```go [Go]
+package main
 
-# Add sugar
-beverage = SugarDecorator(beverage)
-print(f"{beverage.get_description()}: ${beverage.get_cost()}")
+import "fmt"
 
-# Add vanilla
-beverage = VanillaDecorator(beverage)
-print(f"{beverage.get_description()}: ${beverage.get_cost()}")
+type ApiClient interface {
+  Fetch(path string) (string, error)
+}
 
-# Add whipped cream
-beverage = WhippedCreamDecorator(beverage)
-print(f"{beverage.get_description()}: ${beverage.get_cost()}\n")
+type HttpApiClient struct{}
 
-# Different combination
-tea: Beverage = Tea()
-tea = MilkDecorator(tea)
-tea = WhippedCreamDecorator(tea)
-print(f"{tea.get_description()}: ${tea.get_cost()}")
+func (c *HttpApiClient) Fetch(path string) (string, error) {
+  return "response from " + path, nil
+}
 
-# ========== Real-world example: Data Stream Encryption & Compression ==========
+type ApiClientDecorator struct {
+	client ApiClient
+}
 
-class DataStream(ABC):
-    @abstractmethod
-    def read(self) -> str:
-        pass
+type LoggingDecorator struct {
+	ApiClientDecorator
+}
 
-    @abstractmethod
-    def write(self, data: str) -> None:
-        pass
+func (d *LoggingDecorator) Fetch(path string) (string, error) {
+	fmt.Println("[LOG] fetching", path)
+  result, err := d.client.Fetch(path)
+  if err != nil {
+    return "", err
+  }
+	fmt.Println("[LOG] received", result)
+  return result, nil
+}
 
-class FileDataStream(DataStream):
-    def __init__(self, filename: str):
-        self._filename = filename
+type CachingDecorator struct {
+	ApiClientDecorator
+	cache map[string]string
+}
 
-    def read(self) -> str:
-        return f"Reading from {self._filename}"
+func NewCachingDecorator(client ApiClient) *CachingDecorator {
+	return &CachingDecorator{
+		ApiClientDecorator: ApiClientDecorator{client: client},
+		cache:              make(map[string]string),
+	}
+}
 
-    def write(self, data: str) -> None:
-        print(f"Writing to {self._filename}: {data}")
+func (d *CachingDecorator) Fetch(path string) (string, error) {
+	if value, ok := d.cache[path]; ok {
+		fmt.Println("[CACHE] hit for", path)
+    return value, nil
+	}
+  result, err := d.client.Fetch(path)
+  if err != nil {
+    return "", err
+  }
+	d.cache[path] = result
+  return result, nil
+}
 
-# Decorator for compression
-class CompressionDecorator(DataStream):
-    def __init__(self, stream: DataStream):
-        self._stream = stream
+type RetryDecorator struct {
+  ApiClientDecorator
+  maxRetries int
+}
 
-    def read(self) -> str:
-        return f"[Compressed] {self._stream.read()}"
+func (d *RetryDecorator) Fetch(path string) (string, error) {
+  var lastErr error
+  for attempt := 1; attempt <= d.maxRetries; attempt++ {
+    result, err := d.client.Fetch(path)
+    if err == nil {
+      return result, nil
+    }
+    lastErr = err
+    fmt.Println("[RETRY] attempt", attempt, "failed")
+  }
+  return "", lastErr
+}
+```
 
-    def write(self, data: str) -> None:
-        compressed = self._compress_data(data)
-        self._stream.write(compressed)
+```rust [Rust]
+use std::collections::HashMap;
 
-    @staticmethod
-    def _compress_data(data: str) -> str:
-        return f"compressed({data})"
+trait ApiClient {
+    fn fetch(&mut self, path: &str) -> String;
+}
 
-# Decorator for encryption
-class EncryptionDecorator(DataStream):
-    def __init__(self, stream: DataStream):
-        self._stream = stream
+struct HttpApiClient;
 
-    def read(self) -> str:
-        return f"[Encrypted] {self._stream.read()}"
+impl ApiClient for HttpApiClient {
+    fn fetch(&mut self, path: &str) -> String {
+        format!("response from {}", path)
+    }
+}
 
-    def write(self, data: str) -> None:
-        encrypted = self._encrypt_data(data)
-        self._stream.write(encrypted)
+struct LoggingDecorator<T: ApiClient> {
+    client: T,
+}
 
-    @staticmethod
-    def _encrypt_data(data: str) -> str:
-        return f"encrypted({data})"
+impl<T: ApiClient> LoggingDecorator<T> {
+    fn new(client: T) -> Self {
+        Self { client }
+    }
+}
 
-# Decorator for logging
-class LoggingDecorator(DataStream):
-    def __init__(self, stream: DataStream):
-        self._stream = stream
+impl<T: ApiClient> ApiClient for LoggingDecorator<T> {
+    fn fetch(&mut self, path: &str) -> String {
+        println!("[LOG] fetching {}", path);
+        let result = self.client.fetch(path);
+        println!("[LOG] received {}", result);
+        result
+    }
+}
 
-    def read(self) -> str:
-        data = self._stream.read()
-        print(f"[LOG] Reading: {data}")
-        return data
+struct CachingDecorator<T: ApiClient> {
+    client: T,
+    cache: HashMap<String, String>,
+}
 
-    def write(self, data: str) -> None:
-        print(f"[LOG] Writing: {data}")
-        self._stream.write(data)
+impl<T: ApiClient> CachingDecorator<T> {
+    fn new(client: T) -> Self {
+        Self {
+            client,
+            cache: HashMap::new(),
+        }
+    }
+}
 
-# ========== Stream Usage ==========
+impl<T: ApiClient> ApiClient for CachingDecorator<T> {
+    fn fetch(&mut self, path: &str) -> String {
+        if let Some(value) = self.cache.get(path) {
+            println!("[CACHE] hit for {}", path);
+            return value.clone();
+        }
 
-print("\n--- Stream Decorators ---")
-stream: DataStream = FileDataStream("data.txt")
-stream = CompressionDecorator(stream)
-stream = EncryptionDecorator(stream)
-stream = LoggingDecorator(stream)
-
-stream.write("sensitive data")
-stream.read()
-
-# ========== Real-world example: UI Components ==========
-
-class UIComponent(ABC):
-    @abstractmethod
-    def render(self) -> str:
-        pass
-
-class Button(UIComponent):
-    def __init__(self, label: str):
-        self._label = label
-
-    def render(self) -> str:
-        return f"<button>{self._label}</button>"
-
-class BorderDecorator(UIComponent):
-    def __init__(self, component: UIComponent):
-        self._component = component
-
-    def render(self) -> str:
-        return f'<div style="border: 1px solid black;">{self._component.render()}</div>'
-
-class PaddingDecorator(UIComponent):
-    def __init__(self, component: UIComponent, padding: int = 10):
-        self._component = component
-        self._padding = padding
-
-    def render(self) -> str:
-        return f'<div style="padding: {self._padding}px;">{self._component.render()}</div>'
-
-class ShadowDecorator(UIComponent):
-    def __init__(self, component: UIComponent):
-        self._component = component
-
-    def render(self) -> str:
-        return f'<div style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">{self._component.render()}</div>'
-
-# ========== UI Component Usage ==========
-
-print("\n--- UI Component Decorators ---")
-button: UIComponent = Button("Click me")
-button = PaddingDecorator(button, 15)
-button = BorderDecorator(button)
-button = ShadowDecorator(button)
-
-print(button.render())
+        let result = self.client.fetch(path);
+        self.cache.insert(path.to_string(), result.clone());
+        result
+    }
+}
 ```
 
 :::
 
-## Real-World Example
+## Haqiqiy hayotdagi misol (Real-World Example)
 
-**Text Processing Pipeline**: Decorators can be used to build flexible text processing:
+Decorator'ning production'dagi keng tarqalgan qo'llanilishi — HTTP klientni loglash, keshlash yoki qayta urinish xatti-harakati bilan o'rash. Har bir vazifa alohida qoladi va o'ramlar zanjiri faqat kerakli joyda yig'iladi.
 
-- **Base**: `PlainTextDocument`
-- **Decorators**:
-  - `SpellCheckerDecorator` - adds spell checking
-  - `GrammarCheckerDecorator` - adds grammar checking
-  - `FormatterDecorator` - adds formatting capabilities
-  - `EncryptionDecorator` - adds encryption
+```typescript
+const client: ApiClient = new LoggingDecorator(
+  new RetryDecorator(new CachingDecorator(new HttpApiClient())),
+);
+```
 
-You can combine any decorators to create a document with exactly the features you need, in any order, without modifying the base class or creating new subclasses.
+Bu asosiy klientni qayta ishlatiladigan holda saqlaydi va barcha kesishuvchi vazifalarni (cross-cutting concerns) bitta klassga qattiq yozib qo'yishdan qochadi.
 
-## Advantages
+## Afzalliklari (Advantages)
 
-::: tip
-✅ **Avoids Class Explosion**: Combine features through composition instead of inheritance
+- Asosiy klassni o'zgartirmasdan xatti-harakat qo'shadi
+- Meros portlashining oldini oladi
+- Imkoniyatlarni ish vaqtida birlashtirishni qo'llab-quvvatlaydi
+- Mas'uliyatlarni kichik o'ramlarga ajratilgan holda saqlaydi
+- Kesishuvchi vazifalarni qayta ishlatiladigan qiladi
+- Xatti-harakatni faqat kerakli joyda qo'llash imkonini beradi
 
-✅ **Dynamic Functionality**: Add or remove responsibilities at runtime
+## Kamchiliklari (Disadvantages)
 
-✅ **Single Responsibility**: Each decorator handles one specific responsibility
+- Ko'plab kichik o'ram obyektlarini yaratishi mumkin
+- Chuqur decorator zanjirlarini debug qilish qiyinroq bo'lishi mumkin
+- O'rash tartibi muhim
+- Juda ko'p xatti-harakatlar ustma-ust qo'yilsa, chalkash bo'lib qolishi mumkin
+- Barcha qatlamlar uchun umumiy interfeysni talab qiladi
 
-✅ **Flexible Combinations**: Combine multiple decorators in any order
+## Qachon foydalanish kerak (When to Use)
 
-✅ **Open/Closed Principle**: Open for extension, closed for modification
+- Sizga ixtiyoriy xatti-harakat qatlamlari kerak
+- Loglash yoki keshlash kabi kesishuvchi vazifalarni qo'shmoqchisiz
+- Quyi klass kombinatsiyalaridan qochmoqchisiz
+- Sizga ish vaqtida birlashtirish kerak
+- Bir xil asosiy obyekt ko'plab kontekstlarga xizmat qilishini xohlaysiz
 
-✅ **More Transparent than Subclassing**: Decorators are transparent to clients
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-✅ **Stackable Enhancement**: Layer multiple decorators for progressive enhancement
-:::
+- Xatti-harakat qat'iy belgilangan va sodda bo'lishi kerak
+- O'ramlar zanjirini tushunish juda qiyin bo'lib qoladi
+- Qo'shimcha bilvositalik (indirection) moslashuvchanlikka arzimaydi
+- Xatti-harakat asosiy obyektning o'ziga tegishli
+- Sizga xatti-harakat qatlamlari emas, balki interfeys tarjimasi kerak
 
-## Disadvantages
+## Keng tarqalgan xatolar (Common Mistakes)
 
-::: warning
-❌ **Increased Complexity**: Many small classes and objects to manage
+### 1-xato: Interfeysni o'zgartirish
 
-❌ **Harder to Debug**: Multiple layers of wrapping make debugging difficult
+```typescript
+// ❌ Yomon: endi haqiqiy decorator emas
+class BadDecorator {
+  logFetch() {}
+}
 
-❌ **Performance Overhead**: Each decorator adds a method call layer
+// ✅ Yaxshi: o'sha interfeysni saqlang
+class LoggingDecorator implements ApiClient {
+  fetch(path: string): Promise<string> {
+    return Promise.resolve(path);
+  }
+}
+```
 
-❌ **Order Matters**: Decorator order can affect behavior and results
+### 2-xato: O'ramlarga aloqasiz ishlarni yuklash
 
-❌ **Complex Initialization**: Initialization code can become complex
+```typescript
+// ❌ Yomon: decorator biznes qoidalarini boshqaradi
+class BadDecorator {
+  fetch(path: string) {
+    // narxlash mantiqi shu yerda
+  }
+}
 
-❌ **Difficult to Understand**: The final behavior depends on decorator order
+// ✅ Yaxshi: decorator faqat bitta vazifani qo'shadi
+```
 
-❌ **Not Suitable for All Cases**: Simpler alternatives might be better for simple cases
-:::
+### 3-xato: O'rash tartibini e'tiborsiz qoldirish
 
-## When to Use
+```typescript
+// ❌ Yomon: retry tashqarisidagi kesh xatolarni noto'g'ri keshlashi mumkin
+// ✅ Yaxshi: tartibni ongli ravishda tanlang
+```
 
-- You need to add responsibilities to objects dynamically
-- You need flexible combinations of features without class explosion
-- You want to avoid modifying existing classes with new functionality
-- You need to apply features in different combinations
-- You want single responsibility and open/closed principle
-- You're building plugin or middleware systems
+### 4-xato: Har bir kichik o'zgarish uchun decorator'lardan ortiqcha foydalanish
 
-## When NOT to Use
+```typescript
+// ❌ Yomon: o'nlab bir martalik wrapperlar
+// ✅ Yaxshi: decoratorlarni mazmunli kesishuvchi vazifalar uchun ishlating
+```
 
-- You only need a few simple variations (inheritance might be simpler)
-- You need different method signatures for different objects
-- Performance is critical and overhead is unacceptable
-- The ordering of decorators is complex and confusing
-- The implementation is simpler with inheritance or composition
-- You need strong type safety and compile-time checking
+## Aloqador patternlar (Related Patterns)
 
-## Related Patterns
+- **[Adapter](/uz/structural/adapter)**: Xatti-harakatni emas, interfeys mosligini o'zgartiradi
+- **[Proxy](/uz/structural/proxy)**: Kirishni nazorat qiladi; tashqi ko'rinishi o'xshash bo'lishi mumkin, lekin maqsadi boshqa
+- **[Facade](/uz/structural/facade)**: Xatti-harakatni o'rash o'rniga quyi tizimga kirishni soddalashtiradi
+- **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)**: Barcha xatti-harakatlarni bitta obyekt ustiga qatlamlash o'rniga so'rovlarni handler'lar orqali o'tkazadi
 
-- **Adapter Pattern**: Both use wrapping, but Adapter converts interfaces while Decorator adds responsibilities
-- **Composite Pattern**: Both use recursive composition, but Composite represents hierarchies while Decorator adds functionality
-- **Strategy Pattern**: Both encapsulate variations, but Strategy swaps algorithms while Decorator adds responsibilities
-- **Proxy Pattern**: Similar structure, but Proxy controls access while Decorator adds functionality
-- **Factory Pattern**: Often used to create complex decorator chains
+## Zamonaviy muqobillar (Modern Alternatives)
+
+- Veb-freymvorklardagi middleware quvurlari (pipeline)
+- HTTP klientlardagi interceptor'lar
+- Aspektga yo'naltirilgan dasturlash (AOP)
+- Yuqori tartibli funksiyalar (higher-order functions) bilan funksional kompozitsiya
+- Reaktiv operatorlar zanjirlari
+
+## Intervyu uchun maslahatlar (Interview Insights)
+
+**1-savol: Decorator nimani hal qiladi?**
+
+J: U quyi klass yaratmasdan dinamik ravishda xatti-harakat qo'shish imkonini beradi. Uning mavjudligining asosiy sababi shu.
+
+**2-savol: Decorator Proxy'dan nimasi bilan farq qiladi?**
+
+J: Proxy kirishni yoki hayot siklini nazorat qiladi. Decorator esa mas'uliyatlar va xatti-harakat qo'shadi.
+
+**3-savol: Nega ixtiyoriy imkoniyatlar uchun Decorator quyi klasslardan yaxshiroq?**
+
+J: Chunki quyi klass kombinatsiyalari eksponensial o'sadi. Decorator'lar esa buning o'rniga imkoniyatlarni ish vaqtida birlashtiradi.
+
+**4-savol: Nega decorator'lar tartibi muhim?**
+
+J: Chunki har bir qatlam oldingi qatlamning natijasini ko'radi. Retry'ni o'rab turgan kesh keshni o'rab turgan retry'dan boshqacha ishlaydi.
+
+**5-savol: Qachon Decorator ortiqcha bo'ladi?**
+
+J: Faqat bitta yoki ikkita oddiy variatsiya bo'lsa va to'g'ridan-to'g'ri metod yoki oddiy yordamchi funksiya yetarli bo'lsa.

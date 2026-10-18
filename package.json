@@ -1,4 +1,17 @@
 {
+  "name": "design-patterns",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "check": "bun run check:mermaid && bun run check:code && bun run check:i18n",
+    "check:mermaid": "node scripts/check-mermaid.mjs",
+    "check:code": "node scripts/check-code-samples.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "images": "python scripts/optimize-images.py"
+  },
   "dependencies": {
     "@lucide/vue": "^1.16.0",
     "lucide": "^1.16.0",
@@ -6,22 +19,8 @@
     "vitepress-plugin-group-icons": "^1.7.5"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "cross-env": "^10.1.0",
     "ufo": "^1.6.4",
     "vitepress": "^1.6.4",
     "vue": "^3.5.34"
-  },
-  "name": "design-patterns",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "scripts": {
-    "dev": "vitepress dev",
-    "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitepress build",
-    "preview": "vitepress preview"
   }
 }

@@ -1,57 +1,77 @@
-# Sample workflow for building and deploying a VitePress site to GitHub Pages
-#
-name: Deploy VitePress site to Pages
+# Checks content and builds the VitePress site on every pull request and push;
+# deploys to GitHub Pages only from `main`.
+name: Build and deploy
 
 on:
-  # Runs on pushes targeting the `main` branch.
   push:
     branches: [main]
-
-  # Allows you to run this workflow manually from the Actions tab
+  pull_request:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# One deployment at a time; superseded PR runs are cancelled, production runs are not
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # full history for "last updated" timestamps
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
+
+      # Toolchains for the code-sample syntax check (Java, Python and Rust/rustfmt ship with the runner)
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Check Mermaid diagrams
+        run: bun run check:mermaid
+
+      - name: Check code samples
+        run: node scripts/check-code-samples.mjs --strict
+
+      - name: Check translations
+        run: bun run check:i18n
+
       - name: Build with VitePress
         run: bun run build
+
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: .vitepress/dist
 
-  # Deployment job
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    name: Deploy
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

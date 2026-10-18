@@ -1,356 +1,670 @@
 ---
 title: Data Mapper Pattern
-description: Xotiradagi obyektlarni ularning ma'lumotlar bazasidagi ifodasidan ajratadi
+description: Xotiradagi domen obyektlarini ma'lumotlar bazasidan ajratadigan arxitektura patterni. Ikkalasi o'rtasidagi barcha tarjimani mapper qatlami bajaradi.
 icon: GitGraph
 ---
 
 # Data Mapper Pattern
 
-<CoverImage src="/covers/architectural/data-mapper.png" alt="Cover">
+<CoverImage src="/covers/architectural/data-mapper.webp" alt="Cover">
   <h1>Data Mapper</h1>
-  <p>A friendly postman robot translating letters written in an ancient scroll format into neat modern digital tablets, keeping the scroll and the tablet completely separate.</p>
+  <p>Qadimiy o'ram (scroll) formatida yozilgan maktublarni tartibli zamonaviy raqamli planshetlarga tarjima qilayotgan, o'ram va planshetni bir-biridan butunlay alohida saqlayotgan do'stona pochtachi robot.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Data Mapper** patterni bu obyektlarning xotiradagi ko'rinishini ularning ma'lumotlar bazasidagi saqlanadigan ko'rinishidan ajratadigan arxitektura yondashuvidir. Mapper qatlami ikkalasi o'rtasidagi tarjimani (translation) boshqaradi.
+**Data Mapper** patterni — bu ma'lumotlar bazasi bilan barcha o'zaro aloqani domen obyektlaridan chiqarib, alohida, maxsus qatlamga ko'chiradigan arxitekturaviy ma'lumotlarga kirish patterni. Domen obyektlari ma'lumotlar bazasi mavjudligidan ham butunlay bexabar bo'lib qoladi.
 
-Asosiy tushunchalar:
+**Asosiy afzallik**: U vazifalarning qat'iy ajratilishini (separation of concerns) ta'minlaydi va asosiy biznes mantiqingiz SQL buyruqlari, ORM sintaksisi yoki ma'lumotlar bazasi sxemasining cheklovlari bilan ifloslanmasligini kafolatlaydi.
 
-- **Domen Obyektlari (Domain Objects)**: Sof biznes mantig'i, saqlash (persistence) haqida bexabar
-- **Data Mapper**: Obyekt va ma'lumotlar bazasi o'rtasidagi konversiyani boshqaradi
-- **Vazifalarni ajratish (Separation of Concerns)**: Obyektlar ma'lumotlar bazasi haqida bilmaydi
-- **Moslashuvchan Xaritalash (Flexible Mapping)**: Obyekt va ma'lumotlar bazasining turli xil tuzilmalari
+**Zamonaviy nuqtai nazar**: Data Mapper korporativ darajadagi ORM'larning (Java'da Hibernate/JPA, PHP'da Doctrine, .NET'da Entity Framework va Node.js'da TypeORM/MikroORM kabi) arxitekturaviy asosidir. U Domain-Driven Design (DDD) uchun oltin standart hisoblanadi, chunki dasturchilarga murakkab biznes qoidalarini sof xotirada modellashtirish va ularni faqat zarur bo'lganda ma'lumotlar bazasiga xaritalash imkonini beradi.
 
-## Maqsad (Purpose)
+## Muammo (The Problem)
 
-Data Mapper quyidagilarni maqsad qiladi:
+Active Record patternidan foydalanganingizda, ma'lumotlar bazasi sxemangiz obyekt dizayningizni belgilaydi.
 
-- Domen obyektlarini saqlash bazasidan mustaqil saqlash
-- Ma'lumotlarni saqlashda moslashuvchanlikni ta'minlash
-- Bir nechta ma'lumotlar ifodalanishini (representations) qo'llab-quvvatlash
-- Soxta obyektlar (mocks) yordamida test qilishni osonlashtirish
-- Murakkab obyekt/ma'lumotlar bazasi xaritalashni (mapping) qo'llab-quvvatlash
-- Kodni tashkil qilish va texnik xizmat ko'rsatishni (maintainability) yaxshilash
+```typescript
+// ❌ Yomon: Domen obyekti ma'lumotlar bazasi sxemasiga bog'langan
+class Order extends ActiveRecord {
+  // Bu xususiyatlar ma'lumotlar bazasi ustunlariga aynan mos kelishi kerak
+  public id: number;
+  public customer_db_id: number; // DB sxemasi majburlagan noqulay nomlash
+  public status_varchar: string; // Ma'lumotlar bazasi tiplari domenga sizib kiradi
 
-## Muammo (Problem)
-
-To'g'ri xaritalashsiz (mapping) quyidagi muammolar yuzaga keladi:
-
-- Obyektlar ma'lumotlar bazasi sxemasiga qattiq bog'langan (tightly coupled) bo'ladi
-- Obyektlarni alohida test qilish qiyin
-- Saqlash mexanizmini o'zgartirish murakkab
-- Obyekt va ma'lumotlar bazasi tuzilmalari bir-biriga mos kelishi shart
-- Saqlash mantig'i biznes mantig'i bilan aralashib ketadi
-
-```
-❌ Qattiq bog'langan (Tightly Coupled)
-class User {
-  constructor(db) {
-    this.db = db;  // Ma'lumotlar bazasi haqida biladi
-  }
-  save() {
-    this.db.execute(...);  // Saqlash mantig'i
+  public ship() {
+    this.status_varchar = "SHIPPED";
+    this.save(); // To'g'ridan-to'g'ri ma'lumotlar bazasiga bog'langan
   }
 }
 ```
 
-## Yechim (Solution)
+Bu jiddiy cheklovlarni keltirib chiqaradi:
 
-Data Mapper obyektlarni saqlashdan (persistence) ajratadi:
+1. **Testlash dahshatga aylanadi**: `ship()` mantiqini testlash uchun butun ma'lumotlar bazasi ulanishini mock qilishingiz kerak, chunki `save()` chaqiruvi SQL'ni ishga tushiradi.
+2. **Sxemalarning nomuvofiqligi**: Agar Order'ni normallashtirilgan SQL ma'lumotlar bazasida saqlamoqchi bo'lsangiz-u, domen mantiqi Order obyektining chuqur ichma-ich joylashgan, boy obyektlar grafi bo'lishini talab qilsa-chi? Active Record 1:1 xaritalashga majburlaydi, bu esa murakkab xaritalashni imkonsiz qiladi.
+3. **Ma'lumotlar bazasi migratsiyalari biznes mantiqni buzadi**: Agar DBA `status_varchar` ni `order_state` deb qayta nomlasa, asosiy biznes mantiqingizni o'zgartirishingiz kerak bo'ladi.
 
+## Yechim (The Solution)
+
+Data Mapper patterni sof Domen obyekti va Ma'lumotlar bazasi o'rtasida turadigan vositachi klassni — Mapper'ni kiritadi.
+
+1. **Domen obyekti (Domain Object)**: Oddiy eski obyekt (POJO, POCO va h.k.). U biznes mantiqni o'z ichiga oladi, lekin ma'lumotlar bazasi mantiqini _o'z ichiga olmaydi_. U hech qanday freymvork bazaviy klasslarini kengaytirmaydi.
+2. **Data Mapper**: Domen obyektini olib, uning ma'lumotlarini ajratib chiqarish va kerakli SQL `INSERT/UPDATE` buyruqlarini generatsiya qilish uchun javobgar bo'lgan alohida klass. U shuningdek ma'lumotlar bazasiga so'rov yuborish va xom qatorlardan yangi Domen obyektlarini to'ldirish (hydrate) bilan ham shug'ullanadi.
+
+```typescript
+// ✅ Yaxshi: Toza domen obyekti
+const order = new Order("cust-123");
+order.ship(); // Toza biznes mantiq. Ma'lumotlar bazasiga murojaat yo'q.
+
+// ✅ Yaxshi: Saqlash bilan Mapper shug'ullanadi
+orderMapper.save(order);
 ```
-✅ Data Mapper
-class User {
-  name: string
-  email: string
-  // Ma'lumotlar bazasi haqida bilmaydi
-}
 
-class UserMapper {
-  toPersistence(user) { /* ma'lumotlar bazasiga o'giradi */ }
-  toDomain(row) { /* obyektga o'giradi */ }
-}
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class DomainObject {
+        +propA: string
+        +propB: int
+        +doBusinessLogic()
+    }
+
+    class DataMapper {
+        +insert(domainObject)
+        +update(domainObject)
+        +delete(domainObject)
+        +findById(id): DomainObject
+    }
+
+    class Database {
+        <<external>>
+    }
+
+    DataMapper --> DomainObject : creates / reads
+    DataMapper --> Database : queries / writes
+    DomainObject ..> Database : Absolutely NO connection
 ```
 
-## Amalga oshirish (Implementation)
+## Jarayon (Flow)
+
+1. **Yaratish/Yangilash**: Mijoz (client) xotirada sof Domen obyektini yaratadi yoki o'zgartiradi. Tugatgach, mijoz obyektni `DataMapper.save(obj)` metodiga uzatadi. Mapper obyekt xususiyatlarini ma'lumotlar bazasi ustunlariga xaritalaydi va SQL'ni bajaradi.
+2. **O'qish**: Mijoz `DataMapper.findById(1)` ni chaqiradi. Mapper ma'lumotlar bazasiga so'rov yuboradi, xom qator ma'lumotlarini oladi, sof Domen obyektini yaratadi, uni to'ldiradi va qaytaradi.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Birlashgan Millatlar Tashkilotidagi tarjimonlarni** tasavvur qiling.
+Sizda fransuz diplomati (Domen obyekti) va yapon diplomati (Ma'lumotlar bazasi) bor. Ular bir tilda gaplashmaydi va hech biri boshqasining tilini o'rganishni xohlamaydi.
+
+Fransuz diplomatini yapon tilini o'rganishga majburlash (Active Record) o'rniga, siz professional Tarjimonni (Data Mapper) jalb qilasiz. Fransuz diplomati faqat sof fransuz tilida gapiradi (Biznes mantiq). Tarjimon tinglaydi, tushunchalarni moslashtiradi va boshqa diplomatga yapon tilida gapiradi. Hech bir diplomat tarjima qanday amalga oshganini bilmaydi.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **Sof Domen obyektlarini yarating**: Biznes entity'laringizni ifodalaydigan klasslar yarating. Bu fayllarga hech qanday ma'lumotlar bazasi kutubxonasini import qilmang.
+2. **Data Mapper'ni yarating**: Aynan shu entity uchun saqlashni boshqaradigan klass (masalan, `UserMapper`) yarating.
+3. **To'ldirishni amalga oshiring (Qatordan obyektga)**: Mapper'da xom ma'lumotlar bazasi qatorini (Dictionary, JSON yoki struct) olib, Domen obyektini yaratadigan metod yozing.
+4. **Ajratib olishni amalga oshiring (Obyektdan qatorga)**: Mapper'da Domen obyektining xususiyatlarini o'qib, SQL parametrlarini yaratadigan metod yozing.
+5. **Saqlash operatsiyalarini amalga oshiring**: Mapper'da `insert`, `update`, `delete` va `find` metodlarini amalga oshiring.
+
+## Kod misollari (Code Examples)
+
+Biz oddiy `User` Domen obyekti va ma'lumotlar bazasi bilan o'zaro aloqani boshqaradigan `UserMapper` ni quramiz.
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Domain Object - Pure business logic
+// 1. Toza domen obyekti (E'tibor bering: DB importlari yo'q, save() metodi yo'q)
 class User {
   constructor(
-    public id: number | undefined,
-    public name: string,
+    public id: string | null,
+    public firstName: string,
+    public lastName: string,
     public email: string,
-    public age: number,
   ) {}
 
-  isAdult(): boolean {
-    return this.age >= 18;
+  // Toza biznes mantiq
+  public getFullName(): string {
+    return `${this.firstName} ${this.lastName}`;
   }
 
-  isValidEmail(): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email);
+  public changeEmail(newEmail: string): void {
+    if (!newEmail.includes("@")) throw new Error("Invalid email");
+    this.email = newEmail;
   }
 }
 
-// Database Row
-interface UserRow {
-  id: number;
-  name: string;
-  email: string;
-  age: number;
-  created_at: string;
-}
+// Soxta ma'lumotlar bazasi ulanishi
+const db = {
+  execute: (sql: string, params: any[]) =>
+    console.log(`[DB EXECUTE] ${sql} | Params:`, params),
+  query: (sql: string, params: any[]) => {
+    console.log(`[DB QUERY] ${sql} | Params:`, params);
+    // Xom DB qatorini qaytaradi (snake_case nomlashga e'tibor bering)
+    return [
+      {
+        user_id: "uuid-1",
+        first_name: "John",
+        last_name: "Doe",
+        email_address: "john@test.com",
+      },
+    ];
+  },
+};
 
-// Data Mapper
+// 2. Data Mapper
 class UserMapper {
-  // Convert domain object to database row
-  toPersistence(user: User): Partial<UserRow> {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      age: user.age,
-    };
+  // DB qatorini domen obyektiga o'giradi
+  private toDomain(row: any): User {
+    return new User(
+      row.user_id,
+      row.first_name, // DB'dagi 'first_name' ni obyektdagi 'firstName' ga moslash
+      row.last_name,
+      row.email_address,
+    );
   }
 
-  // Convert database row to domain object
-  toDomain(row: UserRow): User {
-    return new User(row.id, row.name, row.email, row.age);
-  }
-
-  // Convert collection of rows
-  toDomainCollection(rows: UserRow[]): User[] {
-    return rows.map((row) => this.toDomain(row));
-  }
-}
-
-// Repository - Uses mapper
-class UserRepository {
-  private mapper = new UserMapper();
-  private storage: Map<number, UserRow> = new Map();
-  private nextId = 1;
-
-  save(user: User): User {
-    const row = this.mapper.toPersistence(user) as UserRow;
-
-    if (user.id === undefined) {
-      user.id = this.nextId++;
-      row.id = user.id;
-      row.created_at = new Date().toISOString();
+  // Domen obyektini DB qatoriga / SQL bajarilishiga o'giradi
+  public save(user: User): void {
+    if (user.id === null) {
+      user.id = "uuid-" + Math.floor(Math.random() * 1000); // ID yaratish
+      db.execute(
+        "INSERT INTO users (user_id, first_name, last_name, email_address) VALUES (?, ?, ?, ?)",
+        [user.id, user.firstName, user.lastName, user.email],
+      );
+    } else {
+      db.execute(
+        "UPDATE users SET first_name = ?, last_name = ?, email_address = ? WHERE user_id = ?",
+        [user.firstName, user.lastName, user.email, user.id],
+      );
     }
-
-    this.storage.set(user.id, row);
-    console.log(`✅ User saved: ${user.name}`);
-    return user;
   }
 
-  findById(id: number): User | null {
-    const row = this.storage.get(id);
-    return row ? this.mapper.toDomain(row) : null;
-  }
-
-  findAll(): User[] {
-    const rows = Array.from(this.storage.values());
-    return this.mapper.toDomainCollection(rows);
-  }
-
-  delete(id: number): boolean {
-    return this.storage.delete(id);
+  public findById(id: string): User | null {
+    const rows = db.query("SELECT * FROM users WHERE user_id = ?", [id]);
+    if (rows.length === 0) return null;
+    return this.toDomain(rows[0]);
   }
 }
 
-// Usage
-const repository = new UserRepository();
+// 3. Mijoz kodi
+const mapper = new UserMapper();
 
-const user = new User(undefined, "John Doe", "john@example.com", 30);
-repository.save(user);
+// Domen obyektini faqat xotirada yaratish va o'zgartirish
+const user = new User(null, "Alice", "Smith", "alice@example.com");
+user.changeEmail("alice.smith@example.com");
 
-const user2 = new User(undefined, "Jane Smith", "jane@example.com", 25);
-repository.save(user2);
+// O'zgarishlarni Mapper orqali saqlash
+console.log("--- Saving User ---");
+mapper.save(user);
 
-console.log("\n=== All Users ===");
-const allUsers = repository.findAll();
-allUsers.forEach((u) => {
-  console.log(
-    `${u.name}: Adult=${u.isAdult()}, Email Valid=${u.isValidEmail()}`,
-  );
-});
-
-console.log("\n=== Find Specific User ===");
-const found = repository.findById(1);
-if (found) {
-  console.log(`Found: ${found.name} (${found.email})`);
+// Mapper orqali olish
+console.log("\n--- Finding User ---");
+const loadedUser = mapper.findById("uuid-1");
+if (loadedUser) {
+  console.log(`Found Domain Object: ${loadedUser.getFullName()}`);
 }
 ```
 
 ```python [Python]
-from typing import Optional, List, Dict
-from dataclasses import dataclass
-from datetime import datetime
+from typing import Optional, Dict, Any
 
-# Domain Object - Pure business logic
-@dataclass
+# Soxta ma'lumotlar bazasi ulanishi
+class MockDB:
+    @staticmethod
+    def execute(sql: str, params: tuple) -> None:
+        print(f"[DB EXECUTE] {sql} | Params: {params}")
+
+    @staticmethod
+    def query(sql: str, params: tuple) -> list:
+        print(f"[DB QUERY] {sql} | Params: {params}")
+        # snake_case bilan xom DB qatori
+        return [{"user_id": "uuid-1", "first_name": "John", "last_name": "Doe", "email_address": "john@test.com"}]
+
+# 1. Toza domen obyekti
 class User:
-    id: Optional[int]
-    name: str
-    email: str
-    age: int
+    def __init__(self, user_id: Optional[str], first_name: str, last_name: str, email: str):
+        self.id = user_id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
 
-    def is_adult(self) -> bool:
-        return self.age >= 18
+    # Toza biznes mantiq
+    def get_full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
 
-    def is_valid_email(self) -> bool:
-        return "@" in self.email and "." in self.email
+    def change_email(self, new_email: str) -> None:
+        if "@" not in new_email:
+            raise ValueError("Invalid email")
+        self.email = new_email
 
-# Database Row
-@dataclass
-class UserRow:
-    id: int
-    name: str
-    email: str
-    age: int
-    created_at: str
-
-# Data Mapper
+# 2. Data Mapper
 class UserMapper:
-    @staticmethod
-    def to_persistence(user: User) -> dict:
-        return {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "age": user.age
-        }
+    def _to_domain(self, row: Dict[str, Any]) -> User:
+        return User(
+            user_id=row["user_id"],
+            first_name=row["first_name"], # DB nomlarini obyekt nomlariga moslash
+            last_name=row["last_name"],
+            email=row["email_address"]
+        )
 
-    @staticmethod
-    def to_domain(row: UserRow) -> User:
-        return User(row.id, row.name, row.email, row.age)
-
-    @staticmethod
-    def to_domain_collection(rows: List[UserRow]) -> List[User]:
-        return [UserMapper.to_domain(row) for row in rows]
-
-# Repository - Uses mapper
-class UserRepository:
-    def __init__(self):
-        self.mapper = UserMapper()
-        self.storage: Dict[int, UserRow] = {}
-        self.next_id = 1
-
-    def save(self, user: User) -> User:
-        row_data = self.mapper.to_persistence(user)
-
+    def save(self, user: User) -> None:
         if user.id is None:
-            user.id = self.next_id
-            self.next_id += 1
-            row_data["created_at"] = datetime.now().isoformat()
+            user.id = "uuid-999" # ID yaratish
+            MockDB.execute(
+                "INSERT INTO users (user_id, first_name, last_name, email_address) VALUES (?, ?, ?, ?)",
+                (user.id, user.first_name, user.last_name, user.email)
+            )
         else:
-            row_data["created_at"] = datetime.now().isoformat()
+            MockDB.execute(
+                "UPDATE users SET first_name = ?, last_name = ?, email_address = ? WHERE user_id = ?",
+                (user.first_name, user.last_name, user.email, user.id)
+            )
 
-        row = UserRow(**row_data)
-        self.storage[user.id] = row
-        print(f"✅ User saved: {user.name}")
-        return user
+    def find_by_id(self, user_id: str) -> Optional[User]:
+        rows = MockDB.query("SELECT * FROM users WHERE user_id = ?", (user_id,))
+        if not rows:
+            return None
+        return self._to_domain(rows[0])
 
-    def find_by_id(self, user_id: int) -> Optional[User]:
-        row = self.storage.get(user_id)
-        return self.mapper.to_domain(row) if row else None
-
-    def find_all(self) -> List[User]:
-        rows = list(self.storage.values())
-        return self.mapper.to_domain_collection(rows)
-
-    def delete(self, user_id: int) -> bool:
-        if user_id in self.storage:
-            del self.storage[user_id]
-            return True
-        return False
-
-# Usage
+# 3. Mijoz kodi
 if __name__ == "__main__":
-    repository = UserRepository()
+    mapper = UserMapper()
 
-    user = User(None, "John Doe", "john@example.com", 30)
-    repository.save(user)
+    # Xotiradagi domen mantiqi
+    user = User(None, "Alice", "Smith", "alice@example.com")
+    user.change_email("alice.smith@example.com")
 
-    user2 = User(None, "Jane Smith", "jane@example.com", 25)
-    repository.save(user2)
+    # Saqlash
+    print("--- Saving User ---")
+    mapper.save(user)
 
-    print("\n=== All Users ===")
-    all_users = repository.find_all()
-    for u in all_users:
-        print(f"{u.name}: Adult={u.is_adult()}, Email Valid={u.is_valid_email()}")
+    # Olish
+    print("\n--- Finding User ---")
+    loaded_user = mapper.find_by_id("uuid-1")
+    if loaded_user:
+        print(f"Found Domain Object: {loaded_user.get_full_name()}")
+```
 
-    print("\n=== Find Specific User ===")
-    found = repository.find_by_id(1)
-    if found:
-        print(f"Found: {found.name} ({found.email})")
+```java [Java]
+import java.util.UUID;
+
+// Soxta DB
+class MockDB {
+    public static void execute(String sql, Object... params) {
+        System.out.printf("[DB EXECUTE] %s%n", sql);
+    }
+
+    public static Object[] queryRow(String sql, Object... params) {
+        System.out.printf("[DB QUERY] %s%n", sql);
+        // Xom DB qatorini qaytaradi
+        return new Object[]{"uuid-1", "John", "Doe", "john@test.com"};
+    }
+}
+
+// 1. Toza domen obyekti
+class User {
+    private String id;
+    private String firstName;
+    private String lastName;
+    private String email;
+
+    public User(String id, String firstName, String lastName, String email) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    // Qisqalik uchun getter va setter'lar tushirib qoldirilgan
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public String getEmail() { return email; }
+
+    // Toza biznes mantiq
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public void changeEmail(String newEmail) {
+        if (!newEmail.contains("@")) throw new IllegalArgumentException("Invalid email");
+        this.email = newEmail;
+    }
+}
+
+// 2. Data Mapper
+class UserMapper {
+    private User toDomain(Object[] row) {
+        return new User(
+            (String)row[0], // user_id
+            (String)row[1], // first_name
+            (String)row[2], // last_name
+            (String)row[3]  // email_address
+        );
+    }
+
+    public void save(User user) {
+        if (user.getId() == null) {
+            user.setId(UUID.randomUUID().toString());
+            MockDB.execute(
+                "INSERT INTO users (user_id, first_name, last_name, email_address) VALUES (?, ?, ?, ?)",
+                user.getId(), user.getFirstName(), user.getLastName(), user.getEmail()
+            );
+        } else {
+            MockDB.execute(
+                "UPDATE users SET first_name = ?, last_name = ?, email_address = ? WHERE user_id = ?",
+                user.getFirstName(), user.getLastName(), user.getEmail(), user.getId()
+            );
+        }
+    }
+
+    public User findById(String id) {
+        Object[] row = MockDB.queryRow("SELECT * FROM users WHERE user_id = ?", id);
+        if (row == null) return null;
+        return toDomain(row);
+    }
+}
+
+// 3. Mijoz kodi
+public class DataMapperDemo {
+    public static void main(String[] args) {
+        UserMapper mapper = new UserMapper();
+
+        // Xotiradagi domen amallari
+        User user = new User(null, "Alice", "Smith", "alice@example.com");
+        user.changeEmail("alice.smith@example.com");
+
+        System.out.println("--- Saving User ---");
+        mapper.save(user);
+
+        System.out.println("\n--- Finding User ---");
+        User loadedUser = mapper.findById("uuid-1");
+        if (loadedUser != null) {
+            System.out.println("Found Domain Object: " + loadedUser.getFullName());
+        }
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Soxta DB
+var MockDB = struct {
+	Execute func(sql string, params ...interface{})
+	Query   func(sql string, params ...interface{}) map[string]interface{}
+}{
+	Execute: func(sql string, params ...interface{}) {
+		fmt.Printf("[DB EXECUTE] %s | Params: %v\n", sql, params)
+	},
+	Query: func(sql string, params ...interface{}) map[string]interface{} {
+		fmt.Printf("[DB QUERY] %s | Params: %v\n", sql, params)
+		return map[string]interface{}{
+			"user_id":       "uuid-1",
+			"first_name":    "John",
+			"last_name":     "Doe",
+			"email_address": "john@test.com",
+		}
+	},
+}
+
+// 1. Toza domen obyekti (Struct)
+type User struct {
+	ID        *string
+	FirstName string
+	LastName  string
+	Email     string
+}
+
+func NewUser(firstName, lastName, email string) *User {
+	return &User{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+	}
+}
+
+// Toza biznes mantiq
+func (u *User) GetFullName() string {
+	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+}
+
+func (u *User) ChangeEmail(newEmail string) error {
+	if !strings.Contains(newEmail, "@") {
+		return fmt.Errorf("invalid email")
+	}
+	u.Email = newEmail
+	return nil
+}
+
+// 2. Data Mapper
+type UserMapper struct{}
+
+func (m *UserMapper) toDomain(row map[string]interface{}) *User {
+	id := row["user_id"].(string)
+	return &User{
+		ID:        &id,
+		FirstName: row["first_name"].(string),
+		LastName:  row["last_name"].(string),
+		Email:     row["email_address"].(string),
+	}
+}
+
+func (m *UserMapper) Save(u *User) {
+	if u.ID == nil {
+		id := "uuid-999" // Soxta ID yaratish
+		u.ID = &id
+		MockDB.Execute(
+			"INSERT INTO users (user_id, first_name, last_name, email_address) VALUES (?, ?, ?, ?)",
+			*u.ID, u.FirstName, u.LastName, u.Email,
+		)
+	} else {
+		MockDB.Execute(
+			"UPDATE users SET first_name = ?, last_name = ?, email_address = ? WHERE user_id = ?",
+			u.FirstName, u.LastName, u.Email, *u.ID,
+		)
+	}
+}
+
+func (m *UserMapper) FindByID(id string) *User {
+	row := MockDB.Query("SELECT * FROM users WHERE user_id = ?", id)
+	if row == nil {
+		return nil
+	}
+	return m.toDomain(row)
+}
+
+// 3. Mijoz kodi
+func main() {
+	mapper := &UserMapper{}
+
+	user := NewUser("Alice", "Smith", "alice@example.com")
+	user.ChangeEmail("alice.smith@example.com")
+
+	fmt.Println("--- Saving User ---")
+	mapper.Save(user)
+
+	fmt.Println("\n--- Finding User ---")
+	loadedUser := mapper.FindByID("uuid-1")
+	if loadedUser != nil {
+		fmt.Printf("Found Domain Object: %s\n", loadedUser.GetFullName())
+	}
+}
+```
+
+```rust [Rust]
+use std::collections::HashMap;
+
+// Soxta DB konteksti
+struct MockDB;
+impl MockDB {
+    fn execute(sql: &str, params: &[&str]) {
+        println!("[DB EXECUTE] {} | Params: {:?}", sql, params);
+    }
+
+    fn query(sql: &str, _params: &[&str]) -> Option<HashMap<&'static str, &'static str>> {
+        println!("[DB QUERY] {}", sql);
+        let mut row = HashMap::new();
+        row.insert("user_id", "uuid-1");
+        row.insert("first_name", "John");
+        row.insert("last_name", "Doe");
+        row.insert("email_address", "john@test.com");
+        Some(row)
+    }
+}
+
+// 1. Toza domen obyekti
+pub struct User {
+    pub id: Option<String>,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+}
+
+impl User {
+    pub fn new(first_name: &str, last_name: &str, email: &str) -> Self {
+        Self {
+            id: None,
+            first_name: first_name.to_string(),
+            last_name: last_name.to_string(),
+            email: email.to_string(),
+        }
+    }
+
+    pub fn get_full_name(&self) -> String {
+        format!("{} {}", self.first_name, self.last_name)
+    }
+
+    pub fn change_email(&mut self, new_email: &str) -> Result<(), &'static str> {
+        if !new_email.contains('@') {
+            return Err("Invalid email");
+        }
+        self.email = new_email.to_string();
+        Ok(())
+    }
+}
+
+// 2. Data Mapper
+pub struct UserMapper;
+
+impl UserMapper {
+    fn to_domain(row: HashMap<&str, &str>) -> User {
+        User {
+            id: Some(row.get("user_id").unwrap().to_string()),
+            first_name: row.get("first_name").unwrap().to_string(),
+            last_name: row.get("last_name").unwrap().to_string(),
+            email: row.get("email_address").unwrap().to_string(),
+        }
+    }
+
+    pub fn save(&self, user: &mut User) {
+        if user.id.is_none() {
+            user.id = Some("uuid-999".to_string());
+            MockDB::execute(
+                "INSERT INTO users (user_id, first_name, last_name, email_address) VALUES (?, ?, ?, ?)",
+                &[
+                    user.id.as_ref().unwrap().as_str(),
+                    &user.first_name,
+                    &user.last_name,
+                    &user.email
+                ]
+            );
+        } else {
+            MockDB::execute(
+                "UPDATE users SET first_name = ?, last_name = ?, email_address = ? WHERE user_id = ?",
+                &[
+                    &user.first_name,
+                    &user.last_name,
+                    &user.email,
+                    user.id.as_ref().unwrap().as_str()
+                ]
+            );
+        }
+    }
+
+    pub fn find_by_id(&self, id: &str) -> Option<User> {
+        if let Some(row) = MockDB::query("SELECT * FROM users WHERE user_id = ?", &[id]) {
+            Some(Self::to_domain(row))
+        } else {
+            None
+        }
+    }
+}
+
+// 3. Mijoz kodi
+fn main() {
+    let mapper = UserMapper;
+
+    let mut user = User::new("Alice", "Smith", "alice@example.com");
+    user.change_email("alice.smith@example.com").unwrap();
+
+    println!("--- Saving User ---");
+    mapper.save(&mut user);
+
+    println!("\n--- Finding User ---");
+    if let Some(loaded_user) = mapper.find_by_id("uuid-1") {
+        println!("Found Domain Object: {}", loaded_user.get_full_name());
+    }
+}
 ```
 
 :::
 
-## Haqiqiy hayotdagi misollar (Real-World Examples)
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-### TypeORM
+### Afzalliklari (Advantages)
 
-TypeORM ma'lumotlar bazasini xaritalash uchun Data Mapper (va Active Record) patternlaridan foydalanadi.
+- **Vazifalarning qat'iy ajratilishi**: Asosiy biznes qoidalari ma'lumotlar bazasi sxemalari va SQL nozikliklaridan izolyatsiya qilingan.
+- **Testlanuvchanlik (Testability)**: Domen obyektlarini ma'lumotlar bazasini mock qilmasdan darhol unit-testlash mumkin, chunki ularda hech qanday saqlash mantiqi yo'q.
+- **Murakkab modellashtirish**: Bitta murakkab Domen obyektini bir nechta jadvalga yoki bir nechta jadvalni bitta Domen obyektiga xaritalashingiz mumkin. Siz 1:1 jadval-klass xaritalashi bilan cheklanmaysiz.
+- **Sxema o'zgarishlariga immunitet**: Ma'lumotlar bazasi o'zgarsa, faqat Mapper'ni yangilaysiz. Ilovaning qolgan qismi umuman o'zgarishsiz qoladi.
 
-### Doctrine ORM
+### Kamchiliklari (Disadvantages)
 
-Doctrine murakkab obyekt-ma'lumotlar bazasi xaritalash uchun Data Mapper-dan foydalanadi.
+- **O'rganish qiyinligi (Steep Learning Curve)**: Arxitektura qatlamlarini, Dependency Injection'ni va holatni ehtiyotkorlik bilan kuzatishni tushunishni talab qiladi.
+- **Shablon kod (Boilerplate)**: Har bir entity uchun maxsus Mapper yaratish Active Record'ga qaraganda ancha ko'p kod yozishni talab qiladi.
+- **Ishlash tezligiga qo'shimcha yuk**: To'ldirish (ma'lumotlar bazasi qatorlarini obyektlarga xaritalash) oraliq ma'lumot tuzilmalari va refleksiyalarni (to'liq ORM'larda) yaratadi, bu esa xom SQL struct'larini qaytarishga nisbatan ko'p CPU va xotira sarflashi mumkin.
 
-## Afzalliklari (Advantages) ✅
+## Qachon foydalanish kerak (When to Use)
 
-- **Vazifalarni ajratish (Separation of Concerns)**: Obyektlar ma'lumotlar bazasidan mustaqil
-- **Test qilish osonligi (Testability)**: Obyektlarni mock qilish va testlash oson
-- **Moslashuvchanlik**: Obyektlarga ta'sir qilmasdan ma'lumotlar bazasini o'zgartirish mumkin
-- **Murakkab Xaritalash (Complex Mappings)**: Oddiy bo'lmagan obyekt/ma'lumotlar bazasi xaritalashni boshqarish
-- **Qayta ishlash (Reusability)**: Obyektlarni turli kontekstlarda qayta ishlash mumkin
-- **Toza Obyektlar**: Domen obyektlarida sof biznes mantig'i
-- **Ko'p xil ko'rinishlar**: Turli xil saqlash mexanizmlari
-- **Jamoalarni ajratish**: Ma'lumotlarga kirish guruhi domen guruhidan alohida ishlaydi
+- **Korporativ ilovalar**: Domen mantiqi juda murakkab bo'lgan va ma'lumotlar bazasi texnologiyasidan uzoqroq yashashi kutilayotgan katta, uzoq muddatli ilovalar.
+- **Domain-Driven Design (DDD)**: DDD'ni qo'llaganda Domen entity'lari sof bo'lishi SHART. Bu arxitekturada Data Mapper majburiy.
+- **Eski (legacy) ma'lumotlar bazasi bilan integratsiya**: Dahshatli, 20 yillik eski ma'lumotlar bazasi sxemasi ustiga yangi, toza ilova qurishingiz kerak bo'lganda. Data Mapper bu yomon sxemani toza domen obyektlaringizdan yashiradi.
 
-## Kamchiliklari (Disadvantages) ❌
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Murakkablik (Complexity)**: Ko'proq kod va abstraksiya qatlamlari
-- **O'rganish vaqti (Learning Curve)**: Dasturchilar xaritalashni tushunishlari kerak
-- **Ishlash tezligi (Performance)**: Qo'shimcha qatlam ortiqcha yuklama qo'shadi
-- **Sinxronizatsiya**: Obyektlar va ma'lumotlar bazasini sinxron holda ushlab turish qiyin
-- **Xaritalash kodi**: Xaritalash mantig'ini takrorlash kerak bo'ladi
-- **Nosozliklarni topish (Debugging)**: Xatolarni kuzatish qiyinroq
-- **O'ta murakkab (Over-Engineering)**: Oddiy modellar uchun ortiqcha ish
-- **Shablon kod (Boilerplate)**: Yozish kerak bo'lgan ko'p xaritalash kodi
+- **Tezkor prototiplar / Oddiy CRUD**: Agar ilovangiz shunchaki veb-formalarni to'g'ridan-to'g'ri ma'lumotlar bazasi jadvallariga xaritalasa, Mapper'lar yozishning katta qo'shimcha xarajati vaqtni behuda sarflashdir. Active Record'dan foydalaning.
+- **Oddiy domenli mikroservislar**: Faqat bitta kichik ishni bajaradigan mikroservisda to'liq Data Mapper arxitekturasini o'rnatish, ehtimol, ortiqcha bo'ladi.
 
-## Qachon foydalanish kerak (When to Use) ✅
+## Keng tarqalgan xatolar (Common Mistakes)
 
-- **Murakkab domenlar**: Qiyin biznes mantiqlari
-- **Testlash muhim bo'lganda**: Kuchli unit testlar talab qilinganda
-- **Bir nechta ma'lumot manbalari**: Turli saqlash mexanizmlaridan foydalanilganda
-- **Jamoaviy ishlab chiqish**: Turli vazifalarni bajargan katta jamoalarda
-- **Uzoq muddatli loyihalar**: Moslashuvchanlik muhim bo'lgan hollarda
-- **Domain-Driven Design**: DDD qoidalariga rioya qilinganda
-- **Korporativ ilovalar**: Keng ko'lamli tizimlarda
-- **Obyekt murakkabligi**: Murakkab obyekt ierarxiyalari
+### 1. Biznes mantiqni Mapper'ga joylashtirish
 
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
+Mapper _faqat_ ma'lumotlarni u yoqdan-bu yoqqa tarjima qilishi kerak. Agar Mapper'ning `save()` metodida hisob-kitoblar, validatsiyalar yoki biznes qoidalarini topsangiz, Domen mantiqini saqlash qatlamiga sizdirayotgan bo'lasiz.
 
-- **Oddiy CRUD**: Oddiy operatsiyalarni o'ta murakkablashtirish
-- **Tezkor prototiplar**: Moslashuvchanlikdan ko'ra tezlik kerak bo'lganda
-- **Yagona ma'lumotlar manbasi**: Ma'lumotlar bazasi o'zgarmas bo'lganda
-- **Kichik jamoalar**: Qo'shimcha murakkablik oqlanmaganda
-- **Ishlash tezligi kritik bo'lganda**: Qo'shimcha yuklama (overhead) qabul qilinmasligi
-- **To'g'ridan-to'g'ri xaritalash**: Oddiy jadvaldan obyektga
-- **Tezkor ishlab chiqish**: Tezlik dizayndan muhimroq bo'lganda
-- **Eski kodlar (Legacy Code)**: O'zgartirish juda murakkab bo'lganda
+### 2. N+1 so'rov muammosi (To'ldirish paytida)
 
-## Aloqador Patternlar (Related Patterns)
+Boshqa obyektlar kolleksiyalarini o'z ichiga olgan obyektlarni xaritalashda (masalan, ko'plab OrderItem'larga ega Order), yomon yozilgan Mapper'lar to'ldirish paytida Order uchun bitta SQL so'rovini, keyin esa _har bir_ OrderItem uchun alohida SQL so'rovini bajaradi. To'liq ORM'lar buni "Eager Loading" (oldindan yuklash) bilan hal qiladi.
 
-- **Active Record**: Muqobil (Alternative) pattern
-- **Repository**: Ko'pincha birgalikda qo'llaniladi
-- **Adapter**: Ma'lumotlar bazasini moslashtirish uchun
-- **Factory**: Obyekt yaratish uchun
-- **Visitor**: Xaritalangan obyektlarni aylanib chiqish (traversing) uchun
+## Aloqador patternlar (Related Patterns)
+
+- **[Active Record](/uz/architectural/active-record)**: Falsafiy qarama-qarshisi. Domen obyekti va ma'lumotlar bazasi mantiqini bitta klassga birlashtiradi.
+- **[Repository](/uz/architectural/repository)**: Ko'pincha Data Mapper'larni o'rash uchun ishlatiladi. Mapper bitta entity'ni xaritalash bilan shug'ullansa, Repository kolleksiyaga o'xshash interfeysni (masalan, `repository.findAll()`) taqdim etish uchun Mapper'dan foydalanadi.
+- **[Unit of Work](/uz/architectural/unit-of-work)**: Og'ir Data Mapper ORM'larida (Hibernate/Entity Framework kabi) Unit of Work patterni siz xotiraga yuklagan barcha Domen obyektlarini kuzatadi, qaysilarini o'zgartirganingizni aniqlaydi va ularni bir vaqtda saqlash uchun Data Mapper'ga yuboradi.
+
+## Intervyu savollari (Interview Insights)
+
+- **Savol**: "Agar men Data Mapper'dan foydalansam va Domen obyekti Mapper mavjudligini bilmasa, Mapper Domen obyekti yangilanganini qanday biladi?"
+  - **Javob**: "Ikki yo'li bor. 1) Mijoz kodi obyektni o'zgartirishni tugatgach, `mapper.update(domainObject)` ni qo'lda chaqiradi. 2) Ilg'or ORM'lar **Unit of Work** patternidan foydalanadi: u domen xususiyatlarini proksilarga o'raydi yoki ularning asl holatini kuzatadi va tranzaksiya oxirida o'zgargan obyektlarni avtomatik ravishda mapper'ga yuboradi."
+- **Savol**: "Data Mapper ma'lumotlar bazasi ishlash tezligini oshira oladimi?"
+  - **Javob**: "O'z-o'zidan yo'q. Aslida, qatorlarni obyektlarga xaritalash CPU'ga qo'shimcha yuk qo'shadi. Biroq u ishlash tezligini yaxshilashga _imkon beradi_, chunki biznes mantiqning birorta qatorini ham o'zgartirmasdan asosiy saqlash strategiyasini butunlay almashtirishingiz mumkin (masalan, MySQL'dan Redis'ga o'tish)."
+
+## Zamonaviy alternativalar (Modern Alternatives)
+
+- **Query Builder'lar bilan birlashtirilgan Repository patterni**: Og'ir qo'lda yozilgan Data Mapper'lar qurish yoki ulkan ORM'lardan (ular ko'pincha _haddan tashqari_ ko'p narsani abstraksiya qiladi) foydalanish o'rniga, zamonaviy backend dasturlashda ko'pincha yengil Repository'ga o'ralgan sof Query Builder'lar (Knex.js yoki Go'dagi sqlc kabi) ishlatiladi. Bu Repository xom qatorlarni to'g'ridan-to'g'ri Data Transfer Object'larga (DTO) xaritalaydi va "Holatga ega Domen obyekti"ni butunlay chetlab o'tadi.

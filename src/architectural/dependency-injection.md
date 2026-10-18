@@ -6,7 +6,7 @@ icon: Wrench
 
 # Dependency Injection Pattern
 
-<CoverImage src="/covers/architectural/dependency-injection.png" alt="Cover">
+<CoverImage src="/covers/architectural/dependency-injection.webp" alt="Cover">
   <h1>Dependency Injection</h1>
   <p>A cute little robot with an open slot in its chest, and a giant mechanical hand is carefully inserting a fully-charged glowing power pack directly into the slot from the outside.</p>
 </CoverImage>

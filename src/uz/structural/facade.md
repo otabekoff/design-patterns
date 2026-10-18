@@ -1,737 +1,613 @@
 ---
 title: Facade Pattern
-description: Provides a unified, simplified interface to a set of interfaces in a subsystem
+description: Quyi tizimdagi interfeyslar to'plamiga yagona, soddalashtirilgan interfeys taqdim etadi.
 icon: Zap
 ---
 
 # Facade Pattern
 
-<CoverImage src="/covers/structural/facade.png" alt="Cover">
+<CoverImage src="/covers/structural/facade.webp" alt="Cover">
   <h1>Facade</h1>
-  <p>A beautiful, pristine castle wall facade with a welcoming red carpet and a friendly robot butler standing in front of it, completely hiding the absolute chaotic mess of wild wires, spinning gears, and smoke behind the wall.</p>
+  <p>Kutib oluvchi qizil gilam va uning oldida turgan do'stona robot-xizmatkor bilan go'zal, beg'ubor qal'a devori fasadi — u devor ortidagi yovvoyi simlar, aylanayotgan tishli g'ildiraklar va tutundan iborat mutlaq tartibsizlikni butunlay yashirib turibdi.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The Facade Pattern is a structural design pattern that provides a unified, simplified interface to a set of interfaces in a subsystem. It defines a higher-level interface that makes a subsystem easier to use by hiding its complexity and internal details.
+**Facade** — bu murakkab quyi tizimga (subsystem) sodda, yuqori darajadagi interfeys taqdim etuvchi strukturaviy (structural) dizayn patternidir. U quyi tizimni olib tashlamaydi; shunchaki mijozlarga toza kirish nuqtasini beradi, shunda ular har bir ichki servisni o'zlari muvofiqlashtirishlari shart bo'lmaydi.
 
-## Purpose
+**Asosiy afzalligi**: Bog'liqlikni (coupling) kamaytiradi va mijoz kodini ko'plab harakatlanuvchi qismlar o'rniga bitta niyatga yo'naltirilgan holda saqlaydi.
 
-- **Simplify complex subsystems** by providing a single entry point
-- **Reduce coupling** between clients and subsystem components
-- **Create a unified interface** for heterogeneous classes
-- **Hide internal complexity** from external clients
-- **Provide a default implementation** that works for most use cases
-- **Allow progressive complexity** exposure as needed
+**Zamonaviy nuqtai nazar**: Facade hali ham API orkestratsiyasida, SDK o'ramlarida, checkout oqimlarida, autentifikatsiya oqimlarida va domen servislarini muvofiqlashtirishda keng qo'llaniladi. Bu kundalik ilova kodidagi eng amaliy strukturaviy patternlardan biri.
 
-## Problem
+Facade mos kelmaydigan interfeyslarni tarjima qilish haqida emas. U **kirishni soddalashtirish** haqida.
 
-Imagine a home automation system with many independent subsystems:
+## Hayotiy o'xshatish (Real-World Analogy)
 
-- **Lighting System**: Individual light objects with on/off controls
-- **Temperature System**: Thermostats, heaters, coolers
-- **Security System**: Door locks, alarm, sensors
-- **Entertainment System**: TV, sound system, lights
-- **Energy System**: Power management, solar panels, batteries
+**Mehmonxonadagi qabulxonani (resepshn)** tasavvur qiling. Mehmonlar xona tozalash, xavfsizlik, hisob-kitob, texnik xizmat va xonaga xizmat ko'rsatish bo'limlari bilan alohida gaplashishlari shart emas. Ular qabulxonaga nima kerakligini aytadilar, qolganini esa qabulxona muvofiqlashtiradi.
 
-To turn on "movie mode", clients would need to:
+Bu fasad: ko'plab ichki tizimlar ustidagi bitta sodda interfeys.
 
-1. Dim the lights in the entertainment room
-2. Close the window blinds
-3. Set temperature to comfortable level
-4. Turn on the TV and sound system
-5. Adjust lights to accent colors
-6. Lock the doors
-7. Activate privacy mode
+## Tuzilma (Structure)
 
-Without the Facade Pattern, clients must know about all these systems and coordinate them manually—complex and error-prone.
+```mermaid
+classDiagram
+    class Client
+    class CheckoutFacade {
+        +placeOrder(orderId, items, cardToken) void
+    }
+    class PricingService {
+        +calculateTotal(items) number
+    }
+    class InventoryService {
+        +reserve(items) void
+    }
+    class PaymentService {
+        +authorize(amount, cardToken) string
+    }
+    class OrderRepository {
+        +save(orderId, amount, authCode) void
+    }
+    class NotificationService {
+        +sendOrderConfirmation(orderId) void
+    }
 
-## Solution
+    Client --> CheckoutFacade : placeOrder
+    CheckoutFacade --> PricingService
+    CheckoutFacade --> InventoryService
+    CheckoutFacade --> PaymentService
+    CheckoutFacade --> OrderRepository
+    CheckoutFacade --> NotificationService
+```
 
-The Facade Pattern provides a solution by:
+- **`CheckoutFacade`** (Facade) bitta yuqori darajadagi metodni taqdim etadi va quyi tizim chaqiruvlarini to'g'ri tartibda orkestratsiya qiladi.
+- **`PricingService`, `InventoryService`, `PaymentService`, `OrderRepository`, `NotificationService`** (Subsystem classes) haqiqiy ishni bajaradi va fasad haqida hech narsa bilmaydi.
+- **`Client`** faqat fasadni chaqiradi, biroq nozikroq nazorat kerak bo'lganda quyi tizimlar baribir ochiq qoladi.
 
-1. **Creating a Facade Class**: Implements a high-level interface
-2. **Delegating to Subsystems**: Internally uses subsystem components
-3. **Simplifying Coordination**: Coordinates complex interactions
-4. **Hiding Details**: Clients don't need to know subsystem internals
-5. **Maintaining Access**: Clients can still access subsystems directly if needed
+## Muammo (The Problem)
 
-## Implementation
+Zamonaviy checkout oqimi ko'pincha bir nechta servislarga murojaat qiladi:
+
+- narx va soliqni hisoblash
+- omborda mahsulotni band qilish (inventory reservation)
+- to'lovni avtorizatsiya qilish
+- buyurtmani saqlash
+- bildirishnomalarni yetkazish
+
+Agar har bir controller yoki UI amali bularning hammasini qo'lda orkestratsiya qilishi kerak bo'lsa, kod mo'rt va takroriy bo'lib qoladi.
+
+### Muammo misoli
+
+```typescript
+// ❌ Yomon: controller quyi tizim haqida juda ko'p biladi
+const pricing = new PricingService();
+const inventory = new InventoryService();
+const payment = new PaymentService();
+const orders = new OrderRepository();
+
+const total = pricing.calculate(cart);
+inventory.reserve(cart.items);
+payment.authorize(card, total);
+orders.saveOrder(cart, total);
+```
+
+Buni test qilish, qayta ishlatish va xavfsiz o'zgartirish qiyin.
+
+## Yechim (The Solution)
+
+Facade orkestratsiyani alohida klassga ko'chirish orqali bu muammoni hal qiladi.
+
+1. Mijoz bitta fasad metodi bilan muloqot qiladi
+2. Fasad quyi tizim chaqiruvlarini muvofiqlashtiradi
+3. To'g'ridan-to'g'ri kirish hali ham kerak bo'lsa, quyi tizim klasslari mavjudligicha qoladi
+
+Natijada chegarada soddaroq API va butun ilova bo'ylab kamroq bog'liqlik hosil bo'ladi.
+
+## Amalga oshirish (Implementation)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// ========== Subsystem Components ==========
-
-class LightingSystem {
-  dimLights(level: number): void {
-    console.log(`Dimming lights to ${level}%`);
-  }
-
-  turnOnLights(): void {
-    console.log("Turning on all lights");
-  }
-
-  turnOffLights(): void {
-    console.log("Turning off all lights");
-  }
-
-  setAmbientLighting(): void {
-    console.log("Setting ambient lighting");
+class PricingService {
+  calculateTotal(items: { price: number; quantity: number }[]): number {
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
 }
 
-class TemperatureSystem {
-  setTemperature(celsius: number): void {
-    console.log(`Setting temperature to ${celsius}°C`);
-  }
-
-  activateHeating(): void {
-    console.log("Activating heating system");
-  }
-
-  activateCooling(): void {
-    console.log("Activating cooling system");
+class InventoryService {
+  reserve(items: { sku: string; quantity: number }[]): void {
+    console.log(`Reserving ${items.length} line items`);
   }
 }
 
-class SecuritySystem {
-  lockDoors(): void {
-    console.log("Locking all doors");
-  }
-
-  unlockDoors(): void {
-    console.log("Unlocking all doors");
-  }
-
-  activateAlarm(): void {
-    console.log("Activating security alarm");
-  }
-
-  deactivateAlarm(): void {
-    console.log("Deactivating security alarm");
-  }
-
-  activatePrivacyMode(): void {
-    console.log("Activating privacy mode (blocking windows)");
+class PaymentService {
+  authorize(amount: number, cardToken: string): string {
+    console.log(`Authorizing payment for $${amount.toFixed(2)}`);
+    return `auth_${Date.now()}`;
   }
 }
 
-class EntertainmentSystem {
-  turnOnTV(): void {
-    console.log("Turning on television");
-  }
-
-  turnOffTV(): void {
-    console.log("Turning off television");
-  }
-
-  turnOnSoundSystem(): void {
-    console.log("Turning on sound system");
-  }
-
-  turnOffSoundSystem(): void {
-    console.log("Turning off sound system");
-  }
-
-  setSurroundSound(): void {
-    console.log("Setting surround sound mode");
+class OrderRepository {
+  save(orderId: string, amount: number, authCode: string): void {
+    console.log(`Saving order ${orderId} with auth ${authCode}`);
   }
 }
 
-class EnergySystem {
-  checkBatteryLevel(): number {
-    console.log("Checking battery level");
-    return 85;
-  }
-
-  activateSolarMode(): void {
-    console.log("Activating solar power mode");
-  }
-
-  disableSolarMode(): void {
-    console.log("Disabling solar power mode");
+class NotificationService {
+  sendOrderConfirmation(orderId: string): void {
+    console.log(`Sending confirmation for ${orderId}`);
   }
 }
 
-// ========== Facade Class ==========
+class CheckoutFacade {
+  constructor(
+    private readonly pricing: PricingService,
+    private readonly inventory: InventoryService,
+    private readonly payment: PaymentService,
+    private readonly orders: OrderRepository,
+    private readonly notifications: NotificationService,
+  ) {}
 
-class HomeAutomationFacade {
-  private lighting: LightingSystem;
-  private temperature: TemperatureSystem;
-  private security: SecuritySystem;
-  private entertainment: EntertainmentSystem;
-  private energy: EnergySystem;
-
-  constructor() {
-    this.lighting = new LightingSystem();
-    this.temperature = new TemperatureSystem();
-    this.security = new SecuritySystem();
-    this.entertainment = new EntertainmentSystem();
-    this.energy = new EnergySystem();
-  }
-
-  // High-level convenience methods
-  activateMovieMode(): void {
-    console.log("\n=== Activating Movie Mode ===");
-    this.lighting.dimLights(10);
-    this.lighting.setAmbientLighting();
-    this.temperature.setTemperature(22);
-    this.entertainment.turnOnTV();
-    this.entertainment.turnOnSoundSystem();
-    this.entertainment.setSurroundSound();
-    this.security.lockDoors();
-    console.log("Movie Mode activated!");
-  }
-
-  activateSleepMode(): void {
-    console.log("\n=== Activating Sleep Mode ===");
-    this.lighting.turnOffLights();
-    this.temperature.setTemperature(18);
-    this.entertainment.turnOffTV();
-    this.entertainment.turnOffSoundSystem();
-    this.security.lockDoors();
-    this.security.activateAlarm();
-    console.log("Sleep Mode activated!");
-  }
-
-  activateAwayMode(): void {
-    console.log("\n=== Activating Away Mode ===");
-    this.lighting.turnOffLights();
-    this.entertainment.turnOffTV();
-    this.entertainment.turnOffSoundSystem();
-    this.security.lockDoors();
-    this.security.activateAlarm();
-    this.security.activatePrivacyMode();
-    const batteryLevel = this.energy.checkBatteryLevel();
-    if (batteryLevel > 20) {
-      this.energy.activateSolarMode();
-    }
-    console.log("Away Mode activated!");
-  }
-
-  activatePartyMode(): void {
-    console.log("\n=== Activating Party Mode ===");
-    this.lighting.turnOnLights();
-    this.lighting.setAmbientLighting();
-    this.temperature.setTemperature(24);
-    this.entertainment.turnOnTV();
-    this.entertainment.turnOnSoundSystem();
-    this.security.unlockDoors();
-    console.log("Party Mode activated!");
-  }
-
-  deactivateAllModes(): void {
-    console.log("\n=== Deactivating All Modes ===");
-    this.lighting.turnOffLights();
-    this.entertainment.turnOffTV();
-    this.entertainment.turnOffSoundSystem();
-    this.security.deactivateAlarm();
-    console.log("All systems deactivated!");
-  }
-
-  // Access to subsystems for advanced users
-  getLightingSystem(): LightingSystem {
-    return this.lighting;
-  }
-
-  getTemperatureSystem(): TemperatureSystem {
-    return this.temperature;
-  }
-
-  getSecuritySystem(): SecuritySystem {
-    return this.security;
-  }
-
-  getEntertainmentSystem(): EntertainmentSystem {
-    return this.entertainment;
-  }
-
-  getEnergySystem(): EnergySystem {
-    return this.energy;
+  placeOrder(
+    orderId: string,
+    items: { price: number; quantity: number; sku: string }[],
+    cardToken: string,
+  ): void {
+    const total = this.pricing.calculateTotal(items);
+    this.inventory.reserve(
+      items.map(({ sku, quantity }) => ({ sku, quantity })),
+    );
+    const authCode = this.payment.authorize(total, cardToken);
+    this.orders.save(orderId, total, authCode);
+    this.notifications.sendOrderConfirmation(orderId);
   }
 }
 
-// ========== Usage ==========
+const checkout = new CheckoutFacade(
+  new PricingService(),
+  new InventoryService(),
+  new PaymentService(),
+  new OrderRepository(),
+  new NotificationService(),
+);
 
-const homeFacade = new HomeAutomationFacade();
-
-// Simple usage with facade
-homeFacade.activateMovieMode();
-homeFacade.activateSleepMode();
-homeFacade.activateAwayMode();
-
-// Advanced usage - access subsystems directly if needed
-console.log("\n=== Custom Configuration ===");
-const lighting = homeFacade.getLightingSystem();
-const temperature = homeFacade.getTemperatureSystem();
-
-lighting.dimLights(50);
-temperature.setTemperature(20);
-
-// ========== Real-world example: Web Framework Facade ==========
-
-class DatabaseConnection {
-  query(sql: string): any[] {
-    console.log(`Executing query: ${sql}`);
-    return [];
-  }
-
-  close(): void {
-    console.log("Database connection closed");
-  }
-}
-
-class AuthenticationService {
-  authenticate(username: string, password: string): boolean {
-    console.log(`Authenticating user: ${username}`);
-    return true;
-  }
-
-  generateToken(): string {
-    console.log("Generating auth token");
-    return "token_12345";
-  }
-}
-
-class LoggingService {
-  log(level: string, message: string): void {
-    console.log(`[${level}] ${message}`);
-  }
-
-  info(message: string): void {
-    this.log("INFO", message);
-  }
-
-  error(message: string): void {
-    this.log("ERROR", message);
-  }
-}
-
-class CachingService {
-  set(key: string, value: any): void {
-    console.log(`Setting cache: ${key}`);
-  }
-
-  get(key: string): any {
-    console.log(`Getting cache: ${key}`);
-    return null;
-  }
-
-  invalidate(key: string): void {
-    console.log(`Invalidating cache: ${key}`);
-  }
-}
-
-// Web Framework Facade
-class WebFramework {
-  private db: DatabaseConnection;
-  private auth: AuthenticationService;
-  private logger: LoggingService;
-  private cache: CachingService;
-
-  constructor() {
-    this.db = new DatabaseConnection();
-    this.auth = new AuthenticationService();
-    this.logger = new LoggingService();
-    this.cache = new CachingService();
-  }
-
-  handleUserLogin(username: string, password: string): string {
-    console.log("\n=== Processing Login Request ===");
-
-    this.logger.info(`Login attempt for user: ${username}`);
-
-    // Check cache first
-    const cachedResult = this.cache.get(`user_${username}`);
-    if (cachedResult) {
-      this.logger.info("User found in cache");
-      return cachedResult;
-    }
-
-    // Authenticate
-    if (!this.auth.authenticate(username, password)) {
-      this.logger.error("Authentication failed");
-      return "null";
-    }
-
-    // Generate token
-    const token = this.auth.generateToken();
-
-    // Cache the result
-    this.cache.set(`user_${username}`, token);
-
-    this.logger.info("Login successful");
-    return token;
-  }
-
-  handleUserLogout(username: string): void {
-    console.log("\n=== Processing Logout Request ===");
-
-    this.logger.info(`Logout for user: ${username}`);
-    this.cache.invalidate(`user_${username}`);
-    this.logger.info("Logout complete");
-  }
-
-  getDatabase(): DatabaseConnection {
-    return this.db;
-  }
-
-  getLogger(): LoggingService {
-    return this.logger;
-  }
-}
-
-// ========== Web Framework Usage ==========
-
-const framework = new WebFramework();
-const token = framework.handleUserLogin("john_doe", "password123");
-console.log(`Received token: ${token}`);
-
-framework.handleUserLogout("john_doe");
-
-// Access services directly for advanced configuration
-const logger = framework.getLogger();
-logger.error("Custom error message");
+checkout.placeOrder(
+  "order_123",
+  [
+    { sku: "book-1", price: 19.99, quantity: 2 },
+    { sku: "bag-4", price: 49.5, quantity: 1 },
+  ],
+  "tok_abc",
+);
 ```
 
 ```python [Python]
-# ========== Subsystem Components ==========
-
-class LightingSystem:
-    def dim_lights(self, level: int) -> None:
-        print(f"Dimming lights to {level}%")
-
-    def turn_on_lights(self) -> None:
-        print("Turning on all lights")
-
-    def turn_off_lights(self) -> None:
-        print("Turning off all lights")
-
-    def set_ambient_lighting(self) -> None:
-        print("Setting ambient lighting")
-
-class TemperatureSystem:
-    def set_temperature(self, celsius: int) -> None:
-        print(f"Setting temperature to {celsius}°C")
-
-    def activate_heating(self) -> None:
-        print("Activating heating system")
-
-    def activate_cooling(self) -> None:
-        print("Activating cooling system")
-
-class SecuritySystem:
-    def lock_doors(self) -> None:
-        print("Locking all doors")
-
-    def unlock_doors(self) -> None:
-        print("Unlocking all doors")
-
-    def activate_alarm(self) -> None:
-        print("Activating security alarm")
-
-    def deactivate_alarm(self) -> None:
-        print("Deactivating security alarm")
-
-    def activate_privacy_mode(self) -> None:
-        print("Activating privacy mode (blocking windows)")
-
-class EntertainmentSystem:
-    def turn_on_tv(self) -> None:
-        print("Turning on television")
-
-    def turn_off_tv(self) -> None:
-        print("Turning off television")
-
-    def turn_on_sound_system(self) -> None:
-        print("Turning on sound system")
-
-    def turn_off_sound_system(self) -> None:
-        print("Turning off sound system")
-
-    def set_surround_sound(self) -> None:
-        print("Setting surround sound mode")
-
-class EnergySystem:
-    def check_battery_level(self) -> int:
-        print("Checking battery level")
-        return 85
-
-    def activate_solar_mode(self) -> None:
-        print("Activating solar power mode")
-
-    def disable_solar_mode(self) -> None:
-        print("Disabling solar power mode")
-
-# ========== Facade Class ==========
-
-class HomeAutomationFacade:
-    def __init__(self):
-        self._lighting = LightingSystem()
-        self._temperature = TemperatureSystem()
-        self._security = SecuritySystem()
-        self._entertainment = EntertainmentSystem()
-        self._energy = EnergySystem()
-
-    def activate_movie_mode(self) -> None:
-        print("\n=== Activating Movie Mode ===")
-        self._lighting.dim_lights(10)
-        self._lighting.set_ambient_lighting()
-        self._temperature.set_temperature(22)
-        self._entertainment.turn_on_tv()
-        self._entertainment.turn_on_sound_system()
-        self._entertainment.set_surround_sound()
-        self._security.lock_doors()
-        print("Movie Mode activated!")
-
-    def activate_sleep_mode(self) -> None:
-        print("\n=== Activating Sleep Mode ===")
-        self._lighting.turn_off_lights()
-        self._temperature.set_temperature(18)
-        self._entertainment.turn_off_tv()
-        self._entertainment.turn_off_sound_system()
-        self._security.lock_doors()
-        self._security.activate_alarm()
-        print("Sleep Mode activated!")
-
-    def activate_away_mode(self) -> None:
-        print("\n=== Activating Away Mode ===")
-        self._lighting.turn_off_lights()
-        self._entertainment.turn_off_tv()
-        self._entertainment.turn_off_sound_system()
-        self._security.lock_doors()
-        self._security.activate_alarm()
-        self._security.activate_privacy_mode()
-        battery_level = self._energy.check_battery_level()
-        if battery_level > 20:
-            self._energy.activate_solar_mode()
-        print("Away Mode activated!")
-
-    def activate_party_mode(self) -> None:
-        print("\n=== Activating Party Mode ===")
-        self._lighting.turn_on_lights()
-        self._lighting.set_ambient_lighting()
-        self._temperature.set_temperature(24)
-        self._entertainment.turn_on_tv()
-        self._entertainment.turn_on_sound_system()
-        self._security.unlock_doors()
-        print("Party Mode activated!")
-
-    def deactivate_all_modes(self) -> None:
-        print("\n=== Deactivating All Modes ===")
-        self._lighting.turn_off_lights()
-        self._entertainment.turn_off_tv()
-        self._entertainment.turn_off_sound_system()
-        self._security.deactivate_alarm()
-        print("All systems deactivated!")
-
-    # Access to subsystems for advanced users
-    def get_lighting_system(self) -> LightingSystem:
-        return self._lighting
-
-    def get_temperature_system(self) -> TemperatureSystem:
-        return self._temperature
-
-    def get_security_system(self) -> SecuritySystem:
-        return self._security
-
-    def get_entertainment_system(self) -> EntertainmentSystem:
-        return self._entertainment
-
-    def get_energy_system(self) -> EnergySystem:
-        return self._energy
-
-# ========== Usage ==========
-
-home_facade = HomeAutomationFacade()
-
-# Simple usage with facade
-home_facade.activate_movie_mode()
-home_facade.activate_sleep_mode()
-home_facade.activate_away_mode()
-
-# Advanced usage - access subsystems directly if needed
-print("\n=== Custom Configuration ===")
-lighting = home_facade.get_lighting_system()
-temperature = home_facade.get_temperature_system()
-
-lighting.dim_lights(50)
-temperature.set_temperature(20)
-
-# ========== Real-world example: Web Framework Facade ==========
-
-class DatabaseConnection:
-    def query(self, sql: str) -> list:
-        print(f"Executing query: {sql}")
-        return []
-
-    def close(self) -> None:
-        print("Database connection closed")
-
-class AuthenticationService:
-    def authenticate(self, username: str, password: str) -> bool:
-        print(f"Authenticating user: {username}")
-        return True
-
-    def generate_token(self) -> str:
-        print("Generating auth token")
-        return "token_12345"
-
-class LoggingService:
-    def log(self, level: str, message: str) -> None:
-        print(f"[{level}] {message}")
-
-    def info(self, message: str) -> None:
-        self.log("INFO", message)
-
-    def error(self, message: str) -> None:
-        self.log("ERROR", message)
-
-class CachingService:
-    def set(self, key: str, value: any) -> None:
-        print(f"Setting cache: {key}")
-
-    def get(self, key: str) -> any:
-        print(f"Getting cache: {key}")
-        return None
-
-    def invalidate(self, key: str) -> None:
-        print(f"Invalidating cache: {key}")
-
-# Web Framework Facade
-class WebFramework:
-    def __init__(self):
-        self._db = DatabaseConnection()
-        self._auth = AuthenticationService()
-        self._logger = LoggingService()
-        self._cache = CachingService()
-
-    def handle_user_login(self, username: str, password: str) -> str:
-        print("\n=== Processing Login Request ===")
-
-        self._logger.info(f"Login attempt for user: {username}")
-
-        # Check cache first
-        cached_result = self._cache.get(f"user_{username}")
-        if cached_result:
-            self._logger.info("User found in cache")
-            return cached_result
-
-        # Authenticate
-        if not self._auth.authenticate(username, password):
-            self._logger.error("Authentication failed")
-            return "null"
-
-        # Generate token
-        token = self._auth.generate_token()
-
-        # Cache the result
-        self._cache.set(f"user_{username}", token)
-
-        self._logger.info("Login successful")
-        return token
-
-    def handle_user_logout(self, username: str) -> None:
-        print("\n=== Processing Logout Request ===")
-
-        self._logger.info(f"Logout for user: {username}")
-        self._cache.invalidate(f"user_{username}")
-        self._logger.info("Logout complete")
-
-    def get_database(self) -> DatabaseConnection:
-        return self._db
-
-    def get_logger(self) -> LoggingService:
-        return self._logger
-
-# ========== Web Framework Usage ==========
-
-framework = WebFramework()
-token = framework.handle_user_login("john_doe", "password123")
-print(f"Received token: {token}")
-
-framework.handle_user_logout("john_doe")
-
-# Access services directly for advanced configuration
-logger = framework.get_logger()
-logger.error("Custom error message")
+class PricingService:
+    def calculate_total(self, items):
+        return sum(item["price"] * item["quantity"] for item in items)
+
+class InventoryService:
+    def reserve(self, items):
+        print(f"Reserving {len(items)} line items")
+
+class PaymentService:
+    def authorize(self, amount, card_token):
+        print(f"Authorizing payment for ${amount:.2f}")
+        return f"auth_{int(amount * 100)}"
+
+class OrderRepository:
+    def save(self, order_id, amount, auth_code):
+        print(f"Saving order {order_id} with auth {auth_code}")
+
+class NotificationService:
+    def send_order_confirmation(self, order_id):
+        print(f"Sending confirmation for {order_id}")
+
+class CheckoutFacade:
+    def __init__(self, pricing, inventory, payment, orders, notifications):
+        self._pricing = pricing
+        self._inventory = inventory
+        self._payment = payment
+        self._orders = orders
+        self._notifications = notifications
+
+    def place_order(self, order_id, items, card_token):
+        total = self._pricing.calculate_total(items)
+        self._inventory.reserve([{"sku": item["sku"], "quantity": item["quantity"]} for item in items])
+        auth_code = self._payment.authorize(total, card_token)
+        self._orders.save(order_id, total, auth_code)
+        self._notifications.send_order_confirmation(order_id)
+
+checkout = CheckoutFacade(
+    PricingService(),
+    InventoryService(),
+    PaymentService(),
+    OrderRepository(),
+    NotificationService(),
+)
+
+checkout.place_order(
+    "order_123",
+    [
+        {"sku": "book-1", "price": 19.99, "quantity": 2},
+        {"sku": "bag-4", "price": 49.5, "quantity": 1},
+    ],
+    "tok_abc",
+)
+```
+
+```java [Java]
+class PricingService {
+    double calculateTotal(java.util.List<Item> items) {
+        return items.stream().mapToDouble(item -> item.price * item.quantity).sum();
+    }
+}
+
+class Item {
+    final String sku;
+    final double price;
+    final int quantity;
+
+    Item(String sku, double price, int quantity) {
+        this.sku = sku;
+        this.price = price;
+        this.quantity = quantity;
+    }
+}
+
+class InventoryService {
+    void reserve(java.util.List<Item> items) {
+        System.out.println("Reserving " + items.size() + " line items");
+    }
+}
+
+class PaymentService {
+    String authorize(double amount, String cardToken) {
+        System.out.printf("Authorizing payment for $%.2f%n", amount);
+        return "auth_" + Math.round(amount * 100);
+    }
+}
+
+class OrderRepository {
+    void save(String orderId, double amount, String authCode) {
+        System.out.println("Saving order " + orderId + " with auth " + authCode);
+    }
+}
+
+class NotificationService {
+    void sendOrderConfirmation(String orderId) {
+        System.out.println("Sending confirmation for " + orderId);
+    }
+}
+
+class CheckoutFacade {
+    private final PricingService pricing;
+    private final InventoryService inventory;
+    private final PaymentService payment;
+    private final OrderRepository orders;
+    private final NotificationService notifications;
+
+    CheckoutFacade(
+        PricingService pricing,
+        InventoryService inventory,
+        PaymentService payment,
+        OrderRepository orders,
+        NotificationService notifications
+    ) {
+        this.pricing = pricing;
+        this.inventory = inventory;
+        this.payment = payment;
+        this.orders = orders;
+        this.notifications = notifications;
+    }
+
+    void placeOrder(String orderId, java.util.List<Item> items, String cardToken) {
+        double total = pricing.calculateTotal(items);
+        inventory.reserve(items);
+        String authCode = payment.authorize(total, cardToken);
+        orders.save(orderId, total, authCode);
+        notifications.sendOrderConfirmation(orderId);
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+type Item struct {
+	SKU      string
+	Price    float64
+	Quantity int
+}
+
+type PricingService struct{}
+
+func (p *PricingService) CalculateTotal(items []Item) float64 {
+	total := 0.0
+	for _, item := range items {
+		total += item.Price * float64(item.Quantity)
+	}
+	return total
+}
+
+type InventoryService struct{}
+
+func (i *InventoryService) Reserve(items []Item) {
+	fmt.Printf("Reserving %d line items\n", len(items))
+}
+
+type PaymentService struct{}
+
+func (p *PaymentService) Authorize(amount float64, cardToken string) string {
+	fmt.Printf("Authorizing payment for $%.2f\n", amount)
+	return fmt.Sprintf("auth_%d", int(amount*100))
+}
+
+type OrderRepository struct{}
+
+func (o *OrderRepository) Save(orderID string, amount float64, authCode string) {
+	fmt.Printf("Saving order %s with auth %s\n", orderID, authCode)
+}
+
+type NotificationService struct{}
+
+func (n *NotificationService) SendOrderConfirmation(orderID string) {
+	fmt.Printf("Sending confirmation for %s\n", orderID)
+}
+
+type CheckoutFacade struct {
+	pricing      *PricingService
+	inventory    *InventoryService
+	payment      *PaymentService
+	orders       *OrderRepository
+	notifications *NotificationService
+}
+
+func NewCheckoutFacade() *CheckoutFacade {
+	return &CheckoutFacade{
+		pricing:      &PricingService{},
+		inventory:    &InventoryService{},
+		payment:      &PaymentService{},
+		orders:       &OrderRepository{},
+		notifications: &NotificationService{},
+	}
+}
+
+func (f *CheckoutFacade) PlaceOrder(orderID string, items []Item, cardToken string) {
+	total := f.pricing.CalculateTotal(items)
+	f.inventory.Reserve(items)
+	authCode := f.payment.Authorize(total, cardToken)
+	f.orders.Save(orderID, total, authCode)
+	f.notifications.SendOrderConfirmation(orderID)
+}
+```
+
+```rust [Rust]
+#[derive(Clone)]
+struct Item {
+    sku: String,
+    price: f64,
+    quantity: i32,
+}
+
+struct PricingService;
+
+impl PricingService {
+    fn calculate_total(&self, items: &[Item]) -> f64 {
+        items.iter().map(|item| item.price * item.quantity as f64).sum()
+    }
+}
+
+struct InventoryService;
+
+impl InventoryService {
+    fn reserve(&self, items: &[Item]) {
+        println!("Reserving {} line items", items.len());
+    }
+}
+
+struct PaymentService;
+
+impl PaymentService {
+    fn authorize(&self, amount: f64, _card_token: &str) -> String {
+        println!("Authorizing payment for ${:.2}", amount);
+        format!("auth_{}", (amount * 100.0).round() as i64)
+    }
+}
+
+struct OrderRepository;
+
+impl OrderRepository {
+    fn save(&self, order_id: &str, _amount: f64, auth_code: &str) {
+        println!("Saving order {} with auth {}", order_id, auth_code);
+    }
+}
+
+struct NotificationService;
+
+impl NotificationService {
+    fn send_order_confirmation(&self, order_id: &str) {
+        println!("Sending confirmation for {}", order_id);
+    }
+}
+
+struct CheckoutFacade {
+    pricing: PricingService,
+    inventory: InventoryService,
+    payment: PaymentService,
+    orders: OrderRepository,
+    notifications: NotificationService,
+}
+
+impl CheckoutFacade {
+    fn new() -> Self {
+        Self {
+            pricing: PricingService,
+            inventory: InventoryService,
+            payment: PaymentService,
+            orders: OrderRepository,
+            notifications: NotificationService,
+        }
+    }
+
+    fn place_order(&self, order_id: &str, items: &[Item], card_token: &str) {
+        let total = self.pricing.calculate_total(items);
+        self.inventory.reserve(items);
+        let auth_code = self.payment.authorize(total, card_token);
+        self.orders.save(order_id, total, &auth_code);
+        self.notifications.send_order_confirmation(order_id);
+    }
+}
 ```
 
 :::
 
-## Real-World Example
+## Haqiqiy hayotdagi misol (Real-World Example)
 
-**E-commerce Order Processing Facade**: An online store might have:
+Real fasad — elektron tijorat ilovasidagi **checkout ish oqimi**. Mijoz bitta operatsiyani xohlaydi: buyurtma berish. Fasad narxlash, ombor, to'lov, buyurtmani saqlash va bildirishnomalarni muvofiqlashtiradi.
 
-- **Inventory Service**: Track product stock
-- **Payment Service**: Process payments
-- **Shipping Service**: Calculate shipping costs and arrange delivery
-- **Email Service**: Send order confirmations
-- **Notification Service**: Alert customer of status changes
+Bu controller'ni ingichka saqlaydi va biznes oqimini test qilishni osonlashtiradi.
 
-A simple `PlaceOrderFacade` coordinates all these services so customers just call `placeOrder(items, address)` without needing to understand internal complexity.
+```typescript
+const checkout = new CheckoutFacade(
+  new PricingService(),
+  new InventoryService(),
+  new PaymentService(),
+  new OrderRepository(),
+  new NotificationService(),
+);
 
-## Advantages
+checkout.placeOrder("order_123", cartItems, "tok_abc");
+```
 
-::: tip
-✅ **Simplified Interface**: Clients see one simple interface instead of many complex ones
+Agar narxlash qoidalari o'zgarsa yoki yangi bildirishnoma kanali qo'shilsa, controller o'zgarmaydi. Faqat fasad va quyi tizim kodi o'zgaradi.
 
-✅ **Reduced Coupling**: Clients depend on the facade, not on subsystem components
+## Afzalliklari (Advantages)
 
-✅ **Easier Maintenance**: Changes to subsystems don't affect clients using the facade
+- Mijozlar uchun murakkab ish oqimlarini soddalashtiradi
+- Quyi tizim klasslariga bog'liqlikni kamaytiradi
+- Controller'lar va UI handler'larini kichikroq qiladi
+- Orkestratsiya mantig'ini bir joyda markazlashtiradi
+- Yuqori darajadagi oqimlarning test qilinuvchanligini yaxshilaydi
+- O'zgarib turuvchi ichki qismlar ustidan barqaror API yaratishga yordam beradi
 
-✅ **Clear Documentation**: The facade serves as documentation for common use cases
+## Kamchiliklari (Disadvantages)
 
-✅ **Layered Subsystems**: Encapsulates and organizes subsystems into layers
+- Juda ko'p ish bajarsa, "god object"ga aylanib qolishi mumkin
+- Quyi tizimning foydali imkoniyatlarini mijozlardan yashirishi mumkin
+- Yana bir bilvosita (indirection) qatlam qo'shadi
+- Murakkab domenlarni haddan tashqari soddalashtirishga undashi mumkin
+- Orkestratsiyani maqsadga yo'naltirilgan holda saqlash uchun intizom talab qiladi
 
-✅ **Flexibility**: Clients can still access subsystems directly if needed
+## Qachon foydalanish kerak (When to Use)
 
-✅ **Progressive Complexity**: Facade handles 80% of use cases; advanced users can access internals
-:::
+- Quyi tizimda o'zaro hamkorlik qiluvchi ko'plab klasslar bor
+- Mijozlarga faqat bir nechta umumiy ish oqimlari kerak
+- Murakkab jarayon uchun sodda API kerak
+- Orkestratsiya kodidagi takrorlanishni kamaytirmoqchisiz
+- Domen imkoniyati atrofida toza chegara yaratmoqchisiz
 
-## Disadvantages
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-::: warning
-❌ **God Object Risk**: Facade can become a "god object" knowing too much
+- Quyi tizim allaqachon sodda
+- Mijozlarga doimo to'liq past darajadagi nazorat kerak
+- Fasad shunchaki har bir quyi tizim metodini 1:1 takrorlaydi
+- Muhim biznes qarorlarini yashirib qo'ygan bo'lardingiz
+- Orkestratsiya mantig'i juda kichik va kamdan-kam takrorlanadi
 
-❌ **Limited Flexibility**: Not all use cases can be handled by the facade
+## Keng tarqalgan xatolar (Common Mistakes)
 
-❌ **Additional Abstraction**: Extra layer of indirection can complicate architecture
+### 1-xato: Fasadni hamma narsani qiladigan servisga aylantirish
 
-❌ **Maintenance Burden**: Facade needs updating when subsystems change
+```typescript
+// ❌ Yomon: bir-biriga aloqasiz mas'uliyatlar juda ko'p
+class BadFacade {
+  placeOrder() {}
+  resetPassword() {}
+  exportCsv() {}
+}
 
-❌ **Performance Overhead**: Extra layer adds method call overhead
+// ✅ Yaxshi: bitta chegaralangan jarayon uchun bitta facade
+class CheckoutFacade {
+  placeOrder() {}
+}
+```
 
-❌ **Difficult Evolution**: Hard to extend facade without breaking existing interface
+### 2-xato: Har bir quyi tizimni abadiy yashirish
 
-❌ **Hides Subsystem Details**: Sometimes detailed control is necessary and hidden
-:::
+```typescript
+// ❌ Yomon: murakkab holatlar uchun chiqish yo'li yo'q
+class BadFacade {}
 
-## When to Use
+// ✅ Yaxshi: kerak bo'lganda quyi tizimlarni ochib bering
+class CheckoutFacade {
+  getPricingService() {}
+}
+```
 
-- You have a complex subsystem with many components
-- You want to provide a simple interface to complex functionality
-- You need to reduce coupling between clients and subsystems
-- You're layering subsystems and need to communicate between layers
-- Most clients need only basic functionality
-- You want to decouple clients from subsystem classes
-- You're integrating with legacy or third-party systems
+### 3-xato: Domen qoidalarini fasadga ko'chirish
 
-## When NOT to Use
+```typescript
+// ❌ Yomon: narxlash siyosati facade'ga tegishli
+class BadCheckoutFacade {
+  placeOrder() {
+    // bu yerda narxlash siyosati juda ko'p
+  }
+}
 
-- You have only one or two classes (not a subsystem)
-- Clients need fine-grained control over all subsystem components
-- The "simplified" interface would hide important functionality
-- The subsystem is stable and rarely changes
-- Performance is critical and overhead is unacceptable
-- You're not sure what the common use cases are yet
+// ✅ Yaxshi: facade boshqaradi, servislar o'z qoidalarini o'zlari belgilaydi
+```
 
-## Related Patterns
+### 4-xato: Quyi tizim metodlarini birma-bir takrorlash
 
-- **Adapter Pattern**: Adapts one interface to another, while Facade simplifies complex interfaces
-- **Bridge Pattern**: Decouples abstraction from implementation, while Facade simplifies subsystems
-- **Decorator Pattern**: Adds responsibilities to objects, while Facade provides simplified access
-- **Composite Pattern**: Composes objects into trees, while Facade provides simplified access to subsystems
-- **Abstract Factory Pattern**: Often used with Facade to create subsystem components
-- **Mediator Pattern**: Similar to Facade but manages communication between peer objects
+```typescript
+// ❌ Yomon: hech qanday soddalashtirish yo'q
+class BadFacade {
+  calculateTotal() {}
+  reserveStock() {}
+  authorizePayment() {}
+}
+
+// ✅ Yaxshi: biznes darajasidagi operatsiyani taqdim eting
+class CheckoutFacade {
+  placeOrder() {}
+}
+```
+
+## Aloqador patternlar (Related Patterns)
+
+- **[Adapter](/uz/structural/adapter)**: Mos kelmaydigan interfeyslarni tarjima qiladi; Facade esa kirishni soddalashtiradi
+- **[Mediator](/uz/behavioral/mediator)**: Hamkasblarni (colleagues) dinamikroq muvofiqlashtiradi
+- **[Singleton](/uz/creational/singleton)**: Ba'zan bitta fasad nusxasini baham ko'rish uchun ishlatiladi, lekin bu shart emas
+- **Facade + [Builder](/uz/creational/builder)**: Fasad murakkab qurish (construction) jarayonini yashirishi mumkin
+
+## Zamonaviy muqobillar (Modern Alternatives)
+
+- API gateway'lar va servis orkestratsiyasi qatlamlari
+- BFF'lar (Backend for Frontend)
+- Ilova qatlami arxitekturasidagi domen servislari
+- Ko'p bosqichli biznes jarayonlari uchun workflow dvigatellari
+- Server tomonidagi agregatsiya endpoint'lari
+
+## Intervyu uchun maslahatlar (Interview Insights)
+
+**1-savol: Facade'ning asosiy maqsadi nima?**
+
+J: Murakkab quyi tizim ustidan soddalashtirilgan, yagona interfeys taqdim etish. U mijoz bilishi kerak bo'lgan narsalar sonini kamaytiradi.
+
+**2-savol: Facade Adapter'dan nimasi bilan farq qiladi?**
+
+J: Facade soddalashtiradi. Adapter mos kelmaydigan interfeyslarni o'zgartiradi.
+
+**3-savol: Facade quyi tizimni almashtiradimi?**
+
+J: Yo'q. U quyi tizim ustida turadi va ishni unga topshiradi.
+
+**4-savol: Facade qachon anti-patternga aylanadi?**
+
+J: U juda ko'p o'zaro aloqasiz ish oqimlarini o'z zimmasiga olgan ulkan god object'ga aylanganda yoki chaqiruvchilarga haqiqatan ham kerak bo'lgan muhim murakkablikni yashirganda.
+
+**5-savol: Facade faqat obyektga yo'naltirilgan kod uchunmi?**
+
+J: Yo'q. Bu pattern API'larda, servislarda, orkestratsiya qatlamlarida va hatto CLI vositalarida ham mavjud. Asosiy g'oya — soddalashtirilgan kirish nuqtasi.

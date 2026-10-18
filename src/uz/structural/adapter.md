@@ -1,347 +1,749 @@
 ---
 title: Adapter Pattern
-description: Converts the interface of a class into another interface clients expect, allowing incompatible interfaces to work together
+description: Klass interfeysini mijozlar kutayotgan boshqa interfeysga aylantiradi va mos kelmaydigan interfeyslarning birgalikda ishlashiga imkon beradi.
 icon: Package
 ---
 
 # Adapter Pattern
 
-<CoverImage src="/covers/structural/adapter.png" alt="Cover">
+<CoverImage src="/covers/structural/adapter.webp" alt="Cover">
   <h1>Adapter</h1>
-  <p>A comical, over-engineered travel adapter trying to connect a standard US 3-pin plug to a ridiculous triangle-shaped socket using small colorful gears.</p>
+  <p>Standart AQSh 3 pinli vilkasini kichik rang-barang tishli g'ildiraklar yordamida g'alati uchburchak shaklidagi rozetkaga ulashga urinayotgan kulgili, haddan tashqari murakkab sayohat adapteri.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The Adapter Pattern is a structural design pattern that allows incompatible interfaces to collaborate. It acts as a bridge between two incompatible interfaces by converting the interface of a class into another interface that clients expect.
+**Adapter** — bu mos kelmaydigan interfeyslarga ega klasslarning manba kodini o'zgartirmasdan birgalikda ishlashiga imkon beruvchi strukturaviy (structural) dizayn patternidir. U bitta interfeysni o'rab oladi va boshqasini taqdim etadi: chaqiruvlarni, ma'lumotlar shaklini yoki nomlash qoidalarini tarjima qiladi, shunda mijoz (client) o'ziga tanish kontraktdan foydalanishda davom etaveradi.
 
-## Purpose
+**Asosiy afzalligi**: Eski (legacy) kodni, uchinchi tomon SDK'larini yoki freymvorklar o'rtasidagi nomuvofiqliklarni hech bir tomonni qayta yozmasdan integratsiya qilishingiz mumkin.
 
-- **Enable integration** between components with incompatible interfaces
-- **Reuse existing code** without modifying it
-- **Provide compatibility** for legacy systems with new implementations
-- **Reduce coupling** between incompatible components
+**Zamonaviy nuqtai nazar**: Adapter 2026-yilda ham juda dolzarb, chunki tizimlar tobora ko'proq API'lar, paketlar, servislar va eski ichki kutubxonalardan yig'ilmoqda. U ayniqsa chegaralarda keng tarqalgan: to'lov shlyuzlari (payment gateway), HTTP klientlar, ma'lumotlar bazasi drayverlari va platforma SDK'lari uchun o'ramlar (wrapper).
 
-## Problem
+Muhim farq — maqsadda. Adapter xatti-harakat qo'shish uchun emas. U moslik (compatibility) uchun.
 
-Imagine you have a modern payment processing system that expects a `PaymentProcessor` interface with a `processPayment(amount: number, cardData: string)` method. However, you also need to integrate with a legacy payment system that has a completely different interface: `LegacyPaymentGateway.chargeCard(cardInfo: object, cents: number)`.
+## Maqsad (Purpose)
 
-The two systems have:
+- Mos kelmaydigan interfeyslarga ega komponentlar o'rtasida integratsiyani ta'minlash
+- Mavjud kodni o'zgartirmasdan qayta ishlatish
+- Vendor'ga yoki eski tizimga xos API'larni barqaror ilova kontrakti ortiga yashirish
+- Kod bazasining qolgan qismini interfeys o'zgarishlaridan himoyalash
 
-- Different method names
-- Different parameter orders and types
-- Different conventions
+## Hayotiy o'xshatish (Real-World Analogy)
 
-You cannot modify either system, yet you need them to work together. This is where the Adapter Pattern comes in.
+Sayohat uchun vilka adapterini tasavvur qiling. Noutbukingiz zaryadlovchisi bir xil vilka shaklini kutadi, lekin boshqa davlatdagi devor rozetkasi boshqacha. Adapter zaryadlovchini ham, devorni ham o'zgartirmaydi. U shunchaki ikki tomonni bir-biriga moslashtiradi.
 
-## Solution
+Dasturiy adapterlar ham xuddi shunday qiladi: ular hech bir tomonni o'zgartirmasdan nomuvofiqlikni foydalanish mumkin holga keltiradi.
 
-The Adapter Pattern provides a solution by creating an adapter class that:
+## Tuzilma (Structure)
 
-1. Implements the interface that clients expect
-2. Translates calls to the incompatible interface
-3. Adapts data types and formats between systems
+```mermaid
+classDiagram
+    class CheckoutService {
+        -processor: PaymentProcessor
+        +checkout(amount, cardData) void
+    }
+    class PaymentProcessor {
+        <<interface>>
+        +processPayment(amount, cardData) void
+    }
+    class PaymentGatewayAdapter {
+        -legacyGateway: LegacyPaymentGateway
+        +processPayment(amount, cardData) void
+        -parseCardData(cardData) CardInfo
+    }
+    class LegacyPaymentGateway {
+        +chargeCard(cardInfo, cents) void
+    }
 
-There are two main approaches:
+    CheckoutService --> PaymentProcessor : uses
+    PaymentProcessor <|.. PaymentGatewayAdapter
+    PaymentGatewayAdapter o-- LegacyPaymentGateway : delegates to
+```
 
-### Class Adapter (Inheritance)
+- **`CheckoutService`** (Client) faqat `PaymentProcessor` interfeysiga bog'liq.
+- **`PaymentProcessor`** (Target) — mijoz kutayotgan interfeys.
+- **`PaymentGatewayAdapter`** (Adapter) target'ni amalga oshiradi va ishni uzatishdan oldin argumentlarni tarjima qiladi (dollarni sentga, satrni karta obyektiga).
+- **`LegacyPaymentGateway`** (Adaptee) — mos kelmaydigan `chargeCard()` API'ga ega mavjud klass.
 
-The adapter inherits from both the target interface and the adaptee class, implementing the required methods by delegating to the adaptee.
+## Muammo (The Problem)
 
-### Object Adapter (Composition)
+Tasavvur qiling, sizda toza processPayment(amount, paymentMethod) metodiga ega to'lov protsessorini kutadigan zamonaviy checkout servisi bor. Biroq mavjud yagona provayder — butunlay boshqacha shakldagi eski shlyuz: u karta obyektlarini, dollar o'rniga sentni va sinxron chaqiruvlarni talab qiladi.
 
-The adapter holds a reference to the adaptee and implements the target interface by delegating calls to the adaptee while adapting the data.
+Ikki tizimda:
 
-## Implementation
+- Metod nomlari har xil
+- Parametrlar tartibi va o'lchov birliklari har xil
+- Xatolarni qayta ishlash qoidalari har xil
+- Ma'lumotlar tuzilmalari har xil
+
+Siz hech bir tizimni o'zgartira olmaysiz, ammo ularning birgalikda ishlashi kerak. Aynan shu yerda Adapter patterni yordamga keladi.
+
+### 1-ssenariy: Eski to'lov shlyuzi (Legacy Payment Gateway)
+
+```typescript
+// ❌ Muammo: mijoz zamonaviy interfeysni kutadi
+interface PaymentProcessor {
+  processPayment(amount: number, currency: string): Promise<void>;
+}
+
+// ❌ Muammo: eski gateway boshqacha API taqdim etadi
+class LegacyPaymentGateway {
+  chargeCard(
+    cardInfo: { cardNumber: string; cvv: string },
+    cents: number,
+  ): void {
+    console.log(`Charging ${cents} cents to ${cardInfo.cardNumber.slice(-4)}`);
+  }
+}
+```
+
+### 2-ssenariy: HTTP kutubxonasi nomuvofiqligi
+
+```typescript
+// ❌ Muammo: ilova fetch'ga o'xshash metodlarni kutadi
+interface HttpClient {
+  get(url: string): Promise<unknown>;
+  post(url: string, data: unknown): Promise<unknown>;
+}
+
+// ❌ Muammo: eski kutubxona boshqacha atamalardan foydalanadi
+class LegacyHttpLib {
+  fetchGet(endpoint: string): unknown {
+    return { status: 200, data: [] };
+  }
+
+  fetchPost(endpoint: string, payload: unknown): unknown {
+    return { status: 201, data: payload };
+  }
+}
+```
+
+## Yechim (The Solution)
+
+Adapter patterni quyidagilarni bajaradigan adapter klassini yaratish orqali yechim taqdim etadi:
+
+1. Mijozlar kutayotgan interfeysni amalga oshiradi
+2. Mos kelmaydigan adaptee'ni o'zida saqlaydi yoki undan meros oladi
+3. Metod chaqiruvlarini, argumentlarni va qaytariladigan qiymatlarni tarjima qiladi
+4. Moslik mantig'ini bir joyda saqlaydi
+
+Ikkita asosiy yondashuv mavjud:
+
+### Object Adapter (obyekt adapteri)
+
+Adapter adaptee'ning nusxasini o'z ichiga oladi va ishni unga topshiradi. Bu TypeScript, Python, Go va Rust'da eng amaliy variant.
+
+### Class Adapter (klass adapteri)
+
+Adapter adaptee'dan meros oladi va target interfeysni metodlarni qayta aniqlash (overriding) orqali amalga oshiradi. Bu yagona meros (single inheritance) yoki mixin'ga o'xshash mexanizmlarga ega tillarda uchraydi, lekin kompozitsiyani qo'llab-quvvatlash odatda osonroq.
+
+```typescript
+// ✅ Yechim: yupqa moslashtiruvchi qatlam
+interface PaymentProcessor {
+  processPayment(amount: number, cardData: string): Promise<void>;
+}
+
+class LegacyPaymentGateway {
+  chargeCard(
+    cardInfo: { cardNumber: string; cvv: string },
+    cents: number,
+  ): void {
+    console.log(
+      `Legacy gateway: charging ${cents} cents to ${cardInfo.cardNumber.slice(-4)}`,
+    );
+  }
+}
+
+class PaymentGatewayAdapter implements PaymentProcessor {
+  constructor(private readonly legacyGateway: LegacyPaymentGateway) {}
+
+  async processPayment(amount: number, cardData: string): Promise<void> {
+    const cardInfo = this.parseCardData(cardData);
+    const cents = Math.round(amount * 100);
+    this.legacyGateway.chargeCard(cardInfo, cents);
+  }
+
+  private parseCardData(cardData: string): { cardNumber: string; cvv: string } {
+    const [cardNumber, cvv] = cardData.split("|");
+    if (!cardNumber || !cvv) {
+      throw new Error("Invalid card data");
+    }
+
+    return { cardNumber, cvv };
+  }
+}
+```
+
+## Amalga oshirish (Implementation)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// The target interface that clients expect
 interface PaymentProcessor {
-  processPayment(amount: number, cardData: string): void;
+  processPayment(amount: number, cardData: string): Promise<void>;
 }
 
-// The legacy incompatible interface
 class LegacyPaymentGateway {
-chargeCard(cardInfo: { cardNumber: string; cvv: string }, cents: number): void {
-console.log(`Legacy gateway: Charging ${cents} cents to card ending in ${cardInfo.cardNumber.slice(-4)}`);
-}
+  chargeCard(
+    cardInfo: { cardNumber: string; cvv: string },
+    cents: number,
+  ): void {
+    console.log(
+      `Legacy gateway: charging ${cents} cents to card ending in ${cardInfo.cardNumber.slice(-4)}`,
+    );
+  }
 }
 
-// Object Adapter
 class PaymentGatewayAdapter implements PaymentProcessor {
-private legacyGateway: LegacyPaymentGateway;
+  constructor(private readonly legacyGateway: LegacyPaymentGateway) {}
 
-constructor(legacyGateway: LegacyPaymentGateway) {
-this.legacyGateway = legacyGateway;
-}
-
-processPayment(amount: number, cardData: string): void {
-// Adapt the interface
-const cardInfo = this.parseCardData(cardData);
-const cents = Math.round(amount \* 100);
-
-    // Call the legacy method with adapted parameters
+  async processPayment(amount: number, cardData: string): Promise<void> {
+    const cardInfo = this.parseCardData(cardData);
+    const cents = Math.round(amount * 100);
     this.legacyGateway.chargeCard(cardInfo, cents);
+  }
 
+  private parseCardData(cardData: string): { cardNumber: string; cvv: string } {
+    const [cardNumber, cvv] = cardData.split("|");
+    if (!cardNumber || !cvv) {
+      throw new Error("Invalid card data");
+    }
+
+    return { cardNumber, cvv };
+  }
 }
 
-private parseCardData(cardData: string): { cardNumber: string; cvv: string } {
-const [cardNumber, cvv] = cardData.split('|');
-return { cardNumber, cvv };
-}
-}
-
-// Client code
 class CheckoutService {
-constructor(private processor: PaymentProcessor) {}
+  constructor(private readonly processor: PaymentProcessor) {}
 
-checkout(amount: number, cardData: string): void {
-console.log(`Processing payment of $${amount}`);
-this.processor.processPayment(amount, cardData);
-console.log('Payment processed successfully');
+  async checkout(amount: number, cardData: string): Promise<void> {
+    console.log(`Processing payment of $${amount.toFixed(2)}`);
+    await this.processor.processPayment(amount, cardData);
+    console.log("Payment processed successfully");
+  }
 }
-}
 
-// Usage
-const legacyGateway = new LegacyPaymentGateway();
-const adapter = new PaymentGatewayAdapter(legacyGateway);
-const checkout = new CheckoutService(adapter);
+const checkout = new CheckoutService(
+  new PaymentGatewayAdapter(new LegacyPaymentGateway()),
+);
 
-checkout.checkout(99.99, '4111111111111111|123');
+checkout.checkout(99.99, "4111111111111111|123");
 
-// ============================================
-// Alternative: Class Adapter (Multiple Inheritance)
-// Note: TypeScript doesn't support true multiple inheritance,
-// but we can simulate it using mixins or composition
-// ============================================
-
-// A more practical example: Adapting HTTP clients
 interface HttpClient {
-get(url: string): Promise<any>;
-post(url: string, data: any): Promise<any>;
+  get(url: string): Promise<unknown>;
+  post(url: string, data: unknown): Promise<unknown>;
 }
 
-// Old HTTP library with different interface
 class LegacyHttpLib {
-fetchGet(endpoint: string): any {
-return { status: 200, data: {} };
+  fetchGet(endpoint: string): unknown {
+    return { status: 200, data: [] };
+  }
+
+  fetchPost(endpoint: string, payload: unknown): unknown {
+    return { status: 201, data: payload };
+  }
 }
 
-fetchPost(endpoint: string, payload: any): any {
-return { status: 201, data: {} };
-}
-}
-
-// Adapter for modern interface
 class HttpClientAdapter implements HttpClient {
-constructor(private legacyLib: LegacyHttpLib) {}
+  constructor(private readonly legacyLib: LegacyHttpLib) {}
 
-async get(url: string): Promise<any> {
-const response = this.legacyLib.fetchGet(url);
-return response.data;
+  async get(url: string): Promise<unknown> {
+    const response = this.legacyLib.fetchGet(url) as { data: unknown };
+    return response.data;
+  }
+
+  async post(url: string, data: unknown): Promise<unknown> {
+    const response = this.legacyLib.fetchPost(url, data) as { data: unknown };
+    return response.data;
+  }
 }
 
-async post(url: string, data: any): Promise<any> {
-const response = this.legacyLib.fetchPost(url, data);
-return response.data;
-}
-}
-
-// Using the adapter
-const legacyHttp = new LegacyHttpLib();
-const httpAdapter = new HttpClientAdapter(legacyHttp);
-
-// Now we can use it with modern async/await code
-(async () => {
-const data = await httpAdapter.get('/api/users');
-console.log('User data:', data);
-})();
+const httpAdapter = new HttpClientAdapter(new LegacyHttpLib());
+httpAdapter.get("/api/users").then((data) => console.log("User data:", data));
 ```
 
 ```python [Python]
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
-# The target interface that clients expect
 class PaymentProcessor(ABC):
     @abstractmethod
     def process_payment(self, amount: float, card_data: str) -> None:
         pass
 
-# The legacy incompatible interface
 class LegacyPaymentGateway:
     def charge_card(self, card_info: dict, cents: int) -> None:
-        print(f"Legacy gateway: Charging {cents} cents to card ending in {card_info['card_number'][-4:]}")
+        print(
+            f"Legacy gateway: charging {cents} cents to card ending in {card_info['card_number'][-4:]}"
+        )
 
-# Object Adapter
 class PaymentGatewayAdapter(PaymentProcessor):
     def __init__(self, legacy_gateway: LegacyPaymentGateway):
         self._legacy_gateway = legacy_gateway
 
     def process_payment(self, amount: float, card_data: str) -> None:
-        # Adapt the interface
         card_info = self._parse_card_data(card_data)
         cents = round(amount * 100)
-
-        # Call the legacy method with adapted parameters
         self._legacy_gateway.charge_card(card_info, cents)
 
     @staticmethod
     def _parse_card_data(card_data: str) -> dict:
-        card_number, cvv = card_data.split('|')
-        return {'card_number': card_number, 'cvv': cvv}
+        card_number, cvv = card_data.split("|")
+        if not card_number or not cvv:
+            raise ValueError("Invalid card data")
+        return {"card_number": card_number, "cvv": cvv}
 
-# Client code
 class CheckoutService:
     def __init__(self, processor: PaymentProcessor):
         self._processor = processor
 
     def checkout(self, amount: float, card_data: str) -> None:
-        print(f"Processing payment of ${amount}")
+        print(f"Processing payment of ${amount:.2f}")
         self._processor.process_payment(amount, card_data)
         print("Payment processed successfully")
 
-# Usage
-legacy_gateway = LegacyPaymentGateway()
-adapter = PaymentGatewayAdapter(legacy_gateway)
-checkout = CheckoutService(adapter)
+@dataclass
+class LegacyWeatherApiResponse:
+    temp_c: float
+    condition: str
+    humidity: int
 
+class WeatherData(ABC):
+    @property
+    @abstractmethod
+    def temperature(self) -> float:
+        pass
+
+    @property
+    @abstractmethod
+    def description(self) -> str:
+        pass
+
+class WeatherApiAdapter(WeatherData):
+    def __init__(self, response: LegacyWeatherApiResponse):
+        self._response = response
+
+    @property
+    def temperature(self) -> float:
+        return self._response.temp_c
+
+    @property
+    def description(self) -> str:
+        return self._response.condition
+
+checkout = CheckoutService(PaymentGatewayAdapter(LegacyPaymentGateway()))
 checkout.checkout(99.99, "4111111111111111|123")
 
-# ============================================
-# Another practical example: Database adapters
-# ============================================
+weather = WeatherApiAdapter(LegacyWeatherApiResponse(20, "Sunny", 45))
+print(f"Weather: {weather.temperature}C, {weather.description}")
+```
 
-from abc import ABC, abstractmethod
-import json
+```java [Java]
+interface PaymentProcessor {
+    void processPayment(double amount, String cardData);
+}
 
-class DatabaseConnection(ABC):
-    @abstractmethod
-    def execute_query(self, query: str, params: list = None) -> list:
-        pass
+class LegacyPaymentGateway {
+    public void chargeCard(String cardNumber, String cvv, int cents) {
+        System.out.println(
+            "Legacy gateway: charging " + cents + " cents to card ending in " +
+            cardNumber.substring(cardNumber.length() - 4)
+        );
+    }
+}
 
-    @abstractmethod
-    def close(self) -> None:
-        pass
+class PaymentGatewayAdapter implements PaymentProcessor {
+    private final LegacyPaymentGateway legacyGateway;
 
-# Old database library
-class OldDatabaseLib:
-    def __init__(self, connection_string: str):
-        self.conn_str = connection_string
+    public PaymentGatewayAdapter(LegacyPaymentGateway legacyGateway) {
+        this.legacyGateway = legacyGateway;
+    }
 
-    def run_sql(self, sql_text: str, parameters: tuple = None):
-        print(f"Old library executing: {sql_text}")
-        return [{'id': 1, 'name': 'John'}, {'id': 2, 'name': 'Jane'}]
+    @Override
+    public void processPayment(double amount, String cardData) {
+        String[] parts = cardData.split("\\|");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid card data");
+        }
 
-    def disconnect(self):
-        print("Old library disconnecting")
+        int cents = (int) Math.round(amount * 100);
+        legacyGateway.chargeCard(parts[0], parts[1], cents);
+    }
+}
 
-# Adapter for modern interface
-class OldDatabaseAdapter(DatabaseConnection):
-    def __init__(self, old_db: OldDatabaseLib):
-        self._old_db = old_db
+interface HttpClient {
+    Object get(String url);
+    Object post(String url, Object data);
+}
 
-    def execute_query(self, query: str, params: list = None) -> list:
-        # Adapt list parameters to tuple
-        parameters = tuple(params) if params else None
-        return self._old_db.run_sql(query, parameters)
+class LegacyHttpLib {
+    public Object fetchGet(String endpoint) {
+        return new Object();
+    }
 
-    def close(self) -> None:
-        self._old_db.disconnect()
+    public Object fetchPost(String endpoint, Object payload) {
+        return payload;
+    }
+}
 
-# Usage
-old_db = OldDatabaseLib("Server=localhost;Database=mydb")
-db_adapter = OldDatabaseAdapter(old_db)
+class HttpClientAdapter implements HttpClient {
+    private final LegacyHttpLib legacyLib;
 
-results = db_adapter.execute_query("SELECT * FROM users WHERE status = ?", ['active'])
-print(f"Results: {json.dumps(results, indent=2)}")
-db_adapter.close()
+    public HttpClientAdapter(LegacyHttpLib legacyLib) {
+        this.legacyLib = legacyLib;
+    }
+
+    @Override
+    public Object get(String url) {
+        return legacyLib.fetchGet(url);
+    }
+
+    @Override
+    public Object post(String url, Object data) {
+        return legacyLib.fetchPost(url, data);
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+type PaymentProcessor interface {
+	ProcessPayment(amount float64, cardData string) error
+}
+
+type LegacyPaymentGateway struct{}
+
+func (g *LegacyPaymentGateway) ChargeCard(cardNumber, cvv string, cents int) {
+	fmt.Printf("Legacy gateway: charging %d cents to card ending in %s\n", cents, cardNumber[len(cardNumber)-4:])
+}
+
+type PaymentGatewayAdapter struct {
+	legacyGateway *LegacyPaymentGateway
+}
+
+func NewPaymentGatewayAdapter(legacyGateway *LegacyPaymentGateway) *PaymentGatewayAdapter {
+	return &PaymentGatewayAdapter{legacyGateway: legacyGateway}
+}
+
+func (a *PaymentGatewayAdapter) ProcessPayment(amount float64, cardData string) error {
+	parts := splitCardData(cardData)
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid card data")
+	}
+
+	cents := int(amount * 100)
+	a.legacyGateway.ChargeCard(parts[0], parts[1], cents)
+	return nil
+}
+
+func splitCardData(cardData string) []string {
+	for i := 0; i < len(cardData); i++ {
+		if cardData[i] == '|' {
+			return []string{cardData[:i], cardData[i+1:]}
+		}
+	}
+	return []string{cardData}
+}
+
+type HttpClient interface {
+	Get(url string) (any, error)
+	Post(url string, data any) (any, error)
+}
+
+type LegacyHttpLib struct{}
+
+func (l *LegacyHttpLib) FetchGet(endpoint string) any {
+	return map[string]any{"status": 200}
+}
+
+func (l *LegacyHttpLib) FetchPost(endpoint string, payload any) any {
+	return payload
+}
+
+type HttpClientAdapter struct {
+	legacyLib *LegacyHttpLib
+}
+
+func NewHttpClientAdapter(legacyLib *LegacyHttpLib) *HttpClientAdapter {
+	return &HttpClientAdapter{legacyLib: legacyLib}
+}
+
+func (a *HttpClientAdapter) Get(url string) (any, error) {
+	return a.legacyLib.FetchGet(url), nil
+}
+
+func (a *HttpClientAdapter) Post(url string, data any) (any, error) {
+	return a.legacyLib.FetchPost(url, data), nil
+}
+```
+
+```rust [Rust]
+trait PaymentProcessor {
+    fn process_payment(&self, amount: f64, card_data: &str) -> Result<(), String>;
+}
+
+struct LegacyPaymentGateway;
+
+impl LegacyPaymentGateway {
+    fn charge_card(&self, card_number: &str, cvv: &str, cents: i32) {
+        println!(
+            "Legacy gateway: charging {} cents to card ending in {}",
+            cents,
+            &card_number[card_number.len() - 4..]
+        );
+    }
+}
+
+struct PaymentGatewayAdapter {
+    legacy_gateway: LegacyPaymentGateway,
+}
+
+impl PaymentGatewayAdapter {
+    fn new(legacy_gateway: LegacyPaymentGateway) -> Self {
+        Self { legacy_gateway }
+    }
+
+    fn parse_card_data(&self, card_data: &str) -> Result<(&str, &str), String> {
+        let parts: Vec<&str> = card_data.split('|').collect();
+        if parts.len() != 2 {
+            return Err("Invalid card data".to_string());
+        }
+        Ok((parts[0], parts[1]))
+    }
+}
+
+impl PaymentProcessor for PaymentGatewayAdapter {
+    fn process_payment(&self, amount: f64, card_data: &str) -> Result<(), String> {
+        let (card_number, cvv) = self.parse_card_data(card_data)?;
+        let cents = (amount * 100.0).round() as i32;
+        self.legacy_gateway.charge_card(card_number, cvv, cents);
+        Ok(())
+    }
+}
+
+trait HttpClient {
+    fn get(&self, url: &str) -> Result<String, String>;
+    fn post(&self, url: &str, data: &str) -> Result<String, String>;
+}
+
+struct LegacyHttpLib;
+
+impl LegacyHttpLib {
+    fn fetch_get(&self, _endpoint: &str) -> String {
+        "{\"status\":200}".to_string()
+    }
+
+    fn fetch_post(&self, _endpoint: &str, payload: &str) -> String {
+        payload.to_string()
+    }
+}
+
+struct HttpClientAdapter {
+    legacy_lib: LegacyHttpLib,
+}
+
+impl HttpClientAdapter {
+    fn new(legacy_lib: LegacyHttpLib) -> Self {
+        Self { legacy_lib }
+    }
+}
+
+impl HttpClient for HttpClientAdapter {
+    fn get(&self, url: &str) -> Result<String, String> {
+        Ok(self.legacy_lib.fetch_get(url))
+    }
+
+    fn post(&self, url: &str, data: &str) -> Result<String, String> {
+        Ok(self.legacy_lib.fetch_post(url, data))
+    }
+}
 ```
 
 :::
 
-## Real-World Example
+## Haqiqiy hayotdagi misol (Real-World Example)
 
-Consider a weather application that needs to display weather data from multiple sources:
+Amaliy adapter qatlami ko'pincha kod bazasining chekkasida joylashadi. Keng tarqalgan misollardan biri — bir nechta provayderlarni yagona ichki kontraktga normallashtirishi kerak bo'lgan ob-havo ma'lumotlarini jamlovchi servis.
 
-- **OpenWeatherMap API**: Returns data as `{ main: { temp: 293.15 }, weather: [...] }`
-- **WeatherAPI.com**: Returns data as `{ current: { temp_c: 20, condition: {...} } }`
-- **Your Application**: Expects `{ temperature: 20, description: "Sunny" }`
-
-You can create adapters for each weather service to convert their responses to your standardized format. This allows you to switch providers without changing your application code.
+Faraz qilaylik, ilovangiz oddiy shaklni kutadi:
 
 ```typescript
-interface WeatherData {
-  temperature: number;
+interface WeatherSnapshot {
+  temperatureC: number;
+  description: string;
+  humidity: number;
+}
+```
+
+Lekin provayderlar bir-biriga mos kelmaydi:
+
+- OpenWeatherMap haroratni Kelvinda, ichma-ich (nested) tuzilmada qaytaradi.
+- WeatherAPI Selsiyni boshqacha nomlash sxemasi bilan qaytaradi.
+- Ichki eski kesh obyektlar o'rniga kortejlar (tuple) va kodlarni qaytaradi.
+
+Adapterlarsiz ilova kodi provayderga xos shartli tarmoqlanishlar bilan to'lib ketadi. Adapterlar bilan esa har bir provayder o'zining tarjimoniga ega bo'ladi va tizimning qolgan qismi faqat WeatherSnapshot'ga bog'liq bo'ladi.
+
+Pattern aynan shu chegarada eng ko'p foyda keltiradi: yuqori oqimdagi (upstream) API'lar o'zgarganda ham ilovaning qolgan qismi barqaror qoladi.
+
+```typescript
+interface WeatherSnapshot {
+  temperatureC: number;
   description: string;
   humidity: number;
 }
 
-class OpenWeatherAdapter implements WeatherData {
-  // Adapts OpenWeatherMap response
+interface WeatherSource {
+  fetch(): Promise<WeatherSnapshot>;
 }
 
-class WeatherAPIAdapter implements WeatherData {
-  // Adapts WeatherAPI.com response
+class OpenWeatherMapAdapter implements WeatherSource {
+  constructor(private readonly response: unknown) {}
+
+  async fetch(): Promise<WeatherSnapshot> {
+    const data = this.response as {
+      main: { temp: number };
+      weather: { description: string }[];
+      humidity: number;
+    };
+
+    return {
+      temperatureC: Math.round(data.main.temp - 273.15),
+      description: data.weather[0]?.description ?? "unknown",
+      humidity: data.humidity,
+    };
+  }
 }
 ```
 
-## Advantages
+## Afzalliklari (Advantages)
 
-::: tip
-✅ **Promotes Reusability**: Use existing classes without modification
+- Mavjud klasslarni o'zgartirmasdan qayta ishlatishga yordam beradi
+- Tizim chegaralarida moslashuvchanlikni oshiradi
+- Moslik mantig'ini markazlashtirilgan holda saqlaydi
+- Mijoz kodining bitta barqaror abstraksiyaga bog'liq bo'lishiga imkon beradi
+- Eski kutubxonalardan bosqichma-bosqich voz kechishni qo'llab-quvvatlaydi
+- Uchinchi tomon yoki eski tizim integratsiyasini alohida test qilish mumkin bo'ladi
 
-✅ **Improves Flexibility**: Change implementations without affecting clients
+## Kamchiliklari (Disadvantages)
 
-✅ **Separates Concerns**: Keeps adaptation logic separate from business logic
+- Yana bir bilvosita (indirection) qatlam qo'shadi
+- Kichik saqlanmasa, tarjima mantig'i uyib tashlanadigan joyga aylanib qolishi mumkin
+- Adaptee API'si o'zgarganda qo'llab-quvvatlashni talab qiladi
+- Chuqurroq semantik nomuvofiqliklarni hal qilmaydi
+- Debugging'ni biroz kamroq to'g'ridan-to'g'ri qilishi mumkin
+- Ikkala tomonni ham o'zingiz boshqarsangiz, qo'shimcha kod keraksiz
 
-✅ **Single Responsibility**: Each adapter handles one specific adaptation
+## Qachon foydalanish kerak (When to Use)
 
-✅ **Open/Closed Principle**: Open for extension, closed for modification
+- Mos kelmaydigan interfeyslarni integratsiya qilishingiz kerak
+- Biror klassdan foydalanmoqchisiz, lekin uning API'si ilova kontraktingizga mos kelmaydi
+- Uchinchi tomon SDK'sini yoki eski modulni o'rayapsiz
+- Bir nechta provayder ustidan bitta barqaror interfeys kerak
+- Eski tizimdan bosqichma-bosqich ko'chib o'tyapsiz
 
-✅ **Easy to Test**: Adapters can be tested independently
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-✅ **Reduces Coupling**: Clients depend on abstractions, not implementations
-:::
+- Asl interfeysni to'g'ridan-to'g'ri o'zgartira olsangiz
+- Nomuvofiqlik oddiy yordamchi funksiya bilan hal qilinadigan darajada kichik bo'lsa
+- Adapter juda ko'p biznes mantig'ini o'z ichiga olib qolsa
+- Nomuvofiqlik strukturaviy emas, balki semantik bo'lsa
+- Unumdorlik va xotira ajratish xarajatlari moslikdan muhimroq bo'lsa
 
-## Disadvantages
+## Keng tarqalgan xatolar (Common Mistakes)
 
-::: warning
-❌ **Increased Complexity**: Adding extra classes can complicate the codebase
+### 1-xato: Biznes mantig'ini adapterga topshirish
 
-❌ **Runtime Overhead**: Adapter layer adds method call overhead
+```typescript
+// ❌ Yomon: adapter narxlash, chegirmalar va siyosat bilan shug'ullanadi
+class BadPaymentAdapter {
+  process(amount: number) {
+    const discounted = amount * 0.9;
+    const cents = Math.round(discounted * 100);
+    // bu yerda siyosat juda ko'p
+  }
+}
 
-❌ **Maintenance Burden**: Multiple adapters need to be maintained
+// ✅ Yaxshi: adapter faqat interfeys shaklini o'giradi
+class GoodPaymentAdapter {
+  process(amount: number) {
+    const cents = Math.round(amount * 100);
+  }
+}
+```
 
-❌ **Not a Cure-All**: Won't fix fundamentally incompatible systems
+### 2-xato: Adaptee turlarini mijoz kodiga sizdirish
 
-❌ **Difficult to Debug**: Extra indirection makes debugging harder
+```typescript
+// ❌ Yomon: mijoz hali ham eski shaklga bog'liq
+function handlePayment(gateway: LegacyPaymentGateway) {}
 
-❌ **Potential Performance Impact**: Extra object creation and method calls
-:::
+// ✅ Yaxshi: mijoz barqaror abstraksiyaga bog'liq
+function handlePayment(processor: PaymentProcessor) {}
+```
 
-## When to Use
+### 3-xato: Tarjima qilingan kiritmalarni tekshirmaslik
 
-- You need to integrate incompatible interfaces
-- You want to use an existing class but its interface doesn't match your requirements
-- You need to create a unified interface for multiple similar implementations
-- You're building a plugin system with varying interfaces
-- You need to support legacy code alongside new implementations
-- You want to provide different interfaces for the same data structure
+```typescript
+// ❌ Yomon: card_data'da har doim ajratuvchi bor deb hisoblaydi
+const [cardNumber, cvv] = cardData.split("|");
 
-## When NOT to Use
+// ✅ Yaxshi: o'girishdan oldin tekshiring
+if (!cardData.includes("|")) {
+  throw new Error("Invalid card data");
+}
+```
 
-- When you can simply modify the original interface
-- When the incompatibility is fundamental and cannot be reasonably adapted
-- When the adapter logic becomes too complex
-- When performance is critical and you need minimal overhead
-- When you only need to integrate one or two classes (simpler solutions might suffice)
-- When the interfaces are constantly changing
+### 4-xato: Har bir chegara uchun emas, har bir metod uchun alohida adapter
 
-## Related Patterns
+```typescript
+// ❌ Yomon: bitta provayder uchun ko'plab mayda adapterlar
+class GetWeatherAdapter {}
+class GetHumidityAdapter {}
 
-- **Bridge Pattern**: Similar structure but different purpose. Bridge defines an abstraction upfront, while Adapter works with existing incompatible interfaces.
-- **Decorator Pattern**: Both provide enhanced functionality, but Decorator adds responsibilities while Adapter converts interfaces.
-- **Facade Pattern**: Both simplify interfaces, but Facade creates a new interface for a subsystem while Adapter makes existing interfaces compatible.
-- **Strategy Pattern**: Both encapsulate variations, but Strategy is about algorithms while Adapter is about interfaces.
+// ✅ Yaxshi: bitta tashqi manba uchun bitta adapter
+class WeatherApiAdapter {}
+```
+
+## Aloqador patternlar (Related Patterns)
+
+- **[Facade](/uz/structural/facade)**: Interfeysni soddalashtiradi, lekin asosan mos kelmaydigan interfeyslarni tarjima qilmaydi
+- **[Decorator](/uz/structural/decorator)**: Xatti-harakat qo'shadi; Adapter esa interfeysni o'zgartiradi
+- **[Bridge](/uz/structural/bridge)**: Nomuvofiqlik paydo bo'lishidan oldin abstraksiyani amalga oshirishdan ajratadi
+- **[Proxy](/uz/structural/proxy)**: Obyektga kirishni uning interfeysini o'zgartirmasdan nazorat qiladi
+
+## Zamonaviy muqobillar (Modern Alternatives)
+
+- TypeScript yordamchi funksiyalari va tiplangan DTO mapper'lar
+- API gateway transformatsiya qatlamlari
+- Maxsus transformerlar bilan OpenAPI klient generatsiyasi
+- Korporativ servis shinalaridagi (enterprise service bus) integratsiya middleware'lari
+- SDK'lar atrofidagi til darajasidagi o'ramlar (wrapper)
+
+## Intervyu uchun maslahatlar (Interview Insights)
+
+**1-savol: Adapter'ning asosiy maqsadi nima?**
+
+J: Mos kelmaydigan interfeyslarni hech bir tomonni o'zgartirmasdan birgalikda ishlashga majbur qilish. Bu xatti-harakat patterni emas, moslik patterni.
+
+**2-savol: Adapter Decorator'dan nimasi bilan farq qiladi?**
+
+J: Decorator interfeysni saqlab qoladi va xatti-harakat qo'shadi. Adapter esa interfeysni o'zgartiradi, shunda bir tur boshqa tur kutilgan joyda ishlatilishi mumkin bo'ladi.
+
+**3-savol: Qachon class adapter o'rniga object adapter'ni afzal ko'rasiz?**
+
+J: Zamonaviy kod bazalarida deyarli har doim, chunki object adapter'lar kompozitsiyadan foydalanadi, ularni test qilish osonroq va ular meros cheklovlaridan xoli.
+
+**4-savol: Adapter API'dagi buzuvchi (breaking) o'zgarishlarni yashira oladimi?**
+
+J: Ha. U ko'pincha migratsiyalar paytida moslik qatlami sifatida ishlatiladi, shunda backend o'zgarayotgan bir paytda ilovaning qolgan qismi eski kontraktdan foydalanishda davom etadi.
+
+**5-savol: Zamonaviy REST/GraphQL API'lar davrida Adapter hali ham dolzarbmi?**
+
+J: Ha. U API klientlari, SDK o'ramlari va eski tizim integratsiyalari uchun juda keng tarqalgan. Aksariyat real tizimlarga hali ham tarjima qatlamlari kerak.
+
+**6-savol: Adapter'dan foydalanishdagi eng katta xavf nima?**
+
+J: Uning ikkinchi biznes qatlamiga aylanib ketishiga yo'l qo'yish. Agar adapter siyosat (policy), validatsiya qoidalari va orkestratsiyani o'z zimmasiga ola boshlasa, uni qo'llab-quvvatlash qiyinlashadi va u endi sof tarjimon bo'lib qolmaydi.

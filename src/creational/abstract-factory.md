@@ -6,7 +6,7 @@ icon: Boxes
 
 # Abstract Factory Pattern
 
-<CoverImage src="/covers/creational/abstract-factory.png" alt="Cover">
+<CoverImage src="/covers/creational/abstract-factory.webp" alt="Cover">
   <h1>Abstract Factory</h1>
   <p>A high-tech mega-factory with two distinct assembly lines: one producing "Cute Pastel Pink Cyber-Gears and Buttons" and the other producing "Sleek Dark Cyberpunk Gears and Buttons", illustrating families of related products.</p>
 </CoverImage>
@@ -28,6 +28,55 @@ Consider a **furniture manufacturer** that makes complete living room sets. The 
 You don't ask for "a chair"—you ask for "a modern living room set," which gives you a modern chair, modern table, and modern sofa that all coordinate. If you later need a Victorian set, you get a completely different family of coordinated pieces.
 
 Similarly, an application might need a complete set of UI components (buttons, checkboxes, scrollbars) for different operating systems. You don't mix Windows buttons with macOS checkboxes; you use the appropriate family for the target OS.
+
+## Structure
+
+```mermaid
+classDiagram
+    class UIFactory {
+        <<interface>>
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+    class WindowsUIFactory {
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+    class MacUIFactory {
+        +createButton() Button
+        +createCheckbox() Checkbox
+    }
+    class Button {
+        <<interface>>
+        +click() void
+        +render() string
+    }
+    class Checkbox {
+        <<interface>>
+        +toggle() void
+        +render() string
+    }
+    class Client
+
+    UIFactory <|.. WindowsUIFactory
+    UIFactory <|.. MacUIFactory
+    Button <|.. WindowsButton
+    Button <|.. MacButton
+    Checkbox <|.. WindowsCheckbox
+    Checkbox <|.. MacCheckbox
+    WindowsUIFactory ..> WindowsButton : creates
+    WindowsUIFactory ..> WindowsCheckbox : creates
+    MacUIFactory ..> MacButton : creates
+    MacUIFactory ..> MacCheckbox : creates
+    Client --> UIFactory : uses
+    Client --> Button : uses
+    Client --> Checkbox : uses
+```
+
+- **`UIFactory`** (Abstract Factory) declares one creation method per product type; `Scrollbar` follows the same shape and is omitted for brevity.
+- **`WindowsUIFactory` / `MacUIFactory`** (Concrete Factories) each produce a complete, matching family of products.
+- **`Button` / `Checkbox`** (Abstract Products) are the interfaces the client works with; `WindowsButton`, `MacCheckbox`, etc. are the concrete products.
+- **`Client`** depends only on the abstract factory and product interfaces, never on a concrete family.
 
 ## The Problem
 

@@ -6,7 +6,7 @@ icon: Layers
 
 # Bridge Pattern
 
-<CoverImage src="/covers/structural/bridge.png" alt="Cover">
+<CoverImage src="/covers/structural/bridge.webp" alt="Cover">
   <h1>Bridge</h1>
   <p>A beautiful futuristic bridge separating a floating "Control Room" sphere (Abstraction) from various interchangeable "Engine/Power" docks below (Implementations) connected by flexible glowing tubes.</p>
 </CoverImage>
@@ -26,6 +26,44 @@ The difference from Adapter is subtle but important: Adapter fixes an existing i
 Think of a **remote control and a television**. The remote is the abstraction. The TV is the implementation. You can replace the TV with a different brand or type without redesigning the remote, as long as the bridge contract stays the same.
 
 The remote does not care whether the device is a TV, speaker, or projector. It only knows how to talk to a device interface.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Shape {
+        <<abstract>>
+        #renderer: Renderer
+        +draw() void*
+    }
+    class Circle {
+        -radius: number
+        +draw() void
+    }
+    class Rectangle {
+        -width: number
+        -height: number
+        +draw() void
+    }
+    class Renderer {
+        <<interface>>
+        +renderCircle(radius) void
+        +renderRectangle(width, height) void
+    }
+    class SvgRenderer
+    class CanvasRenderer
+
+    Shape <|-- Circle
+    Shape <|-- Rectangle
+    Shape o-- Renderer : bridge
+    Renderer <|.. SvgRenderer
+    Renderer <|.. CanvasRenderer
+```
+
+- **`Shape`** (Abstraction) holds a reference to a `Renderer` and delegates low-level drawing to it.
+- **`Circle` / `Rectangle`** (Refined Abstractions) extend the abstraction with shape-specific data.
+- **`Renderer`** (Implementor) defines the primitive operations; **`SvgRenderer` / `CanvasRenderer`** are Concrete Implementors.
+- Both hierarchies vary independently: adding a shape or a renderer requires no change to the other side.
 
 ## The Problem
 

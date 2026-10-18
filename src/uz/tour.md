@@ -6,21 +6,25 @@ icon: BookOpen
 
 # 📚 Qo'llanma bo'ylab sayohat
 
-<CoverImage src="/covers/getting-started/tour.png" alt="Cover">
-  <h1>Tour</h1>
-  <p>A cheerful robot tour guide driving a tiny, sleek futuristic hover-bus filled with little curious baby robots peering out of the windows at grand, floating monuments representing Creational, Structural, and Behavioral patterns.</p>
+<CoverImage src="/covers/getting-started/tour.webp" alt="Cover">
+  <h1>Sayohat</h1>
+  <p>Quvnoq robot-gid kichkina, nafis futuristik uchar avtobusni boshqarmoqda; avtobus ichidagi qiziquvchan jajji robotchalar derazadan Yaratuvchi, Strukturaviy va Xulq-atvor patternlarini ifodalovchi ulkan, havoda suzib yurgan yodgorliklarga termulib qarashmoqda.</p>
 </CoverImage>
 
 Dizayn patternlari bo'yicha keng qamrovli qo'llanmaga xush kelibsiz! Keling, sizga nimalar mavjudligi va ulardan qanday samarali foydalanish bo'yicha sayohat uyushtiramiz.
 
 ## 🎯 Sizda nimalar bor
 
-Ushbu qo'llanma 4 ta toifaga bo'lingan **38 ta dizayn patternini** o'z ichiga oladi:
+Ushbu sahifa hujjatlar qanday tuzilganini, har bir pattern sahifasida nimalar borligini va maqsadingizga qarab ularda qanday samarali harakatlanishni tushuntiradi.
 
-- **6 ta Yaratuvchi (Creational) patternlar** - Obyekt yaratishga qaratilgan
-- **7 ta Strukturaviy (Structural) patternlar** - Obyektlar tarkibiga qaratilgan
-- **12 ta Xulq-atvor (Behavioral) patternlar** - Obyektlararo aloqaga qaratilgan
-- **13 ta Arxitektura (Architectural) patternlar** - Tizim tuzilishiga qaratilgan
+Ushbu qo'llanma 4 ta toifaga bo'lingan **41 ta dizayn patternini** o'z ichiga oladi:
+
+| Toifa                       | Soni | Yo'nalishi                            |
+| --------------------------- | ---- | ------------------------------------- |
+| Yaratuvchi (Creational)     | 6    | Obyekt yaratish va hayot sikli        |
+| Strukturaviy (Structural)   | 7    | Obyektlar tarkibi va munosabatlari    |
+| Xulq-atvor (Behavioral)     | 12   | Aloqa va mas'uliyat                   |
+| Arxitektura (Architectural) | 16   | Tizim tuzilishi va ma'lumotlar oqimi  |
 
 ## 🚀 Ishni boshlash
 
@@ -29,37 +33,37 @@ Ushbu qo'llanma 4 ta toifaga bo'lingan **38 ta dizayn patternini** o'z ichiga ol
     title="Asosiy sahifa"
     description="Barcha patternlarni vizual kartalar yordamida toifalar bo'yicha ko'rib chiqing"
     href="/uz/"
-    image="/cards/introduction.png"
+    image="/cards/introduction.webp"
   />
   <Card
     title="Tezkor ma'lumotnoma"
     description="Jadvallar, qarorlar daraxti va patternlarni solishtirish"
     href="/uz/quick-reference"
-    image="/cards/quick-reference.png"
+    image="/cards/quick-reference.webp"
   />
   <Card
     title="Yaratuvchi patternlar"
     description="Obyektlarni yaratish mexanizmlari"
     href="/uz/creational/singleton"
-    image="/cards/singleton.png"
+    image="/cards/singleton.webp"
   />
   <Card
     title="Strukturaviy patternlar"
     description="Obyektlar tarkibi va aloqalari"
     href="/uz/structural/adapter"
-    image="/cards/adapter.png"
+    image="/cards/adapter.webp"
   />
   <Card
     title="Xulq-atvor patternlari"
     description="Obyektlararo aloqa va mas'uliyat"
     href="/uz/behavioral/observer"
-    image="/cards/observer.png"
+    image="/cards/observer.webp"
   />
   <Card
     title="Arxitektura patternlari"
     description="Tizim tuzilishi va parallellik"
     href="/uz/architectural/mvc"
-    image="/cards/mvc.png"
+    image="/cards/mvc.webp"
   />
 </Cards>
 
@@ -125,15 +129,20 @@ Qachon ishlatmaslik  → Anti-patternlar
 Bog'liq patternlar   → Aloqador patternlar
 ```
 
+Har bir sahifa oxiridagi **Bog'liq patternlar** bo'limi ayniqsa foydali — u siz kutmagan bog'lanishlarni ochib beradi va nima uchun patternlar ko'pincha birgalikda ishlatilishini tushunishga yordam beradi.
+
 ## 🎓 Tavsiya etilgan o'rganish yo'li
 
 ### Boshlovchilar uchun
 
-1. Kontekst uchun **Tezkor ma'lumotnoma**dan boshlang
-2. **Singleton**ni o'rganing (oddiy, fundamental)
-3. **Factory Method**ni o'rganing (amaliy, keng tarqalgan)
-4. **Strategy**ni o'rganing (foydali, moslashuvchan)
-5. **Observer**ni o'rganing (hodisalarga asoslangan tushuncha)
+1. Avval [Dizayn namunasi nima?](/uz/what-is-design-pattern) sahifasini o'qing
+2. Umumiy ko'rinish uchun [Tezkor ma'lumotnoma](/uz/quick-reference)ni ko'rib chiqing
+3. **Singleton**ni o'rganing (eng oddiy tuzilma)
+4. **Factory Method**ni o'rganing (amaliy, keng tarqalgan)
+5. **Strategy**ni o'rganing (darhol foydali, moslashuvchan)
+6. **Observer**ni o'rganing (hodisalarga asoslangan fikrlashni o'rgatadi)
+
+Keyingisiga o'tishdan oldin har birini kichik shaxsiy loyihada amalga oshirib ko'ring.
 
 ### O'rta darajadagilar uchun
 
@@ -142,12 +151,16 @@ Bog'liq patternlar   → Aloqador patternlar
 3. Keyin **Xulq-atvor patternlari**ni (aloqa)
 4. Va nihoyat **Arxitektura patternlari**ni (tizim dizayni)
 
+Yaratuvchi va Strukturaviy toifalar eng qisqasi va qolgan barcha narsalarning asosi hisoblanadi. "Qachon ishlatmaslik" bo'limlariga alohida e'tibor bering: patternning chegaralarini tushunish uning tuzilishini tushunish kabi muhim.
+
 ### Professional darajadagilar uchun
 
 1. **Patternlar kombinatsiyasi**ni tushunib oling
 2. **Arxitektura patternlari**ni chuqur o'rganing
 3. **Parallellik (concurrency) patternlari**ni o'rganing
 4. **CQRS** va **Event Sourcing**ni amaliyotda qo'llang
+
+Kerakli patternga to'g'ridan-to'g'ri o'ting yoki [Tezkor ma'lumotnoma](/uz/quick-reference)dagi qarorlar daraxtidan foydalaning. Tezkor ma'lumotnoma oxiridagi **Patternlar kombinatsiyalari** va **Umumiy xatolar** jadvallari afzallik va kamchiliklarni baholayotganda yoki boshqa birovning arxitekturasini ko'rib chiqayotganda juda foydali.
 
 ## 💡 Ushbu qo'llanmadan qanday foydalanish kerak
 
@@ -250,7 +263,7 @@ Tezkor ma'lumotnoma sahifasidan qaror qabul qilish vositasi sifatida foydalaning
 
 ### Ushbu saytda
 
-- **Asosiy sahifa** - Barcha 38 ta patternning umumiy ko'rinishi
+- **Asosiy sahifa** - Barcha 41 ta patternning umumiy ko'rinishi
 - **Tezkor ma'lumotnoma** - Qarorlar daraxti va jadvallar
 - **Pattern sahifalari** - Har bir patternni chuqur o'rganish
 - **Kod misollari** - Foydalanishga tayyor implementatsiyalar
@@ -285,6 +298,14 @@ Agar siz quyidagilarni xohlasangiz:
 - [ ] Loyihada ikkita patternni birlashtiring
 - [ ] Murakkab arxitektura patternlarini o'rganing
 - [ ] O'z misollaringiz bilan hissa qo'shing
+
+---
+
+## 🧭 Patternlardan to'g'ri foydalanish haqida
+
+Hujjatlar patternlarni aslidagidan ko'ra qat'iyroq qoidalardek ko'rsatishi mumkin. Pattern sahifasida bitta toza implementatsiya ko'rsatiladi, lekin real kod bazalari ancha chalkashroq bo'ladi — talablar bir-biriga zid keladi, eski (legacy) kod tanlovingizni cheklaydi va "darslikdagi" variant mos kelmasligi mumkin.
+
+Maqsad — patternning g'oyasi va tuzilishini uni moslashtira oladigan darajada yaxshi tushunish. Agar pattern murakkablikni kamaytirish o'rniga uni oshira boshlasa, to'g'ri qaror — soddalashtirish. Eng yaxshi muhandislar patternlarni tizimli ravishda emas, tanlab qo'llaydi.
 
 ---
 

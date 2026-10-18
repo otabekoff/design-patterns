@@ -6,7 +6,7 @@ icon: Package
 
 # Adapter Pattern
 
-<CoverImage src="/covers/structural/adapter.png" alt="Cover">
+<CoverImage src="/covers/structural/adapter.webp" alt="Cover">
   <h1>Adapter</h1>
   <p>A comical, over-engineered travel adapter trying to connect a standard US 3-pin plug to a ridiculous triangle-shaped socket using small colorful gears.</p>
 </CoverImage>
@@ -33,6 +33,37 @@ The important distinction is intent. Adapter is not about adding behavior. It is
 Think of a travel plug adapter. Your laptop charger expects one plug shape, but the wall socket in another country is different. The adapter does not change the charger and it does not change the wall. It simply makes the two sides compatible.
 
 Software adapters do the same thing: they make a mismatch usable without changing either side.
+
+## Structure
+
+```mermaid
+classDiagram
+    class CheckoutService {
+        -processor: PaymentProcessor
+        +checkout(amount, cardData) void
+    }
+    class PaymentProcessor {
+        <<interface>>
+        +processPayment(amount, cardData) void
+    }
+    class PaymentGatewayAdapter {
+        -legacyGateway: LegacyPaymentGateway
+        +processPayment(amount, cardData) void
+        -parseCardData(cardData) CardInfo
+    }
+    class LegacyPaymentGateway {
+        +chargeCard(cardInfo, cents) void
+    }
+
+    CheckoutService --> PaymentProcessor : uses
+    PaymentProcessor <|.. PaymentGatewayAdapter
+    PaymentGatewayAdapter o-- LegacyPaymentGateway : delegates to
+```
+
+- **`CheckoutService`** (Client) depends only on the `PaymentProcessor` interface.
+- **`PaymentProcessor`** (Target) is the interface the client expects.
+- **`PaymentGatewayAdapter`** (Adapter) implements the target and translates arguments (dollars to cents, string to card object) before delegating.
+- **`LegacyPaymentGateway`** (Adaptee) is the existing class with the incompatible `chargeCard()` API.
 
 ## Problem
 

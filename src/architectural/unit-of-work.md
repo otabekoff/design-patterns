@@ -6,7 +6,7 @@ icon: Boxes
 
 # Unit of Work Pattern
 
-<CoverImage src="/covers/architectural/unit-of-work.png" alt="Cover">
+<CoverImage src="/covers/architectural/unit-of-work.webp" alt="Cover">
   <h1>Unit of Work</h1>
   <p>A funny banker robot with a cart full of transactions; it holds all transactions until the cart is full, then pulls a single giant lever to commit them all at once.</p>
 </CoverImage>

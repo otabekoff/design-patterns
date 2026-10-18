@@ -23,14 +23,14 @@ function getIconForLink(link: string): string {
   
   // Strip off root language prefix (e.g. /uz/structural/adapter -> /structural/adapter)
   // because the source of truth for icons is the root English markdown files
-  const rootLink = link.replace(/^\/(uz|ru|tr|de|es|ar)\//, '/');
+  const rootLink = link.replace(/^\/uz\//, '/');
   
   if (iconCache[rootLink] !== undefined) {
     return iconCache[rootLink];
   }
   
   try {
-    const filePath = path.join(process.cwd(), `${rootLink}.md`);
+    const filePath = path.join(process.cwd(), 'src', `${rootLink}.md`);
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf8');
       const match = content.match(/^icon:\s*(.+)$/m);

@@ -1,5 +1,4 @@
 import { h } from 'vue'
-import { useRoute } from 'vitepress'
 import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import 'virtual:group-icons.css'
@@ -21,6 +20,7 @@ import SidebarTop from './components/SidebarTop.vue'
 import SidebarBottom from './components/SidebarBottom.vue'
 import CoverImage from './components/CoverImage.vue'
 import Mermaid from './components/Mermaid.vue'
+import { useCodeGroupSync } from './code-group-sync'
 
 export default {
   extends: DefaultTheme,
@@ -36,7 +36,7 @@ export default {
   },
 
   setup() {
-    const route = useRoute()
+    useCodeGroupSync()
   },
 
   enhanceApp({ app }) {

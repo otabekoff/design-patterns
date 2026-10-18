@@ -6,9 +6,9 @@ icon: Users
 
 # Model-View-Presenter (MVP)
 
-<CoverImage src="/covers/architectural/mvp.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvp.webp" alt="Cover">
   <h1>MVP</h1>
-  <p>A theatrical stage where a flashy Presenter robot stands in the middle, actively passing script sheets back and forth between a shy Model robot behind the curtain and a blank View canvas facing the audience.</p>
+  <p>Teatr sahnasi: o'rtada yorqin Presenter robot turibdi va parda ortidagi uyatchan Model robot bilan tomoshabinlarga qaragan bo'sh View polotnosi o'rtasida ssenariy varaqlarini faol ravishda u yoqdan-bu yoqqa uzatmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
@@ -30,6 +30,45 @@ MVP patterni quyidagilarni maqsad qiladi:
 - Viewlarni taqdimot mantig'idan ajratish orqali testlashni osonlashtirish
 - Saqlash osonroq bo'lgan passiv viewlarni ta'minlash
 - Kodni qayta ishlash va moslashuvchanlikni yaxshilash
+
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class IUserView {
+        <<interface>>
+        +displayUsers(users) void
+        +displayError(message) void
+        +displaySuccess(message) void
+        +onAddUserClick(callback) void
+    }
+    class UserView {
+        +displayUsers(users) void
+        +displayError(message) void
+    }
+    class UserPresenter {
+        -model: UserModel
+        -view: IUserView
+        -handleAddUser(name, email, age) void
+        -handleViewUsers() void
+    }
+    class UserModel {
+        +addUser(name, email, age) User
+        +getAllUsers() User[]
+        +updateUser(id, updates) User
+        +deleteUser(id) boolean
+    }
+
+    IUserView <|.. UserView
+    UserView ..> UserPresenter : forwards user events
+    UserPresenter --> IUserView : tells what to display
+    UserPresenter --> UserModel : reads and updates
+```
+
+- **`UserView`** (View) passiv: u o'ziga aytilgan narsani render qiladi va foydalanuvchi hodisalarini `IUserView` orqali ro'yxatdan o'tkazilgan callback'lar yordamida uzatadi.
+- **`UserPresenter`** (Presenter) barcha taqdimot mantig'ini saqlaydi, view hodisalariga javob beradi, modelni chaqiradi va view'ni yangilaydi.
+- **`UserModel`** (Model) ma'lumotlar va biznes qoidalariga egalik qiladi hamda view yoki presenter haqida hech narsa bilmaydi.
+- Presenter **`IUserView`** interfeysiga bog'liq, shuning uchun uni soxta (mock) view bilan unit test qilish mumkin.
 
 ## Muammo (Problem)
 
@@ -86,7 +125,7 @@ MVP taqdimot mantig'ini View va Modelni boshqaruvchi Presenterga ajratadi:
 ::: code-group
 
 ```typescript [TypeScript]
-// Model - Contains data and business logic
+// Model - Ma'lumot va biznes mantiqni o'z ichiga oladi
 interface User {
   id: number;
   name: string;
@@ -135,7 +174,7 @@ class UserModel {
   }
 }
 
-// View - Passive view with no logic
+// View - Mantiqsiz passiv view
 interface IUserView {
   displayUsers(users: User[]): void;
   displayError(message: string): void;
@@ -180,7 +219,7 @@ class UserView implements IUserView {
   onAddUserClick(
     callback: (name: string, email: string, age: number) => void,
   ): void {
-    // In a real application, this would be connected to a button click event
+    // Haqiqiy ilovada bu tugma bosilishi event'iga ulangan bo'lardi
     callback("New User", "newuser@example.com", 25);
   }
 
@@ -199,7 +238,7 @@ class UserView implements IUserView {
   }
 }
 
-// Presenter - Contains presentation logic
+// Presenter - Taqdimot mantiqini o'z ichiga oladi
 class UserPresenter {
   constructor(
     private model: UserModel,
@@ -268,7 +307,7 @@ class UserPresenter {
   }
 }
 
-// Usage
+// Foydalanish
 const model = new UserModel();
 const view = new UserView();
 const presenter = new UserPresenter(model, view);
@@ -285,7 +324,7 @@ view.onAddUserClick((name, email, age) => {
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 
-# Model - Contains data and business logic
+# Model - Ma'lumot va biznes mantiqni o'z ichiga oladi
 @dataclass
 class User:
     id: int
@@ -335,7 +374,7 @@ class UserModel:
             return True
         return False
 
-# View - Passive view with no logic
+# View - Mantiqsiz passiv view
 class UserView:
     def __init__(self):
         self.add_user_callbacks: List[Callable] = []
@@ -388,7 +427,7 @@ class UserView:
         for callback in self.view_users_callbacks:
             callback()
 
-# Presenter - Contains presentation logic
+# Presenter - Taqdimot mantiqini o'z ichiga oladi
 class UserPresenter:
     def __init__(self, model: UserModel, view: UserView):
         self.model = model
@@ -434,7 +473,7 @@ class UserPresenter:
     def start(self) -> None:
         self.handle_view_users()
 
-# Usage
+# Foydalanish
 model = UserModel()
 view = UserView()
 presenter = UserPresenter(model, view)

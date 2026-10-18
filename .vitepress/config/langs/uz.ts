@@ -58,7 +58,7 @@ export const uz = {
         text: 'Ko\'proq',
         items: [
           { text: 'Boshqa loyihalar', link: 'https://github.com/otabekoff' },
-          { text: 'Qo\'llab-quvvatlash', link: 'https://tirikchilik.uz/uzhandy' }
+          { text: 'Qo\'llab-quvvatlash', link: 'https://taps.uz/uzhandy' }
         ]
       }
     ],
@@ -68,12 +68,26 @@ export const uz = {
         collapsed: false,
         items: [
           { text: 'Kirish', link: '/uz/introduction' },
+          { text: 'Dizayn namunasi nima?', link: '/uz/what-is-design-pattern' },
           { text: 'Sayohat', link: '/uz/tour' },
           { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' }
         ]
       },
       {
-        text: 'Arxitektura Namunalari',
+        text: "Qo'llanmalar",
+        collapsed: false,
+        items: [
+          { text: 'Namunani tanlash', link: '/uz/choosing-a-pattern' },
+          { text: 'Strategy va State', link: '/uz/comparisons/strategy-vs-state' },
+          { text: 'Decorator va Proxy', link: '/uz/comparisons/decorator-vs-proxy' },
+          { text: 'Factory Method va Abstract Factory', link: '/uz/comparisons/factory-method-vs-abstract-factory' },
+          { text: 'Adapter, Facade va Bridge', link: '/uz/comparisons/adapter-vs-facade-vs-bridge' },
+          { text: 'MVC, MVP va MVVM', link: '/uz/comparisons/mvc-vs-mvp-vs-mvvm' },
+          { text: 'Repository, Data Mapper va Active Record', link: '/uz/comparisons/repository-vs-data-mapper-vs-active-record' }
+        ]
+      },
+      {
+        text: 'Arxitektura namunalari',
         collapsed: false,
         items: [
           { text: 'Active Record', link: '/uz/architectural/active-record' },
@@ -95,7 +109,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Behavioral Patterns',
+        text: 'Xulq-atvor namunalari',
         collapsed: false,
         items: [
           { text: 'Chain of Responsibility', link: '/uz/behavioral/chain-of-responsibility' },
@@ -113,7 +127,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Creational Patterns',
+        text: 'Yaratuvchi namunalar',
         collapsed: false,
         items: [
           { text: 'Singleton', link: '/uz/creational/singleton' },
@@ -125,7 +139,7 @@ export const uz = {
         ]
       },
       {
-        text: 'Structural Patterns',
+        text: 'Strukturaviy namunalar',
         collapsed: false,
         items: [
           { text: 'Adapter', link: '/uz/structural/adapter' },

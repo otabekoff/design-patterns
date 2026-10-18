@@ -6,7 +6,7 @@ icon: Lock
 
 # Read-Write Lock Pattern
 
-<CoverImage src="/covers/architectural/read-write-lock.png" alt="Cover">
+<CoverImage src="/covers/architectural/read-write-lock.webp" alt="Cover">
   <h1>Read Write Lock</h1>
   <p>A giant library door with a lock that allows twenty scholar robots with books to enter simultaneously, but slams shut and turns bright red when a single construction robot with a paintbrush wants to enter.</p>
 </CoverImage>
@@ -62,6 +62,33 @@ The Read-Write Lock splits the locking mechanism into two distinct roles:
 To prevent **Writer Starvation** (a scenario where a constant stream of new readers prevents a waiting writer from ever acquiring the lock), production-grade implementations often include fairness policies or writer-preference queues. This ensures that once a writer requests access, new readers are blocked until the writer completes its task.
 
 ## Structure / Flow
+
+```mermaid
+sequenceDiagram
+    participant A as Thread A Reader
+    participant B as Thread B Reader
+    participant L as ReadWriteLock
+    participant C as Thread C Writer
+    participant D as Thread D Reader
+
+    A->>L: acquireRead
+    L-->>A: granted
+    B->>L: acquireRead
+    L-->>B: granted, shared with A
+    C->>L: acquireWrite
+    Note over L,C: C waits for active readers
+    D->>L: acquireRead
+    Note over L,D: D queued behind waiting writer
+    A->>L: releaseRead
+    B->>L: releaseRead
+    L-->>C: write lock granted, exclusive
+    C->>L: releaseWrite
+    L-->>D: read lock granted
+```
+
+- **Read lock** is shared: any number of readers may hold it while no writer is active or waiting.
+- **Write lock** is exclusive: a writer waits until all readers release, and blocks everyone else while it holds the lock.
+- **Writer preference**: once a writer is queued, new readers wait, preventing writer starvation.
 
 1.  **Thread A (Reader)** requests a read lock. It's granted because no writer is active.
 2.  **Thread B (Reader)** requests a read lock. It's granted concurrently with Thread A.

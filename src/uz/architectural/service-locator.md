@@ -1,335 +1,491 @@
 ---
-title: Service Locator
-description: Xizmatlarni topish uchun markazlashtirilgan reestr
+title: Service Locator Pattern (Xizmat lokatori)
+description: Servislar nusxalarini ularni so'ragan obyektlarga taqdim etish uchun markazlashgan reyestrdan foydalanadigan arxitektura patterni.
 icon: Settings
 ---
 
-# Service Locator
+# Service Locator Pattern (Xizmat lokatori)
 
-<CoverImage src="/covers/architectural/service-locator.png" alt="Cover">
+<CoverImage src="/covers/architectural/service-locator.webp" alt="Cover">
   <h1>Service Locator</h1>
-  <p>A bright yellow "Information Desk" kiosk in a futuristic city where robots go to ask: "Where is the Database?" and the locator robot hands them a glowing card.</p>
+  <p>Futuristik shahardagi yorqin sariq "Ma'lumot stoli" kioski; robotlar u yerga kelib: "Ma'lumotlar bazasi qayerda?" deb so'rashadi, lokator robot esa ularga nur sochib turgan kartochkani uzatadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Service Locator** patterni - bu xizmat (service) namunalarini olish uchun yagona nuqtani taqdim etadigan markazlashtirilgan reestr. U xizmat fabrikasi (service factory) kabi ishlaydi, ilova bo'ylab xizmatlarning ishlash davrini (lifecycle) va ularga kirishni boshqaradi.
+**Service Locator** patterni ilovaga kerak bo'lgan barcha servislarni qanday yaratish yoki olishni biladigan markazlashgan reyestr - "Lokator" ni joriy etadi. Klasslarga bog'liqliklar tashqaridan uzatilishi o'rniga (Dependency Injection dagi kabi), klasslarning o'zlari kerakli bog'liqliklarni Service Locator'dan faol ravishda so'rashadi.
 
-Asosiy tushunchalar:
+**Zamonaviy nuqtai nazar**: Garchi u dastlabki korporativ dasturlarda (masalan, ilk J2EE da) mashhur bo'lgan bo'lsa-da, bugungi kunda Service Locator zamonaviy ilova ishlab chiqishda keng ko'lamda **anti-pattern** deb hisoblanadi. U klassning bog'liqliklarini yashiradi, natijada kodni test qilish va qo'llab-quvvatlash qiyinlashadi hamda runtime xatolariga moyil bo'ladi. Shunga qaramay, uni tushunish juda muhim, chunki u hali ham legacy tizimlarda, o'yin ishlab chiqish arxitekturalarida va ba'zan zamonaviy DI konteynerlarida zaxira yechim sifatida uchraydi.
 
-- **Service Registry (Xizmatlar reestri)**: Xizmat namunalarini saqlaydigan markaziy joy
-- **Locator (Qidiruvchi)**: Xizmatlarni olish uchun javobgar
-- **Lazy Initialization (Kechiktirilgan initsializatsiya)**: Xizmatlar faqat kerak bo'lganda yaratiladi
-- **Centralized Management (Markazlashtirilgan boshqaruv)**: Yagona boshqaruv nuqtasi
+## Muammo (The Problem)
 
-## Maqsad (Purpose)
+Komponentlaringiz konkret klasslarga qattiq bog'lanib qolishini istamasangiz, bog'liqliklarni boshqarishni markazlashtirishga urinib ko'rishingiz mumkin.
 
-Service Locator patternining maqsadi:
+```typescript
+// ❌ Yomon: Konkret klasslarga qattiq bog'langan
+class OrderService {
+  private paymentGateway = new StripeGateway(); // Qattiq kodlangan bog'liqlik
+  private logger = new ConsoleLogger();         // Qattiq kodlangan bog'liqlik
 
-- Xizmatlarga markazlashtirilgan kirishni taqdim etish
-- Xizmat iste'molchilarini (consumers) xizmat taqdim etuvchilardan (providers) ajratish (decouple)
-- Xizmatning ishlash davrini boshqarish
-- Ishlash vaqtida (runtime) xizmatlarni almashtirish imkonini berish
-- Xizmatlarni boshqarishni soddalashtirish
-- Xizmat konfiguratsiyasini qo'llab-quvvatlash
-
-## Muammo (Problem)
-
-Markazlashtirishsiz ilovalar quyidagi muammolarga duch keladi:
-
-- Xizmatlar ilova bo'ylab sochilib ketgan
-- Qaysi xizmatlar mavjudligini kuzatish qiyin
-- Implementatsiyalarni almashtirish murakkab
-- Xizmat yaratish mantig'i takrorlanadi
-- Bog'liqliklar (dependencies) noaniq
-
-```
-❌ Sochilib ketgan xizmatlar yaratilishi
-const logger = new Logger();
-const db = new Database();
-const service = new UserService(logger, db);
-```
-
-## Yechim (Solution)
-
-Service Locator kirishni markazlashtiradi:
-
-```
-✅ Service Locator
-class ServiceLocator {
-  register(name, instance) { /* saqlash */ }
-  get(name) { /* olish */ }
+  public process() { /* ... */ }
 }
-
-const logger = locator.get('logger');
-const db = locator.get('database');
 ```
 
-## Amalga oshirish (Implementation)
+Siz `OrderService` ni `StripeGateway` dan ajratmoqchisiz, lekin ehtimol to'liq Constructor Dependency Injection ni joriy qilish yuzlab fayllarni qayta yozishni talab qiladigan legacy kod bazasida ishlayotgandirsiz.
+
+## Yechim (The Solution)
+
+Siz global `ServiceLocator` yaratasiz. Servislaringizni bitta joyda ro'yxatdan o'tkazasiz va `OrderService` ularni Lokator'dan so'raydi.
+
+```typescript
+// ⚠️ Service Locator (Ko'pincha anti-pattern, lekin qattiq kodlash muammosini hal qiladi)
+class OrderService {
+  private paymentGateway: IPaymentGateway;
+  private logger: ILogger;
+
+  constructor() {
+    // Bog'liqliklarni global registry'dan faol so'rash
+    this.paymentGateway = ServiceLocator.get("PaymentGateway");
+    this.logger = ServiceLocator.get("Logger");
+  }
+}
+```
+
+Endi `OrderService` `StripeGateway` yoki `ConsoleLogger` haqida hech narsa bilmaydi. U faqat `ServiceLocator` haqida biladi.
+
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class ServiceLocator {
+        <<Singleton / Global>>
+        -services: Map
+        +register(name, service)
+        +get(name): Service
+    }
+
+    class Client {
+        +doWork()
+    }
+
+    class IService {
+        <<interface>>
+        +execute()
+    }
+
+    class ConcreteService {
+        +execute()
+    }
+
+    Client --> ServiceLocator : "asks for IService"
+    ServiceLocator --> ConcreteService : "returns instance"
+    ConcreteService ..|> IService : "implements"
+```
+
+## Jarayon (Flow)
+
+1. **Ro'yxatdan o'tkazish bosqichi**: Ilova ishga tushganda konkret nusxalar yoki factory funksiyalarni Service Locator'da ro'yxatdan o'tkazasiz.
+2. **Aniqlash (Resolution) bosqichi**: Bajarilish vaqtida mijoz klassga biror servis kerak bo'ladi. U `ServiceLocator.get('ServiceName')` ni chaqiradi.
+3. **Bajarish bosqichi**: Lokator servisni topadi, kerak bo'lsa uning nusxasini yaratadi va mijozga qaytaradi.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Mehmonxona konsyerji**ni tasavvur qiling.
+Mehmonxonada turganingizda sizga taksi, restoranda joy band qilish yoki qo'shimcha sochiqlar kerak bo'lsa, taksi kompaniyasi yoki kir yuvish bo'limi bilan bevosita bog'lanmaysiz. Telefonni olib, Konsyerjga (Service Locator'ga) qo'ng'iroq qilasiz va kerakli narsani taqdim etishini so'raysiz. Konsyerj taksini qayerdan olishni va kir yuvish bilan kim shug'ullanishini biladi.
+
+## Nega u anti-pattern hisoblanadi? (Why is it considered an Anti-Pattern?)
+
+1. **Yashirin bog'liqliklar (Hidden Dependencies)**: `OrderService` ning API'siga qarasam, konstruktor _nol_ ta argument qabul qiladi. Go'yo shunchaki `new OrderService()` nusxasini yaratib, undan foydalanishim mumkindek _ko'rinadi_. Lekin ishga tushirsam, u qulaydi, chunki avval `Logger` ni global ro'yxatdan o'tkazishni unutganman. Dependency Injection da esa `constructor(logger: ILogger)` konstruktori meni bog'liqlikni taqdim etishga aniq majbur qiladi.
+2. **Global holat (Global State)**: Service Locator deyarli har doim Singleton sifatida amalga oshiriladi. Bu testlarni parallel ishga tushirishni nihoyatda qiyinlashtiradi, chunki A testi B testiga kerak bo'lgan mock Logger'ni qayta yozib yuborishi mumkin.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+Agar uni amalga oshirishga _majbur_ bo'lsangiz (masalan, o'yin ishlab chiqishda yoki legacy kodda):
+
+1. **Lokatorni yarating**: Singleton klass yoki global foydalanish mumkin bo'lgan obyekt yarating.
+2. **Ro'yxatdan o'tkazishni qo'shing**: Obyekt yoki factory'ni ichki Dictionary/Map ga qo'shadigan metod yarating.
+3. **Olishni qo'shing**: Dictionary'dan kalitni qidirib, obyektni qaytaradigan (yoki factory'ni chaqiradigan) metod yarating.
+4. **Mijozlarda foydalaning**: Mijozlar `new` kalit so'zi o'rniga lokatorning olish metodini chaqirsin.
+
+## Kod misollari (Code Examples)
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Service interfaces
-interface Logger {
-  log(message: string): void;
+// 1. Interfeyslar
+interface ILogger {
+  log(msg: string): void;
+}
+interface IDatabase {
+  save(): void;
 }
 
-interface Database {
-  query(sql: string): any[];
+// 2. Konkret klasslar
+class ConsoleLogger implements ILogger {
+  log(msg: string) {
+    console.log(`[LOG] ${msg}`);
+  }
 }
-
-// Service implementations
-class ConsoleLogger implements Logger {
-  log(message: string): void {
-    console.log(`[LOG] ${message}`);
+class PostgresDatabase implements IDatabase {
+  save() {
+    console.log(`[DB] Saving to Postgres`);
   }
 }
 
-class MockDatabase implements Database {
-  query(sql: string): any[] {
-    console.log(`[DB] Executing: ${sql}`);
-    return [];
-  }
-}
-
-// Service Locator
+// 3. Service Locator
 class ServiceLocator {
-  private static instance: ServiceLocator;
-  private services: Map<string, any> = new Map();
-  private factories: Map<string, () => any> = new Map();
+  private static services = new Map<string, any>();
 
-  private constructor() {}
-
-  static getInstance(): ServiceLocator {
-    if (!ServiceLocator.instance) {
-      ServiceLocator.instance = new ServiceLocator();
-    }
-    return ServiceLocator.instance;
-  }
-
-  register(name: string, service: any): void {
+  // Instansiyani ro'yxatdan o'tkazish
+  public static register<T>(name: string, service: T): void {
     this.services.set(name, service);
-    console.log(`✅ Registered service: ${name}`);
   }
 
-  registerFactory(name: string, factory: () => any): void {
-    this.factories.set(name, factory);
-    console.log(`✅ Registered factory: ${name}`);
-  }
-
-  get<T>(name: string): T {
-    // Check if service exists
-    if (this.services.has(name)) {
-      return this.services.get(name);
+  // Instansiyani olish
+  public static get<T>(name: string): T {
+    if (!this.services.has(name)) {
+      throw new Error(`Service '${name}' not found in Locator!`);
     }
-
-    // Check if factory exists
-    if (this.factories.has(name)) {
-      const factory = this.factories.get(name);
-      const service = factory();
-      this.services.set(name, service);
-      return service;
-    }
-
-    throw new Error(`Service not found: ${name}`);
-  }
-
-  has(name: string): boolean {
-    return this.services.has(name) || this.factories.has(name);
-  }
-
-  unregister(name: string): void {
-    this.services.delete(name);
-    this.factories.delete(name);
-    console.log(`✅ Unregistered service: ${name}`);
+    return this.services.get(name) as T;
   }
 }
 
-// Usage
-const locator = ServiceLocator.getInstance();
-
-// Register services
-locator.register("logger", new ConsoleLogger());
-locator.registerFactory("database", () => new MockDatabase());
-
-// Usage in services
+// 4. Mijoz (Locator'dan foydalanadi)
 class UserService {
-  constructor(private locator: ServiceLocator) {}
+  private logger: ILogger;
+  private db: IDatabase;
 
-  createUser(name: string): void {
-    const logger = this.locator.get<Logger>("logger");
-    const db = this.locator.get<Database>("database");
-
-    logger.log(`Creating user: ${name}`);
-    db.query(`INSERT INTO users VALUES ('${name}')`);
+  constructor() {
+    // OGOHLANTIRISH: Yashirin bog'liqliklar!
+    this.logger = ServiceLocator.get<ILogger>("Logger");
+    this.db = ServiceLocator.get<IDatabase>("Database");
   }
 
-  getUsers(): void {
-    const logger = this.locator.get<Logger>("logger");
-    const db = this.locator.get<Database>("database");
-
-    logger.log("Fetching users");
-    db.query("SELECT * FROM users");
+  public registerUser(name: string) {
+    this.logger.log(`Registering ${name}`);
+    this.db.save();
   }
 }
 
-// Application
-const service = new UserService(locator);
-service.createUser("John Doe");
-service.getUsers();
+// Mijoz kodi
+console.log("--- Application Startup ---");
+ServiceLocator.register("Logger", new ConsoleLogger());
+ServiceLocator.register("Database", new PostgresDatabase());
+
+console.log("\n--- Application Runtime ---");
+// Hech qanday bog'liqlik talab qilmaydigandek ko'rinadi, lekin global holatga tayanadi
+const service = new UserService();
+service.registerUser("Alice");
 ```
 
 ```python [Python]
-from typing import Dict, Callable, Any, TypeVar, Generic
+from abc import ABC, abstractmethod
+from typing import Dict, Any
 
-T = TypeVar('T')
+# 1. Interfeyslar
+class ILogger(ABC):
+    @abstractmethod
+    def log(self, msg: str) -> None: pass
 
-# Service interfaces
-class Logger:
-    def log(self, message: str) -> None:
-        pass
+class IDatabase(ABC):
+    @abstractmethod
+    def save(self) -> None: pass
 
-class Database:
-    def query(self, sql: str) -> list:
-        pass
+# 2. Konkret klasslar
+class ConsoleLogger(ILogger):
+    def log(self, msg: str) -> None:
+        print(f"[LOG] {msg}")
 
-# Service implementations
-class ConsoleLogger(Logger):
-    def log(self, message: str) -> None:
-        print(f"[LOG] {message}")
+class PostgresDatabase(IDatabase):
+    def save(self) -> None:
+        print(f"[DB] Saving to Postgres")
 
-class MockDatabase(Database):
-    def query(self, sql: str) -> list:
-        print(f"[DB] Executing: {sql}")
-        return []
-
-# Service Locator (Singleton)
+# 3. Service Locator
 class ServiceLocator:
-    _instance = None
+    _services: Dict[str, Any] = {}
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance.services: Dict[str, Any] = {}
-            cls._instance.factories: Dict[str, Callable] = {}
-        return cls._instance
+    @classmethod
+    def register(cls, name: str, service: Any) -> None:
+        cls._services[name] = service
 
-    @staticmethod
-    def get_instance():
-        return ServiceLocator()
+    @classmethod
+    def get(cls, name: str) -> Any:
+        if name not in cls._services:
+            raise Exception(f"Service '{name}' not found in Locator!")
+        return cls._services[name]
 
-    def register(self, name: str, service: Any) -> None:
-        self.services[name] = service
-        print(f"✅ Registered service: {name}")
+# 4. Mijoz (Locator'dan foydalanadi)
+class UserService:
+    def __init__(self):
+        # OGOHLANTIRISH: Yashirin bog'liqliklar!
+        self.logger: ILogger = ServiceLocator.get("Logger")
+        self.db: IDatabase = ServiceLocator.get("Database")
 
-    def register_factory(self, name: str, factory: Callable) -> None:
-        self.factories[name] = factory
-        print(f"✅ Registered factory: {name}")
+    def register_user(self, name: str) -> None:
+        self.logger.log(f"Registering {name}")
+        self.db.save()
 
-    def get(self, name: str) -> Any:
-        # Check if service exists
-        if name in self.services:
-            return self.services[name]
-
-        # Check if factory exists
-        if name in self.factories:
-            factory = self.factories[name]
-            service = factory()
-            self.services[name] = service
-            return service
-
-        raise ValueError(f"Service not found: {name}")
-
-    def has(self, name: str) -> bool:
-        return name in self.services or name in self.factories
-
-    def unregister(self, name: str) -> None:
-        self.services.pop(name, None)
-        self.factories.pop(name, None)
-        print(f"✅ Unregistered service: {name}")
-
-# Usage
+# Mijoz kodi
 if __name__ == "__main__":
-    locator = ServiceLocator.get_instance()
+    print("--- Application Startup ---")
+    ServiceLocator.register("Logger", ConsoleLogger())
+    ServiceLocator.register("Database", PostgresDatabase())
 
-    # Register services
-    locator.register("logger", ConsoleLogger())
-    locator.register_factory("database", lambda: MockDatabase())
+    print("\n--- Application Runtime ---")
+    # Instansiya yaratish toza ko'rinadi, lekin global holat talabini yashiradi
+    service = UserService()
+    service.register_user("Alice")
+```
 
-    # Usage in services
-    class UserService:
-        def __init__(self, service_locator: ServiceLocator):
-            self.locator = service_locator
+```java [Java]
+import java.util.HashMap;
+import java.util.Map;
 
-        def create_user(self, name: str) -> None:
-            logger = self.locator.get("logger")
-            db = self.locator.get("database")
+// 1. Interfeyslar
+interface ILogger { void log(String msg); }
+interface IDatabase { void save(); }
 
-            logger.log(f"Creating user: {name}")
-            db.query(f"INSERT INTO users VALUES ('{name}')")
+// 2. Konkret klasslar
+class ConsoleLogger implements ILogger {
+    public void log(String msg) { System.out.println("[LOG] " + msg); }
+}
+class PostgresDatabase implements IDatabase {
+    public void save() { System.out.println("[DB] Saving to Postgres"); }
+}
 
-        def get_users(self) -> None:
-            logger = self.locator.get("logger")
-            db = self.locator.get("database")
+// 3. Service Locator
+class ServiceLocator {
+    private static Map<String, Object> services = new HashMap<>();
 
-            logger.log("Fetching users")
-            db.query("SELECT * FROM users")
+    public static void register(String name, Object service) {
+        services.put(name, service);
+    }
 
-    # Application
-    service = UserService(locator)
-    service.create_user("John Doe")
-    service.get_users()
+    public static Object get(String name) {
+        if (!services.containsKey(name)) {
+            throw new RuntimeException("Service '" + name + "' not found in Locator!");
+        }
+        return services.get(name);
+    }
+}
+
+// 4. Mijoz (Locator'dan foydalanadi)
+class UserService {
+    private ILogger logger;
+    private IDatabase db;
+
+    public UserService() {
+        // OGOHLANTIRISH: Yashirin bog'liqliklar!
+        this.logger = (ILogger) ServiceLocator.get("Logger");
+        this.db = (IDatabase) ServiceLocator.get("Database");
+    }
+
+    public void registerUser(String name) {
+        logger.log("Registering " + name);
+        db.save();
+    }
+}
+
+// Mijoz kodi
+public class ServiceLocatorDemo {
+    public static void main(String[] args) {
+        System.out.println("--- Application Startup ---");
+        ServiceLocator.register("Logger", new ConsoleLogger());
+        ServiceLocator.register("Database", new PostgresDatabase());
+
+        System.out.println("\n--- Application Runtime ---");
+        UserService service = new UserService();
+        service.registerUser("Alice");
+    }
+}
+```
+
+```go [Go]
+package main
+
+import (
+	"fmt"
+)
+
+// 1. Interfeyslar
+type ILogger interface {
+	Log(msg string)
+}
+type IDatabase interface {
+	Save()
+}
+
+// 2. Konkret klasslar
+type ConsoleLogger struct{}
+func (l *ConsoleLogger) Log(msg string) { fmt.Printf("[LOG] %s\n", msg) }
+
+type PostgresDatabase struct{}
+func (d *PostgresDatabase) Save() { fmt.Printf("[DB] Saving to Postgres\n") }
+
+// 3. Service Locator
+var locatorRegistry = make(map[string]interface{})
+
+type ServiceLocator struct{}
+
+func (s *ServiceLocator) Register(name string, service interface{}) {
+	locatorRegistry[name] = service
+}
+
+func (s *ServiceLocator) Get(name string) interface{} {
+	if service, ok := locatorRegistry[name]; ok {
+		return service
+	}
+	panic(fmt.Sprintf("Service '%s' not found in Locator!", name))
+}
+
+// Global instansiya
+var Locator = &ServiceLocator{}
+
+// 4. Mijoz (Locator'dan foydalanadi)
+type UserService struct {
+	logger ILogger
+	db     IDatabase
+}
+
+func NewUserService() *UserService {
+	// OGOHLANTIRISH: Yashirin bog'liqliklar!
+	return &UserService{
+		logger: Locator.Get("Logger").(ILogger),
+		db:     Locator.Get("Database").(IDatabase),
+	}
+}
+
+func (s *UserService) RegisterUser(name string) {
+	s.logger.Log(fmt.Sprintf("Registering %s", name))
+	s.db.Save()
+}
+
+// Mijoz kodi
+func main() {
+	fmt.Println("--- Application Startup ---")
+	Locator.Register("Logger", &ConsoleLogger{})
+	Locator.Register("Database", &PostgresDatabase{})
+
+	fmt.Println("\n--- Application Runtime ---")
+	service := NewUserService()
+	service.RegisterUser("Alice")
+}
+```
+
+```rust [Rust]
+use std::any::{Any, TypeId};
+use std::collections::HashMap;
+use std::sync::{Arc, OnceLock, RwLock};
+
+// 1. Interfeyslar (Trait'lar)
+pub trait ILogger: Send + Sync {
+    fn log(&self, msg: &str);
+}
+pub trait IDatabase: Send + Sync {
+    fn save(&self);
+}
+
+// 2. Konkret klasslar
+pub struct ConsoleLogger;
+impl ILogger for ConsoleLogger {
+    fn log(&self, msg: &str) { println!("[LOG] {}", msg); }
+}
+
+pub struct PostgresDatabase;
+impl IDatabase for PostgresDatabase {
+    fn save(&self) { println!("[DB] Saving to Postgres"); }
+}
+
+// 3. Service Locator (Rust'da global holatdan foydalanish ataylab qiyinlashtirilgan)
+// Servislar o'zlarining *interfeys* turi (masalan, `Arc<dyn ILogger>`) bo'yicha saqlanadi, shuning uchun istalgan implementatsiyani almashtirish mumkin
+type Registry = RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>;
+static LOCATOR: OnceLock<Registry> = OnceLock::new();
+
+pub struct ServiceLocator;
+
+impl ServiceLocator {
+    fn registry() -> &'static Registry {
+        LOCATOR.get_or_init(|| RwLock::new(HashMap::new()))
+    }
+
+    pub fn register<T: ?Sized + 'static>(service: Arc<T>)
+    where
+        Arc<T>: Send + Sync,
+    {
+        Self::registry().write().unwrap().insert(TypeId::of::<Arc<T>>(), Box::new(service));
+    }
+
+    pub fn resolve<T: ?Sized + 'static>() -> Arc<T>
+    where
+        Arc<T>: Send + Sync,
+    {
+        Self::registry()
+            .read()
+            .unwrap()
+            .get(&TypeId::of::<Arc<T>>())
+            .and_then(|service| service.downcast_ref::<Arc<T>>())
+            .cloned()
+            .unwrap_or_else(|| panic!("Service not registered: {}", std::any::type_name::<T>()))
+    }
+}
+
+// 4. Mijoz (Locator'dan foydalanadi)
+pub struct UserService;
+
+impl UserService {
+    pub fn new() -> Self {
+        // Bog'liqliklar butunlay yashirin
+        Self
+    }
+
+    pub fn register_user(&self, name: &str) {
+        let logger = ServiceLocator::resolve::<dyn ILogger>();
+        let db = ServiceLocator::resolve::<dyn IDatabase>();
+
+        logger.log(&format!("Registering {}", name));
+        db.save();
+    }
+}
+
+// Mijoz kodi
+fn main() {
+    println!("--- Application Startup ---");
+    ServiceLocator::register::<dyn ILogger>(Arc::new(ConsoleLogger));
+    ServiceLocator::register::<dyn IDatabase>(Arc::new(PostgresDatabase));
+
+    println!("\n--- Application Runtime ---");
+    let service = UserService::new();
+    service.register_user("Alice");
+}
 ```
 
 :::
 
-## Afzalliklari (Advantages) ✅
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-- **Markazlashtirish (Centralization)**: Xizmatlarni boshqarish uchun yagona nuqta
-- **Moslashuvchanlik (Flexibility)**: Implementatsiyalarni almashtirish oson
-- **Kechiktirilgan yuklash (Lazy Loading)**: Xizmatlar talab qilinganda yaratiladi
-- **Singleton qo'llab-quvvatlashi**: Singletonlarni boshqarish uchun tabiiy usul
-- **Konfiguratsiya (Configuration)**: Markazlashtirilgan xizmat konfiguratsiyasi
-- **Ajratish (Decoupling)**: Xizmatlar bir-biri haqida bilmaydi
+### Afzalliklari (Advantages)
 
-## Kamchiliklari (Disadvantages) ❌
+- **Bog'liqlikni kamaytirish (Decoupling)**: Dependency Injection kabi u ham mijozni konkret implementatsiyalardan ajratadi. Ro'yxatdan o'tgan Logger'ni MockLogger'ga almashtirishingiz mumkin.
+- **Legacy tizimlarda qulaylik**: Agar sizda chuqur komponentlar daraxti bo'lsa (masalan, A komponenti B ni, B esa C ni, C esa D ni yaratadi), faqat D foydalanishi uchun Logger'ni A, B va C konstruktorlari orqali uzatish zerikarli. Service Locator D ga Logger'ni bevosita olish imkonini beradi.
 
-- **Yashirin bog'liqliklar (Hidden Dependencies)**: Qaysi xizmatlar kerakligini ko'rish qiyin
-- **Test qilish (Testing)**: Izolyatsiyada test qilish qiyin (mocklardan ehtiyotkorlik bilan foydalanish kerak)
-- **Qattiq bog'liqlik (Tight Coupling)**: Kod Service Locator'ga qattiq bog'lanib qoladi
-- **Anti-Pattern (Anti-pattern)**: Ko'pincha anti-pattern deb hisoblanadi
-- **Ishlash vaqtida aniqlash (Runtime Discovery)**: Xizmatlar faqat ishlash vaqtida topiladi
-- **Global holat (Global State)**: Yashirin global bog'liqliklarni yaratadi
-- **Nosozliklarni topish (Debugging)**: Xizmatga kirishni kuzatish qiyin
-- **Yomon test qilinuvchanlik (Poor Testability)**: Unit testlarni murakkablashtiradi
+### Kamchiliklari (Disadvantages)
 
-## Qachon foydalanish kerak (When to Use) ✅
+- **Yashirin bog'liqliklar (Yolg'onchi API)**: Klass API'si ishlashi uchun nima kerakligini aytmaydi. Unga ma'lumotlar bazasi kerakligini faqat u runtime exception tashlaganda bilib qolasiz.
+- **Global holat**: U global Singleton'ni olib kiradi, bu esa test qilishni qiyinlashtiradi, parallel muhitlarda race condition'larga sabab bo'ladi va ilova holatini oldindan aytib bo'lmaydigan qiladi.
+- **Qo'llab-quvvatlash dahshati**: Refaktoring xavfli. Agar lokatordan biror servisni olib tashlasangiz, kompilyator sizni ogohlantirmaydi. Ilova shunchaki biror klass uni olishga uringanda runtime'da qulaydi.
 
-- **Eski tizimlar (Legacy Systems)**: Dependency Injection'ni qo'shish qiyin bo'lganda
-- **Plagin arxitekturasi (Plugin Architecture)**: Xizmatlarni dinamik yuklash
-- **Tezkor prototiplash (Rapid Prototyping)**: Xizmatlarni tez boshqarish
-- **Oddiy loyihalar (Simple Projects)**: Yengil xizmatlarni boshqarish
-- **Og'ir konfiguratsiya (Configuration-Heavy)**: Murakkab xizmat konfiguratsiyasi
-- **Ishlash vaqtida almashtirish (Runtime Substitution)**: Implementatsiyalarni tez-tez almashtirish kerak bo'lganda
-- **Mavjud freymvorklar (Existing Frameworks)**: Freymvork allaqachon shu patterndan foydalansa
-- **Boshlang'ich kod (Startup Code)**: Ko'plab xizmatlarni initsializatsiya qilish
+## Qachon foydalanish kerak (When to Use)
 
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
+- **O'yin ishlab chiqish (Game Development)**: O'yin dvigatellari (masalan, Unity yoki Godot) ko'pincha Service Locator'lardan (masalan, `Locator.getAudioService()`) foydalanadi, chunki o'ta yuqori ishlash talablari va chuqur ichma-ich joylashgan sahna graflari standart Constructor Injection ni amaliy bo'lmagan holga keltiradi.
+- **Legacy kodni refaktoring qilish**: Ulkan monolit ilovani bo'laklarga ajratishda, Dependency Injection ni to'liq joriy qilishdan oldin vaqtincha Service Locator kiritish to'g'ri oraliq qadam hisoblanadi.
 
-- **Yangi loyihalar (New Projects)**: Buning o'rniga Dependency Injection ishlating
-- **Test qilinadigan kod (Testable Code)**: Dependency Injection ishlating
-- **Uzoq muddatli (Long-Term)**: Dependency Injection yaxshiroq kengayadi
-- **Jamoaviy dasturlash (Team Development)**: Aniq bog'liqliklar afzal ko'riladi
-- **Ishlash tezligi muhim (Performance-Critical)**: Yashirin ishlash xarajatlari
-- **Mikroservislar (Microservices)**: Har bir xizmat allaqachon izolyatsiya qilingan
-- **Murakkab mantiq (Complex Logic)**: Nosozliklarni topish (debugging) qiyin
-- **Kod sifati (Code Quality)**: Kod ravshanligini pasaytiradi
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-## Aloqador Patternlar (Related Patterns)
+- **Zamonaviy veb / korporativ ilovalar**: Buning o'rniga Dependency Injection dan foydalaning. Zamonaviy Java, C#, Python yoki TypeScript veb backend'larida Service Locator ishlatish uchun deyarli hech qanday sabab yo'q.
+- **Kutubxonalar/Paketlar**: Agar ochiq kodli kutubxona yozayotgan bo'lsangiz, foydalanuvchilarni Service Locator ishlatishga majburlamang. Bog'liqliklarni konstruktorlar orqali talab qiling.
 
-- **Dependency Injection**: Yaxshiroq muqobil (alternative)
-- **Factory Pattern**: Xizmatlarni yaratish uchun
-- **Singleton Pattern**: Ko'pincha birga ishlatiladi
-- **Registry Pattern**: O'xshash tushuncha
-- **Façade Pattern**: Murakkab xizmatlarni soddalashtiradi
+## Aloqador patternlar (Related Patterns)
+
+- **[Dependency Injection (DI)](/uz/architectural/dependency-injection)**: Service Locator'ning "to'g'ri" zamonaviy muqobili. Klasslar bog'liqliklarni _so'rash_ o'rniga, freymvork ularni konstruktorlar orqali _beradi_.
+- **[Singleton](/uz/creational/singleton)**: Service Locator'ning o'zi deyarli har doim Singleton sifatida amalga oshiriladi.
+- **[Factory](/uz/creational/factory-method)**: Service Locator butun ilova uchun umumlashtirilgan Factory vazifasini bajaradi.

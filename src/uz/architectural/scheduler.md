@@ -1,303 +1,387 @@
 ---
-title: Scheduler (Rejalashtiruvchi)
-description: Vazifalarni rejalashtirish orqali oqimlar (thread) resurslariga kirishni boshqaradi
+title: Scheduler Pattern (Rejalashtiruvchi)
+description: Vazifalarning bajarilish vaqtini va umumiy resurslarga kirishni muvofiqlashtiradigan hamda nazorat qiladigan arxitektura patterni.
 icon: Clock
 ---
 
-# Scheduler (Rejalashtiruvchi)
+# Scheduler Pattern (Rejalashtiruvchi)
 
-<CoverImage src="/covers/architectural/scheduler.png" alt="Cover">
+<CoverImage src="/covers/architectural/scheduler.webp" alt="Cover">
   <h1>Scheduler</h1>
-  <p>A tiny conductor robot sitting on top of a giant clockwork machine, holding a checklist and pointing a baton at different worker robots, telling them exactly when to start running.</p>
+  <p>Ulkan soat mexanizmi ustida o'tirgan, qo'lida nazorat ro'yxatini tutgan kichkina dirijyor robot; u tayoqchasi bilan turli ishchi robotlarni ko'rsatib, ularga aynan qachon ishga tushishni aytmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Scheduler (Rejalashtiruvchi)** patterni oqimlarning (threads) qachon bajarilishini boshqarish orqali umumiy resurslarga kirishni muvofiqlashtiradi. U qaysi oqim va qachon resursdan foydalanishini belgilaydi.
+**Scheduler (Rejalashtiruvchi)** patterni - tizim darajasidagi fundamental arxitektura patternidir. U kutilayotgan vazifalar to'plamini boshqaradi va ular ishchi oqimlar (threads) yoki jarayonlar tomonidan aynan **qachon** va **qanday tartibda** bajarilishi kerakligini aniqlaydi.
+
+*Producer-Consumer* patterni ma'lumotlar oqimini ajratishga e'tibor qaratsa, *Scheduler* patterni **Vaqt**, **Ustuvorlik (Priority)** va **Resurs cheklovlari**ga e'tibor qaratadi.
 
 Asosiy tushunchalar:
+- **Task (Vazifa)**: Bajarilishi kerak bo'lgan inkapsulyatsiya qilingan ish birligi.
+- **Queue (Navbat)**: Vazifalar bajarilishdan oldin kutib turadigan joy.
+- **Dispatcher/Scheduler**: Ustuvorliklarni baholaydigan, mavjud resurslarni tekshiradigan va bajarishni ishga tushiradigan mexanizm.
+- **Workers (Ishchilar)**: Ishni amalda bajaradigan oqimlar yoki jarayonlar.
 
-- **Scheduler (Rejalashtiruvchi)**: Oqimlarni bajarish tartibini boshqaradi
-- **Resource (Resurs)**: Rejalashtirilayotgan umumiy resurs
-- **Threads (Oqimlar)**: Resursga kirish uchun raqobatchilar
-- **Fairness (Adolatlilik)**: Resurslarni teng taqsimlash
+## Muammo (The Problem)
 
-## Maqsad (Purpose)
+Agar ilovadagi har bir so'rov yoki vazifaga kelishi bilanoq darhol bajarilishiga ruxsat bersangiz, apparat resurslaringiz ustidan nazoratni yo'qotasiz.
 
-Scheduler patternining maqsadi:
-
-- Resurslar ziddiyatlarini (conflicts) oldini olish
-- Resurslarni adolatli taqsimlashni ta'minlash
-- Resurslardan foydalanishni (utilization) maksimal darajaga ko'tarish
-- Bajarilish tartibini (execution order) boshqarish
-- Oqimlarning "och qolishini" (starvation) oldini olish
-- Hamkorlikdagi ko'p vazifalilikni (cooperative multitasking) ta'minlash
-
-## Muammo (Problem)
-
-Rejalashtirishsiz tizimlardagi muammolar:
-
-- Oqimlar resurslar uchun raqobatlashadi
-- Ba'zi oqimlar umuman resursga ega bo'lmaydi (starve)
-- Resurslardan samarasiz foydalanish
-- Oldindan aytib bo'lmaydigan xatti-harakatlar
-- Ehtimoliy tiqilib qolishlar (deadlocks)
-
-```
-❌ Rejalashtirilmagan Kirish
-Thread1 ─┐
-Thread2 ─┼─→ [Resurs] ← Ziddiyatlar!
-Thread3 ─┘
+```javascript
+// ❌ Yomon: Darhol, cheklanmagan bajarish
+function handleRequest(req) {
+    // Agar bir vaqtda 10 000 ta so'rov kelsa, 10 000 ta thread yaratamiz.
+    // CPU haddan tashqari yuklanadi, xotira tugaydi va server qulaydi.
+    new Thread(() => processHeavyData(req)).start(); 
+}
 ```
 
-## Yechim (Solution)
+Bu quyidagilarga olib keladi:
+1. **Resurslarning tugashi (Resource Exhaustion)**: Juda ko'p faol oqimlar tufayli Out Of Memory (OOM) xatolari va CPU thrashing.
+2. **Ustuvorlik inversiyasi (Priority Inversion)**: Past ustuvorlikka ega ulkan fon analitika vazifalari butun CPU ni egallab, yuqori ustuvorlikka ega foydalanuvchi login so'rovining bajarilishiga to'sqinlik qilishi mumkin.
+3. **Ochlik (Starvation)**: Agar boshqa agressiv vazifalar tizimda doimiy hukmronlik qilsa, ba'zi vazifalar hech qachon CPU vaqtini ololmasligi mumkin.
 
-Scheduler kirishni boshqaradi:
+## Yechim (The Solution)
 
+Barcha vazifalarni **Scheduler** orqali yo'naltiring. Scheduler bajarilish oqimini nazorat qilish uchun siyosatlarni (FIFO, Round-Robin, ustuvorlikka asoslangan yoki Rate-Limiting kabi) qo'llaydi.
+
+```mermaid
+flowchart TD
+    T1[High Priority Task] --> S
+    T2[Low Priority Task] --> S
+    T3[Delayed Task] --> S
+    
+    subgraph Engine
+        S{Scheduler Logic\n(Priority / Time)}
+        Q[Priority Queue]
+    end
+    
+    S --> Q
+    
+    Q -- "Dispatches based\n on policy" --> W1[Worker Thread 1]
+    Q --> W2[Worker Thread 2]
 ```
-✅ Rejalashtirilgan Kirish
-Thread1 ─┐
-Thread2 ─┼─→ [Scheduler] ─→ [Resurs]
-Thread3 ─┘    (Adolatli kirish)
-```
 
-## Amalga oshirish (Implementation)
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Aeroport boshqaruv minorasi**ni tasavvur qiling.
+- **Vazifalar**: Qo'nishni xohlayotgan samolyotlar.
+- **Resurslar**: Uchish-qo'nish yo'laklari.
+- **Scheduler**: Havo harakati dispetcheri.
+
+Agar bir vaqtning o'zida 10 ta samolyot yetib kelsa, ularning barchasi darhol qo'na olmaydi. Dispetcher ularni kutish aylanasiga (Navbat) qo'yadi. Tartibni dispetcher belgilaydi: yoqilg'isi tugayotgan samolyot (Yuqori ustuvorlik) birinchi bo'lib qo'nadi, yuk samolyotlari (Past ustuvorlik) esa kutib turadi. Dispetcher yo'lakning hech qachon ortiqcha yuklanmasligini ta'minlaydi.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+Biz bir vaqtda ishlayotgan vazifalarning maksimal sonini cheklaydigan **Priority Scheduler** (ustuvorlikka asoslangan rejalashtiruvchi) ni amalga oshiramiz.
+
+1. **Task interfeysini aniqlang**: Unga noyob ID, ustuvorlik darajasi va bajarish funksiyasi kerak.
+2. **Scheduler holatini yarating**: Kutilayotgan vazifalar ro'yxati (ustuvorlik bo'yicha saralangan) va hozir ishlayotgan vazifalar hisoblagichi kerak.
+3. **Dispatcher'ni amalga oshiring**: Parallellik chegarasidan oshmaganimizni tekshiradigan funksiya. Agar oshmagan bo'lsa, u eng yuqori ustuvorlikdagi vazifani olib, bajaradi.
+4. **Yakunlanishni qayta ishlang**: Vazifa tugagach, u Scheduler'ga xabar berishi kerak, shunda dispatcher keyingi vazifani ishga tushira oladi.
+
+## Kod misollari (Code Examples)
 
 ::: code-group
 
-```typescript [TypeScript]
-// Task to schedule
-interface Task {
+```typescript [TypeScript (Async/Promise Scheduler)]
+type TaskFn = () => Promise<void>;
+
+interface ScheduledTask {
   id: string;
-  execute: () => void;
-  priority?: number;
+  priority: number;
+  execute: TaskFn;
 }
 
-// Simple Scheduler
-class Scheduler {
-  private taskQueue: Task[] = [];
-  private running = false;
+class PriorityConcurrencyScheduler {
+  private queue: ScheduledTask[] = [];
+  private activeCount: number = 0;
 
-  schedule(task: Task): void {
-    this.taskQueue.push(task);
-    console.log(`📅 Scheduled task: ${task.id}`);
-    this.executeNext();
+  constructor(private maxConcurrent: number) {}
+
+  public schedule(id: string, priority: number, execute: TaskFn) {
+    this.queue.push({ id, priority, execute });
+    // Ustuvorlik bo'yicha kamayish tartibida saralash (katta raqam = birinchi ishlaydi)
+    this.queue.sort((a, b) => b.priority - a.priority);
+    
+    console.log(`[Scheduled] ${id} (Priority: ${priority})`);
+    this.tick();
   }
 
-  private executeNext(): void {
-    if (this.running || this.taskQueue.length === 0) return;
-
-    this.running = true;
-    const task = this.taskQueue.shift()!;
-
-    console.log(`▶️ Executing: ${task.id}`);
-    try {
-      task.execute();
-      console.log(`✅ Completed: ${task.id}`);
-    } catch (error) {
-      console.error(`❌ Error in ${task.id}: ${error}`);
-    }
-
-    this.running = false;
-    if (this.taskQueue.length > 0) {
-      setImmediate(() => this.executeNext());
-    }
-  }
-
-  getPendingCount(): number {
-    return this.taskQueue.length;
-  }
-}
-
-// Priority Scheduler
-class PriorityScheduler {
-  private taskQueue: Task[] = [];
-  private running = false;
-
-  schedule(task: Task): void {
-    task.priority = task.priority || 0;
-    this.taskQueue.push(task);
-    this.taskQueue.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    console.log(`📅 Scheduled task: ${task.id} (priority: ${task.priority})`);
-    this.executeNext();
-  }
-
-  private executeNext(): void {
-    if (this.running || this.taskQueue.length === 0) return;
-
-    this.running = true;
-    const task = this.taskQueue.shift()!;
-
-    console.log(`▶️ Executing: ${task.id}`);
-    task.execute();
-    console.log(`✅ Completed: ${task.id}`);
-
-    this.running = false;
-    if (this.taskQueue.length > 0) {
-      setImmediate(() => this.executeNext());
+  private tick() {
+    // Bo'sh "worker slot"lar va kutayotgan vazifalar bo'lsa
+    while (this.activeCount < this.maxConcurrent && this.queue.length > 0) {
+      const task = this.queue.shift()!;
+      this.activeCount++;
+      
+      console.log(`[Executing] ${task.id} (Active: ${this.activeCount}/${this.maxConcurrent})`);
+      
+      // Asinxron bajarish, bu yerda await qilmang!
+      task.execute()
+        .catch(err => console.error(`[Error] ${task.id}:`, err))
+        .finally(() => {
+          this.activeCount--;
+          console.log(`[Completed] ${task.id}`);
+          this.tick(); // Vazifa tugadi, keyingisini ishga tushirish
+        });
     }
   }
 }
 
-// Usage
-const scheduler = new Scheduler();
+// Ishga tushirish
+const scheduler = new PriorityConcurrencyScheduler(2); // Bir vaqtda maksimal 2 ta vazifa
 
-scheduler.schedule({
-  id: "Task 1",
-  execute: () => console.log("  Doing work 1..."),
-});
+const makeTask = (timeMs: number) => () => new Promise<void>(res => setTimeout(res, timeMs));
 
-scheduler.schedule({
-  id: "Task 2",
-  execute: () => console.log("  Doing work 2..."),
-});
+// Vazifalarni tartibsiz yuborish
+scheduler.schedule("Task A (Low)", 1, makeTask(1000));
+scheduler.schedule("Task B (Low)", 1, makeTask(1000));
+// Queue endi to'la (maks. 2). Task C kutadi.
+scheduler.schedule("Task C (HIGH)", 10, makeTask(500)); 
 
-scheduler.schedule({
-  id: "Task 3",
-  execute: () => console.log("  Doing work 3..."),
-});
-
-console.log(`\nPending tasks: ${scheduler.getPendingCount()}`);
+// Natija:
+// [Executing] Task A (Low)
+// [Executing] Task B (Low)
+// [Scheduled] Task C (HIGH)
+// ... 1 soniyadan keyin ...
+// [Completed] Task A
+// [Executing] Task C (HIGH) <- Navbatdan sakrab o'tdi!
 ```
 
-```python [Python]
-from typing import Callable, List
-from dataclasses import dataclass
-import time
+```python [Python (Asyncio)]
+import asyncio
+from dataclasses import dataclass, field
+from typing import Callable, Awaitable
 
-# Task to schedule
-@dataclass
-class Task:
-    id: str
-    execute: Callable
-    priority: int = 0
+@dataclass(order=True)
+class PrioritizedTask:
+    # Min-heap'da katta raqamlar birinchi turishi uchun manfiy ustuvorlik
+    priority: int
+    id: str = field(compare=False)
+    execute: Callable[[], Awaitable[None]] = field(compare=False)
 
-# Simple Scheduler
-class Scheduler:
-    def __init__(self):
-        self.task_queue: List[Task] = []
-        self.running = False
+class AsyncScheduler:
+    def __init__(self, max_concurrent: int):
+        self.queue = asyncio.PriorityQueue()
+        self.max_concurrent = max_concurrent
+        self.active_count = 0
 
-    def schedule(self, task: Task) -> None:
-        self.task_queue.append(task)
-        print(f"📅 Scheduled task: {task.id}")
-        self.execute_next()
+    async def schedule(self, task_id: str, priority: int, coro_fn: Callable):
+        print(f"[Scheduled] {task_id} (Priority: {priority})")
+        # Min-heap uchun ustuvorlikni teskari qilish
+        await self.queue.put(PrioritizedTask(-priority, task_id, coro_fn))
+        asyncio.create_task(self._tick())
 
-    def execute_next(self) -> None:
-        if self.running or not self.task_queue:
+    async def _tick(self):
+        if self.active_count >= self.max_concurrent or self.queue.empty():
             return
 
-        self.running = True
-        task = self.task_queue.pop(0)
+        self.active_count += 1
+        task = await self.queue.get()
+        print(f"[Executing] {task.id}")
 
-        print(f"▶️ Executing: {task.id}")
         try:
-            task.execute()
-            print(f"✅ Completed: {task.id}")
+            await task.execute()
         except Exception as e:
-            print(f"❌ Error in {task.id}: {e}")
+            print(f"[Error] {task.id}: {e}")
+        finally:
+            print(f"[Completed] {task.id}")
+            self.active_count -= 1
+            self.queue.task_done()
+            asyncio.create_task(self._tick()) # Keyingisini ishga tushirish
 
-        self.running = False
-        if self.task_queue:
-            self.execute_next()
+async def dummy_work(time_sec: float):
+    await asyncio.sleep(time_sec)
 
-    def get_pending_count(self) -> int:
-        return len(self.task_queue)
+async def main():
+    scheduler = AsyncScheduler(max_concurrent=2)
+    
+    await scheduler.schedule("Task A (Low)", 1, lambda: dummy_work(1))
+    await scheduler.schedule("Task B (Low)", 1, lambda: dummy_work(1))
+    # Slot bo'shashi bilan undan keyin qo'shilgan har qanday vazifadan oldin bajariladi
+    await scheduler.schedule("Task C (HIGH)", 10, lambda: dummy_work(0.5))
+    
+    # Queue bo'shashini kutish
+    await scheduler.queue.join()
 
-# Priority Scheduler
-class PriorityScheduler:
-    def __init__(self):
-        self.task_queue: List[Task] = []
-        self.running = False
-
-    def schedule(self, task: Task) -> None:
-        self.task_queue.append(task)
-        self.task_queue.sort(key=lambda t: t.priority, reverse=True)
-        print(f"📅 Scheduled task: {task.id} (priority: {task.priority})")
-        self.execute_next()
-
-    def execute_next(self) -> None:
-        if self.running or not self.task_queue:
-            return
-
-        self.running = True
-        task = self.task_queue.pop(0)
-
-        print(f"▶️ Executing: {task.id}")
-        task.execute()
-        print(f"✅ Completed: {task.id}")
-
-        self.running = False
-        if self.task_queue:
-            self.execute_next()
-
-# Usage
 if __name__ == "__main__":
-    scheduler = Scheduler()
+    asyncio.run(main())
+```
 
-    scheduler.schedule(Task("Task 1", lambda: print("  Doing work 1...")))
-    scheduler.schedule(Task("Task 2", lambda: print("  Doing work 2...")))
-    scheduler.schedule(Task("Task 3", lambda: print("  Doing work 3...")))
+```java [Java (ExecutorService)]
+import java.util.concurrent.*;
 
-    print(f"\nPending tasks: {scheduler.get_pending_count()}")
+// Java'da ScheduledThreadPoolExecutor korporativ standart hisoblanadi
+public class SchedulerDemo {
+    public static void main(String[] args) throws InterruptedException {
+        // Aynan 2 ta worker thread'li scheduler yaratish
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-    print("\n=== Priority Scheduler ===")
-    priority_scheduler = PriorityScheduler()
+        System.out.println("Submitting tasks...");
 
-    priority_scheduler.schedule(Task("Low", lambda: print("  Low priority"), 1))
-    priority_scheduler.schedule(Task("High", lambda: print("  High priority"), 10))
-    priority_scheduler.schedule(Task("Medium", lambda: print("  Medium priority"), 5))
+        // 1-vazifa: 2 soniya kechikishdan keyin bajarish
+        scheduler.schedule(() -> {
+            System.out.println("[Executed] Delayed Task");
+        }, 2, TimeUnit.SECONDS);
+
+        // 2-vazifa: har 1 soniyada takroran bajarish
+        scheduler.scheduleAtFixedRate(() -> {
+            System.out.println("[Executed] Recurring Task / Heartbeat");
+        }, 0, 1, TimeUnit.SECONDS);
+
+        // 4 soniya ishlashiga imkon berish
+        Thread.sleep(4000);
+        System.out.println("Shutting down...");
+        scheduler.shutdown();
+    }
+}
+```
+
+```go [Go (Worker Pool + Priority Queue)]
+package main
+
+import (
+	"fmt"
+	"sort"
+	"sync"
+	"time"
+)
+
+type Task struct {
+	id       string
+	priority int
+	execute  func()
+}
+
+type Scheduler struct {
+	queue         []Task
+	maxConcurrent int
+	activeCount   int
+	mu            sync.Mutex
+}
+
+func NewScheduler(max int) *Scheduler {
+	return &Scheduler{maxConcurrent: max}
+}
+
+func (s *Scheduler) Schedule(id string, priority int, fn func()) {
+	s.mu.Lock()
+	s.queue = append(s.queue, Task{id, priority, fn})
+	// Eng yuqori ustuvorlikni birinchi qo'yib saralash
+	sort.Slice(s.queue, func(i, j int) bool {
+		return s.queue[i].priority > s.queue[j].priority
+	})
+	fmt.Printf("[Scheduled] %s\n", id)
+	s.mu.Unlock()
+	
+	s.tick()
+}
+
+func (s *Scheduler) tick() {
+	s.mu.Lock()
+	if s.activeCount >= s.maxConcurrent || len(s.queue) == 0 {
+		s.mu.Unlock()
+		return
+	}
+
+	task := s.queue[0]
+	s.queue = s.queue[1:]
+	s.activeCount++
+	fmt.Printf("[Executing] %s\n", task.id)
+	s.mu.Unlock()
+
+	// Goroutine'da (worker) bajarish
+	go func() {
+		task.execute()
+		fmt.Printf("[Completed] %s\n", task.id)
+		
+		s.mu.Lock()
+		s.activeCount--
+		s.mu.Unlock()
+		
+		s.tick() // Keyingisini ishga tushirish
+	}()
+}
+
+func main() {
+	s := NewScheduler(2)
+
+	work := func() { time.Sleep(1 * time.Second) }
+
+	s.Schedule("Task A (Low)", 1, work)
+	s.Schedule("Task B (Low)", 1, work)
+	s.Schedule("Task C (HIGH)", 10, work)
+
+	time.Sleep(3 * time.Second) // tugashini kutish
+}
+```
+
+```rust [Rust (Tokio Tasks)]
+use std::time::Duration;
+use tokio::time;
+
+// Rust korporativ ilovalarida Tokio global async scheduler vazifasini bajaradi.
+// Odatda maxsus scheduler yozmaymiz; parallellik cheklovlaridan foydalanamiz.
+
+#[tokio::main]
+async fn main() {
+    // Semaphore "maksimal parallel vazifalar" qoidasini ta'minlaydi
+    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(2));
+    let mut handles = vec![];
+
+    for i in 1..=4 {
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+        
+        let handle = tokio::spawn(async move {
+            println!("[Executing] Task {}", i);
+            time::sleep(Duration::from_millis(500)).await;
+            println!("[Completed] Task {}", i);
+            
+            // Keyingi vazifa ishlay olishi uchun permit'ni drop qilish
+            drop(permit); 
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
+}
 ```
 
 :::
 
-## Afzalliklari (Advantages) ✅
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-- **Adolatli kirish (Fair Access)**: Resurslardan teng darajada foydalanish
-- **Ziddiyatlar yo'q (No Conflicts)**: Poyga holatlarini (race conditions) oldini oladi
-- **Oldindan aytish mumkin (Predictable)**: Boshqariladigan bajarilish jarayoni
-- **Ustuvorlikni qo'llab-quvvatlash (Priority Support)**: Muhim vazifalarni birinchi bajarish imkoniyati
-- **"Och qolish"ni oldini olish (Starvation Prevention)**: Barcha vazifalarga navbat yetib keladi
-- **Resurs tejamkorligi (Resource Efficient)**: Yaxshiroq utilitizatsiya
-- **Sodda (Simple)**: Tushunish oson
-- **Moslashuvchan (Flexible)**: Turli xil strategiyalarni qo'llash imkoniyati
+### Afzalliklari (Advantages)
+- **Tizim barqarorligi**: Maksimal parallellikni cheklash orqali server trafik keskin oshishlari va OOM qulashlaridan himoyalanadi.
+- **Adolatlilik va ustuvorlik**: Muhim tizimlar (masalan, to'lovlarni qayta ishlash) muhim bo'lmagan tizimlardan (masalan, analitika loglarini yuborish) oldinga o'ta oladi.
+- **Resurslardan samarali foydalanish**: Scheduler'lar bilan birlashtirilgan thread pool'lar oqimlarni doimiy yaratish va yo'q qilishdagi katta OT (OS) xarajatlaridan qochadi.
 
-## Kamchiliklari (Disadvantages) ❌
+### Kamchiliklari (Disadvantages)
+- **Murakkablik**: Maxsus, thread-safe, ustuvorlikka asoslangan scheduler yozish juda qiyinligi bilan mashhur va race condition'larga moyil.
+- **Yagona tor joy (Single Point of Bottleneck)**: Scheduler'ning o'zi har bir vazifani baholaydi. Agar scheduler algoritmi sekin bo'lsa, butun ilova to'xtab qoladi.
+- **Ochlik (Starvation)**: Agar tizim doimiy ravishda Yuqori ustuvorlikdagi vazifalarni qabul qilsa, Past ustuvorlikdagi vazifalar navbatda abadiy qolib, hech qachon bajarilmaydi.
 
-- **Murakkablik (Complexity)**: Amalga oshirish (implementation) murakkab bo'lishi mumkin
-- **Qo'shimcha yuklama (Overhead)**: Rejalashtirish kechikish (latency) qo'shadi
-- **Kontekstni almashtirish (Context Switching)**: Ishlash tezligiga (performance) ta'sir qiladi
-- **Nosozliklarni topish (Debugging)**: Muammolarni qidirish va kuzatish qiyin
-- **Parallel emas (Not Parallel)**: Ketma-ket (sequential) bajarilish ehtimoli
-- **Ishlash tezligi (Performance)**: Haqiqiy parallellikdan ko'ra sekinroq
-- **Sinxronizatsiya (Synchronization)**: Murakkab qulflarni (locking) talab qiladi
-- **Kengayuvchanlik (Scalability)**: Bitta oqim bilan (single thread) cheklangan
+## Qachon foydalanish kerak (When to Use)
 
-## Qachon foydalanish kerak (When to Use) ✅
+- **Operatsion tizimlar va kompilyatorlar**: OT oqimlarini boshqarish va CPU ajratishning markazida.
+- **Fon vazifalarini qayta ishlash (Background Job Processing)**: Celery, Sidekiq yoki BullMQ kabi tizimlar taqsimlangan scheduler'lardir.
+- **Rate Limiting**: Soniyasiga atigi 5 ta so'rovga ruxsat beradigan uchinchi tomon API'larini chaqirganda, chiquvchi so'rovlaringizni cheklash uchun scheduler ishlatishingiz shart.
+- **Ma'lumotlar bazasi ulanishlar pul'i (Connection Pooling)**: Connection pool - bu bir vaqtning o'zida ma'lumotlar bazasiga nechta so'rov yuborilishini cheklaydigan scheduler'dir.
 
-- **Umumiy resurslar (Shared Resources)**: Cheklangan resursga kirish zarur bo'lganda
-- **Adolatli taqsimot (Fair Distribution)**: Resursni hammaga yetkazish kerak bo'lganda
-- **Ustuvor vazifalar (Priority Tasks)**: Ba'zi vazifalar muhimroq bo'lganda
-- **Bitta oqimli (Single Threaded)**: Voqealar halqasi (event loop) kerak bo'lganda
-- **Hamkorlik (Cooperative)**: Oqimlar o'zaro hamkorlik qilganda
-- **Resurslar hovuzi (Resource Pooling)**: Resurslar soni cheklangan bo'lganda
-- **Vazifalarni boshqarish (Task Management)**: Markazlashtirilgan boshqaruv kerak bo'lganda
-- **Voqealarga asoslangan (Event-Driven)**: Voqealar halqasi (event loop) patternlarida
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
+- **Oddiy ilovalar**: Agar ilovangiz tabiiy ravishda past yuklamani ko'tarsa, scheduler qo'shish erta optimallashtirish (premature optimization) hisoblanadi.
+- **Freymvorklar buni taqdim etganda**: Java/Go/Rust da hech qachon o'z thread pool scheduler'ingizni yozmang. `ExecutorService`, `goroutines` yoki `Tokio` dan foydalaning. Maxsus scheduler mantig'ini faqat juda o'ziga xos biznes ustuvorlik qoidalari kerak bo'lganda yozing.
 
-- **Parallel bajarish (Parallel Execution)**: Haqiqiy parallellikka ehtiyoj bo'lganda
-- **Ishlash tezligi kritik bo'lganda (Performance-Critical)**: Qo'shimcha yuklama (overhead) qabul qilib bo'lmaydigan darajada bo'lsa
-- **Oddiy holatlar**: Haddan tashqari muhandislik (over-engineering)
-- **Real vaqt rejimida (Real-Time)**: Vaqtni oldindan aytib bo'lmaydigan darajada noaniq bo'lsa
-- **Taqsimlangan (Distributed)**: Bir nechta mashinalar ishtirok etganda
-- **Mikroservislar (Microservices)**: Ular allaqachon taqsimlangan tuzilishga ega
-- **Zamonaviy Async**: Agar `async/await` o'zi yetarli bo'lsa
-- **Qulflarsiz (Lock-Free)**: Qulflarsiz yondashuv yaxshiroq ishlaganda
+## Keng tarqalgan xatolar (Common Mistakes)
 
-## Aloqador Patternlar (Related Patterns)
+- **Ochlikni (Starvation) hisobga olmaslik**: "Aging" (navbatda juda uzoq kutib qolgan vazifalarning ustuvorligini asta-sekin oshirish) ni amalga oshirmaslik, natijada past ustuvorlikdagi vazifalar tashlab qo'yiladi.
+- **Scheduler oqimini bloklash**: Agar vazifa ishchi oqimda emas, balki dispatcher oqimi*ning o'zida* sinxron bajarilsa, butun tizim qotib qoladi.
 
-- **Thread Pool Pattern**: Rejalashtirishning eng keng tarqalgan qo'llanilishi
-- **Producer-Consumer**: Rejalashtirish bilan birga qo'llanilishi mumkin
-- **Observer Pattern**: Voqealarni rejalashtirish (event scheduling)
-- **Command Pattern**: Navbatdagi buyruqlar uchun
+## Aloqador patternlar (Related Patterns)
+
+- **[Producer-Consumer](/uz/architectural/producer-consumer)**: Scheduler - bu Producer-Consumer ning ilg'or varianti bo'lib, unda navbat ustuvorlik bo'yicha saralanadi va bajarilish qat'iy nazorat qilinadi.
+- **Thread Pool**: Scheduler vazifalarni bajarish uchun foydalanadigan asosiy mexanizm.
+- **[Command Pattern](/uz/behavioral/command)**: Scheduler navbatiga qo'yiladigan vazifalar odatda Command obyektlari bo'ladi.

@@ -6,7 +6,7 @@ icon: Shapes
 
 # What is a Design Pattern?
 
-<CoverImage src="/covers/getting-started/what-is-design-pattern.png" alt="Cover">
+<CoverImage src="/covers/getting-started/what-is-design-pattern.webp" alt="Cover">
   <h1>What is a Design Pattern?</h1>
   <p>A wizard-hat robot sitting in a floating library, pointing a magic wand at a shelf of glowing, transparent 3D blueprints (a bridge, a castle gate, a shield) that fit perfectly over chaotic piles of jumbled toy blocks.</p>
 </CoverImage>

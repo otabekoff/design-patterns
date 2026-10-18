@@ -6,7 +6,7 @@ icon: GitGraph
 
 # Data Mapper Pattern
 
-<CoverImage src="/covers/architectural/data-mapper.png" alt="Cover">
+<CoverImage src="/covers/architectural/data-mapper.webp" alt="Cover">
   <h1>Data Mapper</h1>
   <p>A friendly postman robot translating letters written in an ancient scroll format into neat modern digital tablets, keeping the scroll and the tablet completely separate.</p>
 </CoverImage>

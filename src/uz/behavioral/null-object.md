@@ -1,414 +1,483 @@
 ---
-title: Null Object
-description: Provide an object as a surrogate for the lack of an object. Avoid null checks through polymorphism.
+title: Null Object Pattern
+description: Yo'q bo'lgan hamkor obyekt o'rniga xavfsiz o'rinbosar obyekt taqdim etib, kod bo'ylab tarqalgan null tekshiruvlaridan xalos qiladi.
 icon: Circle
 ---
 
-# Null Object
+# Null Object Pattern
 
-<CoverImage src="/covers/behavioral/null-object.png" alt="Cover">
+<CoverImage src="/covers/behavioral/null-object.webp" alt="Cover">
   <h1>Null Object</h1>
-  <p>A toolbox where one slot holds a transparent "Null Hammer" (a clear block of solid plastic) that does absolutely nothing when swung but fits perfectly in the slot and doesn't crash the system.</p>
+  <p>Asboblar qutisi: undagi uyalardan birida shaffof "Null bolg'a" (qattiq plastikdan yasalgan tiniq blok) turibdi — u urilganda mutlaqo hech narsa qilmaydi, lekin uyaga juda mos tushadi va tizimni ishdan chiqarmaydi.</p>
 </CoverImage>
 
-## Overview
+## Umumiy ko'rinish (Overview)
 
-The **Null Object** pattern is a behavioral design pattern that provides an object as a surrogate for the lack of an object. Instead of using null references or checking for nullability, a special "null object" implements the same interface and provides default do-nothing behavior. This pattern eliminates null checking and provides a more elegant alternative to null references.
+**Null Object** — bu yo'q bo'lgan hamkor (collaborator) obyekt o'rniga xavfsiz, hech narsa qilmaydigan (no-op, "no operation") o'rinbosarni taqdim etuvchi xulq-atvor (behavioral) dizayn patternidir. `null` yoki `nil` qiymatlariga tayanib, butun kod bazasi bo'ylab `if (object != null)` kabi himoya tekshiruvlarini tarqatib yuborish o'rniga, siz haqiqiy obyekt bilan aynan bir xil interfeysni amalga oshiradigan, lekin hech narsa qilmaydigan Null Object'ni uzatasiz (inject qilasiz).
 
-## Purpose
+**Asosiy afzalligi**: U `null` havola xatolarini butunlay yo'q qiladi va obyektning yo'qligini shunchaki yana bir to'g'ri xulq-atvor sifatida ko'rib, biznes mantig'ini soddalashtiradi.
 
-The Null Object pattern aims to:
+**Zamonaviy nuqtai nazar**: Hali ham foydali bo'lsa-da, qat'iy null-xavfsizlikka ega zamonaviy tillar (Kotlin, Rust va `strictNullChecks` yoqilgan TypeScript kabi) yoki tabiiy `Option`/`Maybe` monadalari Null Object patterniga bo'lgan mutlaq ehtiyojni kamaytirdi. Biroq dependency injection uchun (masalan, soxta Logger yoki Analytics yuboruvchi) u eng toza arxitektura tanlovi bo'lib qolmoqda.
 
-- Eliminate null reference checks
-- Provide default behavior for missing objects
-- Reduce conditional logic in code
-- Promote polymorphic behavior
-- Simplify client code
-- Make code more maintainable and robust
+## Muammo (The Problem)
 
-## Problem
-
-Consider a customer service application where customers might not have a discount strategy:
+Turli hodisalarni log qiladigan mustahkam ilovani tasavvur qiling. Ba'zan, mahalliy ishlab chiqish jarayonida yoki test muhitida, siz log yozishni o'chirib qo'ymoqchi bo'lishingiz mumkin.
 
 ```typescript
-// Without Null Object pattern - null checks everywhere
-class Order {
-  private discount: DiscountStrategy | null = null;
+// ❌ Yomon: Tarqoq null tekshiruvlari
+class OrderService {
+  constructor(private logger: Logger | null) {}
 
-  setDiscount(discount: DiscountStrategy | null): void {
-    this.discount = discount;
-  }
+  completeOrder(orderId: string) {
+    // Asosiy biznes mantiq
+    database.save(orderId);
 
-  calculateTotal(amount: number): number {
-    // Null check needed
-    if (this.discount !== null) {
-      return this.discount.apply(amount);
+    // Himoya tekshiruvi
+    if (this.logger !== null) {
+      this.logger.info(`Order ${orderId} completed.`);
     }
-    return amount;
-  }
-}
 
-// Client code full of null checks
-if (customer !== null && customer.discount !== null) {
-  // Apply discount
+    // Yana mantiq...
+    if (this.logger !== null) {
+      this.logger.debug("Routing to shipping subsystem.");
+    }
+  }
 }
 ```
 
-Issues with this approach:
+Endi biznes mantig'i `if` operatorlari bilan ifloslangan. Agar bitta `if (logger != null)` tekshiruvini unutib qo'ysangiz ham, ilovangiz `NullReferenceException` bilan ishdan chiqadi.
 
-- Littered with null checks and conditionals
-- Easy to forget null checks, causing runtime errors
-- Reduces code readability
-- Makes code harder to test
-- Violates single responsibility principle
+Bundan tashqari, `OrderService`'ni test qilish uchun mock logger uzatish, mock'ni sozlash va tekshirish yoki ataylab `null` uzatib, xato chiqmasligiga umid qilish kerak bo'ladi.
 
-## Solution
+## Yechim (The Solution)
 
-The Null Object pattern provides a default object that does nothing:
+`null` uzatish o'rniga, biz `Logger` interfeysini amalga oshiradigan, lekin metodlari bo'sh bo'lgan `NullLogger` klassini yaratamiz.
+
+1. **Mijoz (Client)** `Logger` interfeysini amalga oshiruvchi obyektni kutadi.
+2. **Mijoz** `null` qabul qilmaydi.
+3. Xulq-atvorni o'chirmoqchi bo'lganimizda **Null Object** uzatamiz.
 
 ```typescript
-// Strategy interface
-interface DiscountStrategy {
-  apply(amount: number): number;
-}
+// ✅ Yaxshi: null tekshiruvlari yo'q
+class OrderService {
+  // Bu albatta Logger bo'ladi, hech qachon null emas
+  constructor(private logger: Logger) {}
 
-// Concrete strategy
-class PercentageDiscount implements DiscountStrategy {
-  constructor(private percent: number) {}
+  completeOrder(orderId: string) {
+    database.save(orderId);
 
-  apply(amount: number): number {
-    return amount * (1 - this.percent / 100);
-  }
-}
-
-// Null Object - provides default behavior
-class NoDiscount implements DiscountStrategy {
-  apply(amount: number): number {
-    return amount; // Do nothing
-  }
-}
-
-// Client code - no null checks needed
-class Order {
-  private discount: DiscountStrategy = new NoDiscount();
-
-  setDiscount(discount: DiscountStrategy): void {
-    this.discount = discount;
-  }
-
-  calculateTotal(amount: number): number {
-    return this.discount.apply(amount); // Always safe
+    // Chaqirish doim xavfsiz
+    this.logger.info(`Order ${orderId} completed.`);
+    this.logger.debug("Routing to shipping subsystem.");
   }
 }
 ```
 
-## Implementation
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class Client {
+        -collaborator: Collaborator
+        +doSomething()
+    }
+    class Collaborator {
+        <<interface>>
+        +execute()
+    }
+    class RealCollaborator {
+        +execute()
+    }
+    class NullCollaborator {
+        +execute()
+    }
+
+    Client --> Collaborator
+    Collaborator <|.. RealCollaborator
+    Collaborator <|.. NullCollaborator
+```
+
+## Ishlash oqimi (Flow)
+
+1. **Mijoz (Client)** **Hamkor (Collaborator)** bilan ishga tushiriladi (Dependency Injection orqali).
+2. Uzatilgan bog'liqlik yo **RealCollaborator**, yoki **NullCollaborator** bo'ladi.
+3. **Mijoz** `collaborator.execute()` ni chaqiradi.
+4. Agar bu **RealCollaborator** bo'lsa, haqiqiy ish bajariladi (masalan, faylga yozish).
+5. Agar bu **NullCollaborator** bo'lsa, metod bajariladi va darhol qaytadi — mutlaqo hech narsa qilmaydi, xavfsiz tarzda.
+
+## Hayotiy o'xshatish (Real-World Analogy)
+
+Televizordagi **ovozni o'chirish (Mute) tugmasini** tasavvur qiling.
+Mute tugmasini bosganingizda televizor karnaylarni uzib qo'ymaydi yoki audio oqimi yo'qligi sababli xato bera boshlamaydi. Aksincha, u ovozni "Null karnay"ga (yoki nol balandlikdagi kuchaytirgichga) yo'naltiradi. Televizorning ichki tizimlari audio trekni avvalgidek dekodlash va "ijro etish"ni davom ettiradi, lekin chiqish amalda hech narsa bo'lmaydi. Televizor tizimiga har bir audio qayta ishlash bosqichida "agar ovoz o'chirilmagan bo'lsa" tekshiruvlari kerak emas.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+1. **Ixtiyoriy bog'liqlikni aniqlang**: Tez-tez `null` ga tekshiriladigan interfeysni toping (masalan, `Metrics`, `Logger`, `Cache`).
+2. **Null klassni yarating**: Ushbu interfeysni amalga oshiradigan klass yarating.
+3. **No-op metodlarni amalga oshiring**: `void` qaytaradigan metodlarda hech narsa qilmang. Son qaytaradigan metodlar `0` qaytarsin. Ro'yxat qaytaradiganlar bo'sh ro'yxat qaytarsin. Boolean qiymatlar uchun `false` qaytaring (yoki semantik jihatdan xavfsiz standart qiymat bo'lgan boshqa narsani).
+4. **Singleton'dan foydalaning**: Null obyektlar hech qanday holat (state) saqlamaydi. Xotirani tejash uchun Null Object'ni Singleton sifatida yarating.
+5. **Null bo'lmaslikni majburlang**: Mijoz konstruktorini `null` qiymatlarni aniq rad etadigan qilib yangilang.
+
+## Kod misollari (Code Examples)
+
+Keling, Analytics kuzatuv tizimini amalga oshiramiz. Foydalanuvchilar analitikadan voz kechishlari (opt out) mumkin. Har joyda `if (user.analyticsAllowed())` tekshiruvini yozish o'rniga, biz Null Object uzatamiz.
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Logger interface
-interface Logger {
-  log(message: string): void;
-  error(message: string): void;
-  warn(message: string): void;
+// 1. Collaborator interfeysi
+interface AnalyticsTracker {
+  trackEvent(eventName: string, properties?: Record<string, any>): void;
+  trackPageView(pageUrl: string): void;
 }
 
-// Concrete logger
-class ConsoleLogger implements Logger {
-  log(message: string): void {
-    console.log(`[LOG] ${message}`);
+// 2. Haqiqiy Collaborator
+class MixpanelTracker implements AnalyticsTracker {
+  trackEvent(eventName: string, properties?: Record<string, any>): void {
+    console.log(`[Mixpanel] Tracking Event: ${eventName}`, properties || "");
   }
 
-  error(message: string): void {
-    console.error(`[ERROR] ${message}`);
-  }
-
-  warn(message: string): void {
-    console.warn(`[WARN] ${message}`);
+  trackPageView(pageUrl: string): void {
+    console.log(`[Mixpanel] Page View: ${pageUrl}`);
   }
 }
 
-// Null Object - does nothing
-class NullLogger implements Logger {
-  log(message: string): void {
-    // Do nothing
+// 3. Null Collaborator (Singleton sifatida)
+class NullTracker implements AnalyticsTracker {
+  private static instance: NullTracker = new NullTracker();
+
+  private constructor() {} // Qo'lda yaratishning oldini oladi
+
+  static getInstance(): NullTracker {
+    return this.instance;
   }
 
-  error(message: string): void {
-    // Do nothing
-  }
+  // Mutlaqo hech narsa qilmaydi
+  trackEvent(eventName: string, properties?: Record<string, any>): void {}
+  trackPageView(pageUrl: string): void {}
+}
 
-  warn(message: string): void {
-    // Do nothing
+// 4. Mijoz
+class CheckoutFlow {
+  // TypeScript'ning strict rejimi bu yerda tracker null bo'lmasligini kafolatlaydi
+  constructor(private tracker: AnalyticsTracker) {}
+
+  processPayment(amount: number) {
+    console.log(`Processing payment of $${amount}...`);
+    // null tekshiruvlari yo'q!
+    this.tracker.trackEvent("Payment Processed", { amount });
   }
 }
 
-// Concrete logger for file
-class FileLogger implements Logger {
-  constructor(private filename: string) {}
+// 5. Foydalanish / Composition Root
+const userOptedOut = true;
 
-  log(message: string): void {
-    // Write to file
-    console.log(`[FILE] Writing to ${this.filename}: ${message}`);
-  }
+// Qaysi bog'liqlikni uzatishni composition root'da hal qiling
+const tracker = userOptedOut
+  ? NullTracker.getInstance()
+  : new MixpanelTracker();
 
-  error(message: string): void {
-    console.log(`[FILE] Writing error to ${this.filename}: ${message}`);
-  }
-
-  warn(message: string): void {
-    console.log(`[FILE] Writing warning to ${this.filename}: ${message}`);
-  }
-}
-
-// Application class
-class Application {
-  private logger: Logger;
-
-  constructor(logger?: Logger) {
-    // Use NullLogger if no logger provided
-    this.logger = logger || new NullLogger();
-  }
-
-  run(): void {
-    this.logger.log("Application starting");
-
-    try {
-      this.logger.log("Processing data");
-      this.processData();
-      this.logger.log("Processing complete");
-    } catch (error) {
-      this.logger.error(`Error: ${error}`);
-    }
-  }
-
-  private processData(): void {
-    this.logger.warn("This is a warning");
-  }
-
-  setLogger(logger: Logger): void {
-    this.logger = logger;
-  }
-}
-
-// Usage
-console.log("=== With NullLogger ===");
-const appWithoutLogger = new Application();
-appWithoutLogger.run(); // No output from logger
-
-console.log("\n=== With ConsoleLogger ===");
-const appWithConsole = new Application(new ConsoleLogger());
-appWithConsole.run();
-
-console.log("\n=== With FileLogger ===");
-const appWithFile = new Application(new FileLogger("app.log"));
-appWithFile.run();
-
-console.log("\n=== Dynamic logger switching ===");
-appWithoutLogger.setLogger(new ConsoleLogger());
-appWithoutLogger.run();
+const flow = new CheckoutFlow(tracker);
+flow.processPayment(50.0);
+// Natija: Processing payment of $50.00...
+// (Mixpanel loglari chiqmaydi va hech qanday xato yuzaga kelmaydi!)
 ```
 
 ```python [Python]
-from abc import ABC, abstractmethod
+from typing import Protocol, Dict, Optional
 
-    class Logger(ABC):
-        @abstractmethod
-        def log(self, message: str) -> None:
-            pass
+# 1. Collaborator interfeysi (Protocol)
+class AnalyticsTracker(Protocol):
+    def track_event(self, event_name: str, properties: Optional[Dict] = None) -> None:
+        pass
 
-        @abstractmethod
-        def error(self, message: str) -> None:
-            pass
+    def track_page_view(self, page_url: str) -> None:
+        pass
 
-        @abstractmethod
-        def warn(self, message: str) -> None:
-            pass
+# 2. Haqiqiy Collaborator
+class MixpanelTracker:
+    def track_event(self, event_name: str, properties: Optional[Dict] = None) -> None:
+        props = properties or {}
+        print(f"[Mixpanel] Tracking Event: {event_name} {props}")
 
-    class ConsoleLogger(Logger):
-        def log(self, message: str) -> None:
-            print(f"[LOG] {message}")
+    def track_page_view(self, page_url: str) -> None:
+        print(f"[Mixpanel] Page View: {page_url}")
 
-        def error(self, message: str) -> None:
-            print(f"[ERROR] {message}")
+# 3. Null Collaborator
+class NullTracker:
+    # Python'da Singleton pattern modul darajasidagi instance yoki Borg orqali,
+    # lekin holati yo'qligi sababli oddiy klass ko'pincha yetarli.
+    def track_event(self, event_name: str, properties: Optional[Dict] = None) -> None:
+        pass
 
-        def warn(self, message: str) -> None:
-            print(f"[WARN] {message}")
+    def track_page_view(self, page_url: str) -> None:
+        pass
 
-    class NullLogger(Logger):
-        def log(self, message: str) -> None:
-            pass  # Do nothing
+# Global Singleton instance
+NULL_TRACKER = NullTracker()
 
-        def error(self, message: str) -> None:
-            pass  # Do nothing
+# 4. Mijoz
+class CheckoutFlow:
+    def __init__(self, tracker: AnalyticsTracker):
+        self.tracker = tracker
 
-        def warn(self, message: str) -> None:
-            pass  # Do nothing
+    def process_payment(self, amount: float) -> None:
+        print(f"Processing payment of ${amount}...")
+        # 'if self.tracker is not None:' tekshiruvlari yo'q!
+        self.tracker.track_event("Payment Processed", {"amount": amount})
 
-    class FileLogger(Logger):
-        def __init__(self, filename: str):
-            self.filename = filename
+# 5. Foydalanish
+user_opted_out = True
 
-        def log(self, message: str) -> None:
-            print(f"[FILE] Writing to {self.filename}: {message}")
+tracker = NULL_TRACKER if user_opted_out else MixpanelTracker()
 
-        def error(self, message: str) -> None:
-            print(f"[FILE] Writing error to {self.filename}: {message}")
+flow = CheckoutFlow(tracker)
+flow.process_payment(50.00)
+```
 
-        def warn(self, message: str) -> None:
-            print(f"[FILE] Writing warning to {self.filename}: {message}")
+```java [Java]
+import java.util.Map;
 
-    class Application:
-        def __init__(self, logger: Logger = None):
-            self.logger = logger if logger else NullLogger()
+// 1. Collaborator interfeysi
+interface AnalyticsTracker {
+    void trackEvent(String eventName, Map<String, Object> properties);
+    void trackPageView(String pageUrl);
+}
 
-        def run(self) -> None:
-            self.logger.log("Application starting")
+// 2. Haqiqiy Collaborator
+class MixpanelTracker implements AnalyticsTracker {
+    @Override
+    public void trackEvent(String eventName, Map<String, Object> properties) {
+        System.out.println("[Mixpanel] Tracking Event: " + eventName + " " + properties);
+    }
 
-            try:
-                self.logger.log("Processing data")
-                self.process_data()
-                self.logger.log("Processing complete")
-            except Exception as e:
-                self.logger.error(f"Error: {e}")
+    @Override
+    public void trackPageView(String pageUrl) {
+        System.out.println("[Mixpanel] Page View: " + pageUrl);
+    }
+}
 
-        def process_data(self) -> None:
-            self.logger.warn("This is a warning")
+// 3. Null Collaborator (Java'da Enum Singleton sifatida qilish eng yaxshisi)
+enum NullTracker implements AnalyticsTracker {
+    INSTANCE;
 
-        def set_logger(self, logger: Logger) -> None:
-            self.logger = logger
+    @Override
+    public void trackEvent(String eventName, Map<String, Object> properties) {
+        // No-op (hech narsa qilmaydi)
+    }
 
-    # Usage
-    print("=== With NullLogger ===")
-    app_without_logger = Application()
-    app_without_logger.run()  # No output from logger
+    @Override
+    public void trackPageView(String pageUrl) {
+        // No-op (hech narsa qilmaydi)
+    }
+}
 
-    print("\n=== With ConsoleLogger ===")
-    app_with_console = Application(ConsoleLogger())
-    app_with_console.run()
+// 4. Mijoz
+class CheckoutFlow {
+    private final AnalyticsTracker tracker;
 
-    print("\n=== With FileLogger ===")
-    app_with_file = Application(FileLogger("app.log"))
-    app_with_file.run()
+    public CheckoutFlow(AnalyticsTracker tracker) {
+        // Kimdir haqiqatan oddiy null uzatsa, darhol xato beradi
+        if (tracker == null) throw new IllegalArgumentException("Tracker cannot be null");
+        this.tracker = tracker;
+    }
 
-    print("\n=== Dynamic logger switching ===")
-    app_without_logger.set_logger(ConsoleLogger())
-    app_without_logger.run()
+    public void processPayment(double amount) {
+        System.out.println("Processing payment of $" + amount + "...");
+        tracker.trackEvent("Payment Processed", Map.of("amount", amount));
+    }
+}
+
+// 5. Foydalanish
+public class NullObjectDemo {
+    public static void main(String[] args) {
+        boolean userOptedOut = true;
+
+        AnalyticsTracker tracker = userOptedOut ? NullTracker.INSTANCE : new MixpanelTracker();
+
+        CheckoutFlow flow = new CheckoutFlow(tracker);
+        flow.processPayment(50.00);
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// 1. Collaborator interfeysi
+type AnalyticsTracker interface {
+	TrackEvent(eventName string, properties map[string]interface{})
+	TrackPageView(pageUrl string)
+}
+
+// 2. Haqiqiy Collaborator
+type MixpanelTracker struct{}
+
+func (m *MixpanelTracker) TrackEvent(eventName string, properties map[string]interface{}) {
+	fmt.Printf("[Mixpanel] Tracking Event: %s %v\n", eventName, properties)
+}
+
+func (m *MixpanelTracker) TrackPageView(pageUrl string) {
+	fmt.Printf("[Mixpanel] Page View: %s\n", pageUrl)
+}
+
+// 3. Null Collaborator
+// Nol o'lchamli struct, xotira sarflamaydi
+type NullTracker struct{}
+
+func (n NullTracker) TrackEvent(eventName string, properties map[string]interface{}) {}
+func (n NullTracker) TrackPageView(pageUrl string)                                 {}
+
+// 4. Mijoz
+type CheckoutFlow struct {
+	tracker AnalyticsTracker
+}
+
+func (c *CheckoutFlow) ProcessPayment(amount float64) {
+	fmt.Printf("Processing payment of $%.2f...\n", amount)
+	c.tracker.TrackEvent("Payment Processed", map[string]interface{}{"amount": amount})
+}
+
+// 5. Foydalanish
+func main() {
+	userOptedOut := true
+
+	var tracker AnalyticsTracker
+	if userOptedOut {
+		tracker = NullTracker{} // Xarajatsiz Null Object'ni uzatamiz
+	} else {
+		tracker = &MixpanelTracker{}
+	}
+
+	flow := &CheckoutFlow{tracker: tracker}
+	flow.ProcessPayment(50.00)
+}
+```
+
+```rust [Rust]
+use std::collections::HashMap;
+
+// 1. Collaborator trait
+trait AnalyticsTracker {
+    fn track_event(&self, event_name: &str, properties: Option<&HashMap<String, String>>);
+    fn track_page_view(&self, page_url: &str);
+}
+
+// 2. Haqiqiy Collaborator
+struct MixpanelTracker;
+
+impl AnalyticsTracker for MixpanelTracker {
+    fn track_event(&self, event_name: &str, _properties: Option<&HashMap<String, String>>) {
+        println!("[Mixpanel] Tracking Event: {}", event_name);
+    }
+
+    fn track_page_view(&self, page_url: &str) {
+        println!("[Mixpanel] Page View: {}", page_url);
+    }
+}
+
+// 3. Null Collaborator
+struct NullTracker;
+
+impl AnalyticsTracker for NullTracker {
+    fn track_event(&self, _event_name: &str, _properties: Option<&HashMap<String, String>>) {}
+    fn track_page_view(&self, _page_url: &str) {}
+}
+
+// 4. Mijoz
+// Amalga oshirishlarni almashtirish uchun dynamic dispatch (Box<dyn>) ishlatiladi
+struct CheckoutFlow {
+    tracker: Box<dyn AnalyticsTracker>,
+}
+
+impl CheckoutFlow {
+    fn new(tracker: Box<dyn AnalyticsTracker>) -> Self {
+        Self { tracker }
+    }
+
+    fn process_payment(&self, amount: f64) {
+        println!("Processing payment of ${}...", amount);
+        self.tracker.track_event("Payment Processed", None);
+    }
+}
+
+// 5. Foydalanish
+fn main() {
+    let user_opted_out = true;
+
+    let tracker: Box<dyn AnalyticsTracker> = if user_opted_out {
+        Box::new(NullTracker)
+    } else {
+        Box::new(MixpanelTracker)
+    };
+
+    let flow = CheckoutFlow::new(tracker);
+    flow.process_payment(50.00);
+}
 ```
 
 :::
 
-## Real-World Example
+## Afzallik va kamchiliklar (Pros and Cons)
 
-### Database Connection with Fallback
+### Afzalliklari (Advantages)
+
+- **Toza kod**: Ilova bo'ylab takrorlanuvchi `null` tekshiruvlarini yo'q qiladi.
+- **Xavfsizlik (Fail-Safe)**: `NullReferenceException` xatolarining oldini oladi.
+- **Testlashni soddalashtiradi**: Unit testda konstruktorga `NullObject` uzatish ko'pincha metod chaqiruvlarini e'tiborsiz qoldiradigan mocking freymvorkini sozlashdan ancha osonroq.
+- **Ochiq/Yopiqlik tamoyili (Open/Closed Principle)**: Agar xulq-atvorni o'chirishga qaror qilsangiz, mijozni o'zgartirish shart emas.
+
+### Kamchiliklari (Disadvantages)
+
+- **Xatolarni yashirishi mumkin**: Agar obyekt _bo'lishi shart_ bo'lsa, Null Object uzatish xatoni jimgina yutib yuboradi va ma'lumotlar nega saqlanmayotganini aniqlashni juda qiyinlashtiradi.
+- **Qaytariladigan qiymat muammolari**: Null Object'da `void` metodlarni amalga oshirish oson. Ammo interfeys ma'lumot qaytarishni talab qilsa (masalan, `getUser()`), Null Object ham o'sha ma'lumotlarning "Null" variantlarini qaytarishi kerak bo'ladi va bu Null Object'lar zanjiriga olib keladi.
+- **Kod hajmining oshishi**: Null bo'lishi mumkin bo'lgan har bir interfeys uchun butunlay yangi klass yaratishni talab qiladi.
+
+## Qachon foydalanish kerak (When to Use)
+
+- **Ixtiyoriy xulq-atvorlar**: "Hech narsa qilmaslik" mutlaqo to'g'ri arxitektura qarori bo'lgan logging, metrikalar, keshlash yoki analitika uchun juda mos.
+- **Dependency Injection**: Ixtiyoriy modul o'rnatilmaganida DI konteyneringiz xato bermasligi uchun xavfsiz standart hamkorni taqdim etmoqchi bo'lganingizda.
+
+## Qachon foydalanmaslik kerak (When NOT to Use)
+
+- **Yo'qlik xato bo'lganda**: Agar `DatabaseConnection` yo'q bo'lsa, siz ilovaning ishdan chiqishini _xohlaysiz_. Ma'lumotlarni jimgina tashlab yuboradigan `NullDatabaseConnection` falokat bo'lardi.
+- **Zamonaviy monadalardan foydalanganda**: Agar tilingiz mustahkam `Option<T>` yoki `Result<T>` turlarini qo'llab-quvvatlasa (Rust yoki Scala kabi), til yo'qlikni tabiiy ravishda aniq va xavfsiz boshqaradi, bu esa Null Object'larni ortiqcha qiladi.
+
+## Keng tarqalgan xatolar (Common Mistakes)
+
+### 1. Murakkab Null Object'lar
+
+Null obyekt _hech narsa_ qilmasligi kerak.
 
 ```typescript
-interface Database {
-  query(sql: string): any[];
-  execute(sql: string): boolean;
-  connect(): boolean;
-}
-
-class MySQLDatabase implements Database {
-  connect(): boolean {
-    console.log("Connecting to MySQL");
-    return true;
-  }
-
-  query(sql: string): any[] {
-    console.log(`MySQL query: ${sql}`);
-    return [];
-  }
-
-  execute(sql: string): boolean {
-    console.log(`MySQL execute: ${sql}`);
-    return true;
+// ❌ Yomon: Aqlli bo'lishga urinayotgan Null Object
+class NullLogger {
+  log(msg) {
+    if (env.DEBUG) console.log(msg); // Yo'q! Null — bu NULL degani.
   }
 }
-
-class NullDatabase implements Database {
-  connect(): boolean {
-    return true; // Pretend success
-  }
-
-  query(sql: string): any[] {
-    return []; // Return empty result
-  }
-
-  execute(sql: string): boolean {
-    return true; // Pretend success
-  }
-}
-
-class Service {
-  private db: Database;
-
-  constructor(db?: Database) {
-    this.db = db || new NullDatabase();
-  }
-
-  getData(): any[] {
-    // No null checks needed
-    return this.db.query("SELECT * FROM users");
-  }
-
-  saveData(data: any): boolean {
-    return this.db.execute("INSERT INTO users VALUES (...)");
-  }
-}
-
-// Usage - works with or without database
-const offlineService = new Service();
-console.log(offlineService.getData()); // Returns [] from NullDatabase
-
-const onlineService = new Service(new MySQLDatabase());
-console.log(onlineService.getData()); // Queries actual database
 ```
 
-## Advantages
+### 2. Null Object'dan null qaytarish
 
-✅ **Eliminates Null Checks** - No need for null reference checks
-✅ **Cleaner Code** - More readable without conditionals
-✅ **Polymorphic** - Works with same interface as real objects
-✅ **Default Behavior** - Provides safe defaults
-✅ **Easier Testing** - Can test without setup of real objects
-✅ **Graceful Degradation** - System continues even without real objects
-✅ **Single Responsibility** - Each class has one responsibility
+Agar Null Object'ingiz biror narsa qaytarishi kerak bo'lsa, u mantiqiy standart qiymatlarni (bo'sh massivlar, `0`, bo'sh satrlar) qaytarishi kerak. Agar u `null` qaytarsa, siz `NullReferenceException`'ni shunchaki mijozga qaytarib, keyinga surgan bo'lasiz!
 
-## Disadvantages
+## Aloqador patternlar (Related Patterns)
 
-❌ **Hidden Failures** - Silent failures might be harder to debug
-❌ **Not Always Appropriate** - Sometimes null should raise errors
-❌ **More Classes** - Creates additional null object classes
-❌ **Can Mask Bugs** - Silent no-ops might hide programming errors
-❌ **Lazy Initialization** - Might encourage poor initialization patterns
-❌ **Memory Overhead** - Extra object instances for null behavior
+- **[Strategy](/uz/behavioral/strategy)**: Null Object amalda tanlangan strategiyasi "Hech narsa qilmaslik" bo'lgan Strategy patternidir.
+- **[Singleton](/uz/creational/singleton)**: Null obyektlar mutlaqo holatsiz (stateless). Ularni bir necha marta yaratishga hech qanday sabab yo'q. Ular deyarli har doim Singleton sifatida amalga oshiriladi.
+- **[Proxy](/uz/structural/proxy)**: Proxy haqiqiy subyektga kirishni nazorat qiladi; Null Object esa haqiqiy subyekt umuman mavjud bo'lmagan Proxy kabi ishlaydi.
 
-## When to Use
+## Intervyu uchun maslahatlar (Interview Insights)
 
-- You have many null checks in code
-- You want to provide default do-nothing behavior
-- Null is not an error condition but valid state
-- You want to follow polymorphism principles
-- Multiple objects could be in "null" state
-- You want to reduce defensive programming
-- You're implementing optional features
+- **Savol**: "Qat'iy null tekshiruvlariga ega Kotlin yoki TypeScript kabi tillarda Null Object Pattern eskirganmi?"
+  - **Javob**: "Xotira xavfsizligi uchun u unchalik muhim emas, lekin arxitektura nuqtai nazaridan hali ham juda qimmatli. Qat'iy null tekshiruvlari bilan ham `Optional` yoki nullable turni boshqarish `if (tracker != null)` yozishni yoki `tracker?.track()` kabi xavfsiz chaqiruvlardan foydalanishni talab qiladi. Null Object patterni bu shartlarga bo'lgan ehtiyojni butunlay yo'qotadi va qarorni composition root'ga ko'chiradi."
+- **Savol**: "Agar metod ro'yxat kutsa, Null Object nima qaytarishi kerak?"
+  - **Javob**: "U `null` emas, bo'sh ro'yxat (`[]`) qaytarishi kerak. Patternning mohiyati — mijoz o'zini himoya qilishi shart bo'lmagan, oldindan aytib bo'ladigan va xavfsiz kontraktni saqlashdir."
 
-## When NOT to Use
+## Zamonaviy muqobillar (Modern Alternatives)
 
-- Null should indicate an error condition
-- You need to know when something is missing
-- The absence of an object is exceptional
-- Client code must react differently to null
-- Performance is critical with many object creations
-- The null object behavior would be misleading
-- Explicit checks communicate intent better
-
-## Related Patterns
-
-- **Strategy** - Null Object implements same interface as strategies
-- **Decorator** - Can be combined for more complex behavior
-- **Singleton** - Null Object is often implemented as singleton
-- **Template Method** - Null Object can provide template method
-- **Default Values** - Same concept applied to values
+- **Optional Chaining**: JS/TS, C# va Kotlin'da `logger?.log()` — bu bir qatorda "agar null bo'lsa, hech narsa qilma"ni bajaradigan tabiiy til imkoniyati. Bu Null Object patterniga bo'lgan ehtiyojni sezilarli darajada kamaytiradi.
+- **Option / Maybe monadalari**: Funksional dasturlash tillari `Option` o'ramini qaytaradi. Siz option ustida map qilasiz va agar u `None` bo'lsa, amal tabiiy ravishda hech narsa qilmaydi.

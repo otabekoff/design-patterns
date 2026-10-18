@@ -6,7 +6,7 @@ icon: Hammer
 
 # Builder Pattern
 
-<CoverImage src="/covers/creational/builder.png" alt="Cover">
+<CoverImage src="/covers/creational/builder.webp" alt="Cover">
   <h1>Builder</h1>
   <p>A tiny mechanical chef robot carefully stacking ingredients of a gigantic, premium multi-layered hamburger step-by-step using a detailed architectural blueprint.</p>
 </CoverImage>
@@ -38,6 +38,40 @@ Consider **building a custom pizza**. You don't order with a constructor like `P
 - Done
 
 Each step is clear, optional steps are obvious, and the final pizza is exactly what you wanted.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Client
+    class ConfigDirector {
+        +buildDevelopmentConfig() AppConfig
+        +buildProductionConfig(hosts) AppConfig
+    }
+    class AppConfigBuilder {
+        -_environment: string
+        -_timeout: number
+        +environment(env) AppConfigBuilder
+        +enableLogging(enable) AppConfigBuilder
+        +timeout(ms) AppConfigBuilder
+        +build() AppConfig
+    }
+    class AppConfig {
+        +environment: string
+        +enableLogging: boolean
+        +timeout: number
+    }
+
+    Client --> AppConfigBuilder : configures step by step
+    Client ..> ConfigDirector : optional
+    ConfigDirector ..> AppConfigBuilder : creates and drives
+    AppConfigBuilder ..> AppConfig : builds
+```
+
+- **`AppConfigBuilder`** (Builder) holds construction state, exposes chainable setter methods that validate input, and returns `this` from each step.
+- **`build()`** assembles and returns the final, immutable **`AppConfig`** (Product).
+- **`ConfigDirector`** (Director, optional) packages reusable recipes such as a production config, as shown in the Director variation below.
+- **`Client`** either drives the builder directly or delegates to a director.
 
 ## The Problem
 
@@ -127,34 +161,34 @@ interface AppConfig {
 
 // Builder with validation
 class AppConfigBuilder {
-  private environment: string = "development";
-  private enableLogging: boolean = true;
-  private timeout: number = 5000;
-  private allowedHosts: string[] = ["localhost"];
-  private tlsVersion: string = "TLS1.2";
+  private _environment: string = "development";
+  private _enableLogging: boolean = true;
+  private _timeout: number = 5000;
+  private _allowedHosts: string[] = ["localhost"];
+  private _tlsVersion: string = "TLS1.2";
 
   environment(env: string): AppConfigBuilder {
     if (!["development", "staging", "production"].includes(env)) {
       throw new Error(`Invalid environment: ${env}`);
     }
-    this.environment = env;
+    this._environment = env;
     return this;
   }
 
   enableLogging(enable: boolean): AppConfigBuilder {
-    this.enableLogging = enable;
+    this._enableLogging = enable;
     return this;
   }
 
   timeout(ms: number): AppConfigBuilder {
     if (ms <= 0) throw new Error("Timeout must be positive");
-    this.timeout = ms;
+    this._timeout = ms;
     return this;
   }
 
   allowedHosts(hosts: string[]): AppConfigBuilder {
     if (hosts.length === 0) throw new Error("Must have at least one host");
-    this.allowedHosts = hosts;
+    this._allowedHosts = hosts;
     return this;
   }
 
@@ -162,17 +196,17 @@ class AppConfigBuilder {
     if (!["TLS1.2", "TLS1.3"].includes(version)) {
       throw new Error(`Invalid TLS version: ${version}`);
     }
-    this.tlsVersion = version;
+    this._tlsVersion = version;
     return this;
   }
 
   build(): AppConfig {
     return {
-      environment: this.environment,
-      enableLogging: this.enableLogging,
-      timeout: this.timeout,
-      allowedHosts: this.allowedHosts,
-      tlsVersion: this.tlsVersion,
+      environment: this._environment,
+      enableLogging: this._enableLogging,
+      timeout: this._timeout,
+      allowedHosts: this._allowedHosts,
+      tlsVersion: this._tlsVersion,
     };
   }
 }
@@ -209,45 +243,45 @@ class AppConfig:
 
 class AppConfigBuilder:
     def __init__(self):
-        self.environment: Environment = Environment.DEVELOPMENT
-        self.enable_logging: bool = True
-        self.timeout: int = 5000
-        self.allowed_hosts: List[str] = ["localhost"]
-        self.tls_version: str = "TLS1.2"
+        self._environment: Environment = Environment.DEVELOPMENT
+        self._enable_logging: bool = True
+        self._timeout: int = 5000
+        self._allowed_hosts: List[str] = ["localhost"]
+        self._tls_version: str = "TLS1.2"
 
     def environment(self, env: Environment) -> "AppConfigBuilder":
-        self.environment = env
+        self._environment = env
         return self
 
     def enable_logging(self, enable: bool) -> "AppConfigBuilder":
-        self.enable_logging = enable
+        self._enable_logging = enable
         return self
 
     def timeout(self, ms: int) -> "AppConfigBuilder":
         if ms <= 0:
             raise ValueError("Timeout must be positive")
-        self.timeout = ms
+        self._timeout = ms
         return self
 
     def allowed_hosts(self, hosts: List[str]) -> "AppConfigBuilder":
         if not hosts:
             raise ValueError("Must have at least one host")
-        self.allowed_hosts = hosts
+        self._allowed_hosts = hosts
         return self
 
     def tls_version(self, version: str) -> "AppConfigBuilder":
         if version not in ["TLS1.2", "TLS1.3"]:
             raise ValueError(f"Invalid TLS version: {version}")
-        self.tls_version = version
+        self._tls_version = version
         return self
 
     def build(self) -> AppConfig:
         return AppConfig(
-            environment=self.environment,
-            enable_logging=self.enable_logging,
-            timeout=self.timeout,
-            allowed_hosts=self.allowed_hosts.copy(),
-            tls_version=self.tls_version,
+            environment=self._environment,
+            enable_logging=self._enable_logging,
+            timeout=self._timeout,
+            allowed_hosts=self._allowed_hosts.copy(),
+            tls_version=self._tls_version,
         )
 
 # Usage
@@ -678,24 +712,35 @@ console.log(query);
 Encapsulates construction algorithms in a separate Director class:
 
 ```typescript
-class HouseBlueprintDirector {
-  constructor(private builder: HouseBuilder) {}
+// Reusable construction recipes on top of the same AppConfigBuilder
+class ConfigDirector {
+  constructor(private newBuilder = () => new AppConfigBuilder()) {}
 
-  buildSimpleHouse(): House {
-    return this.builder.walls("brick").roof("shingles").windows(4).build();
+  buildDevelopmentConfig(): AppConfig {
+    return this.newBuilder()
+      .environment("development")
+      .enableLogging(true)
+      .timeout(30000)
+      .build();
   }
 
-  buildLuxuryHouse(): House {
-    return this.builder
-      .walls("stone")
-      .roof("slate")
-      .windows(12)
-      .garage(true)
-      .pool(true)
+  buildProductionConfig(hosts: string[]): AppConfig {
+    return this.newBuilder()
+      .environment("production")
+      .enableLogging(false)
+      .timeout(10000)
+      .allowedHosts(hosts)
+      .tlsVersion("TLS1.3")
       .build();
   }
 }
+
+// Usage: callers get a correct config without knowing the individual steps
+const director = new ConfigDirector();
+const prodConfig = director.buildProductionConfig(["api.example.com", "app.example.com"]);
 ```
+
+The director takes a builder *factory* rather than a single builder instance: builders are stateful, so each recipe starts from a fresh one and settings never leak between recipes.
 
 ### 2. Fluent Interface (Method Chaining)
 

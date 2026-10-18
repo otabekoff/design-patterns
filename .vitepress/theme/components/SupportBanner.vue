@@ -13,26 +13,6 @@ const translations = {
   uz: {
     supportText: 'Qo\'llanma sizga foydali bo\'ldimi? Uni yaxshilash uchun bizni qo\'llab-quvvatlang.',
     supportBtn: 'Qo\'llab-quvvatlash'
-  },
-  ru: {
-    supportText: 'Помогло ли вам это руководство? Поддержите нас, чтобы сделать его еще лучше.',
-    supportBtn: 'Поддержать'
-  },
-  tr: {
-    supportText: 'Bu rehber size yardımcı oldu mu? Daha iyi hale getirmek için bizi destekleyin.',
-    supportBtn: 'Destek Ol'
-  },
-  de: {
-    supportText: 'Hat Ihnen diese Anleitung geholfen? Unterstützen Sie uns, um sie noch besser zu machen.',
-    supportBtn: 'Unterstützen'
-  },
-  es: {
-    supportText: '¿Te ayudó esta guía? Apóyanos para mejorarla aún más.',
-    supportBtn: 'Apóyanos'
-  },
-  ar: {
-    supportText: 'هل ساعدك هذا الدليل؟ ادعمنا لجعله أفضل.',
-    supportBtn: 'ادعمنا'
   }
 }
 
@@ -51,7 +31,7 @@ const t = computed(() => {
       </div>
       <span class="support-text">{{ t.supportText }}</span>
     </div>
-    <a href="https://tirikchilik.uz/uzhandy" target="_blank" class="support-btn">
+    <a href="https://taps.uz/uzhandy" target="_blank" class="support-btn">
       {{ t.supportBtn }}
     </a>
   </div>

@@ -6,7 +6,7 @@ icon: BookOpen
 
 # Iterator Pattern
 
-<CoverImage src="/covers/behavioral/iterator.png" alt="Cover">
+<CoverImage src="/covers/behavioral/iterator.webp" alt="Cover">
   <h1>Iterator</h1>
   <p>A playful conveyor belt where a scanner arm inspects a box of assorted donuts (round, square, sprinkled) one by one in order, without caring about how they are baked.</p>
 </CoverImage>

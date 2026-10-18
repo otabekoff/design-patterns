@@ -6,7 +6,7 @@ icon: Minimize2
 
 # Flyweight Pattern
 
-<CoverImage src="/covers/structural/flyweight.png" alt="Cover">
+<CoverImage src="/covers/structural/flyweight.webp" alt="Cover">
   <h1>Flyweight</h1>
   <p>A swarm of a thousand tiny glowing firefly robots, but they are all sharing a single massive central battery pack at the center via thin glowing lines, rather than having individual heavy batteries.</p>
 </CoverImage>
@@ -29,6 +29,46 @@ Flyweight is not about controlling access. It is about sharing data efficiently.
 Think of a **font glyph library**. The shape of the letter `A` in a given font and size is shared. Every place that uses that glyph does not need a brand-new copy of the shape. Only its position, color, and line context change.
 
 That is Flyweight in practice: one shared shape, many placements.
+
+## Structure
+
+```mermaid
+classDiagram
+    class SpriteFlyweight {
+        <<interface>>
+        +render(x, y, color) void
+    }
+    class Sprite {
+        -texture: string
+        -width: number
+        -height: number
+        +render(x, y, color) void
+    }
+    class SpriteFactory {
+        -sprites: Map
+        +getSprite(texture, width, height) Sprite
+        +count() number
+    }
+    class Particle {
+        -sprite: SpriteFlyweight
+        -context: ParticleContext
+        +draw() void
+    }
+    class ParticleSystem {
+        +emit(texture, width, height, context) void
+    }
+
+    SpriteFlyweight <|.. Sprite
+    SpriteFactory o-- Sprite : caches
+    ParticleSystem --> SpriteFactory : getSprite
+    ParticleSystem *-- Particle
+    Particle --> SpriteFlyweight : shares
+```
+
+- **`Sprite`** (Flyweight) stores the immutable, shared **intrinsic** state (texture, size).
+- **`SpriteFactory`** (Flyweight Factory) caches sprites by key and returns an existing instance whenever possible.
+- **`Particle`** (Context) holds the per-object **extrinsic** state (position, color, velocity) and passes it to `render()`.
+- **`ParticleSystem`** (Client) creates many particles that share a small number of sprites.
 
 ## The Problem
 

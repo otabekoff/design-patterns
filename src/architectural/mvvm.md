@@ -6,7 +6,7 @@ icon: Box
 
 # Model-View-ViewModel (MVVM)
 
-<CoverImage src="/covers/architectural/mvvm.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvvm.webp" alt="Cover">
   <h1>MVVM</h1>
   <p>A futuristic workstation where a View screen and a Model database safe are connected by bright, glowing neon threads that automatically pull and push values in real-time.</p>
 </CoverImage>

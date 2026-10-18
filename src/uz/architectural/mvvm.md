@@ -1,656 +1,656 @@
 ---
 title: Model-View-ViewModel (MVVM)
-description: UI ni ma'lumotlarni bog'lash orqali biznes mantig'idan ajratadi
+description: Avtomatlashtirilgan ma'lumotlarni bog'lash (Data Binding) va Observable'lar yordamida mantiqni UI dan ajratadigan deklarativ UI'lar uchun zamonaviy standart.
 icon: Box
 ---
 
 # Model-View-ViewModel (MVVM)
 
-<CoverImage src="/covers/architectural/mvvm.png" alt="Cover">
+<CoverImage src="/covers/architectural/mvvm.webp" alt="Cover">
   <h1>MVVM</h1>
-  <p>A futuristic workstation where a View screen and a Model database safe are connected by bright, glowing neon threads that automatically pull and push values in real-time.</p>
+  <p>View ekrani va Model ma'lumotlar bazasi seyfi qiymatlarni real vaqtda avtomatik tortib va surib turadigan yorqin, nur sochuvchi neon iplar bilan bog'langan futuristik ish stantsiyasi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-ViewModel (MVVM)** patterni murakkab UI talablari bo'lgan ilovalar uchun mo'ljallangan arxitektura patternidir. U ilovani quyidagilarga ajratadi:
+**Model-View-ViewModel (MVVM)** patterni zamonaviy, reaktiv foydalanuvchi interfeyslari uchun arxitektura standartidir. U dastlab Microsoft tomonidan WPF (Windows Presentation Foundation) uchun yaratilgan, ammo o'shandan beri deyarli barcha zamonaviy frontend freymvorklari (Vue.js, Angular, SwiftUI, Jetpack Compose) ning asosiy falsafasiga aylangan.
 
-- **Model**: Ma'lumotlar va biznes mantig'ini o'z ichiga oladi
-- **View (Ko'rinish)**: UI qatlami (markup va minimal orqa kod)
-- **ViewModel**: Ma'lumotlarni bog'lash (data binding) orqali view uchun ma'lumotlar va buyruqlarni ko'rsatadi
+U ilovani quyidagilarga ajratadi:
 
-MVVM deklarativ UI va WPF, Angular va Vue.js kabi ma'lumotlarni bog'lashni qo'llab-quvvatlaydigan freymvorklar uchun juda mos keladi.
+- **Model**: Domen ma'lumotlari va biznes mantig'ini o'z ichiga oladi.
+- **View (Ko'rinish)**: Deklarativ UI maketi (HTML, XAML, JSX). Uning o'z mantig'i yo'q.
+- **ViewModel**: View va Model o'rtasida joylashgan, holatni saqlovchi klass/obyekt. U "Observable" (kuzatiladigan) ma'lumotlar oqimlari va Command'larni taqdim etadi.
 
-## Maqsad (Purpose)
+**MVVM ning sehri**: Controller/Presenter UI ga yangilanishlarni _qo'lda_ yuborishi kerak bo'lgan MVP yoki MVC dan farqli o'laroq (masalan, `textField.setText("Hello")`), MVVM **Data Binding** (ma'lumotlarni bog'lash) dan foydalanadi. View ViewModel'ni avtomatik tinglaydi. ViewModel holati o'zgarganda, View o'zini darhol va avtomatik yangilaydi.
 
-MVVM patterni quyidagilarni maqsad qiladi:
+## Muammo (The Problem)
 
-- UI va biznes mantig'i o'rtasida aniq ajratishni ta'minlash
-- Ikki tomonlama ma'lumotlarni bog'lashni (two-way data binding) qo'llab-quvvatlash
-- ViewModel orqali viewni to'liq test qilinadigan qilish
-- Dizaynerlar va dasturchilarga mustaqil ishlash imkonini berish
-- Orqa kod (code-behind) murakkabligini kamaytirish
-- Reaktiv UI yangilanishlarini ta'minlash
+MVC/MVP da UI ni ma'lumotlar bilan qo'lda sinxronlash uchun dasturchi mas'ul.
 
-## Muammo (Problem)
-
-An'anaviy UI dasturlash ko'pincha quyidagi kamchiliklarga ega:
-
-- UI yangilanishlari bilan aralashgan biznes mantig'ini o'z ichiga olgan orqa kod
-- UI o'zaro ta'sirlarini testlash qiyin
-- View va mantiq o'rtasidagi qattiq bog'liqlik
-- Kod bazasi bo'ylab tarqalib ketgan UI yangilanishlari
-- Dizaynerlar dasturchilardan mustaqil ishlay olmaydilar
-- UI mantig'ini qayta ishlatish qiyin
-
-```
-❌ An'anaviy UI Orqa Kodi (Code-Behind)
-┌───────────────────────────┐
-│   View + Orqa Kod         │
-├───────────────────────────┤
-│ • UI Markup               │
-│ • Voqealar ishlovchilari  │
-│ • Biznes Mantig'i ❌      │
-│ • Ma'lumotlarni bog'lash  │
-│ • Validatsiya             │
-└───────────────────────────┘
+```javascript
+// ❌ Yomon: DOM'ni qo'lda boshqarish (JQuery/Vanilla JS uslubi)
+function updateUserName(newName) {
+  user.name = newName; // Ma'lumotni yangilash
+  // DOM elementini qo'lda topib, uni yangilash
+  document.getElementById("name-display").innerText = newName;
+  document.getElementById("name-input").value = newName;
+}
 ```
 
-## Yechim (Solution)
+Bu ko'plab xatolarga sabab bo'ladi:
 
-MVVM vazifalarni ajratadi va ma'lumotlarni bog'lash imkonini beradi:
+1. **Nomuvofiqlik (Desync)**: Agar ma'lumotlarni yangilab, DOM elementini yangilashni unutsangiz, UI eskirgan ma'lumotlarni ko'rsatadi.
+2. **Spagetti yangilanishlar**: Agar 5 xil tugma foydalanuvchi ismini o'zgartira olsa, DOM bilan ishlash kodini 5 marta takrorlab qo'yasiz.
+3. **Shablon kod (Boilerplate)**: Input'lardan qo'lda o'qish va label'larga yozish UI kodining 80% ini tashkil qiladi.
 
+## Yechim (The Solution)
+
+MVVM **Binder** (bog'lovchi) ni joriy etadi (u Vue, Angular yoki React kabi freymvorklar tomonidan taqdim etiladi). View to'g'ridan-to'g'ri ViewModel xususiyatlariga _bog'lanadi_.
+
+```html
+<!-- ✅ Yaxshi: Deklarativ data binding (Vue.js uslubida) -->
+<template>
+  <!-- ViewModel.userName o'zgarganda View avtomatik yangilanadi -->
+  <h1>{{ userName }}</h1>
+
+  <!-- Ikki tomonlama binding: input'ga yozish ViewModel'ni avtomatik yangilaydi -->
+  <input v-model="userName" />
+</template>
 ```
-✅ MVVM Arxitekturasi
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│    Model     │      │    View      │      │  ViewModel   │
-├──────────────┤      ├──────────────┤      ├──────────────┤
-│ • Ma'lumotlar│◄─────│ • Markup     │◄────→│ • Xususiyatlar│
-│ • Biznes     │      │ • Minimal    │  ◄───│ • Buyruqlar  │
-│   Mantig'i   │      │   Kod        │  Ma'l│ • Mantiq     │
-│ • Voqealar   │      │              │ Bog' │ • Validatsiya│
-└──────────────┘      └──────────────┘      └──────────────┘
-      ▲                                              ▲
-      └──────────────────────────────────────────────┘
-        Ikki tomonlama ma'lumot bog'lash va xabarnomalar
+
+Foydalanuvchi input'ga yozganda, ViewModel avtomatik yangilanadi. ViewModel yangilanganda esa `<h1>` avtomatik yangilanadi. DOM bilan qo'lda ishlash umuman talab qilinmaydi.
+
+## Tuzilma (Structure)
+
+```mermaid
+classDiagram
+    class View {
+        <<Declarative UI>>
+        +DataBinding
+    }
+
+    class ViewModel {
+        +ObservableState
+        +Commands()
+    }
+
+    class Model {
+        +BusinessLogic()
+    }
+
+    View <..> ViewModel : "Two-Way Data Binding"
+    ViewModel --> Model : "Reads/Writes Data"
+    Model --> ViewModel : "Emits Events/Data"
 ```
 
-**Jarayon (Flow):**
+## Jarayon (Flow)
 
-1. Foydalanuvchi View bilan o'zaro aloqada bo'ladi
-2. View ViewModel buyrug'ini ishga tushiradi
-3. ViewModel Modelni yangilaydi yoki Viewga xabar beradi
-4. Ma'lumotlarni bog'lash Viewni avtomatik ravishda yangilaydi
-5. ViewModel Viewga o'zgarishlar haqida xabar beradi
+1. **Foydalanuvchi harakati**: Foydalanuvchi matn maydoniga yozadi.
+2. **Ikki tomonlama bog'lash (Two-Way Binding)**: Freymvorkning binder'i `ViewModel` ichidagi o'zgaruvchini avtomatik yangilaydi.
+3. **Mantiqni bajarish**: Tugma bosiladi va `ViewModel` dagi Command ishga tushadi. `ViewModel` buyruqni qayta ishlaydi va `Model` ni yangilaydi.
+4. **Holat o'zgarishi**: `ViewModel` o'zining Observable xususiyatlarini yangilaydi (masalan, `isLoading = false`).
+5. **Avtomatik render**: Freymvork xususiyat o'zgarganini aniqlaydi va `View` ning aynan shu xususiyatga bog'langan qismlarini avtomatik qayta render qiladi.
 
-## Amalga oshirish (Implementation)
+## Hayotiy o'xshatish (Real-World Analogy)
+
+**Elektron jadval (Excel kabi)** ni tasavvur qiling.
+
+- **View**: Ekranda "50" sonini ko'rsatib turgan katak.
+- **ViewModel**: Katak ortidagi `=A1+B1` formulasi.
+- **Model**: A1 va B1 kataklaridagi haqiqiy ma'lumotlar.
+
+Agar A1 katakni o'zgartirsangiz, jami katakni qayta chizishga buyruq beradigan skript yozishingiz shart emas. Jami katak formulaga _bog'langani_ uchun u avtomatik yangilanadi.
+
+## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
+
+MVVM asosan "Binder" mexanizmiga tayangani uchun, u kamdan-kam hollarda noldan quriladi. Odatda freymvorkdan (Vue, Angular, Knockout, WPF, SwiftUI) foydalaniladi. Shunga qaramay, u "parda ortida" qanday ishlashini tushunish uchun patternni zamonaviy proxy'lar yoki oddiy observable klasslar yordamida simulyatsiya qilishimiz mumkin.
+
+## Kod misollari (Code Examples)
+
+Biz oddiy hisoblagich (counter) ilovasini quramiz. MVVM qanday ishlashini ko'rsatish uchun barcha tillarda **Observable** patternini qo'lda amalga oshiramiz.
 
 ::: code-group
 
 ```typescript [TypeScript]
-// Model - Contains data and business logic
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  age: number;
-}
+// 1. Model: Asosiy biznes qoidalari
+class CounterModel {
+  public value: number = 0;
 
-class UserModel {
-  private users: Map<number, User> = new Map();
-  private nextId: number = 1;
-
-  addUser(name: string, email: string, age: number): User {
-    if (!name || !email || age < 0) {
-      throw new Error("Invalid user data");
-    }
-
-    const user: User = {
-      id: this.nextId++,
-      name,
-      email,
-      age,
-    };
-    this.users.set(user.id, user);
-    return user;
+  public increment() {
+    this.value++;
   }
-
-  getUser(id: number): User | undefined {
-    return this.users.get(id);
-  }
-
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
-  }
-
-  updateUser(id: number, updates: Partial<User>): User | null {
-    const user = this.users.get(id);
-    if (!user) return null;
-
-    Object.assign(user, updates);
-    return user;
-  }
-
-  deleteUser(id: number): boolean {
-    return this.users.delete(id);
+  public decrement() {
+    this.value--;
   }
 }
 
-// ViewModel - Exposes model data and commands with Observable pattern
-interface ObserverCallback {
-  (): void;
-}
-
+// Yordamchi: Oddiy Observable o'rami (Vue/React ichkarida aynan shuni qiladi)
 class Observable<T> {
-  private value: T;
-  private observers: ObserverCallback[] = [];
+  private listeners: ((val: T) => void)[] = [];
+  constructor(private _val: T) {}
 
-  constructor(initialValue: T) {
-    this.value = initialValue;
+  get value(): T {
+    return this._val;
+  }
+  set value(v: T) {
+    this._val = v;
+    this.listeners.forEach((l) => l(v)); // Bog'langan barcha UI elementlarini xabardor qilish
   }
 
-  get(): T {
-    return this.value;
-  }
-
-  set(newValue: T): void {
-    this.value = newValue;
-    this.notifyObservers();
-  }
-
-  subscribe(callback: ObserverCallback): () => void {
-    this.observers.push(callback);
-    return () => {
-      this.observers = this.observers.filter((obs) => obs !== callback);
-    };
-  }
-
-  private notifyObservers(): void {
-    this.observers.forEach((callback) => callback());
+  bind(listener: (val: T) => void) {
+    this.listeners.push(listener);
+    listener(this._val); // Dastlabki sinxronlash
   }
 }
 
-class UserViewModel {
-  private model: UserModel;
-  private users: Observable<User[]>;
-  private selectedUser: Observable<User | null>;
-  private isLoading: Observable<boolean>;
-  private errorMessage: Observable<string>;
+// 2. ViewModel: Observable holat va buyruqlarni taqdim etadi
+class CounterViewModel {
+  // Holat Observable'larga o'ralgan
+  public count = new Observable<number>(0);
+  public isNegative = new Observable<boolean>(false);
 
-  // Form data
-  private formName: Observable<string>;
-  private formEmail: Observable<string>;
-  private formAge: Observable<number>;
+  constructor(private model: CounterModel) {}
 
-  constructor(model: UserModel) {
-    this.model = model;
-    this.users = new Observable(this.model.getAllUsers());
-    this.selectedUser = new Observable<User | null>(null);
-    this.isLoading = new Observable(false);
-    this.errorMessage = new Observable("");
-    this.formName = new Observable("");
-    this.formEmail = new Observable("");
-    this.formAge = new Observable(0);
+  // Buyruqlar (View tomonidan chaqiriladi)
+  public onIncrement() {
+    this.model.increment();
+    this.syncState();
   }
 
-  // Properties for data binding
-  get users$() {
-    return this.users;
+  public onDecrement() {
+    this.model.decrement();
+    this.syncState();
   }
 
-  get selectedUser$() {
-    return this.selectedUser;
-  }
-
-  get isLoading$() {
-    return this.isLoading;
-  }
-
-  get errorMessage$() {
-    return this.errorMessage;
-  }
-
-  get formName$() {
-    return this.formName;
-  }
-
-  get formEmail$() {
-    return this.formEmail;
-  }
-
-  get formAge$() {
-    return this.formAge;
-  }
-
-  // Commands
-  addUserCommand(): void {
-    try {
-      this.isLoading.set(true);
-      this.errorMessage.set("");
-
-      const user = this.model.addUser(
-        this.formName.get(),
-        this.formEmail.get(),
-        this.formAge.get(),
-      );
-
-      this.users.set(this.model.getAllUsers());
-      this.clearForm();
-      console.log(`✅ User added with ID: ${user.id}`);
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  updateUserCommand(id: number): void {
-    try {
-      this.isLoading.set(true);
-      this.errorMessage.set("");
-
-      const updated = this.model.updateUser(id, {
-        name: this.formName.get(),
-        email: this.formEmail.get(),
-        age: this.formAge.get(),
-      });
-
-      if (updated) {
-        this.users.set(this.model.getAllUsers());
-        this.selectedUser.set(updated);
-        this.clearForm();
-        console.log(`✅ User ${id} updated`);
-      } else {
-        this.errorMessage.set(`User ${id} not found`);
-      }
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    } finally {
-      this.isLoading.set(false);
-    }
-  }
-
-  deleteUserCommand(id: number): void {
-    try {
-      const deleted = this.model.deleteUser(id);
-      if (deleted) {
-        this.users.set(this.model.getAllUsers());
-        this.selectedUser.set(null);
-        console.log(`✅ User ${id} deleted`);
-      } else {
-        this.errorMessage.set(`User ${id} not found`);
-      }
-    } catch (error) {
-      this.errorMessage.set((error as Error).message);
-    }
-  }
-
-  selectUserCommand(user: User): void {
-    this.selectedUser.set(user);
-    this.formName.set(user.name);
-    this.formEmail.set(user.email);
-    this.formAge.set(user.age);
-  }
-
-  private clearForm(): void {
-    this.formName.set("");
-    this.formEmail.set("");
-    this.formAge.set(0);
+  private syncState() {
+    // Observable'larni yangilash. View avtomatik reaksiya qiladi.
+    this.count.value = this.model.value;
+    this.isNegative.value = this.model.value < 0;
   }
 }
 
-// View - Simple UI layer
-class UserView {
-  constructor(private viewModel: UserViewModel) {
-    this.bindData();
-  }
+// 3. View: ViewModel'ga bog'lanadigan sof UI
+class CounterView {
+  constructor(private viewModel: CounterViewModel) {
+    // Deklarativ binding
 
-  private bindData(): void {
-    // Subscribe to ViewModel observable properties
-    this.viewModel.users$.subscribe(() => this.renderUserList());
-    this.viewModel.errorMessage$.subscribe(() => this.renderErrors());
-    this.viewModel.isLoading$.subscribe(() => this.renderLoadingState());
-  }
+    // "count" holatiga bog'lanish
+    this.viewModel.count.bind((newVal) => {
+      console.log(`UI Update: Counter text changed to -> ${newVal}`);
+    });
 
-  private renderUserList(): void {
-    const users = this.viewModel.users$.get();
-    console.log("=== User List ===");
-    users.forEach((user) => {
-      console.log(
-        `ID: ${user.id} | ${user.name} (${user.email}) - Age: ${user.age}`,
-      );
+    // "isNegative" holatiga bog'lanish
+    this.viewModel.isNegative.bind((isNeg) => {
+      if (isNeg) console.log("UI Update: Text turned RED");
+      else console.log("UI Update: Text turned BLACK");
     });
   }
 
-  private renderErrors(): void {
-    const error = this.viewModel.errorMessage$.get();
-    if (error) {
-      console.error(`❌ ${error}`);
-    }
+  // UI'da foydalanuvchi tugmalarni bosishini simulyatsiya qilish
+  public simulateClickPlus() {
+    this.viewModel.onIncrement();
   }
-
-  private renderLoadingState(): void {
-    const loading = this.viewModel.isLoading$.get();
-    if (loading) {
-      console.log("⏳ Loading...");
-    }
-  }
-
-  // User interactions
-  onAddUserFormSubmit(name: string, email: string, age: number): void {
-    this.viewModel.formName$.set(name);
-    this.viewModel.formEmail$.set(email);
-    this.viewModel.formAge$.set(age);
-    this.viewModel.addUserCommand();
-  }
-
-  onSelectUser(user: User): void {
-    this.viewModel.selectUserCommand(user);
-  }
-
-  onDeleteUser(id: number): void {
-    this.viewModel.deleteUserCommand(id);
-  }
-
-  displayUserList(): void {
-    this.renderUserList();
+  public simulateClickMinus() {
+    this.viewModel.onDecrement();
   }
 }
 
-// Usage
-const model = new UserModel();
-const viewModel = new UserViewModel(model);
-const view = new UserView(viewModel);
+// Ishga tushirish
+const vm = new CounterViewModel(new CounterModel());
+const view = new CounterView(vm);
 
-view.onAddUserFormSubmit("John Doe", "john@example.com", 30);
-view.displayUserList();
+console.log("\n--- User clicks plus ---");
+view.simulateClickPlus();
 
-view.onAddUserFormSubmit("Jane Smith", "jane@example.com", 28);
-view.displayUserList();
+console.log("\n--- User clicks minus twice ---");
+view.simulateClickMinus();
+view.simulateClickMinus();
 ```
 
 ```python [Python]
-from typing import Dict, List, Optional, Callable, TypeVar
-from dataclasses import dataclass
+from typing import Callable, Generic, TypeVar
 
 T = TypeVar('T')
 
-# Model - Contains data and business logic
-@dataclass
-class User:
-    id: int
-    name: str
-    email: str
-    age: int
+# Yordamchi: Observable o'rami
+class Observable(Generic[T]):
+    def __init__(self, initial_value: T):
+        self._value = initial_value
+        self._listeners = []
 
-class UserModel:
+    @property
+    def value(self) -> T:
+        return self._value
+
+    @value.setter
+    def value(self, new_val: T):
+        self._value = new_val
+        for listener in self._listeners:
+            listener(new_val)
+
+    def bind(self, listener: Callable[[T], None]):
+        self._listeners.append(listener)
+        listener(self._value) # dastlabki sinxronlash
+
+# 1. Model
+class CounterModel:
     def __init__(self):
-        self.users: Dict[int, User] = {}
-        self.next_id: int = 1
+        self.value = 0
 
-    def add_user(self, name: str, email: str, age: int) -> User:
-        if not name or not email or age < 0:
-            raise ValueError("Invalid user data")
+    def increment(self):
+        self.value += 1
 
-        user = User(id=self.next_id, name=name, email=email, age=age)
-        self.next_id += 1
-        self.users[user.id] = user
-        return user
+    def decrement(self):
+        self.value -= 1
 
-    def get_user(self, user_id: int) -> Optional[User]:
-        return self.users.get(user_id)
-
-    def get_all_users(self) -> List[User]:
-        return list(self.users.values())
-
-    def update_user(self, user_id: int, **updates) -> Optional[User]:
-        user = self.users.get(user_id)
-        if not user:
-            return None
-
-        for key, value in updates.items():
-            if hasattr(user, key):
-                setattr(user, key, value)
-
-        return user
-
-    def delete_user(self, user_id: int) -> bool:
-        return bool(self.users.pop(user_id, None))
-
-# Observable - Data binding support
-class Observable:
-    def __init__(self, initial_value):
-        self.value = initial_value
-        self.observers: List[Callable] = []
-
-    def get(self):
-        return self.value
-
-    def set(self, new_value):
-        self.value = new_value
-        self.notify_observers()
-
-    def subscribe(self, callback: Callable) -> Callable:
-        self.observers.append(callback)
-        return lambda: self.observers.remove(callback) if callback in self.observers else None
-
-    def notify_observers(self) -> None:
-        for observer in self.observers:
-            observer()
-
-# ViewModel - Exposes model data and commands
-class UserViewModel:
-    def __init__(self, model: UserModel):
+# 2. ViewModel
+class CounterViewModel:
+    def __init__(self, model: CounterModel):
         self.model = model
-        self.users = Observable(self.model.get_all_users())
-        self.selected_user = Observable(None)
-        self.is_loading = Observable(False)
-        self.error_message = Observable("")
-        self.form_name = Observable("")
-        self.form_email = Observable("")
-        self.form_age = Observable(0)
+        self.count = Observable(0)
+        self.is_negative = Observable(False)
 
-    def add_user_command(self) -> None:
-        try:
-            self.is_loading.set(True)
-            self.error_message.set("")
+    def on_increment(self):
+        self.model.increment()
+        self._sync_state()
 
-            user = self.model.add_user(
-                self.form_name.get(),
-                self.form_email.get(),
-                self.form_age.get()
-            )
+    def on_decrement(self):
+        self.model.decrement()
+        self._sync_state()
 
-            self.users.set(self.model.get_all_users())
-            self.clear_form()
-            print(f"✅ User added with ID: {user.id}")
-        except ValueError as e:
-            self.error_message.set(str(e))
-        finally:
-            self.is_loading.set(False)
+    def _sync_state(self):
+        self.count.value = self.model.value
+        self.is_negative.value = self.model.value < 0
 
-    def update_user_command(self, user_id: int) -> None:
-        try:
-            self.is_loading.set(True)
-            self.error_message.set("")
+# 3. View
+class CounterView:
+    def __init__(self, viewmodel: CounterViewModel):
+        self.viewmodel = viewmodel
 
-            updated = self.model.update_user(
-                user_id,
-                name=self.form_name.get(),
-                email=self.form_email.get(),
-                age=self.form_age.get()
-            )
+        # UI'ni ViewModel holatiga bog'lash
+        self.viewmodel.count.bind(self.render_count)
+        self.viewmodel.is_negative.bind(self.render_color)
 
-            if updated:
-                self.users.set(self.model.get_all_users())
-                self.selected_user.set(updated)
-                self.clear_form()
-                print(f"✅ User {user_id} updated")
-            else:
-                self.error_message.set(f"User {user_id} not found")
-        except ValueError as e:
-            self.error_message.set(str(e))
-        finally:
-            self.is_loading.set(False)
+    def render_count(self, new_val):
+        print(f"UI Update: Counter text -> {new_val}")
 
-    def delete_user_command(self, user_id: int) -> None:
-        try:
-            if self.model.delete_user(user_id):
-                self.users.set(self.model.get_all_users())
-                self.selected_user.set(None)
-                print(f"✅ User {user_id} deleted")
-            else:
-                self.error_message.set(f"User {user_id} not found")
-        except Exception as e:
-            self.error_message.set(str(e))
+    def render_color(self, is_neg):
+        color = "RED" if is_neg else "BLACK"
+        print(f"UI Update: Text turned {color}")
 
-    def select_user_command(self, user: User) -> None:
-        self.selected_user.set(user)
-        self.form_name.set(user.name)
-        self.form_email.set(user.email)
-        self.form_age.set(user.age)
+    def simulate_click_plus(self):
+        self.viewmodel.on_increment()
 
-    def clear_form(self) -> None:
-        self.form_name.set("")
-        self.form_email.set("")
-        self.form_age.set(0)
+    def simulate_click_minus(self):
+        self.viewmodel.on_decrement()
 
-# View - UI layer
-class UserView:
-    def __init__(self, view_model: UserViewModel):
-        self.view_model = view_model
-        self.bind_data()
+if __name__ == "__main__":
+    vm = CounterViewModel(CounterModel())
+    view = CounterView(vm)
+    print("\n--- User clicks plus ---")
+    view.simulate_click_plus()
+    print("\n--- User clicks minus twice ---")
+    view.simulate_click_minus()
+    view.simulate_click_minus()
+```
 
-    def bind_data(self) -> None:
-        self.view_model.users.subscribe(self.render_user_list)
-        self.view_model.error_message.subscribe(self.render_errors)
-        self.view_model.is_loading.subscribe(self.render_loading_state)
+```java [Java]
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
-    def render_user_list(self) -> None:
-        users = self.view_model.users.get()
-        print("=== User List ===")
-        for user in users:
-            print(f"ID: {user.id} | {user.name} ({user.email}) - Age: {user.age}")
+// Yordamchi: Observable o'rami
+class Observable<T> {
+    private T value;
+    private List<Consumer<T>> listeners = new ArrayList<>();
 
-    def render_errors(self) -> None:
-        error = self.view_model.error_message.get()
-        if error:
-            print(f"❌ {error}")
+    public Observable(T initialValue) {
+        this.value = initialValue;
+    }
 
-    def render_loading_state(self) -> None:
-        if self.view_model.is_loading.get():
-            print("⏳ Loading...")
+    public T getValue() { return value; }
 
-    def on_add_user_form_submit(self, name: str, email: str, age: int) -> None:
-        self.view_model.form_name.set(name)
-        self.view_model.form_email.set(email)
-        self.view_model.form_age.set(age)
-        self.view_model.add_user_command()
+    public void setValue(T value) {
+        this.value = value;
+        for (Consumer<T> listener : listeners) {
+            listener.accept(value);
+        }
+    }
 
-    def on_select_user(self, user: User) -> None:
-        self.view_model.select_user_command(user)
+    public void bind(Consumer<T> listener) {
+        listeners.add(listener);
+        listener.accept(value); // Dastlabki sinxronlash
+    }
+}
 
-    def on_delete_user(self, user_id: int) -> None:
-        self.view_model.delete_user_command(user_id)
+// 1. Model
+class CounterModel {
+    public int value = 0;
+    public void increment() { value++; }
+    public void decrement() { value--; }
+}
 
-    def display_user_list(self) -> None:
-        self.render_user_list()
+// 2. ViewModel
+class CounterViewModel {
+    private CounterModel model;
 
-# Usage
-model = UserModel()
-view_model = UserViewModel(model)
-view = UserView(view_model)
+    public Observable<Integer> count = new Observable<>(0);
+    public Observable<Boolean> isNegative = new Observable<>(false);
 
-view.on_add_user_form_submit("John Doe", "john@example.com", 30)
-view.display_user_list()
+    public CounterViewModel(CounterModel model) {
+        this.model = model;
+    }
 
-view.on_add_user_form_submit("Jane Smith", "jane@example.com", 28)
-view.display_user_list()
+    public void onIncrement() {
+        model.increment();
+        syncState();
+    }
+
+    public void onDecrement() {
+        model.decrement();
+        syncState();
+    }
+
+    private void syncState() {
+        count.setValue(model.value);
+        isNegative.setValue(model.value < 0);
+    }
+}
+
+// 3. View
+class CounterView {
+    private CounterViewModel viewModel;
+
+    public CounterView(CounterViewModel viewModel) {
+        this.viewModel = viewModel;
+
+        // Data binding!
+        viewModel.count.bind(val -> {
+            System.out.println("UI Update: Counter text -> " + val);
+        });
+
+        viewModel.isNegative.bind(isNeg -> {
+            System.out.println("UI Update: Text turned " + (isNeg ? "RED" : "BLACK"));
+        });
+    }
+
+    public void simulateClickPlus() { viewModel.onIncrement(); }
+    public void simulateClickMinus() { viewModel.onDecrement(); }
+}
+
+public class MVVMDemo {
+    public static void main(String[] args) {
+        CounterViewModel vm = new CounterViewModel(new CounterModel());
+        CounterView view = new CounterView(vm);
+
+        System.out.println("\n--- User clicks plus ---");
+        view.simulateClickPlus();
+
+        System.out.println("\n--- User clicks minus twice ---");
+        view.simulateClickMinus();
+        view.simulateClickMinus();
+    }
+}
+```
+
+```go [Go]
+package main
+
+import "fmt"
+
+// Yordamchi: Observable
+type Observer func(interface{})
+
+type Observable struct {
+	value     interface{}
+	observers []Observer
+}
+
+func NewObservable(initVal interface{}) *Observable {
+	return &Observable{value: initVal}
+}
+
+func (o *Observable) SetValue(val interface{}) {
+	o.value = val
+	for _, obs := range o.observers {
+		obs(val)
+	}
+}
+
+func (o *Observable) Bind(obs Observer) {
+	o.observers = append(o.observers, obs)
+	obs(o.value)
+}
+
+// 1. Model
+type CounterModel struct {
+	Value int
+}
+
+func (m *CounterModel) Increment() { m.Value++ }
+func (m *CounterModel) Decrement() { m.Value-- }
+
+// 2. ViewModel
+type CounterViewModel struct {
+	model      *CounterModel
+	Count      *Observable
+	IsNegative *Observable
+}
+
+func NewCounterViewModel(model *CounterModel) *CounterViewModel {
+	return &CounterViewModel{
+		model:      model,
+		Count:      NewObservable(0),
+		IsNegative: NewObservable(false),
+	}
+}
+
+func (vm *CounterViewModel) OnIncrement() {
+	vm.model.Increment()
+	vm.syncState()
+}
+
+func (vm *CounterViewModel) OnDecrement() {
+	vm.model.Decrement()
+	vm.syncState()
+}
+
+func (vm *CounterViewModel) syncState() {
+	vm.Count.SetValue(vm.model.Value)
+	vm.IsNegative.SetValue(vm.model.Value < 0)
+}
+
+// 3. View
+type CounterView struct {
+	vm *CounterViewModel
+}
+
+func NewCounterView(vm *CounterViewModel) *CounterView {
+	v := &CounterView{vm: vm}
+
+	// Data Binding
+	vm.Count.Bind(func(val interface{}) {
+		fmt.Printf("UI Update: Counter text -> %v\n", val)
+	})
+
+	vm.IsNegative.Bind(func(val interface{}) {
+		isNeg := val.(bool)
+		if isNeg {
+			fmt.Println("UI Update: Text turned RED")
+		} else {
+			fmt.Println("UI Update: Text turned BLACK")
+		}
+	})
+	return v
+}
+
+func (v *CounterView) SimulateClickPlus()  { v.vm.OnIncrement() }
+func (v *CounterView) SimulateClickMinus() { v.vm.OnDecrement() }
+
+func main() {
+	vm := NewCounterViewModel(&CounterModel{})
+	view := NewCounterView(vm)
+
+	fmt.Println("\n--- User clicks plus ---")
+	view.SimulateClickPlus()
+
+	fmt.Println("\n--- User clicks minus twice ---")
+	view.SimulateClickMinus()
+	view.SimulateClickMinus()
+}
+```
+
+```rust [Rust]
+use std::rc::Rc;
+use std::cell::RefCell;
+
+// Yordamchi: Observable
+struct Observable<T> {
+    value: T,
+    listeners: Vec<Box<dyn Fn(&T)>>,
+}
+
+impl<T: Clone> Observable<T> {
+    fn new(initial: T) -> Self {
+        Observable { value: initial, listeners: Vec::new() }
+    }
+
+    fn set_value(&mut self, new_val: T) {
+        self.value = new_val.clone();
+        for listener in &self.listeners {
+            listener(&self.value);
+        }
+    }
+
+    fn bind<F>(&mut self, listener: F)
+    where
+        F: Fn(&T) + 'static,
+    {
+        listener(&self.value);
+        self.listeners.push(Box::new(listener));
+    }
+}
+
+// 1. Model
+struct CounterModel {
+    value: i32,
+}
+
+impl CounterModel {
+    fn increment(&mut self) { self.value += 1; }
+    fn decrement(&mut self) { self.value -= 1; }
+}
+
+// 2. ViewModel
+struct CounterViewModel {
+    model: CounterModel,
+    pub count: Observable<i32>,
+    pub is_negative: Observable<bool>,
+}
+
+impl CounterViewModel {
+    fn new(model: CounterModel) -> Self {
+        CounterViewModel {
+            model,
+            count: Observable::new(0),
+            is_negative: Observable::new(false),
+        }
+    }
+
+    fn on_increment(&mut self) {
+        self.model.increment();
+        self.sync_state();
+    }
+
+    fn on_decrement(&mut self) {
+        self.model.decrement();
+        self.sync_state();
+    }
+
+    fn sync_state(&mut self) {
+        self.count.set_value(self.model.value);
+        self.is_negative.set_value(self.model.value < 0);
+    }
+}
+
+// 3. View
+struct CounterView {
+    // Rc/RefCell ishlatamiz, chunki View VM buyruqlarini chaqirish uchun o'zgaruvchan kirishga muhtoj,
+    // shu bilan birga dastlabki binding'larni ham o'rnatishi kerak.
+    vm: Rc<RefCell<CounterViewModel>>,
+}
+
+impl CounterView {
+    fn new(vm: Rc<RefCell<CounterViewModel>>) -> Self {
+        let view = CounterView { vm: Rc::clone(&vm) };
+
+        // Data binding'larni o'rnatish
+        let mut vm_mut = vm.borrow_mut();
+
+        vm_mut.count.bind(|val| {
+            println!("UI Update: Counter text -> {}", val);
+        });
+
+        vm_mut.is_negative.bind(|is_neg| {
+            let color = if *is_neg { "RED" } else { "BLACK" };
+            println!("UI Update: Text turned {}", color);
+        });
+
+        view
+    }
+
+    fn simulate_click_plus(&self) { self.vm.borrow_mut().on_increment(); }
+    fn simulate_click_minus(&self) { self.vm.borrow_mut().on_decrement(); }
+}
+
+fn main() {
+    let model = CounterModel { value: 0 };
+    let vm = Rc::new(RefCell::new(CounterViewModel::new(model)));
+    let view = CounterView::new(vm);
+
+    println!("\n--- User clicks plus ---");
+    view.simulate_click_plus();
+
+    println!("\n--- User clicks minus twice ---");
+    view.simulate_click_minus();
+    view.simulate_click_minus();
+}
 ```
 
 :::
 
-## Haqiqiy hayotdagi misollar (Real-World Examples)
+## Afzalliklari va kamchiliklari (Pros and Cons)
 
-### WPF (Windows Presentation Foundation)
+### Afzalliklari (Advantages)
 
-MVVM WPF ilovalari uchun standart hisoblanadi:
+- **DOM bilan qo'lda ishlash yo'q**: Dasturchilar endi `getElementById()` yozmaydi va qaysi UI elementlarini yangilash kerakligini kuzatib o'tirmaydi. Holat o'zgarishlari UI ga avtomatik tarqaladi.
+- **Ajoyib test qilinuvchanlik**: ViewModel UI holati va mantig'ining 100% ini o'z ichiga oladi, lekin DOM/View ga mutlaqo hech qanday havolaga ega emas. React Hook yoki Vue composable'ni sof Node muhitida darhol test qilishingiz mumkin.
+- **Dizayner/Dasturchi ajratilishi**: UX dizayner HTML/CSS (View) ni yozishi mumkin, dasturchi esa holat mantig'ini (ViewModel) yozadi va ular faqat bog'lanadigan o'zgaruvchi nomlarini kelishib olishadi.
 
-```xml
-<TextBlock Text="{Binding FirstName, Mode=TwoWay}" />
-<Button Command="{Binding SaveCommand}" />
-```
+### Kamchiliklari (Disadvantages)
 
-### Angular Framework
+- **Freymvorkka bog'liqlik**: MVVM ni freymvork mexanizmisiz (Vue/React/Angular/WPF) amalga oshirish juda charchatadigan ish va tonnalab shablon Observable klasslarni yozishni talab qiladi.
+- **Xotira sizishi (Arvoh tinglovchilar - Ghost Listeners)**: Agar View yo'q qilinsa-yu, lekin ViewModel ma'lumotlar oqimlaridan obunani bekor qilishni unutsa, ViewModel View'ga havolani saqlab qoladi va Garbage Collection ga to'sqinlik qiladi.
+- **Debugging sehri**: Ma'lumotlarni bog'lash freymvork orqali ko'rinmas tarzda sodir bo'lgani uchun, agar input to'satdan kutilmagan qiymatga o'zgarsa, kodning aynan _qaysi_ qismi bog'lash yangilanishini ishga tushirganini kuzatish qiyin bo'lishi mumkin.
 
-Angular MVVM prinsiplaridan foydalanadi:
+## Qachon foydalanish kerak (When to Use)
 
-- **Model**: Xizmatlar (Services) va ma'lumotlar modellari
-- **View**: Komponent shablonlari
-- **ViewModel**: `@Input` va `@Output` ga ega komponent klassi
+- **Zamonaviy veb frontend**: Har safar Single Page Application (SPA) qurayotganingizda. React (Component State), Vue va Svelte - barchasi MVVM ning variantlari.
+- **Zamonaviy mobil ilovalar**: Jetpack Compose (Android) va SwiftUI (iOS) MVVM prinsiplariga chuqur asoslangan.
+- **Desktop ilovalar**: WPF, UWP va .NET MAUI.
 
-### Vue.js
+## Qachon foydalanmaslik kerak (When NOT to Use)
 
-Vue tabiiy ravishda MVVM ga amal qiladi:
+- **Backend ishlab chiqish**: MVVM sof frontend/UI patterni. Backend'lar MVC, qatlamli arxitekturalar (Layered Architectures) yoki DDD dan foydalanishi kerak.
+- **Statik veb-saytlar**: Agar standart HTML/CSS yordamida oddiy landing sahifa yoki blog qurayotgan bo'lsangiz, faqat hamburger menyuni boshqarish uchun 100kb lik Vue/React mexanizmini yuklash haddan tashqari ortiqcha.
 
-```javascript
-data() {
-  return { message: '' }
-}
-methods: {
-  updateMessage() { /* ... */ }
-}
-```
+## Keng tarqalgan xatolar (Common Mistakes)
 
-## Afzalliklari (Advantages) ✅
+- **Semiz ViewModel'lar (Fat ViewModels)**: Tegishli Service/Repository klasslariga topshirish o'rniga ma'lumotlar bazasi ulanishlari va og'ir HTTP so'rovlarini bajaradigan ulkan ViewModel'lar yaratish.
+- **To'g'ridan-to'g'ri Model'larga bog'lash**: Xom Model'ni ViewModel orqali moslashtirish o'rniga uni to'g'ridan-to'g'ri View'ga ochib berish. Bu UI ga xos hisoblanadigan xususiyatlarni (masalan, `isNegative = value < 0`) qo'shishga to'sqinlik qiladi.
 
-- **Ikki tomonlama ma'lumotlarni bog'lash**: View va ViewModel o'rtasidagi avtomatik sinxronizatsiya
-- **Test qilish qulayligi**: ViewModel UIsiz to'liq test qilinishi mumkin
-- **Vazifalarni ajratish**: UI mantiqdan butunlay alohida
-- **Dizayner-Dasturchi ajratilishi**: Dizaynerlar View ustida mustaqil ishlashlari mumkin
-- **Deklarativ bog'lash**: UI ma'lumotlar bilan avtomatik o'zgaradi
-- **Qayta ishlatiladigan ViewModel'lar**: Bir xil mantiq bir nechta viewlarga xizmat qilishi mumkin
-- **Reaktiv yangilanishlar**: O'zgarishlar avtomatik ravishda tarqaladi
-- **Toza orqa kod (Clean Code-Behind)**: Viewlarda minimal orqa kod mavjud
+## Aloqador patternlar (Related Patterns)
 
-## Kamchiliklari (Disadvantages) ❌
-
-- **Murakkablik**: Ma'lumotlarni bog'lashni tushunishni talab qiladi
-- **O'rganish vaqti**: MVVM bilan yangi ishlayotgan dasturchilar ta'limga muhtoj
-- **Ishlash tezligi**: Ma'lumotlarni bog'lash qo'shimcha yuklama (overhead) qo'shishi mumkin
-- **Xatolarni qidirish (Debugging)**: Ikki tomonlama bog'lash xatolarni qidirishni qiyinlashtirishi mumkin
-- **Xotira sizishi (Memory Leaks)**: Noto'g'ri obuna boshqaruvi xotira sizishiga olib kelishi mumkin
-- **O'ta murakkablashtirish (Over-Engineering)**: Oddiy ilovalar uchun ortiqcha bo'lishi mumkin
-- **Freymvorkka bog'lanib qolish**: Ko'pincha ma'lum freymvorklar bilan bog'langan bo'ladi
-- **Bog'lash muammolari**: Aylanma bog'lanishlar yoki bog'lash xatolarini kuzatish qiyin bo'lishi mumkin
-
-## Qachon foydalanish kerak (When to Use) ✅
-
-- **WPF Ilovalar**: Windows native ilovalari
-- **Angular Ilovalar**: Single-page veb ilovalari
-- **Vue.js Loyihalari**: Reaktiv veb freymvorklari
-- **Murakkab UI mantiq**: Murakkab UI ga ega ilovalar
-- **Ma'lumotlari ko'p interfeyslar**: Bir nechta ma'lumotlar manbalarini bog'lash kerak bo'lganda
-- **Dizayner-Dasturchi ish jarayoni**: UI dizayni dasturlashdan alohida bo'lganda
-- **Reaktiv tizimlar**: Reaktiv yangilanishlarni talab qiladigan ilovalar
-- **Uzoq muddatli texnik xizmat ko'rsatish**: Murakkab UI talablari bo'lgan loyihalar
-
-## Qachon foydalanmaslik kerak (When NOT to Use) ❌
-
-- **Oddiy Veb Sahifalar**: Statik tarkib yoki minimal interaktivlik
-- **Real vaqt tizimlari**: Bog'lash kechikishi muhim bo'lgan joylarda
-- **Server tomonida renderlash**: An'anaviy server tomonidagi ilovalar
-- **Oddiy skriptlar**: Buyruqlar qatori vositalari yoki utilitalar
-- **Ishlash tezligi kritik bo'lganda**: Kechikishga sezgir ilovalar
-- **Eski tizimlar**: MVVM freymvork qo'llab-quvvatlashi bo'lmagan joylarda
-- **Tezkor prototiplar**: Tez tashlab yuboriladigan loyihalar
-- **Mikroservislar**: UI allaqachon ajratilgan joylarda
-
-## Aloqador Patternlar (Related Patterns)
-
-- **Model-View-Controller (MVC)**: Asl uch darajali pattern
-- **Model-View-Presenter (MVP)**: O'xshash, lekin avtomatik bog'lashsiz
-- **Observer Pattern**: Reaktiv ma'lumotlarni bog'lash uchun asos
-- **Command Pattern**: ViewModel buyruqlari uchun ishlatiladi
-- **Property Pattern**: Kuzatiladigan xususiyatlar uchun ishlatiladi
-- **Mediator Pattern**: ViewModel View va Model o'rtasida vositachilik qiladi
+- **[MVC](/uz/architectural/mvc) / [MVP](/uz/architectural/mvp)**: O'tmishdoshlar. MVVM avtomatlashtirilgan Data Binding ni joriy qilish orqali ularning "View'ni qo'lda yangilash" muammosini hal qiladi.
+- **[Observer Pattern](/uz/behavioral/observer)**: MVVM ning ishlashini ta'minlaydigan asosiy mexanik pattern. View ViewModel'ni _kuzatadi_.
+- **[Command Pattern](/uz/behavioral/command)**: MVVM da UI o'zaro ta'sirlarini (masalan, tugma bosishlarni) ViewModel UI hodisalari haqida bilmasdan qayta ishlay oladigan obyektlarga o'rash uchun ishlatiladi.

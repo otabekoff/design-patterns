@@ -48,7 +48,7 @@ export const en = {
     langMenuLabel: 'Change language',
     skipToContentLabel: 'Skip to content',
     editLink: {
-      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/:path',
+      pattern: 'https://github.com/otabekoff/design-patterns/edit/main/src/:path',
       text: 'Edit this page on GitHub'
     },
     nav: [
@@ -58,7 +58,7 @@ export const en = {
         text: 'More',
         items: [
           { text: 'Other projects', link: 'https://github.com/otabekoff' },
-          { text: 'Support Us', link: 'https://tirikchilik.uz/uzhandy' }
+          { text: 'Support Us', link: 'https://taps.uz/uzhandy' }
         ]
       }
     ],
@@ -71,6 +71,19 @@ export const en = {
           { text: 'What is a Design Pattern?', link: '/what-is-design-pattern' },
           { text: 'Tour', link: '/tour' },
           { text: 'Quick Reference', link: '/quick-reference' }
+        ]
+      },
+      {
+        text: 'Guides',
+        collapsed: false,
+        items: [
+          { text: 'Choosing a Pattern', link: '/choosing-a-pattern' },
+          { text: 'Strategy vs State', link: '/comparisons/strategy-vs-state' },
+          { text: 'Decorator vs Proxy', link: '/comparisons/decorator-vs-proxy' },
+          { text: 'Factory Method vs Abstract Factory', link: '/comparisons/factory-method-vs-abstract-factory' },
+          { text: 'Adapter vs Facade vs Bridge', link: '/comparisons/adapter-vs-facade-vs-bridge' },
+          { text: 'MVC vs MVP vs MVVM', link: '/comparisons/mvc-vs-mvp-vs-mvvm' },
+          { text: 'Repository vs Data Mapper vs Active Record', link: '/comparisons/repository-vs-data-mapper-vs-active-record' }
         ]
       },
       {

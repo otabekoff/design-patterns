@@ -1,83 +1,73 @@
-# Design Patterns Documentation
+# Design Patterns
 
 Languages: [English](README.md) | [Oʻzbek](README.uz.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [العربية](README.ar.md) | [Deutsch](README.de.md) | [Español](README.es.md)
 
-A modern, fast, and searchable documentation site for software design patterns. Built with TanStack Start and Fumadocs, this project provides a clean reading experience for creational, structural, behavioral, and architectural patterns.
+A complete, searchable reference for software design patterns — creational, structural, behavioral and architectural — with diagrams and side-by-side examples in TypeScript, Python, Java, Go and Rust.
+
+**Live site:** https://otabekoff.github.io/design-patterns/
 
 ## Features
 
-- Clean, readable documentation layout
-- Fast navigation and full‑text search
-- MDX-based content in `content/docs`
-- Responsive UI optimized for reading
-- Built‑in docs routing and page tree
+- 41 patterns, each with an analogy, a Mermaid structure diagram, implementations in five languages, common mistakes and interview questions
+- A "Choosing a Pattern" decision guide and side-by-side comparison pages (Strategy vs State, Decorator vs Proxy, …)
+- English and Uzbek editions
+- Full-text local search, light/dark themes, and a remembered code-language preference across pages
+- "Copy Markdown" and "Open in ChatGPT / Claude" actions on every page
 
 ## Tech Stack
 
-- **TanStack Start**
-- **Fumadocs UI + Core**
-- **React**
-- **Vite**
-- **Tailwind CSS**
+[VitePress](https://vitepress.dev) (Vue 3 + Vite), Mermaid, Lucide icons, deployed to GitHub Pages. [Bun](https://bun.sh) is used as the package manager and script runner.
 
 ## Quick Start
 
-Install dependencies:
-
 ```bash
-npm install
-# or
-pnpm install
-# or
-yarn
+bun install
+bun run dev        # http://localhost:5173/design-patterns/
 ```
 
-Start the dev server:
+## Scripts
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
-
-## Useful Scripts
-
-```bash
-npm run dev        # Start dev server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run types:check
-npm run lint
-```
+| Command | What it does |
+| --- | --- |
+| `bun run dev` | Start the dev server |
+| `bun run build` | Build the static site into `.vitepress/dist` (fails on dead links) |
+| `bun run preview` | Serve the production build locally |
+| `bun run check` | Run all content checks below |
+| `bun run check:mermaid` | Parse every Mermaid diagram |
+| `bun run check:code` | Syntax-check every code sample (TS/JS via esbuild, Python, Java, Go, Rust — missing toolchains are skipped) |
+| `bun run check:i18n` | Compare each English page with its Uzbek translation (missing pages, code/diagram drift) |
+| `bun run images` | Re-encode cover/card images to WebP and regenerate social images (needs Python + Pillow) |
 
 ## Project Structure
 
 ```
-content/docs/        # Documentation content (MDX)
-src/routes/          # Routes (home, docs, api)
-src/lib/             # Shared config and helpers
-src/components/      # UI components
-src/styles/          # Global styles
+src/                     # Content (English at the root)
+  creational/ structural/ behavioral/ architectural/
+  comparisons/           # Pattern-vs-pattern pages
+  uz/                    # Uzbek translation, mirroring the same paths
+public/                  # Static assets: covers/, cards/, og/ (social images), icons
+.vitepress/
+  config/                # Site config, per-locale nav/sidebar (langs/), markdown plugins
+  theme/                 # Theme overrides and Vue components (CoverImage, Card, Mermaid, …)
+scripts/                 # Content checks and the image pipeline
 ```
 
-## Configuration
+## Writing Content
 
-- **Site name**: update `src/lib/shared.ts`
-- **Navbar links**: update `src/lib/layout.shared.tsx`
-- **Docs content**: add or edit files in `content/docs`
+- Each page starts with frontmatter: `title`, `description` and `icon` (a [Lucide](https://lucide.dev/icons) icon name in PascalCase, shown in the sidebar).
+- Group implementations with `::: code-group` and label tabs by language, e.g. ` ```python [Python] `.
+- Diagrams go in ` ```mermaid ` blocks.
+- Add new pages to the sidebar in `.vitepress/config/langs/en.ts` and `uz.ts`.
+- Translations live at the same path under `src/uz/`; keep code blocks identical to English (comments may be translated) and run `bun run check:i18n`.
 
 ## Support
 
-If you find this project useful, consider supporting it:
-
-- https://tirikchilik.uz/uzhandy
+If you find this project useful, consider supporting it: https://taps.uz/uzhandy
 
 ## Contributing
 
-Contributions are welcome. Open an issue or PR with your proposed changes.
+Contributions are welcome — open an issue or a pull request. Please run `bun run check` and `bun run build` before submitting.
 
 ## License
 
-This project is licensed under the MIT License.
+[MIT](LICENSE) © 2025-present Otabek Sadiridinov

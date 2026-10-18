@@ -76,5 +76,5 @@ features:
 <div class="home-support">
 <h2>Support the project</h2>
 <p>Your support keeps Design Patterns free, accurate, and evolving.</p>
-<a href="https://tirikchilik.uz/uzhandy" target="_blank" class="VPButton medium brand" style="text-decoration: none;">Support Us</a>
+<a href="https://taps.uz/uzhandy" target="_blank" class="VPButton medium brand" style="text-decoration: none;">Support Us</a>
 </div>

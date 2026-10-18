@@ -47,8 +47,16 @@ const updateCode = (event) => {
 };
 
 onMounted(async () => {
-  mut = new MutationObserver(() => renderChart());
-  mut.observe(document.documentElement, { attributes: true });
+  // Re-render only when the light/dark class on <html> actually flips
+  let wasDark = document.documentElement.classList.contains('dark');
+  mut = new MutationObserver(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark !== wasDark) {
+      wasDark = isDark;
+      renderChart();
+    }
+  });
+  mut.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   if (editableContent.value) {
     editableContent.value.textContent = code.value;
@@ -83,7 +91,7 @@ onUnmounted(() => mut?.disconnect());
 const renderChart = async () => {
   const hasDarkClass = document.documentElement.classList.contains('dark');
   const mermaidConfig = {
-    securityLevel: 'loose',
+    securityLevel: 'strict',
     startOnLoad: false,
     theme: hasDarkClass ? 'dark' : 'default',
   };

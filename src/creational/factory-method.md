@@ -6,7 +6,7 @@ icon: Package
 
 # Factory Method Pattern
 
-<CoverImage src="/covers/creational/factory-method.png" alt="Cover">
+<CoverImage src="/covers/creational/factory-method.webp" alt="Cover">
   <h1>Factory Method</h1>
   <p>A quirky assembly line with a single mechanical arm stamping out different shapes of little toy cars (sedan, truck) depending on which blueprint card is fed into it.</p>
 </CoverImage>
@@ -24,6 +24,44 @@ Instead of calling `new ConcreteProduct()` directly (tightly coupled), you call 
 Consider a **logistics company**. Whether you ship by truck, ship, or plane, the company provides a unified shipping interface. The specific transport method is determined at runtime based on criteria like distance, weight, and cost—not hardcoded in client code.
 
 Similarly, in code, you might have different database adapters (MySQL, PostgreSQL, MongoDB), but client code just calls a factory method without knowing or caring which implementation is returned.
+
+## Structure
+
+```mermaid
+classDiagram
+    class Application {
+        <<abstract>>
+        #documents: Document[]
+        +createDocument() Document*
+        +openDocument() void
+    }
+    class PDFApplication {
+        +createDocument() Document
+    }
+    class WordApplication {
+        +createDocument() Document
+    }
+    class Document {
+        <<interface>>
+        +open() void
+        +save() void
+        +close() void
+    }
+    class PDFDocument
+    class WordDocument
+
+    Application <|-- PDFApplication
+    Application <|-- WordApplication
+    Document <|.. PDFDocument
+    Document <|.. WordDocument
+    Application ..> Document : uses
+    PDFApplication ..> PDFDocument : creates
+    WordApplication ..> WordDocument : creates
+```
+
+- **`Application`** (Creator) declares the abstract factory method `createDocument()` and contains business logic (`openDocument()`) that works only with the `Document` interface.
+- **`PDFApplication` / `WordApplication`** (Concrete Creators) override the factory method to decide which concrete product to instantiate.
+- **`Document`** (Product) is the common interface; **`PDFDocument` / `WordDocument`** are concrete products. Adding `ExcelApplication` + `ExcelDocument` requires no changes to existing code.
 
 ## The Problem
 

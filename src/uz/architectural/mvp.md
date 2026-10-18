@@ -1,10 +1,10 @@
 ---
-title: Model-View-Presenter (MVP)
+title: MVP andozasi
 description: Taqdimot mantig'ini test qilish mumkin bo'lgan presenterlar yordamida viewlardan ajratadi
 icon: Users
 ---
 
-# Model-View-Presenter (MVP)
+# MVP andozasi
 
 <CoverImage src="/covers/architectural/mvp.webp" alt="Cover">
   <h1>MVP</h1>
@@ -13,7 +13,7 @@ icon: Users
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-Presenter (MVP)** patterni taqdimot mantig'ini viewdan (ko'rinishdan) ajratish orqali test qilish qulayligini yaxshilash uchun MVC dan evolyutsiya qilgan arxitektura patternidir. U ilovani quyidagilarga ajratadi:
+**Model-View-Presenter (MVP)** andozasi taqdimot mantig'ini viewdan (ko'rinishdan) ajratish orqali test qilish qulayligini yaxshilash uchun MVC dan evolyutsiya qilgan arxitektura andozasidir. U ilovani quyidagilarga ajratadi:
 
 - **Model**: Ma'lumotlar va biznes mantig'ini o'z ichiga oladi
 - **View (Ko'rinish)**: Hech qanday mantiqsiz passiv ko'rsatish komponenti
@@ -23,7 +23,7 @@ MVC dan asosiy farqi shundaki, View o'rniga Presenter foydalanuvchining barcha o
 
 ## Maqsad (Purpose)
 
-MVP patterni quyidagilarni maqsad qiladi:
+MVP andozasi quyidagilarni maqsad qiladi:
 
 - Viewlarni test qilish mumkin bo'lishi uchun ulardan taqdimot mantig'ini olib tashlash
 - Biznes va taqdimot mantig'i o'rtasida aniq ajratishni ta'minlash
@@ -517,13 +517,13 @@ Windows Forms ko'pincha MVP dan foydalanadi:
 ## Kamchiliklari (Disadvantages) ❌
 
 - **Boilerplate Kod**: Oddiy ilovalar uchun ko'proq kod yozish talab etiladi
-- **O'rganish vaqti**: Dasturchilar patternni tushunishlari kerak
+- **O'rganish vaqti**: Dasturchilar andozani tushunishlari kerak
 - **Murakkablik**: Qo'shimcha abstraksiya qatlami
 - **Callback boshqaruvi**: View va Presenter o'rtasidagi callbacklarni boshqarish murakkab bo'lishi mumkin
 - **Ishlash tezligi**: Qo'shimcha qatlam biroz kechikish (overhead) qo'shishi mumkin
 - **Ikki tomonlama bog'lanish (Two-Way Binding)**: View va Model holatini sinxronlashtirish qiyin bo'lishi mumkin
-- **View-Presenter aloqasi**: Ehtiyotkor interfeys dizaynini talab qiladi
-- **View ni test qilish**: Viewlarni (dizaynga ko'ra) haliyam test qilish qiyin
+- **View-Presenter aloqasi**: Interfeysni puxta loyihalashni talab qiladi
+- **View ni test qilish**: Viewlarni (tuzilishiga ko'ra) haliyam test qilish qiyin
 
 ## Qachon foydalanish kerak (When to Use) ✅
 
@@ -543,15 +543,15 @@ Windows Forms ko'pincha MVP dan foydalanadi:
 - **Tezkor prototiplash**: Tez isbotlanuvchi (proof-of-concepts) loyihalar
 - **Ishlash tezligi kritik bo'lganda**: Har bir millisekund muhim bo'lganda
 - **Oddiy skriptlar**: Buyruqlar qatori yordamchi dasturlari
-- **SPA Frameworklari**: React, Vue, Angular o'zlarining patternlariga ega (MVVM)
+- **SPA Frameworklari**: React, Vue, Angular o'zlarining andozalariga ega (MVVM)
 - **Mikro-Ilovalar**: Minimal mantiqqa ega juda kichik ilovalar
-- **Voqealarga asoslangan tizimlar**: Voqea patternlari (event patterns) allaqachon o'rnatilgan joylarda
+- **Voqealarga asoslangan tizimlar**: Voqea andozalari (event patterns) allaqachon o'rnatilgan joylarda
 
-## Aloqador Patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **Model-View-Controller (MVC)**: Undan oldingi pattern
-- **Model-View-ViewModel (MVVM)**: Ma'lumotlarni bog'lash (data binding) bilan muqobil pattern
-- **Observer Pattern**: View-presenter aloqasi uchun ishlatiladi
-- **Command Pattern**: Presenter amallarini kapsulalash uchun ishlatiladi
-- **Strategy Pattern**: Turli taqdimot strategiyalari uchun
-- **Factory Pattern**: Viewlar va Presenterlarni yaratish uchun
+- **Model-View-Controller (MVC)**: Undan oldingi andoza
+- **Model-View-ViewModel (MVVM)**: Ma'lumotlarni bog'lash (data binding) bilan muqobil andoza
+- **Kuzatuvchi andozasi (Observer)**: View-presenter aloqasi uchun ishlatiladi
+- **Buyruq andozasi (Command)**: Presenter amallarini kapsulalash uchun ishlatiladi
+- **Strategiya andozasi (Strategy)**: Turli taqdimot strategiyalari uchun
+- **Fabrika andozalari (Factory)**: Viewlar va Presenterlarni yaratish uchun

@@ -1,23 +1,23 @@
 ---
-title: Repository Pattern (Ombor)
-description: Ma'lumotlar manbaiga kirishni mavhumlashtiradigan va biznes mantig'i qatlamiga to'plamga o'xshash interfeys taqdim etadigan arxitektura patterni.
+title: Repozitoriy andozasi (Repository)
+description: Ma'lumotlar manbaiga kirishni mavhumlashtiradigan va biznes mantig'i qatlamiga to'plamga o'xshash interfeys taqdim etadigan arxitektura andozasi.
 icon: Database
 ---
 
-# Repository Pattern (Ombor)
+# Repozitoriy andozasi (Repository)
 
 <CoverImage src="/covers/architectural/repository.webp" alt="Cover">
-  <h1>Repository</h1>
+  <h1>Repozitoriy</h1>
   <p>"Data" deb yozilgan, toza katalog stoli bilan bezatilgan go'zal marmar ibodatxona kirishi; stol ortida ma'lumotlar bazasi so'rovlari maxluqi va API maxluqi ko'zdan butunlay yashirilgan.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Repository Pattern (Ombor patterni)** - bu domen/biznes mantig'i va ma'lumotlarni moslashtirish (data mapping) qatlami o'rtasida joylashadigan arxitektura patternidir. U ma'lumotlarga kirishning mavhum ko'rinishini taqdim etadi va biznes mantig'iga ma'lumotlar bazasiga xuddi xotiradagi oddiy obyektlar to'plami (in-memory collection) kabi munosabatda bo'lish imkonini beradi.
+**Repozitoriy andozasi (Repository Pattern)** - bu domen/biznes mantig'i va ma'lumotlarni moslashtirish (data mapping) qatlami o'rtasida joylashadigan arxitektura andozasidir. U ma'lumotlarga kirishning mavhum ko'rinishini taqdim etadi va biznes mantig'iga ma'lumotlar bazasiga xuddi xotiradagi oddiy obyektlar to'plami (in-memory collection) kabi munosabatda bo'lish imkonini beradi.
 
 **Asosiy afzalligi**: U biznes mantig'ini ma'lumotlarga kirish texnologiyasidan (SQL, NoSQL, tashqi API'lar) butunlay ajratadi, natijada ilova yuqori darajada test qilinadigan va infratuzilma o'zgarishlariga befarq bo'ladi.
 
-**Zamonaviy nuqtai nazar**: Repository patterni zamonaviy backend muhandisligida eng keng qo'llaniladigan arxitektura patterni desak mubolag'a bo'lmaydi (ko'pincha Data Mapper yoki Dependency Injection bilan birga ishlatiladi). U Clean Architecture, Hexagonal Architecture (Ports and Adapters) va Domain-Driven Design (DDD) ning asosiy toshidir.
+**Zamonaviy nuqtai nazar**: Repozitoriy andozasi zamonaviy backend muhandisligida eng keng qo'llaniladigan arxitektura andozasi desak mubolag'a bo'lmaydi (ko'pincha Data Mapper yoki bog'liqliklarni kiritish (Dependency Injection) bilan birga ishlatiladi). U Clean Architecture, Hexagonal Architecture (Ports and Adapters) va Domain-Driven Design (DDD) ning asosiy toshidir.
 
 ## Muammo (The Problem)
 
@@ -50,12 +50,12 @@ Bu bir nechta muammolarni keltirib chiqaradi:
 
 ## Yechim (The Solution)
 
-Repository patterni ma'lumotlarga kirishni interfeys (yoki bazaviy klass) ortiga yashirish orqali bu muammoni hal qiladi. Biznes mantig'i faqat interfeys bilan muloqot qiladi.
+Repozitoriy andozasi ma'lumotlarga kirishni interfeys (yoki bazaviy klass) ortiga yashirish orqali bu muammoni hal qiladi. Biznes mantig'i faqat interfeys bilan muloqot qiladi.
 
 ```typescript
 // ✅ Yaxshi: Biznes mantiq Repository interfeysidan foydalanadi
 class UserService {
-  constructor(private userRepository: IUserRepository) {} // Dependency Injection
+  constructor(private userRepository: IUserRepository) {} // Bog'liqliklarni kiritish (Dependency Injection)
 
   public async deactivateInactiveUsers() {
     // Sof domen mantiqi, SQL umuman yo'q
@@ -109,13 +109,13 @@ classDiagram
 
 1. **Ta'riflash**: `findById`, `save` va `delete` kabi metodlarga ega `IRepository` interfeysini aniqlang.
 2. **Implementatsiya**: Interfeysni amalga oshiradigan konkret klasslarni yarating (masalan, `PostgresUserRepository`, `MongoUserRepository`, `MockUserRepository`).
-3. **Inyeksiya (Injection)**: Konkret repository'ni Dependency Injection orqali biznes servisiga uzating.
+3. **Inyeksiya (Injection)**: Konkret repozitoriyni bog'liqliklarni kiritish orqali biznes servisiga uzating.
 4. **Bajarish**: Biznes servisi interfeys metodlarini chaqiradi. Konkret implementatsiya esa haqiqiy ma'lumotlarga kirish mantig'ini bajaradi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Kutubxonachi**ni tasavvur qiling.
-Sizga ma'lum bir kitob kerak bo'lsa, arxivga kirib, Dyui o'nlik tizimini o'rganib, mexanik javonlarni o'zingiz boshqarmaysiz. Siz Kutubxonachiga (Repository'ga) borasiz va: "Menga Jorj Oruellning kitoblarini topib bering", deysiz.
+Sizga ma'lum bir kitob kerak bo'lsa, arxivga kirib, Dyui o'nlik tizimini o'rganib, mexanik javonlarni o'zingiz boshqarmaysiz. Siz Kutubxonachiga (Repozitoriyga) borasiz va: "Menga Jorj Oruellning kitoblarini topib bering", deysiz.
 
 Kutubxonachi kitobni jismoniy javonlardan qidirishi, tashqi omborni tekshirishi yoki elektron kitobni yuklab olishi mumkin. Siz (Biznes mantig'i) uchun kitob _qayerdan_ yoki _qanday_ olinganining farqi yo'q - asosiysi, Book obyektini qo'lga olsangiz bo'ldi.
 
@@ -123,9 +123,9 @@ Kutubxonachi kitobni jismoniy javonlardan qidirishi, tashqi omborni tekshirishi 
 
 1. **Domen obyektini aniqlang**: Asosiy domen obyektini yarating (masalan, `User`).
 2. **Interfeysni aniqlang**: Kerakli operatsiyalarni belgilaydigan `IUserRepository` interfeysini yarating.
-3. **Konkret ma'lumotlar bazasi repository'sini yarating**: Interfeysni haqiqiy ma'lumotlar bazasi chaqiruvlari (SQL, ORM va h.k.) yordamida amalga oshiring.
-4. **Konkret in-memory repository yarating**: Interfeysni massiv yoki Map yordamida amalga oshiring (tezkor unit testlar uchun juda muhim).
-5. **Servislarga inyeksiya qiling**: Repository'ni use case'laringiz/servislaringizga uzating.
+3. **Konkret ma'lumotlar bazasi repozitoriysini yarating**: Interfeysni haqiqiy ma'lumotlar bazasi chaqiruvlari (SQL, ORM va h.k.) yordamida amalga oshiring.
+4. **Konkret in-memory repozitoriy yarating**: Interfeysni massiv yoki Map yordamida amalga oshiring (tezkor unit testlar uchun juda muhim).
+5. **Servislarga inyeksiya qiling**: Repozitoriyni use case'laringiz/servislaringizga uzating.
 
 ## Kod misollari (Code Examples)
 
@@ -622,45 +622,45 @@ fn main() {
 
 ### Afzalliklari (Advantages)
 
-- **Maksimal test qilinuvchanlik**: Repository'ni mock qilib, biznes mantig'ingizni haqiqiy ma'lumotlar bazasini ishga tushirmasdan chaqmoqdek tez unit test qilishingiz mumkin.
+- **Maksimal test qilinuvchanlik**: Repozitoriyni mock qilib, biznes mantig'ingizni haqiqiy ma'lumotlar bazasini ishga tushirmasdan chaqmoqdek tez unit test qilishingiz mumkin.
 - **Ma'lumotlar manbaiga bog'liq emaslik**: MongoDB'dan PostgreSQL'ga osongina o'tishingiz mumkin. Yangi `PostgresRepository` `IRepository` interfeysiga mos kelar ekan, biznes mantig'i o'zgarmaydi.
 - **Markazlashgan so'rov mantig'i**: Umumiy so'rovlar (masalan, `findActiveAdmins`) bitta joyda turadi, bu esa kod bazasi bo'ylab SQL satrlarining takrorlanishini kamaytiradi.
 - **Clean Architecture poydevori**: U "Application Core" (ilova yadrosi) va "Infrastructure/Persistence" (infratuzilma/saqlash) qatlamlari o'rtasida qat'iy chegarani hosil qiladi.
 
 ### Kamchiliklari (Disadvantages)
 
-- **Kichik ilovalar uchun ortiqcha murakkablik (Over-Engineering)**: Agar oddiy 3 sahifali CRUD ilova qurayotgan bo'lsangiz, interfeyslar, konkret repository'lar va Dependency Injector'larni yozish shunchaki Active Record ORM ishlatishga qaraganda haddan tashqari ko'p kod talab qiladi.
-- **"Generic Repository" anti-patterni**: Dasturchilar ba'zan barcha entity'lar uchun yagona `BaseRepository<T>` yaratishga urinishadi. Bu kodni tejasa-da, ko'pincha murakkab ORM so'rov obyektlarini (masalan, Entity Framework `IQueryable`) biznes mantig'iga sizdirib yuboradigan, shishib ketgan God Class'ga aylanadi.
-- **N+1 ishlash muammolari**: Agar repository faqat yakka aggregate'larni qaytarsa, murakkab join'lar yoki ommaviy hisobotlarni bajarish samarasiz bo'lishi mumkin. (Repository'lar tranzaksion ma'lumotlar uchun mo'ljallangan, hisobot/analitika uchun emas).
+- **Kichik ilovalar uchun ortiqcha murakkablik (Over-Engineering)**: Agar oddiy 3 sahifali CRUD ilova qurayotgan bo'lsangiz, interfeyslar, konkret repozitoriylar va Dependency Injector'larni yozish shunchaki Active Record ORM ishlatishga qaraganda haddan tashqari ko'p kod talab qiladi.
+- **"Generic Repository" anti-andozasi**: Dasturchilar ba'zan barcha entity'lar uchun yagona `BaseRepository<T>` yaratishga urinishadi. Bu kodni tejasa-da, ko'pincha murakkab ORM so'rov obyektlarini (masalan, Entity Framework `IQueryable`) biznes mantig'iga sizdirib yuboradigan, shishib ketgan God Class'ga aylanadi.
+- **N+1 ishlash muammolari**: Agar repozitoriy faqat yakka aggregate'larni qaytarsa, murakkab join'lar yoki ommaviy hisobotlarni bajarish samarasiz bo'lishi mumkin. (Repozitoriylar tranzaksion ma'lumotlar uchun mo'ljallangan, hisobot/analitika uchun emas).
 
 ## Qachon foydalanish kerak (When to Use)
 
 - **Korporativ tizimlar (Enterprise Systems)**: Biznes mantig'i murakkab bo'lib, puxta unit test qilinishi kerak bo'lgan joylarda.
-- **Domain-Driven Design (DDD)**: DDD da Domain Aggregate'larni yuklash va saqlash uchun Repository'lar majburiydir.
+- **Domain-Driven Design (DDD)**: DDD da Domain Aggregate'larni yuklash va saqlash uchun Repozitoriylar majburiydir.
 - **Mikroservislar**: Servisning ichki mantig'ini u qaysi ma'lumotlar omboridan foydalanishidan qat'i nazar izolyatsiya qilish uchun.
 - **Bir nechta ma'lumotlar manbaini talab qiladigan ilovalar**: Ma'lumotlarni ma'lumotlar bazasidan shaffof tarzda olish, Redis keshiga qaytish (fallback) yoki tashqi REST API'ni chaqirish kerak bo'lganda.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
 - **Oddiy CRUD ilovalar**: Buning o'rniga Active Record'dan foydalaning.
-- **Analitika / Hisobotlar / CQRS**: Agar siz shunchaki dashboard uchun katta hajmdagi ma'lumotlarni so'rayotgan bo'lsangiz, Repository'ni butunlay chetlab o'tib, optimallashtirilgan xom SQL ishlating. Repository'lar hisobot uchun emas, _tranzaksion_ biznes mantig'i uchun mo'ljallangan.
+- **Analitika / Hisobotlar / CQRS**: Agar siz shunchaki dashboard uchun katta hajmdagi ma'lumotlarni so'rayotgan bo'lsangiz, Repozitoriyni butunlay chetlab o'tib, optimallashtirilgan xom SQL ishlating. Repozitoriylar hisobot uchun emas, _tranzaksion_ biznes mantig'i uchun mo'ljallangan.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
 ### 1. Infratuzilma tafsilotlarini sizdirish
 
-Agar repository interfeysingiz quyidagicha ko'rinsa: `findById(id: string, includeRelations: boolean, transactionContext: PostgresTx)`, demak siz muvaffaqiyatsizlikka uchragansiz. Endi interfeys Postgres'ga bog'lanib qolgan. Interfeys ma'lumotlar bazasi tilida emas, Domen tilida gapirishi kerak.
+Agar repozitoriy interfeysingiz quyidagicha ko'rinsa: `findById(id: string, includeRelations: boolean, transactionContext: PostgresTx)`, demak siz muvaffaqiyatsizlikka uchragansiz. Endi interfeys Postgres'ga bog'lanib qolgan. Interfeys ma'lumotlar bazasi tilida emas, Domen tilida gapirishi kerak.
 
 ### 2. God Repository
 
-Bitta repository'ga yuzlab so'rov metodlarini joylashtirish (`findUserByAge`, `findUserByAgeAndName`, `findUserBy...`). _Yechim: Murakkab filtrlash uchun Specification Pattern yoki ishonchli Query Object'dan foydalaning._
+Bitta repozitoriyga yuzlab so'rov metodlarini joylashtirish (`findUserByAge`, `findUserByAgeAndName`, `findUserBy...`). _Yechim: Murakkab filtrlash uchun Specification andozasi yoki ishonchli Query Object'dan foydalaning._
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Data Mapper](/uz/architectural/data-mapper)**: Repository patterni ko'pincha SQL qatorlarini qaytarishdan oldin ularni Domen obyektlariga moslashtirish uchun ichkarida Data Mapper'dan foydalanadi.
-- **[Unit of Work](/uz/architectural/unit-of-work)**: Repository'lar ko'pincha Unit of Work tomonidan muvofiqlashtiriladi; u bir nechta repository'lardagi o'zgarishlarni kuzatib boradi va ularni yagona ma'lumotlar bazasi tranzaksiyasida commit qiladi.
-- **[Active Record](/uz/architectural/active-record)**: Repository/Data Mapper kombinatsiyasiga nisbatan soddaroq muqobil.
+- **[Data Mapper](/uz/architectural/data-mapper)**: Repozitoriy andozasi ko'pincha SQL qatorlarini qaytarishdan oldin ularni Domen obyektlariga moslashtirish uchun ichkarida Data Mapper'dan foydalanadi.
+- **[Ish birligi](/uz/architectural/unit-of-work)**: Repozitoriylar ko'pincha Ish birligi tomonidan muvofiqlashtiriladi; u bir nechta repozitoriylardagi o'zgarishlarni kuzatib boradi va ularni yagona ma'lumotlar bazasi tranzaksiyasida commit qiladi.
+- **[Active Record](/uz/architectural/active-record)**: Repozitoriy/Data Mapper kombinatsiyasiga nisbatan soddaroq muqobil.
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **[CQRS (Command Query Responsibility Segregation)](/uz/architectural/cqrs)**: Zamonaviy yuqori yuklamali arxitekturalarda Repository ko'pincha _faqat_ yozish (Commands) uchun saqlab qolinadi. O'qish (Queries) uchun esa dasturchilar repository'ni butunlay chetlab o'tib, ishlashni optimallashtirish maqsadida ma'lumotlarni to'g'ridan-to'g'ri yengil Data Transfer Object'larga (DTO) moslashtiradigan yupqa Data Access Layer'dan (masalan, Dapper yoki xom SQL) foydalanishadi.
+- **[CQRS (Command Query Responsibility Segregation)](/uz/architectural/cqrs)**: Zamonaviy yuqori yuklamali arxitekturalarda Repozitoriy ko'pincha _faqat_ yozish (Commands) uchun saqlab qolinadi. O'qish (Queries) uchun esa dasturchilar repozitoriyni butunlay chetlab o'tib, ishlashni optimallashtirish maqsadida ma'lumotlarni to'g'ridan-to'g'ri yengil Data Transfer Object'larga (DTO) moslashtiradigan yupqa Data Access Layer'dan (masalan, Dapper yoki xom SQL) foydalanishadi.

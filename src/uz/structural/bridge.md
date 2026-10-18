@@ -1,25 +1,25 @@
 ---
-title: Bridge Pattern
+title: Ko'prik andozasi (Bridge)
 description: Abstraksiyani uning amalga oshirilishidan ajratadi, shunda ikkalasi bir-biridan mustaqil ravishda o'zgarishi mumkin.
 icon: Layers
 ---
 
-# Bridge Pattern
+# Ko'prik andozasi (Bridge)
 
 <CoverImage src="/covers/structural/bridge.webp" alt="Cover">
-  <h1>Bridge</h1>
+  <h1>Ko'prik</h1>
   <p>Suzib yuruvchi "Boshqaruv xonasi" sferasini (Abstraksiya) pastdagi turli almashtiriladigan "Dvigatel/Quvvat" doklaridan (Amalga oshirishlar) ajratib turuvchi, egiluvchan nurli quvurlar bilan bog'langan go'zal futuristik ko'prik.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Bridge** — bu abstraksiyani uning amalga oshirilishidan (implementation) ajratib, ikkalasining mustaqil rivojlanishiga imkon beruvchi strukturaviy (structural) dizayn patternidir. Har bir amalga oshirish tanlovini klasslar ierarxiyasiga singdirib yuborish o'rniga, Bridge abstraksiyani barqaror saqlaydi va ishni amalga oshirish obyektiga topshiradi.
+**Ko'prik (Bridge)** — bu abstraksiyani uning amalga oshirilishidan (implementation) ajratib, ikkalasining mustaqil rivojlanishiga imkon beruvchi tuzilmaviy (structural) loyihalash andozasidir. Har bir amalga oshirish tanlovini klasslar ierarxiyasiga singdirib yuborish o'rniga, Ko'prik abstraksiyani barqaror saqlaydi va ishni amalga oshirish obyektiga topshiradi.
 
 **Asosiy afzalligi**: O'zgarishning ikki yoki undan ortiq o'lchovi (dimension) mavjud bo'lganda klasslar portlashining (class explosion) oldini oladi.
 
-**Zamonaviy nuqtai nazar**: Bridge tizimda barqaror qolishi kerak bo'lgan interfeys mavjud bo'lib, bajaruvchi backend, rendering dvigateli, saqlash qatlami yoki platformaga xos xatti-harakat mustaqil ravishda o'zgarishi mumkin bo'lgan har qanday holatda foydali bo'lib qolmoqda.
+**Zamonaviy nuqtai nazar**: Ko'prik tizimda barqaror qolishi kerak bo'lgan interfeys mavjud bo'lib, bajaruvchi backend, rendering dvigateli, saqlash qatlami yoki platformaga xos xatti-harakat mustaqil ravishda o'zgarishi mumkin bo'lgan har qanday holatda foydali bo'lib qolmoqda.
 
-Adapter'dan farqi nozik, lekin muhim: Adapter mavjud nomuvofiqlikni tuzatadi, Bridge esa tizimga boshidanoq loyihalab kiritiladi.
+Adapter'dan farqi nozik, lekin muhim: Adapter mavjud nomuvofiqlikni tuzatadi, Ko'prik esa tizimga boshidanoq loyihalab kiritiladi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -72,7 +72,7 @@ Ko'plab shakllar va ko'plab rendering dvigatellarini qo'llab-quvvatlashi kerak b
 - Shakllar: Circle, Rectangle, Triangle, Polygon
 - Renderer'lar: SVG, Canvas, WebGL, PDF
 
-Bridge'siz quyidagi kabi klasslarga ega bo'lasiz:
+Ko'priksiz quyidagi kabi klasslarga ega bo'lasiz:
 
 - SvgCircle, CanvasCircle, WebGlCircle, PdfCircle
 - SvgRectangle, CanvasRectangle, WebGlRectangle, PdfRectangle
@@ -98,7 +98,7 @@ Bunday tuzilmani kengaytirish qiyin va qo'llab-quvvatlash murakkab.
 
 ## Yechim (The Solution)
 
-Bridge muammoni ikkita ierarxiyaga bo'lish orqali hal qiladi:
+Ko'prik muammoni ikkita ierarxiyaga bo'lish orqali hal qiladi:
 
 1. **Abstraksiya (Abstraction)**: mijozlar foydalanadigan shakl, UI komponenti yoki biznes tushunchasi
 2. **Amalga oshirish (Implementation)**: renderer, saqlash qatlami, drayver yoki platformaga xos bajaruvchi
@@ -453,7 +453,7 @@ impl<'a> Shape for Rectangle<'a> {
 
 ## Haqiqiy hayotdagi misol (Real-World Example)
 
-Amaliy bridge UI toolkit'larda uchraydi. Abstraksiya — tugma, modal oyna yoki diagramma kabi komponent. Amalga oshirish esa rendering backend'i: DOM, Canvas, mobil platformaning native boshqaruv elementlari yoki PDF chiqishi.
+Amaliy ko'prik UI toolkit'larda uchraydi. Abstraksiya — tugma, modal oyna yoki diagramma kabi komponent. Amalga oshirish esa rendering backend'i: DOM, Canvas, mobil platformaning native boshqaruv elementlari yoki PDF chiqishi.
 
 Amalga oshirish qatlamini almashtirish orqali bir xil tugma abstraksiyasidan brauzer ilovasida, desktop ilovada yoki hisobot generatorida foydalanish mumkin. Bu yuqori darajadagi API'ni barqaror saqlaydi va renderer'ning o'zgarishiga imkon beradi.
 
@@ -519,13 +519,13 @@ Bu foydali, chunki komponent API'si o'zi brauzerda, iOS'da, PDF'da yoki terminal
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1-xato: Bridge'ni Adapter bilan adashtirish
+### 1-xato: Ko'prikni Adapter bilan adashtirish
 
 ```typescript
-// ❌ Yomon: mavjud mos kelmaydigan API'ni go'yo bridge sifatida loyihalangandek ko'rish
+// ❌ Yomon: mavjud mos kelmaydigan API'ni go'yo ko'prik sifatida loyihalangandek ko'rish
 // Adapter mos kelmaslikni keyinchalik hal qiladi.
 
-// ✅ Yaxshi: ikkita mustaqil ierarxiyani ataylab loyihalaganda Bridge'dan foydalaning.
+// ✅ Yaxshi: ikkita mustaqil ierarxiyani ataylab loyihalaganda Ko'prikdan foydalaning.
 ```
 
 ### 2-xato: Abstraksiyaning amalga oshirish tafsilotlarini bilishi
@@ -549,47 +549,47 @@ const circle = new Circle(10, new SvgRenderer());
 // ✅ Yaxshi: imkon qadar mijozlar Renderer abstraksiyasiga bog'liq bo'lsin
 ```
 
-### 4-xato: Oddiy strategy yetarli bo'lgan joyda Bridge'dan foydalanish
+### 4-xato: Oddiy Strategiya yetarli bo'lgan joyda Ko'prikdan foydalanish
 
 ```typescript
 // ❌ Yomon: bir martalik backend almashtirish uchun ortiqcha murakkablashtirish
 
-// ✅ Yaxshi: Bridge bir nechta uzoq muddatli implementatsiyaga ega barqaror abstraksiyalar uchun
+// ✅ Yaxshi: Ko'prik bir nechta uzoq muddatli implementatsiyaga ega barqaror abstraksiyalar uchun
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Adapter](/uz/structural/adapter)**: Mavjud nomuvofiqlikni tuzatadi
-- **[Strategy](/uz/behavioral/strategy)**: U ham xatti-harakatni topshiradi, lekin Bridge abstraksiya va amalga oshirishni loyihalash bosqichida ajratish haqida
-- **[Abstract Factory](/uz/creational/abstract-factory)**: Bridge uchun bir-biriga mos amalga oshirish oilalarini yaratishi mumkin
-- **[Decorator](/uz/structural/decorator)**: Abstraksiya va amalga oshirishni ajratmasdan mas'uliyatlar qo'shadi
+- **[Strategiya](/uz/behavioral/strategy)**: U ham xatti-harakatni topshiradi, lekin Ko'prik abstraksiya va amalga oshirishni loyihalash bosqichida ajratish haqida
+- **[Abstrakt fabrika](/uz/creational/abstract-factory)**: Ko'prik uchun bir-biriga mos amalga oshirish oilalarini yaratishi mumkin
+- **[Dekorator](/uz/structural/decorator)**: Abstraksiya va amalga oshirishni ajratmasdan mas'uliyatlar qo'shadi
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
 - Interfeys kontraktlariga ega plagin arxitekturalari
-- Backend servislar bilan dependency injection
+- Backend servislar bilan bog'liqliklarni kiritish (dependency injection)
 - Konfiguratsiyaga asoslangan rendering quvurlari (pipeline)
 - Frontend freymvorklaridagi servis abstraksiyalari
 - Kompozitsiya bilan birga trait, protocol yoki interfeyslarni tilning o'zi qo'llab-quvvatlashi
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Bridge'ning asosiy maqsadi nima?**
+**1-savol: Ko'prikning asosiy maqsadi nima?**
 
 J: Abstraksiyani amalga oshirishdan ajratish, shunda ikkalasi mustaqil ravishda o'zgara oladi. Aynan shu klasslar portlashining oldini oladi.
 
-**2-savol: Bridge Adapter'dan nimasi bilan farq qiladi?**
+**2-savol: Ko'prik Adapter'dan nimasi bilan farq qiladi?**
 
-J: Adapter mos kelmaydigan interfeyslarni yarashtiradi. Bridge esa dizaynga oldindan kiritiladi, shunda abstraksiya hech qachon bitta amalga oshirishga qattiq bog'lanib qolmaydi.
+J: Adapter mos kelmaydigan interfeyslarni yarashtiradi. Ko'prik esa loyihaga oldindan kiritiladi, shunda abstraksiya hech qachon bitta amalga oshirishga qattiq bog'lanib qolmaydi.
 
 **3-savol: Nega shunchaki merosdan foydalanmaslik kerak?**
 
-J: Meros o'zgarish o'qlarini bitta ierarxiyaga birlashtiradi. Bridge ularni alohida saqlaydi va N×M klasslar muammosidan qochadi.
+J: Meros o'zgarish o'qlarini bitta ierarxiyaga birlashtiradi. Ko'prik ularni alohida saqlaydi va N×M klasslar muammosidan qochadi.
 
-**4-savol: Bridge'ni dependency injection bilan ishlatish mumkinmi?**
+**4-savol: Ko'prikni bog'liqliklarni kiritish (dependency injection) bilan ishlatish mumkinmi?**
 
 J: Ha. DI ko'pincha amalga oshirishni abstraksiyaga kiritish (inject) uchun ishlatiladi.
 
-**5-savol: Qachon Bridge yomon tanlov hisoblanadi?**
+**5-savol: Qachon Ko'prik yomon tanlov hisoblanadi?**
 
 J: O'zgarishning mazmunli ikkinchi o'qi bo'lmaganda yoki abstraksiya qo'shimcha bilvositalikni oqlash uchun juda kichik bo'lganda.

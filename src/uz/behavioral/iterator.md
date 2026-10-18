@@ -1,10 +1,10 @@
 ---
-title: Iterator Patterni
+title: Iterator andozasi
 description: To'plam elementlariga uning ichki tuzilishini oshkor qilmasdan ketma-ket murojaat qilish. Aylanib chiqishni to'plam tuzilmasidan ajratadi.
 icon: BookOpen
 ---
 
-# Iterator Patterni
+# Iterator andozasi
 
 <CoverImage src="/covers/behavioral/iterator.webp" alt="Cover">
   <h1>Iterator</h1>
@@ -13,11 +13,11 @@ icon: BookOpen
 
 ## Umumiy ko'rinish (Overview)
 
-**Iterator** (Iterator) patterni — bu to'plam elementlarini uning ichki ko'rinishini (masalan, ro'yxat, stek, daraxt, graf) oshkor qilmasdan aylanib chiqish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir.
+**Iterator** andozasi — bu to'plam elementlarini uning ichki ko'rinishini (masalan, ro'yxat, stek, daraxt, graf) oshkor qilmasdan aylanib chiqish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir.
 
 **Asosiy afzalligi**: U to'plamni aylanib chiqish xatti-harakatini iterator deb ataladigan alohida obyektga ajratadi.
 
-**Zamonaviy nuqtai nazar**: Iterator patterni deyarli barcha zamonaviy dasturlash tillariga tabiiy ravishda o'rnatilgan (`for...of` sikllari, `IEnumerable`, `Iterable` protokollari). Bugungi kunda maxsus iteratorlarni noldan yozish kamroq uchrasa-da, patternni tushunish oqimlar (stream), generatorlar, asinxron ma'lumotlar va funksional dasturlash konstruksiyalari bilan ishlash uchun juda muhim.
+**Zamonaviy nuqtai nazar**: Iterator andozasi deyarli barcha zamonaviy dasturlash tillariga tabiiy ravishda o'rnatilgan (`for...of` sikllari, `IEnumerable`, `Iterable` protokollari). Bugungi kunda maxsus iteratorlarni noldan yozish kamroq uchrasa-da, andozani tushunish oqimlar (stream), generatorlar, asinxron ma'lumotlar va funksional dasturlash konstruksiyalari bilan ishlash uchun juda muhim.
 
 ## Muammo (The Problem)
 
@@ -42,10 +42,10 @@ Agar client kodi Massiv, Bog'langan ro'yxat (Linked List) va Ikkilik daraxtni (B
 
 ## Yechim (The Solution)
 
-Iterator patterni aylanib chiqish mantiqini alohida obyektga inkapsulyatsiya qilishni taklif qiladi.
+Iterator andozasi aylanib chiqish mantiqini alohida obyektga inkapsulyatsiya qilishni taklif qiladi.
 
 1. **Iterator interfeysi**: To'plamni aylanib chiqish uchun `next()`, `hasNext()` va ba'zan `current()` kabi operatsiyalarni belgilaydi.
-2. **To'plam (Collection) interfeysi**: Iterator yaratish uchun factory metodini belgilaydi (masalan, `createIterator()`).
+2. **To'plam (Collection) interfeysi**: Iterator yaratish uchun fabrika metodini belgilaydi (masalan, `createIterator()`).
 
 Barcha iteratorlar bir xil interfeysni amalga oshirgani uchun client kodi _istalgan_ to'plamni — u massivmi, daraxtmi yoki masofaviy API kursorimi, bilmagan holda — aynan bir xil usulda aylanib chiqa oladi.
 
@@ -566,7 +566,7 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **Ortiqcha xarajat**: Patternni juda oddiy to'plamlarga (oddiy massivlar kabi) qo'llash — ortiqcha ish.
+- **Ortiqcha xarajat**: Andozani juda oddiy to'plamlarga (oddiy massivlar kabi) qo'llash — ortiqcha ish.
 - **Samarasizlik**: Maxsus iteratorlar ba'zan elementlarni to'g'ridan-to'g'ri aylanib chiqishdan kamroq samarali bo'lishi mumkin, ayniqsa xotira lokalizatsiyasi (CPU keshlash) hisobga olinganda.
 - **Bir vaqtda o'zgartirish (Concurrent Modification)**: Iterator to'plamni aylanib chiqayotgan paytda uni o'zgartirish halokatli xatolarga olib kelishi mumkin. Bir vaqtda o'zgartirishni boshqarish (masalan, Java'da `ConcurrentModificationException` tashlash) murakkablik qo'shadi.
 
@@ -592,12 +592,12 @@ Ko'pchilik zamonaviy tillarda mustahkam, standartlashtirilgan Iterator interfeys
 Agar Iterator aylanib chiqayotgan paytda asosiy to'plam o'zgarsa (element o'chirilsa), Iteratorning ichki `index` yoki `pointer` qiymati yaroqsiz bo'lib qolishi mumkin, bu esa chegaradan chiqish xatolariga yoki elementlarni o'tkazib yuborishga olib keladi.
 **Yechim**: Iterator yo ma'lumotlarning surati (snapshot) ustida ishlashi kerak, yoki to'plam "o'zgartirishlar sonini" kuzatib borishi va o'zgartirish yuz berganda iteratorni darhol xato bilan to'xtatishi (fail-fast) kerak.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Composite](/uz/structural/composite)**: Iteratorlar ko'pincha Composite daraxtlarini aylanib chiqish uchun ishlatiladi.
-- **[Factory Method](/uz/creational/factory-method)**: To'plam to'g'ri Iteratorni yaratish uchun Factory Method'dan (`createIterator()`) foydalanadi.
+- **[Kompozit](/uz/structural/composite)**: Iteratorlar ko'pincha Kompozit daraxtlarini aylanib chiqish uchun ishlatiladi.
+- **[Fabrika metodi](/uz/creational/factory-method)**: To'plam to'g'ri Iteratorni yaratish uchun Fabrika metodidan (`createIterator()`) foydalanadi.
 - **[Memento](/uz/behavioral/memento)**: Iteratsiyaning joriy holatini saqlab qolish va kerak bo'lsa uni orqaga qaytarish uchun Memento'ni Iterator bilan birga ishlatishingiz mumkin.
-- **[Visitor](/uz/behavioral/visitor)**: Murakkab to'plamdagi har bir element ustida operatsiya bajarish uchun Visitor'ni Iterator bilan birga ishlatishingiz mumkin.
+- **[Tashrifchi](/uz/behavioral/visitor)**: Murakkab to'plamdagi har bir element ustida operatsiya bajarish uchun Tashrifchini Iterator bilan birga ishlatishingiz mumkin.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 

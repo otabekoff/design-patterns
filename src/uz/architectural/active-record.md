@@ -1,10 +1,10 @@
 ---
-title: Active Record Pattern
-description: Obyekt ham ma'lumotni, ham xatti-harakatni o'zida tashiydigan, ma'lumotlar bazasidagi bitta qatorni bevosita ifodalaydigan va o'zini qanday yuklash, saqlash va o'chirishni biladigan arxitektura patterni.
+title: Active Record andozasi
+description: Obyekt ham ma'lumotni, ham xatti-harakatni o'zida tashiydigan, ma'lumotlar bazasidagi bitta qatorni bevosita ifodalaydigan va o'zini qanday yuklash, saqlash va o'chirishni biladigan arxitektura andozasi.
 icon: Table
 ---
 
-# Active Record Pattern
+# Active Record andozasi
 
 <CoverImage src="/covers/architectural/active-record.webp" alt="Cover">
   <h1>Active Record</h1>
@@ -13,9 +13,9 @@ icon: Table
 
 ## Umumiy ko'rinish (Overview)
 
-**Active Record** (Faol yozuv) patterni ma'lumotlar bazasidagi bitta qatorni o'zini qanday saqlashni ham biladigan obyekt ichiga o'raydi. Klass jadvalga, instansiya (instance) qatorga, xususiyatlar esa ustunlarga mos keladi. Saqlash (persistence) amallari — `save()`, `delete()` va statik qidiruv (finder) metodlari — biznes mantiq bilan birga bevosita domen obyektining o'zida joylashadi.
+**Active Record** (Faol yozuv) andozasi ma'lumotlar bazasidagi bitta qatorni o'zini qanday saqlashni ham biladigan obyekt ichiga o'raydi. Klass jadvalga, instansiya (instance) qatorga, xususiyatlar esa ustunlarga mos keladi. Saqlash (persistence) amallari — `save()`, `delete()` va statik qidiruv (finder) metodlari — biznes mantiq bilan birga bevosita domen obyektining o'zida joylashadi.
 
-Bu ko'plab yirik veb-freymvorklarning asosidir: Ruby on Rails'ning `ActiveRecord`, Laravel'ning `Eloquent` va Django ORM — barchasi shu patternni amalga oshiradi. Domain-Driven Design (DDD) amaliyotchilari bu patternni Yagona javobgarlik tamoyilini (Single Responsibility Principle) buzgani uchun tanqid qilishadi va murakkab domenlarda bu tanqid o'rinli. Ammo domen modeli ma'lumotlar bazasi sxemasini yaqindan aks ettiradigan va ishlab chiqish tezligi arxitektura sofligidan muhimroq bo'lgan ilovalarning katta qismi uchun Active Record nihoyatda samarali.
+Bu ko'plab yirik veb-freymvorklarning asosidir: Ruby on Rails'ning `ActiveRecord`, Laravel'ning `Eloquent` va Django ORM — barchasi shu andozani amalga oshiradi. Domain-Driven Design (DDD) amaliyotchilari bu andozani Yagona javobgarlik tamoyilini (Single Responsibility Principle) buzgani uchun tanqid qilishadi va murakkab domenlarda bu tanqid o'rinli. Ammo domen modeli ma'lumotlar bazasi sxemasini yaqindan aks ettiradigan va ishlab chiqish tezligi arxitektura sofligidan muhimroq bo'lgan ilovalarning katta qismi uchun Active Record nihoyatda samarali.
 
 Uning kuchli tomonlari va zaif nuqtalarini tushunib olsangiz, qachon undan foydalanish — va qachon uning o'rniga [Data Mapper](/uz/architectural/data-mapper)ni tanlash kerakligini aniq bilasiz.
 
@@ -27,7 +27,7 @@ Hujjatning ma'lumotlari va uni joylashtirish xatti-harakati ajralmas — ular bi
 
 ## Muammo (The Problem)
 
-Tartibli ma'lumotlarga kirish patterni bo'lmasa, SQL biznes mantiqqa sizib kiradi va natijada testlash qiyin, qo'llab-quvvatlash qiyin va xavfsiz refaktor qilib bo'lmaydigan kod paydo bo'ladi.
+Tartibli ma'lumotlarga kirish andozasi bo'lmasa, SQL biznes mantiqqa sizib kiradi va natijada testlash qiyin, qo'llab-quvvatlash qiyin va xavfsiz refaktor qilib bo'lmaydigan kod paydo bo'ladi.
 
 ```typescript
 // ❌ Xom SQL biznes mantiq bo'ylab sochilgan
@@ -655,7 +655,7 @@ fn main() {
 
 ## Assotsiatsiyalar (Associations)
 
-Active Record'ning eng kuchli xususiyatlaridan biri — birlashtirish (join) so'rovlarini avtomatik generatsiya qiladigan assotsiatsiya e'lonlari: `hasMany`, `belongsTo`, `hasOne`. Rails va Laravel kabi freymvorklar aynan shu yerda porlaydi va patternning yashirin xarajatlari ham aynan shu yerda ko'rina boshlaydi.
+Active Record'ning eng kuchli xususiyatlaridan biri — birlashtirish (join) so'rovlarini avtomatik generatsiya qiladigan assotsiatsiya e'lonlari: `hasMany`, `belongsTo`, `hasOne`. Rails va Laravel kabi freymvorklar aynan shu yerda porlaydi va andozaning yashirin xarajatlari ham aynan shu yerda ko'rina boshlaydi.
 
 ### Assotsiatsiya turlari (Types of Associations)
 
@@ -884,7 +884,7 @@ classDiagram
 
 | O'lchov                         | Active Record                       | Data Mapper                                         |
 | ------------------------------- | ----------------------------------- | --------------------------------------------------- |
-| **Ma'lumotlar bazasi bilimi**   | Entity ichida yashaydi              | Alohida mapper/repository'da yashaydi               |
+| **Ma'lumotlar bazasi bilimi**   | Entity ichida yashaydi              | Alohida mapper/repozitoriyda yashaydi               |
 | **Domen obyektining sofligi**   | Sxemaga bog'langan                  | Sof — saqlash bilan bog'liq vazifa yo'q             |
 | **Unit-testlash**               | MB yoki murakkab mock'lar talab qiladi | Domen obyektlari sof xotirada testlanadi         |
 | **Sxema moslashuvchanligi**     | Model MB'ni aks ettirishi shart     | Model va MB farqlanishi mumkin                      |
@@ -900,8 +900,8 @@ Gap qaysi biri "yaxshiroq" ekanligida emas — qaysi biri domeningiz murakkablig
 
 ### ✅ Afzalliklari
 
-- **Dasturchi tezligi**: Har qanday pattern ichida ma'lumotlar bazasi sxemasidan ishlaydigan CRUD operatsiyalarigacha bo'lgan eng tez yo'l.
-- **O'qilishi oson chaqiruv joylari**: `user.save()` niyatni aniq ifodalaydi. Kezib chiqish kerak bo'lgan repository, fabrika yoki mapper'lar yo'q.
+- **Dasturchi tezligi**: Barcha andozalar orasida ma'lumotlar bazasi sxemasidan ishlaydigan CRUD operatsiyalarigacha bo'lgan eng tez yo'l.
+- **O'qilishi oson chaqiruv joylari**: `user.save()` niyatni aniq ifodalaydi. Kezib chiqish kerak bo'lgan repozitoriy, fabrika yoki mapper'lar yo'q.
 - **Konfiguratsiyadan ko'ra kelishuv (Convention over configuration)**: Freymvorklar jadval nomlari, tashqi kalitlar (foreign keys) va birlashtirish shartlarini o'zi aniqlaydi va shablon kodni yo'q qiladi.
 - **Birga joylashuv (Colocation)**: Biznes mantiq va saqlash birga yashaydi. Oddiy domenlarda bu fayllar orasida kontekst almashtirishning kognitiv xarajatini kamaytiradi.
 - **Boy assotsiatsiya qo'llab-quvvatlovi**: `has_many`, `belongs_to` va `through` assotsiatsiyalari har bir yirik freymvork implementatsiyasida birinchi darajali imkoniyatdir.
@@ -1113,7 +1113,7 @@ app.get("/users/:id", (req, res) => {
 
 ## Haqiqiy freymvorklardagi Active Record (Active Record in Real Frameworks)
 
-Bularning barchasi kichik farqlarga ega Active Record implementatsiyalaridir. Pattern amaliyotda qanday ko'rinishini tushunish ekotizimlar orasida o'tishda yordam beradi.
+Bularning barchasi kichik farqlarga ega Active Record implementatsiyalaridir. Andoza amaliyotda qanday ko'rinishini tushunish ekotizimlar orasida o'tishda yordam beradi.
 
 | Freymvork                | Til            | Izohlar                                                                          |
 | ------------------------ | -------------- | -------------------------------------------------------------------------------- |
@@ -1123,20 +1123,20 @@ Bularning barchasi kichik farqlarga ega Active Record implementatsiyalaridir. Pa
 | **TypeORM (AR rejimi)**  | TypeScript     | Bitta kutubxonada ham Active Record, ham Data Mapper rejimlarini qo'llab-quvvatlaydi. |
 | **Sequelize**            | JavaScript     | Aniq model ta'riflariga ega Active Record.                                       |
 | **GORM**                 | Go             | Ustunlarni xaritalash uchun struct teglaridan foydalanadigan Active Record uslubi. |
-| **ActiveAndroid / Room** | Android/Kotlin | Patternning SQLite uchun mobil moslashtirilgan variantlari.                      |
+| **ActiveAndroid / Room** | Android/Kotlin | Andozaning SQLite uchun mobil moslashtirilgan variantlari.                      |
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Data Mapper](/uz/architectural/data-mapper)** — arxitekturaviy qarama-qarshisi. Domen obyektlari ma'lumotlar bazasi haqida hech narsa bilmaydi; saqlash bilan alohida mapper shug'ullanadi. Domen murakkab bo'lsa yoki izolyatsiyada testlanishi kerak bo'lsa, shundan foydalaning.
-- **[Repository](/uz/architectural/repository)** — Active Record yoki Data Mapper ustida turishi mumkin bo'lgan abstraksiya qatlami; obyektlarni so'rash uchun kolleksiyaga o'xshash interfeys taqdim etadi.
-- **[Unit of Work](/uz/architectural/unit-of-work)** — bir nechta Active Record operatsiyasini yagona atomar ma'lumotlar bazasi tranzaksiyasiga muvofiqlashtiradi.
-- **[Identity Map](/uz/architectural/identity-map)** — har bir ma'lumotlar bazasi qatori bitta so'rov davomida xotiraga faqat bir marta yuklanishini ta'minlaydi va bir xil qator bir necha marta yuklanganda eskirgan dublikat obyektlarning oldini oladi.
+- **[Repozitoriy](/uz/architectural/repository)** — Active Record yoki Data Mapper ustida turishi mumkin bo'lgan abstraksiya qatlami; obyektlarni so'rash uchun kolleksiyaga o'xshash interfeys taqdim etadi.
+- **[Ish birligi](/uz/architectural/unit-of-work)** — bir nechta Active Record operatsiyasini yagona atomar ma'lumotlar bazasi tranzaksiyasiga muvofiqlashtiradi.
+- **[Identifikatorlar xaritasi](/uz/architectural/identity-map)** — har bir ma'lumotlar bazasi qatori bitta so'rov davomida xotiraga faqat bir marta yuklanishini ta'minlaydi va bir xil qator bir necha marta yuklanganda eskirgan dublikat obyektlarning oldini oladi.
 
 ## Intervyu savollari (Interview Insights)
 
 ::: details Active Record va Data Mapper o'rtasidagi asosiy arxitekturaviy farq nima?
 
-Active Record'da domen entity'si ma'lumotlar bazasi haqida biladi — u `save()`, `delete()` va qidiruv metodlarini tashiydi. Data Mapper'da entity hech qanday saqlash mantiqiga ega bo'lmagan oddiy obyekt; xotiradagi obyekt va ma'lumotlar bazasi qatori o'rtasidagi tarjima uchun alohida mapper yoki repository klassi javobgar.
+Active Record'da domen entity'si ma'lumotlar bazasi haqida biladi — u `save()`, `delete()` va qidiruv metodlarini tashiydi. Data Mapper'da entity hech qanday saqlash mantiqiga ega bo'lmagan oddiy obyekt; xotiradagi obyekt va ma'lumotlar bazasi qatori o'rtasidagi tarjima uchun alohida mapper yoki repozitoriy klassi javobgar.
 
 Oqibati: Active Record `User` ni ma'lumotlar bazasisiz (yoki og'ir mock'larsiz) unit-testlab bo'lmaydi. Data Mapper `User` esa testda hech qanday ma'lumotlar bazasisiz yaratilishi, o'zgartirilishi va tekshirilishi mumkin bo'lgan oddiy obyekt.
 
@@ -1172,7 +1172,7 @@ O'tish vaqti kelganini bildiruvchi signallar:
 - Ma'lumotlar bazasi sxemasi va domen modeli farqlanishi kerak (masalan, MB yozish tezligi uchun kuchli normallashtirilgan, domen obyekti esa denormallashtirilgan).
 - Jamoa CQRS'ni joriy qilmoqda va alohida o'qish va yozish modellariga muhtoj.
 
-O'tish bosqichma-bosqich amalga oshiriladi: avval mavjud Active Record klasslari ustiga Repository interfeysini kiriting, keyin chaqiruvchilarni o'zgartirmasdan, uning ostidagi implementatsiyani Data Mapper bilan almashtiring.
+O'tish bosqichma-bosqich amalga oshiriladi: avval mavjud Active Record klasslari ustiga Repozitoriy interfeysini kiriting, keyin chaqiruvchilarni o'zgartirmasdan, uning ostidagi implementatsiyani Data Mapper bilan almashtiring.
 
 :::
 

@@ -1,10 +1,10 @@
 ---
-title: Model-View-ViewModel (MVVM)
+title: MVVM andozasi
 description: Avtomatlashtirilgan ma'lumotlarni bog'lash (Data Binding) va Observable'lar yordamida mantiqni UI dan ajratadigan deklarativ UI'lar uchun zamonaviy standart.
 icon: Box
 ---
 
-# Model-View-ViewModel (MVVM)
+# MVVM andozasi
 
 <CoverImage src="/covers/architectural/mvvm.webp" alt="Cover">
   <h1>MVVM</h1>
@@ -13,7 +13,7 @@ icon: Box
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-ViewModel (MVVM)** patterni zamonaviy, reaktiv foydalanuvchi interfeyslari uchun arxitektura standartidir. U dastlab Microsoft tomonidan WPF (Windows Presentation Foundation) uchun yaratilgan, ammo o'shandan beri deyarli barcha zamonaviy frontend freymvorklari (Vue.js, Angular, SwiftUI, Jetpack Compose) ning asosiy falsafasiga aylangan.
+**Model-View-ViewModel (MVVM)** andozasi zamonaviy, reaktiv foydalanuvchi interfeyslari uchun arxitektura standartidir. U dastlab Microsoft tomonidan WPF (Windows Presentation Foundation) uchun yaratilgan, ammo o'shandan beri deyarli barcha zamonaviy frontend freymvorklari (Vue.js, Angular, SwiftUI, Jetpack Compose) ning asosiy falsafasiga aylangan.
 
 U ilovani quyidagilarga ajratadi:
 
@@ -103,11 +103,11 @@ Agar A1 katakni o'zgartirsangiz, jami katakni qayta chizishga buyruq beradigan s
 
 ## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
 
-MVVM asosan "Binder" mexanizmiga tayangani uchun, u kamdan-kam hollarda noldan quriladi. Odatda freymvorkdan (Vue, Angular, Knockout, WPF, SwiftUI) foydalaniladi. Shunga qaramay, u "parda ortida" qanday ishlashini tushunish uchun patternni zamonaviy proxy'lar yoki oddiy observable klasslar yordamida simulyatsiya qilishimiz mumkin.
+MVVM asosan "Binder" mexanizmiga tayangani uchun, u kamdan-kam hollarda noldan quriladi. Odatda freymvorkdan (Vue, Angular, Knockout, WPF, SwiftUI) foydalaniladi. Shunga qaramay, u "parda ortida" qanday ishlashini tushunish uchun andozani zamonaviy proxy'lar yoki oddiy observable klasslar yordamida simulyatsiya qilishimiz mumkin.
 
 ## Kod misollari (Code Examples)
 
-Biz oddiy hisoblagich (counter) ilovasini quramiz. MVVM qanday ishlashini ko'rsatish uchun barcha tillarda **Observable** patternini qo'lda amalga oshiramiz.
+Biz oddiy hisoblagich (counter) ilovasini quramiz. MVVM qanday ishlashini ko'rsatish uchun barcha tillarda **Observable** mexanizmini (Kuzatuvchi andozasini) qo'lda amalga oshiramiz.
 
 ::: code-group
 
@@ -641,7 +641,7 @@ fn main() {
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Backend ishlab chiqish**: MVVM sof frontend/UI patterni. Backend'lar MVC, qatlamli arxitekturalar (Layered Architectures) yoki DDD dan foydalanishi kerak.
+- **Backend ishlab chiqish**: MVVM sof frontend/UI andozasi. Backend'lar MVC, qatlamli arxitekturalar (Layered Architectures) yoki DDD dan foydalanishi kerak.
 - **Statik veb-saytlar**: Agar standart HTML/CSS yordamida oddiy landing sahifa yoki blog qurayotgan bo'lsangiz, faqat hamburger menyuni boshqarish uchun 100kb lik Vue/React mexanizmini yuklash haddan tashqari ortiqcha.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
@@ -649,8 +649,8 @@ fn main() {
 - **Semiz ViewModel'lar (Fat ViewModels)**: Tegishli Service/Repository klasslariga topshirish o'rniga ma'lumotlar bazasi ulanishlari va og'ir HTTP so'rovlarini bajaradigan ulkan ViewModel'lar yaratish.
 - **To'g'ridan-to'g'ri Model'larga bog'lash**: Xom Model'ni ViewModel orqali moslashtirish o'rniga uni to'g'ridan-to'g'ri View'ga ochib berish. Bu UI ga xos hisoblanadigan xususiyatlarni (masalan, `isNegative = value < 0`) qo'shishga to'sqinlik qiladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[MVC](/uz/architectural/mvc) / [MVP](/uz/architectural/mvp)**: O'tmishdoshlar. MVVM avtomatlashtirilgan Data Binding ni joriy qilish orqali ularning "View'ni qo'lda yangilash" muammosini hal qiladi.
-- **[Observer Pattern](/uz/behavioral/observer)**: MVVM ning ishlashini ta'minlaydigan asosiy mexanik pattern. View ViewModel'ni _kuzatadi_.
-- **[Command Pattern](/uz/behavioral/command)**: MVVM da UI o'zaro ta'sirlarini (masalan, tugma bosishlarni) ViewModel UI hodisalari haqida bilmasdan qayta ishlay oladigan obyektlarga o'rash uchun ishlatiladi.
+- **[Kuzatuvchi andozasi](/uz/behavioral/observer)**: MVVM ning ishlashini ta'minlaydigan asosiy mexanik andoza. View ViewModel'ni _kuzatadi_.
+- **[Buyruq andozasi](/uz/behavioral/command)**: MVVM da UI o'zaro ta'sirlarini (masalan, tugma bosishlarni) ViewModel UI hodisalari haqida bilmasdan qayta ishlay oladigan obyektlarga o'rash uchun ishlatiladi.

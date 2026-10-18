@@ -1,23 +1,23 @@
 ---
-title: Chain of Responsibility Patterni
+title: Mas'uliyatlar zanjiri andozasi (Chain of Responsibility)
 description: So'rovni ishlovchilar zanjiri bo'ylab uzatadi — ulardan biri uni qayta ishlamaguncha yoki hammasi rad etmaguncha.
 icon: Link
 ---
 
-# Chain of Responsibility Patterni
+# Mas'uliyatlar zanjiri andozasi (Chain of Responsibility)
 
 <CoverImage src="/covers/behavioral/chain-of-responsibility.webp" alt="Cover">
-  <h1>Chain of Responsibility</h1>
+  <h1>Mas'uliyatlar zanjiri</h1>
   <p>Stollarda o'tirgan bir qator yoqimtoy ofis robotlari; ulkan, murakkab quti qator bo'ylab uzatiladi — har bir robot yelka qisib, uni keyingisiga beradi, oxirgi robot esa uni xursandchilik bilan hal qiladi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Chain of Responsibility** (Mas'uliyatlar zanjiri) patterni — bu so'rovlarni ishlovchilar (handler) zanjiri bo'ylab uzatish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir. So'rovni qabul qilgan har bir ishlovchi uni o'zi qayta ishlashni yoki zanjirdagi keyingi ishlovchiga uzatishni hal qiladi.
+**Mas'uliyatlar zanjiri** (Chain of Responsibility) andozasi — bu so'rovlarni ishlovchilar (handler) zanjiri bo'ylab uzatish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir. So'rovni qabul qilgan har bir ishlovchi uni o'zi qayta ishlashni yoki zanjirdagi keyingi ishlovchiga uzatishni hal qiladi.
 
 **Asosiy afzalligi**: So'rov yuboruvchi uni qaysi ishlovchi qayta ishlashini bilishi shart emas, ishlovchilar esa yuboruvchi yoki butun zanjir haqida bilishi shart emas. Bu bo'sh bog'liqlikni (loose coupling) ta'minlaydi.
 
-**Zamonaviy nuqtai nazar**: Chain of Responsibility zamonaviy dasturiy ta'minot muhandisligida hamma joyda uchraydi. U middleware steklarida (masalan, Express.js yoki ASP.NET Core), validatsiya quvurlarida (pipeline), logging freymvorklarida, UI hodisalarining ko'tarilishida (DOM event bubbling) va hodisalarni qayta ishlash tizimlarida tabiiy ravishda mavjud.
+**Zamonaviy nuqtai nazar**: Mas'uliyatlar zanjiri zamonaviy dasturiy ta'minot muhandisligida hamma joyda uchraydi. U middleware steklarida (masalan, Express.js yoki ASP.NET Core), validatsiya quvurlarida (pipeline), logging freymvorklarida, UI hodisalarining ko'tarilishida (DOM event bubbling) va hodisalarni qayta ishlash tizimlarida tabiiy ravishda mavjud.
 
 ## Muammo (The Problem)
 
@@ -59,7 +59,7 @@ Bu Yagona mas'uliyat tamoyilini (Single Responsibility Principle) buzadi. Bunday
 
 ## Yechim (The Solution)
 
-Chain of Responsibility patterni bu xatti-harakatlarni zanjirga bog'lashni taklif qiladi. Har bir tekshiruv **Handler** (ishlovchi) deb ataladigan alohida klassga ajratiladi.
+Mas'uliyatlar zanjiri andozasi bu xatti-harakatlarni zanjirga bog'lashni taklif qiladi. Har bir tekshiruv **Handler** (ishlovchi) deb ataladigan alohida klassga ajratiladi.
 
 1. **Ketma-ket oqim**: So'rov birinchi ishlovchiga kiradi. Agar u tekshiruvdan o'tsa, ishlovchi uni zanjirdagi keyingi ishlovchiga uzatadi.
 2. **Qisqa tutashuv (Short-circuiting)**: Agar ishlovchi so'rovni yaroqsiz deb topsa (masalan, so'rovlar chegarasi oshib ketgan bo'lsa), u darhol xato qaytarishi va zanjirning qolgan qismi bajarilishini to'xtatishi mumkin.
@@ -632,7 +632,7 @@ fn main() {
 ## Qachon foydalanmaslik kerak (When NOT to Use) ❌
 
 - **To'g'ridan-to'g'ri metod chaqiruvlari yetarli bo'lsa**: Agar mantiq oddiy bo'lsa, o'zgarmasa va qat'iy chegaralangan modulda joylashgan bo'lsa, oddiy funksiya chaqiruvi yoki `if/else` ancha tezroq va o'qish osonroq.
-- **Tranzaksiyalar talab qilinsa**: Agar keyingi qadam muvaffaqiyatsiz bo'lganda oldingi qadamlarni orqaga qaytarish (rollback) kerak bo'lsa, **Saga** yoki [Command](/uz/behavioral/command) patternidan foydalanish kerak. Chain of Responsibility odatda ikki tomonlama (undo) operatsiyalarni oson qo'llab-quvvatlamaydi.
+- **Tranzaksiyalar talab qilinsa**: Agar keyingi qadam muvaffaqiyatsiz bo'lganda oldingi qadamlarni orqaga qaytarish (rollback) kerak bo'lsa, **Saga** yoki [Buyruq](/uz/behavioral/command) andozasidan foydalanish kerak. Mas'uliyatlar zanjiri odatda ikki tomonlama (undo) operatsiyalarni oson qo'llab-quvvatlamaydi.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
@@ -656,7 +656,7 @@ chain.setNext(new FallbackHandler());
 
 ### 2. Ishlovchilarning juda ko'p ish bajarishi
 
-Agar bitta ishlovchi autentifikatsiya, avtorizatsiya va rate limiting'ni tekshirsa, patternning mazmuni yo'qoladi.
+Agar bitta ishlovchi autentifikatsiya, avtorizatsiya va rate limiting'ni tekshirsa, andozaning mazmuni yo'qoladi.
 
 ```typescript
 // ❌ Yomon: "Xudo-ishlovchi" (God-handler)
@@ -674,21 +674,21 @@ class SecurityHandler extends BaseRequestHandler {
 
 Agar ishlovchilar so'rov ma'lumotlarini kutilmagan tarzda o'zgartirsa (mutatsiya qilsa), keyingi ishlovchilarni debug qilish qiyinlashadi. O'zgarmaslikni (immutability) yoki aniq belgilangan kontekst o'zgarishlarini afzal ko'ring (masalan, autentifikatsiyadan so'ng `Context` obyektiga `userId` qo'shish).
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Decorator](/uz/structural/decorator)**: U ham obyektlarni o'rashni o'z ichiga oladi, lekin Decorator obyektga xatti-harakat qo'shadi, Chain of Responsibility esa so'rovni biror ishlovchi qayta ishlamaguncha yoki zanjir qisqa tutashmaguncha uzatadi.
-- **[Command](/uz/behavioral/command)**: Ko'pincha birga ishlatiladi. Command obyektini Chain of Responsibility bo'ylab uzatish mumkin.
-- **Interceptor/Middleware**: HTTP serverlar va gRPC clientlarda qo'llaniladigan ushbu patternning aniq arxitekturaviy ko'rinishlari.
+- **[Dekorator](/uz/structural/decorator)**: U ham obyektlarni o'rashni o'z ichiga oladi, lekin Dekorator obyektga xatti-harakat qo'shadi, Mas'uliyatlar zanjiri esa so'rovni biror ishlovchi qayta ishlamaguncha yoki zanjir qisqa tutashmaguncha uzatadi.
+- **[Buyruq](/uz/behavioral/command)**: Ko'pincha birga ishlatiladi. Buyruq obyektini Mas'uliyatlar zanjiri bo'ylab uzatish mumkin.
+- **Interceptor/Middleware**: HTTP serverlar va gRPC clientlarda qo'llaniladigan ushbu andozaning aniq arxitekturaviy ko'rinishlari.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Chain of Responsibility Decorator'dan nimasi bilan farq qiladi?"
-  - **Javob**: "Decorator o'z xatti-harakatini bajaradi va funksionallikni jamlash uchun _har doim_ o'ralgan obyektga vakolat beradi (delegate). Chain of Responsibility esa biror shart bajarilsa, zanjirni _qisqa tutashtirib_, uning bajarilishini butunlay to'xtatishi mumkin."
+- **Savol**: "Mas'uliyatlar zanjiri Dekoratordan nimasi bilan farq qiladi?"
+  - **Javob**: "Dekorator o'z xatti-harakatini bajaradi va funksionallikni jamlash uchun _har doim_ o'ralgan obyektga vakolat beradi (delegate). Mas'uliyatlar zanjiri esa biror shart bajarilsa, zanjirni _qisqa tutashtirib_, uning bajarilishini butunlay to'xtatishi mumkin."
 - **Savol**: "Agar zanjirdagi hech bir ishlovchi so'rovni qayta ishlamasa nima bo'ladi?"
   - **Javob**: "So'rov zanjir oxiridan jimgina tushib qoladi. Buning oldini olish uchun zanjir oxirida istisno (exception) tashlaydigan yoki standart javob qaytaradigan 'hammasini ushlovchi' (catch-all) yoki yakuniy ishlovchini amalga oshirish eng yaxshi amaliyot hisoblanadi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Express/Koa/Fastify Middleware**: Zamonaviy veb-freymvorklar bu patternni og'ir OOP klasslar o'rniga funksiyalarga asoslangan middleware massivlari `(req, res, next) => { ... }` ko'rinishida standartlashtirgan.
+- **Express/Koa/Fastify Middleware**: Zamonaviy veb-freymvorklar bu andozani og'ir OOP klasslar o'rniga funksiyalarga asoslangan middleware massivlari `(req, res, next) => { ... }` ko'rinishida standartlashtirgan.
 - **Quvurlar / Compose funksiyalari**: Funksional dasturlashda `f(g(h(x)))` kabi funksiyalarni kompozitsiya qilish xuddi shu natijaga o'zgarmas (immutable) tarzda erishadi.
 - **Event Bus / PubSub**: Agar bir nechta ishlovchi bir-birini qisqa tutashtirmasdan reaksiya qilishi kerak bo'lsa, Event Bus afzalroq.

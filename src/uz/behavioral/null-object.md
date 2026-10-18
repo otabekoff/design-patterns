@@ -1,23 +1,23 @@
 ---
-title: Null Object Pattern
+title: Bo'sh obyekt andozasi (Null Object)
 description: Yo'q bo'lgan hamkor obyekt o'rniga xavfsiz o'rinbosar obyekt taqdim etib, kod bo'ylab tarqalgan null tekshiruvlaridan xalos qiladi.
 icon: Circle
 ---
 
-# Null Object Pattern
+# Bo'sh obyekt andozasi (Null Object)
 
 <CoverImage src="/covers/behavioral/null-object.webp" alt="Cover">
-  <h1>Null Object</h1>
+  <h1>Bo'sh obyekt</h1>
   <p>Asboblar qutisi: undagi uyalardan birida shaffof "Null bolg'a" (qattiq plastikdan yasalgan tiniq blok) turibdi — u urilganda mutlaqo hech narsa qilmaydi, lekin uyaga juda mos tushadi va tizimni ishdan chiqarmaydi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Null Object** — bu yo'q bo'lgan hamkor (collaborator) obyekt o'rniga xavfsiz, hech narsa qilmaydigan (no-op, "no operation") o'rinbosarni taqdim etuvchi xulq-atvor (behavioral) dizayn patternidir. `null` yoki `nil` qiymatlariga tayanib, butun kod bazasi bo'ylab `if (object != null)` kabi himoya tekshiruvlarini tarqatib yuborish o'rniga, siz haqiqiy obyekt bilan aynan bir xil interfeysni amalga oshiradigan, lekin hech narsa qilmaydigan Null Object'ni uzatasiz (inject qilasiz).
+**Bo'sh obyekt** (Null Object) — bu yo'q bo'lgan hamkor (collaborator) obyekt o'rniga xavfsiz, hech narsa qilmaydigan (no-op, "no operation") o'rinbosarni taqdim etuvchi xulq-atvor (behavioral) loyihalash andozasidir. `null` yoki `nil` qiymatlariga tayanib, butun kod bazasi bo'ylab `if (object != null)` kabi himoya tekshiruvlarini tarqatib yuborish o'rniga, siz haqiqiy obyekt bilan aynan bir xil interfeysni amalga oshiradigan, lekin hech narsa qilmaydigan bo'sh obyektni uzatasiz (inject qilasiz).
 
 **Asosiy afzalligi**: U `null` havola xatolarini butunlay yo'q qiladi va obyektning yo'qligini shunchaki yana bir to'g'ri xulq-atvor sifatida ko'rib, biznes mantig'ini soddalashtiradi.
 
-**Zamonaviy nuqtai nazar**: Hali ham foydali bo'lsa-da, qat'iy null-xavfsizlikka ega zamonaviy tillar (Kotlin, Rust va `strictNullChecks` yoqilgan TypeScript kabi) yoki tabiiy `Option`/`Maybe` monadalari Null Object patterniga bo'lgan mutlaq ehtiyojni kamaytirdi. Biroq dependency injection uchun (masalan, soxta Logger yoki Analytics yuboruvchi) u eng toza arxitektura tanlovi bo'lib qolmoqda.
+**Zamonaviy nuqtai nazar**: Hali ham foydali bo'lsa-da, qat'iy null-xavfsizlikka ega zamonaviy tillar (Kotlin, Rust va `strictNullChecks` yoqilgan TypeScript kabi) yoki tabiiy `Option`/`Maybe` monadalari Bo'sh obyekt andozasiga bo'lgan mutlaq ehtiyojni kamaytirdi. Biroq bog'liqliklarni kiritish (dependency injection) uchun (masalan, soxta Logger yoki Analytics yuboruvchi) u eng toza arxitektura tanlovi bo'lib qolmoqda.
 
 ## Muammo (The Problem)
 
@@ -55,7 +55,7 @@ Bundan tashqari, `OrderService`'ni test qilish uchun mock logger uzatish, mock'n
 
 1. **Mijoz (Client)** `Logger` interfeysini amalga oshiruvchi obyektni kutadi.
 2. **Mijoz** `null` qabul qilmaydi.
-3. Xulq-atvorni o'chirmoqchi bo'lganimizda **Null Object** uzatamiz.
+3. Xulq-atvorni o'chirmoqchi bo'lganimizda **bo'sh obyekt** uzatamiz.
 
 ```typescript
 // ✅ Yaxshi: null tekshiruvlari yo'q
@@ -99,7 +99,7 @@ classDiagram
 
 ## Ishlash oqimi (Flow)
 
-1. **Mijoz (Client)** **Hamkor (Collaborator)** bilan ishga tushiriladi (Dependency Injection orqali).
+1. **Mijoz (Client)** **Hamkor (Collaborator)** bilan ishga tushiriladi (bog'liqliklarni kiritish — Dependency Injection orqali).
 2. Uzatilgan bog'liqlik yo **RealCollaborator**, yoki **NullCollaborator** bo'ladi.
 3. **Mijoz** `collaborator.execute()` ni chaqiradi.
 4. Agar bu **RealCollaborator** bo'lsa, haqiqiy ish bajariladi (masalan, faylga yozish).
@@ -115,12 +115,12 @@ Mute tugmasini bosganingizda televizor karnaylarni uzib qo'ymaydi yoki audio oqi
 1. **Ixtiyoriy bog'liqlikni aniqlang**: Tez-tez `null` ga tekshiriladigan interfeysni toping (masalan, `Metrics`, `Logger`, `Cache`).
 2. **Null klassni yarating**: Ushbu interfeysni amalga oshiradigan klass yarating.
 3. **No-op metodlarni amalga oshiring**: `void` qaytaradigan metodlarda hech narsa qilmang. Son qaytaradigan metodlar `0` qaytarsin. Ro'yxat qaytaradiganlar bo'sh ro'yxat qaytarsin. Boolean qiymatlar uchun `false` qaytaring (yoki semantik jihatdan xavfsiz standart qiymat bo'lgan boshqa narsani).
-4. **Singleton'dan foydalaning**: Null obyektlar hech qanday holat (state) saqlamaydi. Xotirani tejash uchun Null Object'ni Singleton sifatida yarating.
+4. **Singleton'dan foydalaning**: Bo'sh obyektlar hech qanday holat (state) saqlamaydi. Xotirani tejash uchun bo'sh obyektni Singleton sifatida yarating.
 5. **Null bo'lmaslikni majburlang**: Mijoz konstruktorini `null` qiymatlarni aniq rad etadigan qilib yangilang.
 
 ## Kod misollari (Code Examples)
 
-Keling, Analytics kuzatuv tizimini amalga oshiramiz. Foydalanuvchilar analitikadan voz kechishlari (opt out) mumkin. Har joyda `if (user.analyticsAllowed())` tekshiruvini yozish o'rniga, biz Null Object uzatamiz.
+Keling, Analytics kuzatuv tizimini amalga oshiramiz. Foydalanuvchilar analitikadan voz kechishlari (opt out) mumkin. Har joyda `if (user.analyticsAllowed())` tekshiruvini yozish o'rniga, biz bo'sh obyekt uzatamiz.
 
 ::: code-group
 
@@ -205,7 +205,7 @@ class MixpanelTracker:
 
 # 3. Null Collaborator
 class NullTracker:
-    # Python'da Singleton pattern modul darajasidagi instance yoki Borg orqali,
+    # Python'da Singleton andozasi modul darajasidagi instance yoki Borg orqali amalga oshiriladi,
     # lekin holati yo'qligi sababli oddiy klass ko'pincha yetarli.
     def track_event(self, event_name: str, properties: Optional[Dict] = None) -> None:
         pass
@@ -346,7 +346,7 @@ func main() {
 
 	var tracker AnalyticsTracker
 	if userOptedOut {
-		tracker = NullTracker{} // Xarajatsiz Null Object'ni uzatamiz
+		tracker = NullTracker{} // Xarajatsiz bo'sh obyektni uzatamiz
 	} else {
 		tracker = &MixpanelTracker{}
 	}
@@ -431,28 +431,28 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **Xatolarni yashirishi mumkin**: Agar obyekt _bo'lishi shart_ bo'lsa, Null Object uzatish xatoni jimgina yutib yuboradi va ma'lumotlar nega saqlanmayotganini aniqlashni juda qiyinlashtiradi.
-- **Qaytariladigan qiymat muammolari**: Null Object'da `void` metodlarni amalga oshirish oson. Ammo interfeys ma'lumot qaytarishni talab qilsa (masalan, `getUser()`), Null Object ham o'sha ma'lumotlarning "Null" variantlarini qaytarishi kerak bo'ladi va bu Null Object'lar zanjiriga olib keladi.
+- **Xatolarni yashirishi mumkin**: Agar obyekt _bo'lishi shart_ bo'lsa, bo'sh obyekt uzatish xatoni jimgina yutib yuboradi va ma'lumotlar nega saqlanmayotganini aniqlashni juda qiyinlashtiradi.
+- **Qaytariladigan qiymat muammolari**: Bo'sh obyektda `void` metodlarni amalga oshirish oson. Ammo interfeys ma'lumot qaytarishni talab qilsa (masalan, `getUser()`), bo'sh obyekt ham o'sha ma'lumotlarning "Null" variantlarini qaytarishi kerak bo'ladi va bu bo'sh obyektlar zanjiriga olib keladi.
 - **Kod hajmining oshishi**: Null bo'lishi mumkin bo'lgan har bir interfeys uchun butunlay yangi klass yaratishni talab qiladi.
 
 ## Qachon foydalanish kerak (When to Use)
 
 - **Ixtiyoriy xulq-atvorlar**: "Hech narsa qilmaslik" mutlaqo to'g'ri arxitektura qarori bo'lgan logging, metrikalar, keshlash yoki analitika uchun juda mos.
-- **Dependency Injection**: Ixtiyoriy modul o'rnatilmaganida DI konteyneringiz xato bermasligi uchun xavfsiz standart hamkorni taqdim etmoqchi bo'lganingizda.
+- **Bog'liqliklarni kiritish (Dependency Injection)**: Ixtiyoriy modul o'rnatilmaganida DI konteyneringiz xato bermasligi uchun xavfsiz standart hamkorni taqdim etmoqchi bo'lganingizda.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
 - **Yo'qlik xato bo'lganda**: Agar `DatabaseConnection` yo'q bo'lsa, siz ilovaning ishdan chiqishini _xohlaysiz_. Ma'lumotlarni jimgina tashlab yuboradigan `NullDatabaseConnection` falokat bo'lardi.
-- **Zamonaviy monadalardan foydalanganda**: Agar tilingiz mustahkam `Option<T>` yoki `Result<T>` turlarini qo'llab-quvvatlasa (Rust yoki Scala kabi), til yo'qlikni tabiiy ravishda aniq va xavfsiz boshqaradi, bu esa Null Object'larni ortiqcha qiladi.
+- **Zamonaviy monadalardan foydalanganda**: Agar tilingiz mustahkam `Option<T>` yoki `Result<T>` turlarini qo'llab-quvvatlasa (Rust yoki Scala kabi), til yo'qlikni tabiiy ravishda aniq va xavfsiz boshqaradi, bu esa bo'sh obyektlarni ortiqcha qiladi.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1. Murakkab Null Object'lar
+### 1. Murakkab bo'sh obyektlar
 
-Null obyekt _hech narsa_ qilmasligi kerak.
+Bo'sh obyekt _hech narsa_ qilmasligi kerak.
 
 ```typescript
-// ❌ Yomon: Aqlli bo'lishga urinayotgan Null Object
+// ❌ Yomon: Aqlli bo'lishga urinayotgan bo'sh obyekt
 class NullLogger {
   log(msg) {
     if (env.DEBUG) console.log(msg); // Yo'q! Null — bu NULL degani.
@@ -460,24 +460,24 @@ class NullLogger {
 }
 ```
 
-### 2. Null Object'dan null qaytarish
+### 2. Bo'sh obyektdan null qaytarish
 
-Agar Null Object'ingiz biror narsa qaytarishi kerak bo'lsa, u mantiqiy standart qiymatlarni (bo'sh massivlar, `0`, bo'sh satrlar) qaytarishi kerak. Agar u `null` qaytarsa, siz `NullReferenceException`'ni shunchaki mijozga qaytarib, keyinga surgan bo'lasiz!
+Agar bo'sh obyektingiz biror narsa qaytarishi kerak bo'lsa, u mantiqiy standart qiymatlarni (bo'sh massivlar, `0`, bo'sh satrlar) qaytarishi kerak. Agar u `null` qaytarsa, siz `NullReferenceException`'ni shunchaki mijozga qaytarib, keyinga surgan bo'lasiz!
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Strategy](/uz/behavioral/strategy)**: Null Object amalda tanlangan strategiyasi "Hech narsa qilmaslik" bo'lgan Strategy patternidir.
-- **[Singleton](/uz/creational/singleton)**: Null obyektlar mutlaqo holatsiz (stateless). Ularni bir necha marta yaratishga hech qanday sabab yo'q. Ular deyarli har doim Singleton sifatida amalga oshiriladi.
-- **[Proxy](/uz/structural/proxy)**: Proxy haqiqiy subyektga kirishni nazorat qiladi; Null Object esa haqiqiy subyekt umuman mavjud bo'lmagan Proxy kabi ishlaydi.
+- **[Strategiya](/uz/behavioral/strategy)**: Bo'sh obyekt amalda tanlangan strategiyasi "Hech narsa qilmaslik" bo'lgan Strategiya andozasidir.
+- **[Singleton](/uz/creational/singleton)**: Bo'sh obyektlar mutlaqo holatsiz (stateless). Ularni bir necha marta yaratishga hech qanday sabab yo'q. Ular deyarli har doim Singleton sifatida amalga oshiriladi.
+- **[O'rinbosar](/uz/structural/proxy)** (Proxy): O'rinbosar haqiqiy subyektga kirishni nazorat qiladi; bo'sh obyekt esa haqiqiy subyekt umuman mavjud bo'lmagan O'rinbosar kabi ishlaydi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Qat'iy null tekshiruvlariga ega Kotlin yoki TypeScript kabi tillarda Null Object Pattern eskirganmi?"
-  - **Javob**: "Xotira xavfsizligi uchun u unchalik muhim emas, lekin arxitektura nuqtai nazaridan hali ham juda qimmatli. Qat'iy null tekshiruvlari bilan ham `Optional` yoki nullable turni boshqarish `if (tracker != null)` yozishni yoki `tracker?.track()` kabi xavfsiz chaqiruvlardan foydalanishni talab qiladi. Null Object patterni bu shartlarga bo'lgan ehtiyojni butunlay yo'qotadi va qarorni composition root'ga ko'chiradi."
-- **Savol**: "Agar metod ro'yxat kutsa, Null Object nima qaytarishi kerak?"
-  - **Javob**: "U `null` emas, bo'sh ro'yxat (`[]`) qaytarishi kerak. Patternning mohiyati — mijoz o'zini himoya qilishi shart bo'lmagan, oldindan aytib bo'ladigan va xavfsiz kontraktni saqlashdir."
+- **Savol**: "Qat'iy null tekshiruvlariga ega Kotlin yoki TypeScript kabi tillarda Bo'sh obyekt andozasi eskirganmi?"
+  - **Javob**: "Xotira xavfsizligi uchun u unchalik muhim emas, lekin arxitektura nuqtai nazaridan hali ham juda qimmatli. Qat'iy null tekshiruvlari bilan ham `Optional` yoki nullable turni boshqarish `if (tracker != null)` yozishni yoki `tracker?.track()` kabi xavfsiz chaqiruvlardan foydalanishni talab qiladi. Bo'sh obyekt andozasi bu shartlarga bo'lgan ehtiyojni butunlay yo'qotadi va qarorni composition root'ga ko'chiradi."
+- **Savol**: "Agar metod ro'yxat kutsa, bo'sh obyekt nima qaytarishi kerak?"
+  - **Javob**: "U `null` emas, bo'sh ro'yxat (`[]`) qaytarishi kerak. Andozaning mohiyati — mijoz o'zini himoya qilishi shart bo'lmagan, oldindan aytib bo'ladigan va xavfsiz kontraktni saqlashdir."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Optional Chaining**: JS/TS, C# va Kotlin'da `logger?.log()` — bu bir qatorda "agar null bo'lsa, hech narsa qilma"ni bajaradigan tabiiy til imkoniyati. Bu Null Object patterniga bo'lgan ehtiyojni sezilarli darajada kamaytiradi.
+- **Optional Chaining**: JS/TS, C# va Kotlin'da `logger?.log()` — bu bir qatorda "agar null bo'lsa, hech narsa qilma"ni bajaradigan tabiiy til imkoniyati. Bu Bo'sh obyekt andozasiga bo'lgan ehtiyojni sezilarli darajada kamaytiradi.
 - **Option / Maybe monadalari**: Funksional dasturlash tillari `Option` o'ramini qaytaradi. Siz option ustida map qilasiz va agar u `None` bo'lsa, amal tabiiy ravishda hech narsa qilmaydi.

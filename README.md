@@ -58,7 +58,7 @@ scripts/                 # Content checks and the image pipeline
 - Group implementations with `::: code-group` and label tabs by language, e.g. ` ```python [Python] `.
 - Diagrams go in ` ```mermaid ` blocks.
 - Add new pages to the sidebar in `.vitepress/config/langs/en.ts` and `uz.ts`.
-- Translations live at the same path under `src/uz/`; keep code blocks identical to English (comments may be translated) and run `bun run check:i18n`.
+- Translations live at the same path under `src/uz/`; keep code blocks identical to English (comments may be translated) and run `bun run check:i18n`. Uzbek wording follows [GLOSSARY.uz.md](GLOSSARY.uz.md) ("Loyihalash andozalari", pattern = andoza).
 
 ## Support
 

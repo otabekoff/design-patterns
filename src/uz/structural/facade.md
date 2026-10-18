@@ -1,25 +1,25 @@
 ---
-title: Facade Pattern
+title: Fasad andozasi (Facade)
 description: Quyi tizimdagi interfeyslar to'plamiga yagona, soddalashtirilgan interfeys taqdim etadi.
 icon: Zap
 ---
 
-# Facade Pattern
+# Fasad andozasi (Facade)
 
 <CoverImage src="/covers/structural/facade.webp" alt="Cover">
-  <h1>Facade</h1>
+  <h1>Fasad</h1>
   <p>Kutib oluvchi qizil gilam va uning oldida turgan do'stona robot-xizmatkor bilan go'zal, beg'ubor qal'a devori fasadi — u devor ortidagi yovvoyi simlar, aylanayotgan tishli g'ildiraklar va tutundan iborat mutlaq tartibsizlikni butunlay yashirib turibdi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Facade** — bu murakkab quyi tizimga (subsystem) sodda, yuqori darajadagi interfeys taqdim etuvchi strukturaviy (structural) dizayn patternidir. U quyi tizimni olib tashlamaydi; shunchaki mijozlarga toza kirish nuqtasini beradi, shunda ular har bir ichki servisni o'zlari muvofiqlashtirishlari shart bo'lmaydi.
+**Fasad (Facade)** — bu murakkab quyi tizimga (subsystem) sodda, yuqori darajadagi interfeys taqdim etuvchi tuzilmaviy (structural) loyihalash andozasidir. U quyi tizimni olib tashlamaydi; shunchaki mijozlarga toza kirish nuqtasini beradi, shunda ular har bir ichki servisni o'zlari muvofiqlashtirishlari shart bo'lmaydi.
 
 **Asosiy afzalligi**: Bog'liqlikni (coupling) kamaytiradi va mijoz kodini ko'plab harakatlanuvchi qismlar o'rniga bitta niyatga yo'naltirilgan holda saqlaydi.
 
-**Zamonaviy nuqtai nazar**: Facade hali ham API orkestratsiyasida, SDK o'ramlarida, checkout oqimlarida, autentifikatsiya oqimlarida va domen servislarini muvofiqlashtirishda keng qo'llaniladi. Bu kundalik ilova kodidagi eng amaliy strukturaviy patternlardan biri.
+**Zamonaviy nuqtai nazar**: Fasad hali ham API orkestratsiyasida, SDK o'ramlarida, checkout oqimlarida, autentifikatsiya oqimlarida va domen servislarini muvofiqlashtirishda keng qo'llaniladi. Bu kundalik ilova kodidagi eng amaliy tuzilmaviy andozalardan biri.
 
-Facade mos kelmaydigan interfeyslarni tarjima qilish haqida emas. U **kirishni soddalashtirish** haqida.
+Fasad mos kelmaydigan interfeyslarni tarjima qilish haqida emas. U **kirishni soddalashtirish** haqida.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -94,7 +94,7 @@ Buni test qilish, qayta ishlatish va xavfsiz o'zgartirish qiyin.
 
 ## Yechim (The Solution)
 
-Facade orkestratsiyani alohida klassga ko'chirish orqali bu muammoni hal qiladi.
+Fasad orkestratsiyani alohida klassga ko'chirish orqali bu muammoni hal qiladi.
 
 1. Mijoz bitta fasad metodi bilan muloqot qiladi
 2. Fasad quyi tizim chaqiruvlarini muvofiqlashtiradi
@@ -528,7 +528,7 @@ class BadFacade {
   exportCsv() {}
 }
 
-// ✅ Yaxshi: bitta chegaralangan jarayon uchun bitta facade
+// ✅ Yaxshi: bitta chegaralangan jarayon uchun bitta fasad
 class CheckoutFacade {
   placeOrder() {}
 }
@@ -549,14 +549,14 @@ class CheckoutFacade {
 ### 3-xato: Domen qoidalarini fasadga ko'chirish
 
 ```typescript
-// ❌ Yomon: narxlash siyosati facade'ga tegishli
+// ❌ Yomon: narxlash siyosati fasadga tegishli
 class BadCheckoutFacade {
   placeOrder() {
     // bu yerda narxlash siyosati juda ko'p
   }
 }
 
-// ✅ Yaxshi: facade boshqaradi, servislar o'z qoidalarini o'zlari belgilaydi
+// ✅ Yaxshi: fasad boshqaradi, servislar o'z qoidalarini o'zlari belgilaydi
 ```
 
 ### 4-xato: Quyi tizim metodlarini birma-bir takrorlash
@@ -575,12 +575,12 @@ class CheckoutFacade {
 }
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Adapter](/uz/structural/adapter)**: Mos kelmaydigan interfeyslarni tarjima qiladi; Facade esa kirishni soddalashtiradi
-- **[Mediator](/uz/behavioral/mediator)**: Hamkasblarni (colleagues) dinamikroq muvofiqlashtiradi
+- **[Adapter](/uz/structural/adapter)**: Mos kelmaydigan interfeyslarni tarjima qiladi; Fasad esa kirishni soddalashtiradi
+- **[Vositachi](/uz/behavioral/mediator)**: Hamkasblarni (colleagues) dinamikroq muvofiqlashtiradi
 - **[Singleton](/uz/creational/singleton)**: Ba'zan bitta fasad nusxasini baham ko'rish uchun ishlatiladi, lekin bu shart emas
-- **Facade + [Builder](/uz/creational/builder)**: Fasad murakkab qurish (construction) jarayonini yashirishi mumkin
+- **Fasad + [Quruvchi](/uz/creational/builder)**: Fasad murakkab qurish (construction) jarayonini yashirishi mumkin
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -592,22 +592,22 @@ class CheckoutFacade {
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Facade'ning asosiy maqsadi nima?**
+**1-savol: Fasadning asosiy maqsadi nima?**
 
 J: Murakkab quyi tizim ustidan soddalashtirilgan, yagona interfeys taqdim etish. U mijoz bilishi kerak bo'lgan narsalar sonini kamaytiradi.
 
-**2-savol: Facade Adapter'dan nimasi bilan farq qiladi?**
+**2-savol: Fasad Adapter'dan nimasi bilan farq qiladi?**
 
-J: Facade soddalashtiradi. Adapter mos kelmaydigan interfeyslarni o'zgartiradi.
+J: Fasad soddalashtiradi. Adapter mos kelmaydigan interfeyslarni o'zgartiradi.
 
-**3-savol: Facade quyi tizimni almashtiradimi?**
+**3-savol: Fasad quyi tizimni almashtiradimi?**
 
 J: Yo'q. U quyi tizim ustida turadi va ishni unga topshiradi.
 
-**4-savol: Facade qachon anti-patternga aylanadi?**
+**4-savol: Fasad qachon anti-andozaga aylanadi?**
 
 J: U juda ko'p o'zaro aloqasiz ish oqimlarini o'z zimmasiga olgan ulkan god object'ga aylanganda yoki chaqiruvchilarga haqiqatan ham kerak bo'lgan muhim murakkablikni yashirganda.
 
-**5-savol: Facade faqat obyektga yo'naltirilgan kod uchunmi?**
+**5-savol: Fasad faqat obyektga yo'naltirilgan kod uchunmi?**
 
-J: Yo'q. Bu pattern API'larda, servislarda, orkestratsiya qatlamlarida va hatto CLI vositalarida ham mavjud. Asosiy g'oya — soddalashtirilgan kirish nuqtasi.
+J: Yo'q. Bu andoza API'larda, servislarda, orkestratsiya qatlamlarida va hatto CLI vositalarida ham mavjud. Asosiy g'oya — soddalashtirilgan kirish nuqtasi.

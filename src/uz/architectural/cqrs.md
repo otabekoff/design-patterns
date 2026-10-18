@@ -1,10 +1,10 @@
 ---
-title: Command Query Responsibility Segregation (CQRS)
+title: CQRS andozasi
 description: O'qish operatsiyalarini yozish operatsiyalaridan qat'iy ravishda alohida modellarga ajratib, mustaqil masshtablash va optimallashtirish imkonini beradi.
 icon: Split
 ---
 
-# Command Query Responsibility Segregation (CQRS)
+# CQRS andozasi
 
 <CoverImage src="/covers/architectural/cqrs.webp" alt="Cover">
   <h1>CQRS</h1>
@@ -13,7 +13,7 @@ icon: Split
 
 ## Umumiy ko'rinish (Overview)
 
-**Command Query Responsibility Segregation (CQRS)** - ilovangizning konseptual modelini ikkita alohida qismga ajratadigan ilg'or arxitektura patternidir:
+**Command Query Responsibility Segregation (CQRS)** - ilovangizning konseptual modelini ikkita alohida qismga ajratadigan ilg'or arxitektura andozasidir:
 - **Command tomoni (Yozish)**: Holatni o'zgartiradigan amallarni (mutatsiyalarni) qayta ishlaydi. U murakkab biznes qoidalari va validatsiyalarni majburiy qo'llaydi.
 - **Query tomoni (O'qish)**: Holatni qaytaradigan amallarni (ma'lumot olishni) qayta ishlaydi. U murakkab domen mantig'ini chetlab o'tadi va UI ga to'g'ridan-to'g'ri tekis, optimallashtirilgan ma'lumotlar tuzilmalarini qaytaradi.
 
@@ -447,8 +447,8 @@ UI ni bunga moslab loyihalashingiz kerak (masalan, optimistik UI yangilanishlari
 - **Query'larda buyruq berish**: QueryHandler ichida tasodifan holatni o'zgartirish. Query'lar yon ta'sirlarsiz (side-effect free) bo'lishi SHART.
 - **Command'larda so'rov qilish**: CommandHandler'ning UI da ko'rsatish uchun murakkab ma'lumotlar tuzilmalarini qaytarishi. Command odatda faqat `void`, ID yoki xatolikni qaytarishi kerak.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Event Sourcing](/uz/architectural/event-sourcing)**: CQRS deyarli har doim Event Sourcing bilan birga ishlatiladi. "Write DB" faqat qo'shiladigan Event Store'ga aylanadi.
-- **[Unit of Work](/uz/architectural/unit-of-work) / [Repository](/uz/architectural/repository)**: Ko'pincha Command Handler ichida yozish operatsiyasi va hodisani e'lon qilish atomar ravishda muvaffaqiyatli bo'lishini ta'minlash uchun ishlatiladi.
-- **[Mediator](/uz/behavioral/mediator)**: Monolit CQRS implementatsiyalarida (masalan, C# dagi MediatR) Command va Query'larni qattiq bog'liqliksiz tegishli handler'larga yo'naltirish uchun Mediator patternidan foydalaniladi.
+- **[Ish birligi](/uz/architectural/unit-of-work) / [Repozitoriy](/uz/architectural/repository)**: Ko'pincha Command Handler ichida yozish operatsiyasi va hodisani e'lon qilish atomar ravishda muvaffaqiyatli bo'lishini ta'minlash uchun ishlatiladi.
+- **[Vositachi](/uz/behavioral/mediator)**: Monolit CQRS implementatsiyalarida (masalan, C# dagi MediatR) Command va Query'larni qattiq bog'liqliksiz tegishli handler'larga yo'naltirish uchun Vositachi (Mediator) andozasidan foydalaniladi.

@@ -1,19 +1,19 @@
 ---
-title: Prototype patterni
+title: Prototip andozasi (Prototype)
 description: Yangi obyektlarni noldan yaratish o'rniga mavjud prototip obyektni klonlash orqali yaratadi.
 icon: Copy
 ---
 
-# Prototype patterni
+# Prototip andozasi (Prototype)
 
 <CoverImage src="/covers/creational/prototype.webp" alt="Cover">
-  <h1>Prototype</h1>
+  <h1>Prototip</h1>
   <p>O'yinqaroq, futuristik klonlash mashinasi: unga bitta asl yashil shilimshiq maxluq kiradi, novlardan esa endigina chiqqan bir xil yashil shilimshiq klonlar qatori chiqib keladi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Prototype** patterni yaratuvchi (creational) dizayn patterni bo'lib, yangi obyektlarni noldan yaratish o'rniga mavjud obyektdan (prototipdan) nusxa olish orqali yaratish imkonini beradi. Asosiy masala — **sayoz nusxa (shallow copy)** (havolalarni nusxalaydi) va **chuqur nusxa (deep copy)** (ichki obyektlarni ham nusxalaydi) o'rtasidagi farqni ajrata bilish.
+**Prototip (Prototype)** andozasi yaratuvchi (creational) loyihalash andozasi bo'lib, yangi obyektlarni noldan yaratish o'rniga mavjud obyektdan (prototipdan) nusxa olish orqali yaratish imkonini beradi. Asosiy masala — **sayoz nusxa (shallow copy)** (havolalarni nusxalaydi) va **chuqur nusxa (deep copy)** (ichki obyektlarni ham nusxalaydi) o'rtasidagi farqni ajrata bilish.
 
 **Asosiy afzallik**: Initsializatsiya qimmat bo'lganda obyektlarni tezroq yaratish hamda murakkab konstruktor mantig'ini olib tashlash orqali obyekt yaratishni soddalashtirish.
 
@@ -22,9 +22,9 @@ icon: Copy
 - Freymvorklarga o'rnatilgan obyekt klonlash mexanizmlari
 - Copy-on-write ga ega o'zgarmas (immutable) ma'lumotlar tuzilmalari
 - Serializatsiya/deserializatsiya kutubxonalari
-- Oldindan sozlangan instansiyalarga ega Factory patternlari
+- Oldindan sozlangan instansiyalarga ega Fabrika andozalari
 
-Shunga qaramay, Prototype obyektni initsializatsiya qilish qimmat bo'lgan, unumdorlik muhim bo'lgan holatlarda qimmatli bo'lib qoladi.
+Shunga qaramay, Prototip obyektni initsializatsiya qilish qimmat bo'lgan, unumdorlik muhim bo'lgan holatlarda qimmatli bo'lib qoladi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -123,7 +123,7 @@ class GameCharacter {
 
 ## Yechim (Solution)
 
-Prototype patterni buni quyidagicha hal qiladi:
+Prototip andozasi buni quyidagicha hal qiladi:
 
 1. **Obyektlarni klonlanadigan deb belgilash** (Clone/Copy interfeysini amalga oshirish)
 2. **Nusxa yaratadigan clone() metodini taqdim etish**
@@ -841,12 +841,12 @@ for (let i = 0; i < 10000; i++) {
 }
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Factory Method**: Obyekt yaratish uchun ko'pincha Prototype reyestri bilan birga ishlatiladi
-- **Builder**: Murakkab obyektlarni qurish uchun muqobil
-- **Abstract Factory**: Prototip obyektlarni taqdim etish uchun Prototype ishlatilishi mumkin
-- **Singleton**: Prototype Singleton instansiyasini o'z ichiga olishi mumkin
+- **Fabrika metodi (Factory Method)**: Obyekt yaratish uchun ko'pincha Prototiplar reyestri bilan birga ishlatiladi
+- **Quruvchi (Builder)**: Murakkab obyektlarni qurish uchun muqobil
+- **Abstrakt fabrika (Abstract Factory)**: Prototip obyektlarni taqdim etish uchun Prototip andozasi ishlatilishi mumkin
+- **Singleton**: Prototip Singleton instansiyasini o'z ichiga olishi mumkin
 
 ## Zamonaviy muqobillar
 
@@ -871,22 +871,22 @@ for (let i = 0; i < 10000; i++) {
 
 J: Sayoz nusxa obyektni va primitiv qiymatlarni nusxalaydi, lekin ichki obyektlarga havolalar umumiy bo'lib qoladi. Chuqur nusxa esa hamma narsani, jumladan ichki obyektlarni ham rekursiv ravishda nusxalaydi. Sayoz nusxa tez, ammo o'zgaruvchan maydonlar bilan xavfli; chuqur nusxa xavfsiz, lekin sekinroq.
 
-**S2: Qachon Factory o'rniga Prototype ishlatgan bo'lardingiz?**
+**S2: Qachon Fabrika o'rniga Prototip ishlatgan bo'lardingiz?**
 
-J: Prototype obyekt initsializatsiyasi qimmat bo'lganda eng yaxshi tanlov. Xarajatni prototipni yaratishda bir marta to'laysiz, so'ngra arzonga klonlaysiz. Factory esa oddiy tarzda quriladigan obyektlarni yaratish uchun yaxshiroq.
+J: Prototip obyekt initsializatsiyasi qimmat bo'lganda eng yaxshi tanlov. Xarajatni prototipni yaratishda bir marta to'laysiz, so'ngra arzonga klonlaysiz. Fabrika esa oddiy tarzda quriladigan obyektlarni yaratish uchun yaxshiroq.
 
 **S3: Klonlashda aylanma havolalarni qanday boshqarasiz?**
 
 J: Tashrif buyurilgan obyektlarni Set/Map yordamida kuzatib borasiz. Allaqachon ko'rilgan obyektga duch kelganingizda, rekursiyaga kirish o'rniga havolani qaytarasiz. Bu cheksiz sikllarning oldini oladi.
 
-**S4: Prototype patterni zamonaviy tillarda hali ham dolzarbmi?**
+**S4: Prototip andozasi zamonaviy tillarda hali ham dolzarbmi?**
 
 J: Zamonaviy imkoniyatlar (nomlangan parametrlar, o'zgarmas tuzilmalar, serializatsiya kutubxonalari) tufayli kamroq dolzarb. Lekin initsializatsiya qimmat bo'lgan, unumdorlik muhim ssenariylarda hali ham qimmatli.
 
-**S5: Prototype Object.create() bilan qanday bog'liq?**
+**S5: Prototip andozasi Object.create() bilan qanday bog'liq?**
 
-J: JavaScript'dagi `Object.create()` belgilangan prototip obyektga ega obyekt yaratadi. Bu Prototype pattern g'oyasining til darajasidagi amalga oshirilishidir.
+J: JavaScript'dagi `Object.create()` belgilangan prototip obyektga ega obyekt yaratadi. Bu Prototip andozasi g'oyasining til darajasidagi amalga oshirilishidir.
 
-**S6: Prototype va nusxa konstruktori (copy constructor) o'rtasidagi farq nima?**
+**S6: Prototip va nusxa konstruktori (copy constructor) o'rtasidagi farq nima?**
 
-J: Ikkalasi ham nusxa yaratadi, lekin Prototype tilga bog'liq emas va polimorf bo'lishi mumkin. Nusxa konstruktori esa tilga xos (C++, Java) bo'lib, to'g'ridan-to'g'ri maxsus konstruktorni chaqiradi.
+J: Ikkalasi ham nusxa yaratadi, lekin Prototip tilga bog'liq emas va polimorf bo'lishi mumkin. Nusxa konstruktori esa tilga xos (C++, Java) bo'lib, to'g'ridan-to'g'ri maxsus konstruktorni chaqiradi.

@@ -1,23 +1,23 @@
 ---
-title: Template Method Pattern
+title: Shablon metod andozasi (Template Method)
 description: Algoritm skeletini superklassda belgilaydi, lekin voris klasslarga algoritm tuzilmasini o'zgartirmasdan uning muayyan qadamlarini qayta belgilash imkonini beradi.
 icon: BookMarked
 ---
 
-# Template Method Pattern
+# Shablon metod andozasi (Template Method)
 
 <CoverImage src="/covers/behavioral/template-method.webp" alt="Cover">
-  <h1>Template Method</h1>
+  <h1>Shablon metod</h1>
   <p>Qattiq yurak shaklidagi qoliplarga ega pechenye pishirish patnisi; oshpaz robot qoliplarga turli xil xamir (shokoladli, vanilli, qulupnayli) quymoqda — bu o'zgarmas tuzilma va moslashtiriladigan qadamlarni ko'rsatadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Template Method** (Shablon metod) — bu asosiy (base) klassda algoritm skeletini belgilaydigan, lekin voris klasslarga (subclass) uning umumiy tuzilmasini o'zgartirmasdan algoritmning muayyan qadamlarini qayta belgilash (override qilish) imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir.
+**Shablon metod** (Template Method) — bu asosiy (base) klassda algoritm skeletini belgilaydigan, lekin voris klasslarga (subclass) uning umumiy tuzilmasini o'zgartirmasdan algoritmning muayyan qadamlarini qayta belgilash (override qilish) imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir.
 
 **Asosiy afzalligi**: U algoritmning o'zgarmas qismlarini asosiy klassga chiqarib, o'zgaruvchan qismlarini voris klasslar tomonidan moslashtirishga imkon berish orqali kod takrorlanishini yo'q qiladi.
 
-**Zamonaviy nuqtai nazar**: Template Method tarixan og'ir klass merosxo'rligiga asoslangan bo'lsa-da, uning asosiy g'oyasi hamon muhim. Zamonaviy funksional dasturlashda bunga ko'pincha "shablon funksiya"ga yuqori tartibli funksiyalarni (callback'larni) uzatish orqali erishiladi. OOP'da u hali ham freymvorklarda keng qo'llaniladi (masalan, Angular'dagi `ngOnInit` yoki eski React'dagi `componentDidMount` kabi komponent hayot sikli metodlari), bu yerda freymvork _qachon_ ni (shablonni) belgilaydi, dasturchi esa _nima_ ni (qayta belgilangan qadamni) aniqlaydi.
+**Zamonaviy nuqtai nazar**: Shablon metod andozasi tarixan og'ir klass merosxo'rligiga asoslangan bo'lsa-da, uning asosiy g'oyasi hamon muhim. Zamonaviy funksional dasturlashda bunga ko'pincha "shablon funksiya"ga yuqori tartibli funksiyalarni (callback'larni) uzatish orqali erishiladi. OOP'da u hali ham freymvorklarda keng qo'llaniladi (masalan, Angular'dagi `ngOnInit` yoki eski React'dagi `componentDidMount` kabi komponent hayot sikli metodlari), bu yerda freymvork _qachon_ ni (shablonni) belgilaydi, dasturchi esa _nima_ ni (qayta belgilangan qadamni) aniqlaydi.
 
 ## Muammo (The Problem)
 
@@ -63,7 +63,7 @@ Agar yangi qadam qo'shishingiz kerak bo'lsa (masalan, "yuborishdan oldin hisobot
 
 ## Yechim (The Solution)
 
-Template Method patterni algoritmni asosiy klass ichida qadamlar ketma-ketligi sifatida e'lon qilishni taklif qiladi.
+Shablon metod andozasi algoritmni asosiy klass ichida qadamlar ketma-ketligi sifatida e'lon qilishni taklif qiladi.
 
 1. **Abstrakt asosiy klass (Abstract Base Class)**: Algoritmni tashkil etuvchi metod chaqiruvlari ketma-ketligini o'z ichiga olgan "shablon metod"ni (masalan, `mine()`) belgilaydi.
 2. **Qadamlar (Steps)**: Shablon metod tomonidan chaqiriladigan metodlar.
@@ -138,7 +138,7 @@ Keling, **CI/CD Build Pipeline**'ni amalga oshiramiz. Har bir loyiha (Node.js, R
 ```typescript [TypeScript]
 // 1. Abstrakt asosiy klass
 abstract class BuildPipeline {
-  // Template Method. U aniq ketma-ketlikni belgilaydi.
+  // Shablon metod. U aniq ketma-ketlikni belgilaydi.
   // Qayta belgilanmasligi uchun `readonly` ishlatamiz yoki uni shartli ravishda final deb hisoblaymiz.
   public buildProject(): void {
     this.checkout();
@@ -234,7 +234,7 @@ from abc import ABC, abstractmethod
 
 # 1. Abstrakt asosiy klass
 class BuildPipeline(ABC):
-    # The Template Method
+    # Shablon metod
     def build_project(self) -> None:
         self._checkout()
         self._install_dependencies()
@@ -321,7 +321,7 @@ if __name__ == "__main__":
 // 1. Abstrakt asosiy klass
 abstract class BuildPipeline {
 
-    // Voris klasslar ketma-ketlikni o'zgartira olmasligi uchun Template Method final qilingan
+    // Voris klasslar ketma-ketlikni o'zgartira olmasligi uchun shablon metod final qilingan
     public final void buildProject() {
         checkout();
         installDependencies();
@@ -426,7 +426,7 @@ package main
 import "fmt"
 
 // Go'da klasslar va an'anaviy merosxo'rlik yo'q.
-// Template Method uchun kompozitsiya va o'zgaruvchan qadamlar uchun interfeys ishlatamiz.
+// Shablon metod andozasi uchun kompozitsiya va o'zgaruvchan qadamlar uchun interfeys ishlatamiz.
 
 // 1. O'zgaruvchan qadamlar uchun interfeys
 type PipelineSteps interface {
@@ -442,7 +442,7 @@ type BuildPipeline struct {
 	steps PipelineSteps // Interfeysni joylashtiramiz
 }
 
-// The Template Method
+// Shablon metod
 func (b *BuildPipeline) BuildProject() {
 	b.checkout()
 	b.steps.InstallDependencies()
@@ -530,11 +530,11 @@ func main() {
 
 ```rust [Rust]
 // Rust merosxo'rlikdan ko'ra trait'lar va kompozitsiyani afzal ko'radi.
-// Template Method'ni tayyor metodli trait yordamida amalga oshirish mumkin.
+// Shablon metod andozasini tayyor metodli trait yordamida amalga oshirish mumkin.
 
 // 1. Trait (asosiy shablon + abstrakt qadamlar)
 trait BuildPipeline {
-    // Template Method (tayyor amalga oshirish)
+    // Shablon metod (tayyor amalga oshirish)
     fn build_project(&self) {
         self.checkout();
         self.install_dependencies();
@@ -641,7 +641,7 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **Qattiq tuzilma**: Voris klasslar taqdim etilgan skeletga bog'langan. Agar voris klass oqimni sezilarli darajada o'zgartirishi kerak bo'lsa, pattern ishlamay qoladi.
+- **Qattiq tuzilma**: Voris klasslar taqdim etilgan skeletga bog'langan. Agar voris klass oqimni sezilarli darajada o'zgartirishi kerak bo'lsa, andoza ishlamay qoladi.
 - **Liskov almashtirish tamoyili (Liskov Substitution Principle) xavflari**: Voris klasslar standart qadamni bo'sh metod bilan qayta belgilab, uni bostirishi mumkin, bu esa kutilgan xulq-atvorni buzishi mumkin.
 - **Texnik xizmat ko'rsatish qiyin**: Juda ko'p qadam yoki hook'larga ega shablonlarni o'qish va qo'llab-quvvatlash nihoyatda qiyinlashadi.
 
@@ -652,7 +652,7 @@ fn main() {
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Yuqori o'zgaruvchanlik**: Agar qadamlar ketma-ketligi tez-tez o'zgarsa, uni asosiy klassda qotirib qo'yish katta bosh og'rig'iga sabab bo'ladi. Buning o'rniga **[Strategy](/uz/behavioral/strategy)**'dan foydalaning.
+- **Yuqori o'zgaruvchanlik**: Agar qadamlar ketma-ketligi tez-tez o'zgarsa, uni asosiy klassda qotirib qo'yish katta bosh og'rig'iga sabab bo'ladi. Buning o'rniga **[Strategiya](/uz/behavioral/strategy)** (Strategy) andozasidan foydalaning.
 - **Kam variantlar**: Agar sizda faqat bitta yoki ikkita variant bo'lsa, abstrakt klasslar va voris klasslar yaratish xarajatlari bunga arzimasligi mumkin.
 - **Kompozitsiyaga asoslangan kod bazalari**: Agar arxitekturangiz merosxo'rlikdan qat'iy qochsa (masalan, Go, zamonaviy React, Rust), odatda buni klassik merosxo'rlik o'rniga yuqori tartibli funksiyalar (Higher-Order Functions) yoki interfeys inyeksiyasi orqali amalga oshirasiz.
 
@@ -660,23 +660,23 @@ fn main() {
 
 ### 1. Shablon metodni final qilishni unutish
 
-Java yoki C# kabi tillarda, agar shablon metodni aniq `final` / `sealed` deb belgilamasangiz, voris klass shablon metodning o'zini qayta belgilashi mumkin va bu patternning maqsadini butunlay yo'q qiladi.
+Java yoki C# kabi tillarda, agar shablon metodni aniq `final` / `sealed` deb belgilamasangiz, voris klass shablon metodning o'zini qayta belgilashi mumkin va bu andozaning maqsadini butunlay yo'q qiladi.
 
 ### 2. "Xudo shabloni" (God Template) yaratish
 
 Agar shablon metodingiz 15 xil abstrakt qadamni chaqirsa, voris klass yaratish dahshatga aylanadi, chunki dasturchi 15 ta bir-biriga bog'lanmagan metodni amalga oshirishi kerak bo'ladi. Qadamlarni o'zaro bog'liq (cohesive) va minimal saqlang.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Strategy](/uz/behavioral/strategy)**: Template Method'ning eng katta raqibi. Strategy obyekt kompozitsiyasi orqali _butun_ algoritmni o'zgartiradi. Template Method esa merosxo'rlik orqali algoritmning _qismlarini_ o'zgartiradi.
-- **[Factory Method](/uz/creational/factory-method)**: Factory Method ko'pincha algoritm uchun kerakli obyektlarni yaratish maqsadida Template Method ichidan chaqiriladi.
-- **[Builder](/uz/creational/builder)**: Ikkalasi ham qadamlarni belgilaydi, lekin Builder murakkab obyektni qadamma-qadam yaratishga e'tibor qaratadi, Template Method esa xulq-atvor algoritmini qadamma-qadam bajaradi.
+- **[Strategiya](/uz/behavioral/strategy)**: Shablon metodning eng katta raqibi. Strategiya obyekt kompozitsiyasi orqali _butun_ algoritmni o'zgartiradi. Shablon metod esa merosxo'rlik orqali algoritmning _qismlarini_ o'zgartiradi.
+- **[Fabrika metodi](/uz/creational/factory-method)** (Factory Method): Fabrika metodi ko'pincha algoritm uchun kerakli obyektlarni yaratish maqsadida shablon metod ichidan chaqiriladi.
+- **[Quruvchi](/uz/creational/builder)** (Builder): Ikkalasi ham qadamlarni belgilaydi, lekin Quruvchi murakkab obyektni qadamma-qadam yaratishga e'tibor qaratadi, Shablon metod esa xulq-atvor algoritmini qadamma-qadam bajaradi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "'Gollivud tamoyili' nima va u Template Method bilan qanday bog'liq?"
-  - **Javob**: "Gollivud tamoyili — 'Bizga qo'ng'iroq qilmang, biz sizga qo'ng'iroq qilamiz.' Template Method'da voris klass keyin nima qilish kerakligini bilish uchun asosiy klassni chaqirmaydi. Aksincha, asosiy klass ish oqimini belgilaydi va voris klassning qayta belgilangan metodlarini to'g'ri vaqtda chaqiradi."
-- **Savol**: "Template Method'da 'Hook' nima?"
+- **Savol**: "'Gollivud tamoyili' nima va u Shablon metod andozasi bilan qanday bog'liq?"
+  - **Javob**: "Gollivud tamoyili — 'Bizga qo'ng'iroq qilmang, biz sizga qo'ng'iroq qilamiz.' Shablon metod andozasida voris klass keyin nima qilish kerakligini bilish uchun asosiy klassni chaqirmaydi. Aksincha, asosiy klass ish oqimini belgilaydi va voris klassning qayta belgilangan metodlarini to'g'ri vaqtda chaqiradi."
+- **Savol**: "Shablon metod andozasida 'Hook' nima?"
   - **Javob**: "Hook — abstrakt klassdagi bo'sh yoki standart amalga oshirilishga ega metod. U _albatta_ qayta belgilanishi shart bo'lgan abstrakt metodlardan farqli o'laroq, voris klasslar uchun ixtiyoriy kengaytirish nuqtasini taqdim etadi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)

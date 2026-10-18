@@ -1,19 +1,19 @@
 ---
-title: Producer-Consumer
+title: Ishlab chiqaruvchi–iste'molchi andozasi (Producer-Consumer)
 description: Asinxron navbat yoki bufer yordamida ma'lumot yaratishni uni qayta ishlashdan ajratadi.
 icon: Play
 ---
 
-# Producer-Consumer Pattern
+# Ishlab chiqaruvchi–iste'molchi andozasi (Producer-Consumer)
 
 <CoverImage src="/covers/architectural/producer-consumer.webp" alt="Cover">
-  <h1>Producer Consumer</h1>
+  <h1>Ishlab chiqaruvchi–iste'molchi</h1>
   <p>Qiziqarli konveyer lentasi: uchta g'ayratli novvoy robot (Ishlab chiqaruvchilar) yangi pishgan donutlarni umumiy yog'och qutiga tashlamoqda, uchta och mijoz robot (Iste'molchilar) esa ularni narigi tomondan olib yemoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Producer-Consumer** (Ishlab chiqaruvchi-Iste'molchi) patterni — fundamental parallellik (concurrency) va arxitektura dizayn patterni. U ma'lumot yaratadigan kodni (**Producer**) shu ma'lumotni qayta ishlaydigan koddan (**Consumer**) ular orasiga oraliq **Navbat (Queue)** yoki **Bufer** joylashtirish orqali ajratadi.
+**Ishlab chiqaruvchi–iste'molchi** (Producer-Consumer) andozasi — fundamental parallellik (concurrency) va arxitektura loyihalash andozasi. U ma'lumot yaratadigan kodni (**Producer**) shu ma'lumotni qayta ishlaydigan koddan (**Consumer**) ular orasiga oraliq **Navbat (Queue)** yoki **Bufer** joylashtirish orqali ajratadi.
 
 Bu ikkala tomonga butunlay turli tezliklarda, turli oqimlarda (thread) yoki hatto butunlay boshqa serverlarda ishlash imkonini beradi.
 
@@ -76,12 +76,12 @@ Mahalliy ilova parallelligi uchun buni oqimlar uchun xavfsiz (thread-safe) ma'lu
 
 ## Kod misollari (Code Examples)
 
-Biz mahalliy ko'p oqimli (yoki asinxron) Producer-Consumer tizimini amalga oshiramiz. E'tibor bering, turli tillar o'ziga xos idiomatik primitivlardan foydalanadi: Go `channels`, Rust `mpsc`, Java `BlockingQueue`, JS esa asinxron massivlardan foydalanadi.
+Biz mahalliy ko'p oqimli (yoki asinxron) Ishlab chiqaruvchi–iste'molchi tizimini amalga oshiramiz. E'tibor bering, turli tillar o'ziga xos idiomatik primitivlardan foydalanadi: Go `channels`, Rust `mpsc`, Java `BlockingQueue`, JS esa asinxron massivlardan foydalanadi.
 
 ::: code-group
 
 ```typescript [TypeScript (Async/Await)]
-// TypeScript bir oqimli, shuning uchun pattern'ni async/await bilan simulyatsiya qilamiz,
+// TypeScript bir oqimli, shuning uchun andozani async/await bilan simulyatsiya qilamiz,
 // bu event loop'ga bajarishni bo'shatib berish imkonini beradi.
 
 class AsyncQueue<T> {
@@ -340,8 +340,8 @@ fn main() {
 - **Chegaralanmagan navbatlar (Unbounded Queues)**: Cheksiz sig'imli navbat yaratish. Har doim **Chegaralangan navbatdan (Bounded Queue)** (maksimal hajmga ega navbat) foydalaning. Agar navbat to'lsa, Producer bloklanishi yoki xato qaytarishi kerak (Backpressure — teskari bosimni qo'llash).
 - **Jim nosozliklar (Silent Failures)**: Agar consumer vazifani qayta ishlash paytida halokatli xatoga duch kelsa, u vazifani "Dead Letter Queue"ga qo'yishi yoki nosozlikni logga yozishi kerak. Vazifani shunchaki tashlab yuborish ma'lumot yo'qolishiga olib keladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **Message Broker**: Bu patternning taqsimlangan, infratuzilma darajasidagi versiyasi (masalan, Apache Kafka, RabbitMQ).
-- **Thread Pool**: Odatda Producer-Consumer patternini ichki tarzda amalga oshiradi. Siz vazifalarni navbatga yuborasiz (ishlab chiqarasiz), ishchi oqimlar esa ularni bajaradi (iste'mol qiladi).
+- **Message Broker**: Bu andozaning taqsimlangan, infratuzilma darajasidagi versiyasi (masalan, Apache Kafka, RabbitMQ).
+- **Thread Pool**: Odatda Ishlab chiqaruvchi–iste'molchi andozasini ichki tarzda amalga oshiradi. Siz vazifalarni navbatga yuborasiz (ishlab chiqarasiz), ishchi oqimlar esa ularni bajaradi (iste'mol qiladi).
 - **Pub-Sub**: Bitta ishlab chiqarilgan xabar nusxalanib, _bir nechta_ turli consumer'larga yetkaziladigan variant.

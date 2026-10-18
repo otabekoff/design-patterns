@@ -1,23 +1,23 @@
 ---
-title: State Pattern
+title: Holat andozasi (State)
 description: Obyektga ichki holati o'zgarganda o'z xulq-atvorini o'zgartirish imkonini beradi. Holatga xos xulq-atvorni inkapsulyatsiya qiladi.
 icon: Zap
 ---
 
-# State Pattern
+# Holat andozasi (State)
 
 <CoverImage src="/covers/behavioral/state.webp" alt="Cover">
-  <h1>State</h1>
+  <h1>Holat</h1>
   <p>Yuz ekrani va tana rangi dinamik ravishda o'zgaradigan g'alati robot: unga "batareya" berilsa, u sariq rangga kiradi (xursand), "singan tishli g'ildirak" berilsa, qizil rangga kiradi (jahldor), bekor qoldirilsa esa ko'k rangga kiradi (uxlayotgan).</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**State** — bu obyektga ichki holati (state) o'zgarganda o'z xulq-atvorini o'zgartirish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir. Go'yo obyekt o'z klassini o'zgartirgandek ko'rinadi.
+**Holat** (State) — bu obyektga ichki holati (state) o'zgarganda o'z xulq-atvorini o'zgartirish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir. Go'yo obyekt o'z klassini o'zgartirgandek ko'rinadi.
 
 **Asosiy afzalligi**: U holatga xos xulq-atvorlarni ulkan `switch/case` yoki `if/else` shartlaridan alohida, maxsus State klasslariga ajratib chiqaradi.
 
-**Zamonaviy nuqtai nazar**: Klassik obyektga yo'naltirilgan State patterni chekli holatlar mashinasining (Finite State Machine, FSM) amalga oshirilishidir. UI freymvorklari (React yoki Vue kabi) ko'pincha funksional yoki deklarativ holat boshqaruvidan (masalan, XState, Redux) foydalansa-da, asosiy g'oya — obyektning hodisaga javobi qat'iy ravishda uning joriy holatiga bog'liq ekanligi — hamma joyda qo'llanilishicha qolmoqda.
+**Zamonaviy nuqtai nazar**: Klassik obyektga yo'naltirilgan Holat andozasi chekli holatlar mashinasining (Finite State Machine, FSM) amalga oshirilishidir. UI freymvorklari (React yoki Vue kabi) ko'pincha funksional yoki deklarativ holat boshqaruvidan (masalan, XState, Redux) foydalansa-da, asosiy g'oya — obyektning hodisaga javobi qat'iy ravishda uning joriy holatiga bog'liq ekanligi — hamma joyda qo'llanilishicha qolmoqda.
 
 ## Muammo (The Problem)
 
@@ -67,7 +67,7 @@ Bu kod mo'rt. Agar yangi holat qo'shsangiz (masalan, `MaintenanceMode` — texni
 
 ## Yechim (The Solution)
 
-State patterni obyektning barcha mumkin bo'lgan holatlari uchun yangi klasslar yaratishni va holatga xos barcha xulq-atvorlarni ushbu klasslarga ajratib chiqarishni taklif qiladi.
+Holat andozasi obyektning barcha mumkin bo'lgan holatlari uchun yangi klasslar yaratishni va holatga xos barcha xulq-atvorlarni ushbu klasslarga ajratib chiqarishni taklif qiladi.
 
 1. **Context (Kontekst)**: Asl obyekt (`VendingMachine`). U `State` obyektiga havolani saqlaydi.
 2. **State interfeysi**: Har bir aniq holat amalga oshirishi kerak bo'lgan metodlarni belgilaydi (masalan, `insertCoin()`, `dispense()`).
@@ -659,32 +659,32 @@ fn main() {
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
 - **Oddiy holatlar**: Agar sizda faqat ikki yoki uchta oddiy holat bo'lsa (masalan, `isOn` true/false), oddiy boolean bayroqlardan foydalaning.
-- **Qat'iy chiziqli ish oqimlari**: Agar o'tishlar qat'iy chiziqli bo'lsa va ma'lumotlarni bosqichma-bosqich qayta ishlasa, **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)** yoki **Pipes and Filters** patterni mosroq bo'lishi mumkin.
+- **Qat'iy chiziqli ish oqimlari**: Agar o'tishlar qat'iy chiziqli bo'lsa va ma'lumotlarni bosqichma-bosqich qayta ishlasa, **[Mas'uliyatlar zanjiri](/uz/behavioral/chain-of-responsibility)** (Chain of Responsibility) yoki **Pipes and Filters** andozasi mosroq bo'lishi mumkin.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
 ### 1. O'tishlarni Context'ga qattiq yozib qo'yish
 
-Agar keyingi holatni Context (shartlar yordamida) aniqlasa, siz patterndan to'liq foydalanmagan bo'lasiz. O'tishlarni odatda Concrete State'larning o'zlari boshqargani ma'qul.
+Agar keyingi holatni Context (shartlar yordamida) aniqlasa, siz andozadan to'liq foydalanmagan bo'lasiz. O'tishlarni odatda Concrete State'larning o'zlari boshqargani ma'qul.
 
 ### 2. State nusxalarini qayta-qayta yaratish
 
 Agar holat obyektlarining maydonlari bo'lmasa (ular ma'lumotlar uchun butunlay Context'ga tayansa), o'tishlar paytida ortiqcha xotira ajratilishining oldini olish uchun ularni Singleton yoki statik nusxalar sifatida amalga oshirish mumkin. (Eslatma: Rust misolimiz xotira ajratishdan butunlay qochish uchun holatlarni ko'chiradi (move qiladi)).
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Strategy](/uz/behavioral/strategy)**: Strategy va State bir xil klass tuzilmasiga ega. Farq maqsadda: Strategy _bir xil_ ishni bajarishning butunlay turli usullarini taqdim etadi, State esa obyektga o'z holatiga qarab _turli_ ishlarni bajarish imkonini beradi. Strategiyalar odatda bir-birini bilmaydi; State'lar esa o'tish uchun ko'pincha boshqa holatlarning nusxalarini yaratadi.
+- **[Strategiya](/uz/behavioral/strategy)** (Strategy): Strategiya va Holat andozalari bir xil klass tuzilmasiga ega. Farq maqsadda: Strategiya _bir xil_ ishni bajarishning butunlay turli usullarini taqdim etadi, Holat esa obyektga o'z holatiga qarab _turli_ ishlarni bajarish imkonini beradi. Strategiyalar odatda bir-birini bilmaydi; holat obyektlari esa o'tish uchun ko'pincha boshqa holatlarning nusxalarini yaratadi.
 - **[Singleton](/uz/creational/singleton)**: Concrete state'lar nusxa ma'lumotlarini saqlamasa, ko'pincha Singleton sifatida amalga oshiriladi.
-- **State Machine (Holatlar mashinasi)**: State patterni chekli holatlar mashinasini (FSM) amalga oshirishning obyektga yo'naltirilgan usulidir.
+- **State Machine (Holatlar mashinasi)**: Holat andozasi chekli holatlar mashinasini (FSM) amalga oshirishning obyektga yo'naltirilgan usulidir.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Strategy va State o'rtasidagi tuzilmaviy farq nima?"
+- **Savol**: "Strategiya va Holat andozalari o'rtasidagi tuzilmaviy farq nima?"
   - **Javob**: "Tuzilma jihatidan ular bir xil (Context ishni interfeysga topshiradi). Semantik jihatdan esa ular qarama-qarshi. Strategiyalar mustaqil va bir-biridan bexabar. State'lar esa obyektning hayot siklini ifodalaydi va bir-biri haqida yaxshi biladi, doimiy ravishda bir State'dan keyingisiga o'tishlarni ishga tushiradi."
 - **Savol**: "Holat ma'lumotlarini qanday boshqarasiz?"
   - **Javob**: "Holat ma'lumotlari Context obyektida qolishi kerak. State klasslari ideal holda holatsiz (stateless) xulq-atvor o'ramlari bo'lishi kerak. Ular ma'lumotlarni o'qish yoki o'zgartirish uchun Context'ni argument sifatida qabul qiladi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Funksional holatlar mashinalari (XState)**: Zamonaviy frontend ekotizimida (JavaScript/TypeScript) obyektga yo'naltirilgan State patternlari ko'pincha XState kabi maxsus State Machine kutubxonalari bilan almashtiriladi. Ular o'tishlar, himoya shartlari (guards) va amallarni sof, funksional JSON konfiguratsiyasida e'lon qiladi.
+- **Funksional holatlar mashinalari (XState)**: Zamonaviy frontend ekotizimida (JavaScript/TypeScript) Holat andozasining obyektga yo'naltirilgan amalga oshirilishlari ko'pincha XState kabi maxsus State Machine kutubxonalari bilan almashtiriladi. Ular o'tishlar, himoya shartlari (guards) va amallarni sof, funksional JSON konfiguratsiyasida e'lon qiladi.
 - **Union turlari / Algebraik ma'lumot turlari (ADT)**: Rust, TypeScript va Swift kabi tillarda holatlarni Enum yoki Union turi sifatida ifodalash va polimorfizm o'rniga to'liq Pattern Matching'dan (`match` yoki `switch`) foydalanish mumkin. Ko'plab jamoalar uchun bu o'nlab klasslarni yaratishdan ko'ra tozaroq.

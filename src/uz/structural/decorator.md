@@ -1,31 +1,31 @@
 ---
-title: Decorator Pattern
-description: Obyektlarni decorator obyektlariga o'rash orqali ularga dinamik ravishda mas'uliyatlar qo'shadi.
+title: Dekorator andozasi (Decorator)
+description: Obyektlarni dekorator obyektlariga o'rash orqali ularga dinamik ravishda mas'uliyatlar qo'shadi.
 icon: Wand
 ---
 
-# Decorator Pattern
+# Dekorator andozasi (Decorator)
 
 <CoverImage src="/covers/structural/decorator.webp" alt="Cover">
-  <h1>Decorator</h1>
+  <h1>Dekorator</h1>
   <p>Haddan tashqari ko'p qavat qishki kiyim kiyib olgan kulgili kichkina oq robot: sharf, shapka, nurli quloqchinlar, qalin kurtka va qor poyabzallari — asosiy robotni o'zgartirmasdan unga imkoniyatlar qo'shilmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Decorator** — bu obyektni xuddi shu interfeysni amalga oshiruvchi boshqa obyektga o'rash orqali unga dinamik ravishda xatti-harakat qo'shadigan strukturaviy (structural) dizayn patternidir. Har bir decorator chaqiruvni o'ralgan komponentga uzatadi va chaqiruvdan oldin yoki keyin o'z ishini qo'shadi.
+**Dekorator (Decorator)** — bu obyektni xuddi shu interfeysni amalga oshiruvchi boshqa obyektga o'rash orqali unga dinamik ravishda xatti-harakat qo'shadigan tuzilmaviy (structural) loyihalash andozasidir. Har bir dekorator chaqiruvni o'ralgan komponentga uzatadi va chaqiruvdan oldin yoki keyin o'z ishini qo'shadi.
 
 **Asosiy afzalligi**: Quyi klasslar portlashisiz (subclass explosion) ish vaqtida (runtime) mas'uliyatlarni qatlam-qatlam qo'shishingiz mumkin.
 
-**Zamonaviy nuqtai nazar**: Bugungi kunda Decorator production kodida hamma joyda uchraydi: middleware, stream o'ramlari, HTTP klientlar, keshlash qatlamlari, loglash qatlamlari, qayta urinish (retry) siyosatlari va xavfsizlik o'ramlari.
+**Zamonaviy nuqtai nazar**: Bugungi kunda Dekorator production kodida hamma joyda uchraydi: middleware, stream o'ramlari, HTTP klientlar, keshlash qatlamlari, loglash qatlamlari, qayta urinish (retry) siyosatlari va xavfsizlik o'ramlari.
 
-Decorator xatti-harakat qo'shadi. U mos kelmaydigan interfeyslarni tarjima qilmaydi.
+Dekorator xatti-harakat qo'shadi. U mos kelmaydigan interfeyslarni tarjima qilmaydi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Kiyimlarni qavatma-qavat kiyishni** tasavvur qiling. Ko'ylak o'zi ham yetarli, lekin ob-havoga qarab ustidan kurtka, yomg'irpo'sh yoki sharf qo'shishingiz mumkin. Har bir qavat ostidagi tanani o'zgarishsiz qoldiradi, lekin umumiy natijani o'zgartiradi.
 
-Decorator'lar aynan shunday qiladi: har bir qavat asl obyektni o'zgartirmasdan unga nimadir qo'shadi.
+Dekoratorlar aynan shunday qiladi: har bir qavat asl obyektni o'zgartirmasdan unga nimadir qo'shadi.
 
 ## Tuzilma (Structure)
 
@@ -65,7 +65,7 @@ classDiagram
 
 - **`ApiClient`** (Component) — asosiy obyekt va har bir o'ram uchun umumiy interfeys.
 - **`HttpApiClient`** (Concrete Component) asosiy xatti-harakatni ta'minlaydi.
-- **`ApiClientDecorator`** (Base Decorator) `ApiClient`'ni amalga oshiradi va o'ralgan `ApiClient`'ni saqlaydi, shuning uchun decorator'larni ustma-ust qo'yish mumkin.
+- **`ApiClientDecorator`** (Base Decorator) `ApiClient`'ni amalga oshiradi va o'ralgan `ApiClient`'ni saqlaydi, shuning uchun dekoratorlarni ustma-ust qo'yish mumkin.
 - **`LoggingDecorator` / `CachingDecorator` / `RetryDecorator`** (Concrete Decorators) chaqiruvni uzatishdan oldin yoki keyin har biri bittadan xatti-harakat qo'shadi.
 
 ## Muammo (The Problem)
@@ -96,12 +96,12 @@ class LoggedApiClient extends ApiClient {}
 
 ## Yechim (The Solution)
 
-Decorator obyektni o'rab, xuddi shu interfeysni saqlab qolish orqali bu muammoni hal qiladi.
+Dekorator obyektni o'rab, xuddi shu interfeysni saqlab qolish orqali bu muammoni hal qiladi.
 
 1. Umumiy komponent interfeysini aniqlang
 2. Asosiy obyektni bir marta amalga oshiring
-3. Har bir xatti-harakat uchun bittadan decorator klass qo'shing
-4. Ish vaqtida decorator'larni kerakli tarzda birlashtiring (compose)
+3. Har bir xatti-harakat uchun bittadan dekorator klass qo'shing
+4. Ish vaqtida dekoratorlarni kerakli tarzda birlashtiring (compose)
 
 Bu asosiy obyektni sodda saqlaydi va imkoniyatlarni faqat kerakli joyda qo'shish imkonini beradi.
 
@@ -455,7 +455,7 @@ impl<T: ApiClient> ApiClient for CachingDecorator<T> {
 
 ## Haqiqiy hayotdagi misol (Real-World Example)
 
-Decorator'ning production'dagi keng tarqalgan qo'llanilishi — HTTP klientni loglash, keshlash yoki qayta urinish xatti-harakati bilan o'rash. Har bir vazifa alohida qoladi va o'ramlar zanjiri faqat kerakli joyda yig'iladi.
+Dekoratorning production'dagi keng tarqalgan qo'llanilishi — HTTP klientni loglash, keshlash yoki qayta urinish xatti-harakati bilan o'rash. Har bir vazifa alohida qoladi va o'ramlar zanjiri faqat kerakli joyda yig'iladi.
 
 ```typescript
 const client: ApiClient = new LoggingDecorator(
@@ -477,7 +477,7 @@ Bu asosiy klientni qayta ishlatiladigan holda saqlaydi va barcha kesishuvchi vaz
 ## Kamchiliklari (Disadvantages)
 
 - Ko'plab kichik o'ram obyektlarini yaratishi mumkin
-- Chuqur decorator zanjirlarini debug qilish qiyinroq bo'lishi mumkin
+- Chuqur dekorator zanjirlarini debug qilish qiyinroq bo'lishi mumkin
 - O'rash tartibi muhim
 - Juda ko'p xatti-harakatlar ustma-ust qo'yilsa, chalkash bo'lib qolishi mumkin
 - Barcha qatlamlar uchun umumiy interfeysni talab qiladi
@@ -503,7 +503,7 @@ Bu asosiy klientni qayta ishlatiladigan holda saqlaydi va barcha kesishuvchi vaz
 ### 1-xato: Interfeysni o'zgartirish
 
 ```typescript
-// ❌ Yomon: endi haqiqiy decorator emas
+// ❌ Yomon: endi haqiqiy dekorator emas
 class BadDecorator {
   logFetch() {}
 }
@@ -519,14 +519,14 @@ class LoggingDecorator implements ApiClient {
 ### 2-xato: O'ramlarga aloqasiz ishlarni yuklash
 
 ```typescript
-// ❌ Yomon: decorator biznes qoidalarini boshqaradi
+// ❌ Yomon: dekorator biznes qoidalarini boshqaradi
 class BadDecorator {
   fetch(path: string) {
     // narxlash mantiqi shu yerda
   }
 }
 
-// ✅ Yaxshi: decorator faqat bitta vazifani qo'shadi
+// ✅ Yaxshi: dekorator faqat bitta vazifani qo'shadi
 ```
 
 ### 3-xato: O'rash tartibini e'tiborsiz qoldirish
@@ -536,19 +536,19 @@ class BadDecorator {
 // ✅ Yaxshi: tartibni ongli ravishda tanlang
 ```
 
-### 4-xato: Har bir kichik o'zgarish uchun decorator'lardan ortiqcha foydalanish
+### 4-xato: Har bir kichik o'zgarish uchun dekoratorlardan ortiqcha foydalanish
 
 ```typescript
 // ❌ Yomon: o'nlab bir martalik wrapperlar
-// ✅ Yaxshi: decoratorlarni mazmunli kesishuvchi vazifalar uchun ishlating
+// ✅ Yaxshi: dekoratorlarni mazmunli kesishuvchi vazifalar uchun ishlating
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Adapter](/uz/structural/adapter)**: Xatti-harakatni emas, interfeys mosligini o'zgartiradi
-- **[Proxy](/uz/structural/proxy)**: Kirishni nazorat qiladi; tashqi ko'rinishi o'xshash bo'lishi mumkin, lekin maqsadi boshqa
-- **[Facade](/uz/structural/facade)**: Xatti-harakatni o'rash o'rniga quyi tizimga kirishni soddalashtiradi
-- **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)**: Barcha xatti-harakatlarni bitta obyekt ustiga qatlamlash o'rniga so'rovlarni handler'lar orqali o'tkazadi
+- **[O'rinbosar](/uz/structural/proxy)**: Kirishni nazorat qiladi; tashqi ko'rinishi o'xshash bo'lishi mumkin, lekin maqsadi boshqa
+- **[Fasad](/uz/structural/facade)**: Xatti-harakatni o'rash o'rniga quyi tizimga kirishni soddalashtiradi
+- **[Mas'uliyatlar zanjiri](/uz/behavioral/chain-of-responsibility)**: Barcha xatti-harakatlarni bitta obyekt ustiga qatlamlash o'rniga so'rovlarni handler'lar orqali o'tkazadi
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -560,22 +560,22 @@ class BadDecorator {
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Decorator nimani hal qiladi?**
+**1-savol: Dekorator nimani hal qiladi?**
 
 J: U quyi klass yaratmasdan dinamik ravishda xatti-harakat qo'shish imkonini beradi. Uning mavjudligining asosiy sababi shu.
 
-**2-savol: Decorator Proxy'dan nimasi bilan farq qiladi?**
+**2-savol: Dekorator O'rinbosardan nimasi bilan farq qiladi?**
 
-J: Proxy kirishni yoki hayot siklini nazorat qiladi. Decorator esa mas'uliyatlar va xatti-harakat qo'shadi.
+J: O'rinbosar kirishni yoki hayot siklini nazorat qiladi. Dekorator esa mas'uliyatlar va xatti-harakat qo'shadi.
 
-**3-savol: Nega ixtiyoriy imkoniyatlar uchun Decorator quyi klasslardan yaxshiroq?**
+**3-savol: Nega ixtiyoriy imkoniyatlar uchun Dekorator quyi klasslardan yaxshiroq?**
 
-J: Chunki quyi klass kombinatsiyalari eksponensial o'sadi. Decorator'lar esa buning o'rniga imkoniyatlarni ish vaqtida birlashtiradi.
+J: Chunki quyi klass kombinatsiyalari eksponensial o'sadi. Dekoratorlar esa buning o'rniga imkoniyatlarni ish vaqtida birlashtiradi.
 
-**4-savol: Nega decorator'lar tartibi muhim?**
+**4-savol: Nega dekoratorlar tartibi muhim?**
 
 J: Chunki har bir qatlam oldingi qatlamning natijasini ko'radi. Retry'ni o'rab turgan kesh keshni o'rab turgan retry'dan boshqacha ishlaydi.
 
-**5-savol: Qachon Decorator ortiqcha bo'ladi?**
+**5-savol: Qachon Dekorator ortiqcha bo'ladi?**
 
 J: Faqat bitta yoki ikkita oddiy variatsiya bo'lsa va to'g'ridan-to'g'ri metod yoki oddiy yordamchi funksiya yetarli bo'lsa.

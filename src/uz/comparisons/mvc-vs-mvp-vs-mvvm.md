@@ -144,7 +144,7 @@ Yangilanish yo'lini kuzating. MVC'da view xabarnomadan keyin modeldan ma'lumotni
 - Taqdimot qatlamini sof holat o'tishlari sifatida test qilmoqchi bo'lsangiz.
 
 ::: warning Hech biri domen arxitekturasi emas
-Uchalasi ham _taqdimot_ qatlamini tartibga soladi. Biznes qoidalari controller, presenter yoki view model'larda emas, model va uning ortidagi servislarda bo'lishi kerak. Ma'lumotlarni saqlash — alohida masala; qarang: [Repository, Data Mapper va Active Record](/uz/comparisons/repository-vs-data-mapper-vs-active-record).
+Uchalasi ham _taqdimot_ qatlamini tartibga soladi. Biznes qoidalari controller, presenter yoki view model'larda emas, model va uning ortidagi servislarda bo'lishi kerak. Ma'lumotlarni saqlash — alohida masala; qarang: [Repozitoriy, Data Mapper va Active Record](/uz/comparisons/repository-vs-data-mapper-vs-active-record).
 :::
 
 ## Tegishli sahifalar
@@ -153,5 +153,5 @@ Uchalasi ham _taqdimot_ qatlamini tartibga soladi. Biznes qoidalari controller, 
 - [MVP](/uz/architectural/mvp)
 - [MVVM](/uz/architectural/mvvm)
 - [MVT](/uz/architectural/mvt)
-- [Observer](/uz/behavioral/observer) — MVC xabarnomalari va MVVM binding'lari ortidagi mexanizm
-- [Patternni tanlash](/uz/choosing-a-pattern)
+- [Kuzatuvchi](/uz/behavioral/observer) (Observer) — MVC xabarnomalari va MVVM binding'lari ortidagi mexanizm
+- [Andozani tanlash](/uz/choosing-a-pattern)

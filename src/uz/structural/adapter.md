@@ -1,10 +1,10 @@
 ---
-title: Adapter Pattern
+title: Adapter andozasi
 description: Klass interfeysini mijozlar kutayotgan boshqa interfeysga aylantiradi va mos kelmaydigan interfeyslarning birgalikda ishlashiga imkon beradi.
 icon: Package
 ---
 
-# Adapter Pattern
+# Adapter andozasi
 
 <CoverImage src="/covers/structural/adapter.webp" alt="Cover">
   <h1>Adapter</h1>
@@ -13,7 +13,7 @@ icon: Package
 
 ## Umumiy ko'rinish (Overview)
 
-**Adapter** — bu mos kelmaydigan interfeyslarga ega klasslarning manba kodini o'zgartirmasdan birgalikda ishlashiga imkon beruvchi strukturaviy (structural) dizayn patternidir. U bitta interfeysni o'rab oladi va boshqasini taqdim etadi: chaqiruvlarni, ma'lumotlar shaklini yoki nomlash qoidalarini tarjima qiladi, shunda mijoz (client) o'ziga tanish kontraktdan foydalanishda davom etaveradi.
+**Adapter** — bu mos kelmaydigan interfeyslarga ega klasslarning manba kodini o'zgartirmasdan birgalikda ishlashiga imkon beruvchi tuzilmaviy (structural) loyihalash andozasidir. U bitta interfeysni o'rab oladi va boshqasini taqdim etadi: chaqiruvlarni, ma'lumotlar shaklini yoki nomlash qoidalarini tarjima qiladi, shunda mijoz (client) o'ziga tanish kontraktdan foydalanishda davom etaveradi.
 
 **Asosiy afzalligi**: Eski (legacy) kodni, uchinchi tomon SDK'larini yoki freymvorklar o'rtasidagi nomuvofiqliklarni hech bir tomonni qayta yozmasdan integratsiya qilishingiz mumkin.
 
@@ -76,7 +76,7 @@ Ikki tizimda:
 - Xatolarni qayta ishlash qoidalari har xil
 - Ma'lumotlar tuzilmalari har xil
 
-Siz hech bir tizimni o'zgartira olmaysiz, ammo ularning birgalikda ishlashi kerak. Aynan shu yerda Adapter patterni yordamga keladi.
+Siz hech bir tizimni o'zgartira olmaysiz, ammo ularning birgalikda ishlashi kerak. Aynan shu yerda Adapter andozasi yordamga keladi.
 
 ### 1-ssenariy: Eski to'lov shlyuzi (Legacy Payment Gateway)
 
@@ -120,7 +120,7 @@ class LegacyHttpLib {
 
 ## Yechim (The Solution)
 
-Adapter patterni quyidagilarni bajaradigan adapter klassini yaratish orqali yechim taqdim etadi:
+Adapter andozasi quyidagilarni bajaradigan adapter klassini yaratish orqali yechim taqdim etadi:
 
 1. Mijozlar kutayotgan interfeysni amalga oshiradi
 2. Mos kelmaydigan adaptee'ni o'zida saqlaydi yoki undan meros oladi
@@ -586,7 +586,7 @@ Lekin provayderlar bir-biriga mos kelmaydi:
 
 Adapterlarsiz ilova kodi provayderga xos shartli tarmoqlanishlar bilan to'lib ketadi. Adapterlar bilan esa har bir provayder o'zining tarjimoniga ega bo'ladi va tizimning qolgan qismi faqat WeatherSnapshot'ga bog'liq bo'ladi.
 
-Pattern aynan shu chegarada eng ko'p foyda keltiradi: yuqori oqimdagi (upstream) API'lar o'zgarganda ham ilovaning qolgan qismi barqaror qoladi.
+Andoza aynan shu chegarada eng ko'p foyda keltiradi: yuqori oqimdagi (upstream) API'lar o'zgarganda ham ilovaning qolgan qismi barqaror qoladi.
 
 ```typescript
 interface WeatherSnapshot {
@@ -707,12 +707,12 @@ class GetHumidityAdapter {}
 class WeatherApiAdapter {}
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Facade](/uz/structural/facade)**: Interfeysni soddalashtiradi, lekin asosan mos kelmaydigan interfeyslarni tarjima qilmaydi
-- **[Decorator](/uz/structural/decorator)**: Xatti-harakat qo'shadi; Adapter esa interfeysni o'zgartiradi
-- **[Bridge](/uz/structural/bridge)**: Nomuvofiqlik paydo bo'lishidan oldin abstraksiyani amalga oshirishdan ajratadi
-- **[Proxy](/uz/structural/proxy)**: Obyektga kirishni uning interfeysini o'zgartirmasdan nazorat qiladi
+- **[Fasad](/uz/structural/facade)**: Interfeysni soddalashtiradi, lekin asosan mos kelmaydigan interfeyslarni tarjima qilmaydi
+- **[Dekorator](/uz/structural/decorator)**: Xatti-harakat qo'shadi; Adapter esa interfeysni o'zgartiradi
+- **[Ko'prik](/uz/structural/bridge)**: Nomuvofiqlik paydo bo'lishidan oldin abstraksiyani amalga oshirishdan ajratadi
+- **[O'rinbosar](/uz/structural/proxy)**: Obyektga kirishni uning interfeysini o'zgartirmasdan nazorat qiladi
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -726,11 +726,11 @@ class WeatherApiAdapter {}
 
 **1-savol: Adapter'ning asosiy maqsadi nima?**
 
-J: Mos kelmaydigan interfeyslarni hech bir tomonni o'zgartirmasdan birgalikda ishlashga majbur qilish. Bu xatti-harakat patterni emas, moslik patterni.
+J: Mos kelmaydigan interfeyslarni hech bir tomonni o'zgartirmasdan birgalikda ishlashga majbur qilish. Bu xatti-harakat andozasi emas, moslik andozasi.
 
-**2-savol: Adapter Decorator'dan nimasi bilan farq qiladi?**
+**2-savol: Adapter Dekoratordan nimasi bilan farq qiladi?**
 
-J: Decorator interfeysni saqlab qoladi va xatti-harakat qo'shadi. Adapter esa interfeysni o'zgartiradi, shunda bir tur boshqa tur kutilgan joyda ishlatilishi mumkin bo'ladi.
+J: Dekorator interfeysni saqlab qoladi va xatti-harakat qo'shadi. Adapter esa interfeysni o'zgartiradi, shunda bir tur boshqa tur kutilgan joyda ishlatilishi mumkin bo'ladi.
 
 **3-savol: Qachon class adapter o'rniga object adapter'ni afzal ko'rasiz?**
 

@@ -1,6 +1,6 @@
 export const uz = {
-  title: "Dizayn namunalari",
-  description: "To'liq qo'llanma",
+  title: "Loyihalash andozalari",
+  description: "Loyihalash andozalari (Design Patterns) bo'yicha to'liq qo'llanma",
   label: 'O\'zbek',
   lang: 'uz',
   search: {
@@ -68,7 +68,7 @@ export const uz = {
         collapsed: false,
         items: [
           { text: 'Kirish', link: '/uz/introduction' },
-          { text: 'Dizayn namunasi nima?', link: '/uz/what-is-design-pattern' },
+          { text: 'Loyihalash andozasi nima?', link: '/uz/what-is-design-pattern' },
           { text: 'Sayohat', link: '/uz/tour' },
           { text: 'Tezkor ma\'lumotnoma', link: '/uz/quick-reference' }
         ]
@@ -77,78 +77,78 @@ export const uz = {
         text: "Qo'llanmalar",
         collapsed: false,
         items: [
-          { text: 'Namunani tanlash', link: '/uz/choosing-a-pattern' },
-          { text: 'Strategy va State', link: '/uz/comparisons/strategy-vs-state' },
-          { text: 'Decorator va Proxy', link: '/uz/comparisons/decorator-vs-proxy' },
-          { text: 'Factory Method va Abstract Factory', link: '/uz/comparisons/factory-method-vs-abstract-factory' },
-          { text: 'Adapter, Facade va Bridge', link: '/uz/comparisons/adapter-vs-facade-vs-bridge' },
+          { text: 'Andozani tanlash', link: '/uz/choosing-a-pattern' },
+          { text: 'Strategiya va Holat', link: '/uz/comparisons/strategy-vs-state' },
+          { text: "Dekorator va O'rinbosar", link: '/uz/comparisons/decorator-vs-proxy' },
+          { text: 'Fabrika metodi va Abstrakt fabrika', link: '/uz/comparisons/factory-method-vs-abstract-factory' },
+          { text: "Adapter, Fasad va Ko'prik", link: '/uz/comparisons/adapter-vs-facade-vs-bridge' },
           { text: 'MVC, MVP va MVVM', link: '/uz/comparisons/mvc-vs-mvp-vs-mvvm' },
-          { text: 'Repository, Data Mapper va Active Record', link: '/uz/comparisons/repository-vs-data-mapper-vs-active-record' }
+          { text: 'Repozitoriy, Data Mapper va Active Record', link: '/uz/comparisons/repository-vs-data-mapper-vs-active-record' }
         ]
       },
       {
-        text: 'Arxitektura namunalari',
+        text: 'Arxitektura andozalari',
         collapsed: false,
         items: [
           { text: 'Active Record', link: '/uz/architectural/active-record' },
           { text: 'CQRS', link: '/uz/architectural/cqrs' },
           { text: 'Data Mapper', link: '/uz/architectural/data-mapper' },
-          { text: 'Dependency Injection', link: '/uz/architectural/dependency-injection' },
+          { text: "Bog'liqliklarni kiritish", link: '/uz/architectural/dependency-injection' },
           { text: 'Event Sourcing', link: '/uz/architectural/event-sourcing' },
-          { text: 'Identity Map', link: '/uz/architectural/identity-map' },
+          { text: 'Identifikatorlar xaritasi', link: '/uz/architectural/identity-map' },
           { text: 'MVC', link: '/uz/architectural/mvc' },
           { text: 'MVP', link: '/uz/architectural/mvp' },
           { text: 'MVT', link: '/uz/architectural/mvt' },
           { text: 'MVVM', link: '/uz/architectural/mvvm' },
-          { text: 'Producer Consumer', link: '/uz/architectural/producer-consumer' },
-          { text: 'Read Write Lock', link: '/uz/architectural/read-write-lock' },
-          { text: 'Repository', link: '/uz/architectural/repository' },
-          { text: 'Scheduler', link: '/uz/architectural/scheduler' },
-          { text: 'Service Locator', link: '/uz/architectural/service-locator' },
-          { text: 'Unit of Work', link: '/uz/architectural/unit-of-work' }
+          { text: "Ishlab chiqaruvchi–iste'molchi", link: '/uz/architectural/producer-consumer' },
+          { text: "O'qish-yozish qulfi", link: '/uz/architectural/read-write-lock' },
+          { text: 'Repozitoriy', link: '/uz/architectural/repository' },
+          { text: 'Rejalashtiruvchi', link: '/uz/architectural/scheduler' },
+          { text: 'Servis lokatori', link: '/uz/architectural/service-locator' },
+          { text: 'Ish birligi', link: '/uz/architectural/unit-of-work' }
         ]
       },
       {
-        text: 'Xulq-atvor namunalari',
+        text: 'Xulq-atvor andozalari',
         collapsed: false,
         items: [
-          { text: 'Chain of Responsibility', link: '/uz/behavioral/chain-of-responsibility' },
-          { text: 'Command', link: '/uz/behavioral/command' },
-          { text: 'Interpreter', link: '/uz/behavioral/interpreter' },
+          { text: "Mas'uliyatlar zanjiri", link: '/uz/behavioral/chain-of-responsibility' },
+          { text: 'Buyruq', link: '/uz/behavioral/command' },
+          { text: 'Interpretator', link: '/uz/behavioral/interpreter' },
           { text: 'Iterator', link: '/uz/behavioral/iterator' },
-          { text: 'Mediator', link: '/uz/behavioral/mediator' },
+          { text: 'Vositachi', link: '/uz/behavioral/mediator' },
           { text: 'Memento', link: '/uz/behavioral/memento' },
-          { text: 'Null Object', link: '/uz/behavioral/null-object' },
-          { text: 'Observer', link: '/uz/behavioral/observer' },
-          { text: 'State', link: '/uz/behavioral/state' },
-          { text: 'Strategy', link: '/uz/behavioral/strategy' },
-          { text: 'Template Method', link: '/uz/behavioral/template-method' },
-          { text: 'Visitor', link: '/uz/behavioral/visitor' }
+          { text: "Bo'sh obyekt", link: '/uz/behavioral/null-object' },
+          { text: 'Kuzatuvchi', link: '/uz/behavioral/observer' },
+          { text: 'Holat', link: '/uz/behavioral/state' },
+          { text: 'Strategiya', link: '/uz/behavioral/strategy' },
+          { text: 'Shablon metod', link: '/uz/behavioral/template-method' },
+          { text: 'Tashrifchi', link: '/uz/behavioral/visitor' }
         ]
       },
       {
-        text: 'Yaratuvchi namunalar',
+        text: 'Yaratuvchi andozalar',
         collapsed: false,
         items: [
           { text: 'Singleton', link: '/uz/creational/singleton' },
-          { text: 'Factory Method', link: '/uz/creational/factory-method' },
-          { text: 'Abstract Factory', link: '/uz/creational/abstract-factory' },
-          { text: 'Builder', link: '/uz/creational/builder' },
-          { text: 'Prototype', link: '/uz/creational/prototype' },
-          { text: 'Object Pool', link: '/uz/creational/object-pool' }
+          { text: 'Fabrika metodi', link: '/uz/creational/factory-method' },
+          { text: 'Abstrakt fabrika', link: '/uz/creational/abstract-factory' },
+          { text: 'Quruvchi', link: '/uz/creational/builder' },
+          { text: 'Prototip', link: '/uz/creational/prototype' },
+          { text: 'Obyektlar havzasi', link: '/uz/creational/object-pool' }
         ]
       },
       {
-        text: 'Strukturaviy namunalar',
+        text: 'Tuzilmaviy andozalar',
         collapsed: false,
         items: [
           { text: 'Adapter', link: '/uz/structural/adapter' },
-          { text: 'Bridge', link: '/uz/structural/bridge' },
-          { text: 'Composite', link: '/uz/structural/composite' },
-          { text: 'Decorator', link: '/uz/structural/decorator' },
-          { text: 'Facade', link: '/uz/structural/facade' },
-          { text: 'Flyweight', link: '/uz/structural/flyweight' },
-          { text: 'Proxy', link: '/uz/structural/proxy' }
+          { text: "Ko'prik", link: '/uz/structural/bridge' },
+          { text: 'Kompozit', link: '/uz/structural/composite' },
+          { text: 'Dekorator', link: '/uz/structural/decorator' },
+          { text: 'Fasad', link: '/uz/structural/facade' },
+          { text: 'Yengilvazn', link: '/uz/structural/flyweight' },
+          { text: "O'rinbosar", link: '/uz/structural/proxy' }
         ]
       }
     ],

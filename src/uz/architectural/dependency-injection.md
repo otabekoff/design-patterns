@@ -1,23 +1,23 @@
 ---
-title: Dependency Injection Pattern
-description: Obyektlar o'z bog'liqliklarini o'zlari yaratish o'rniga, bog'liqliklarni ularga tashqaridan uzatadigan arxitektura patterni.
+title: Bog'liqliklarni kiritish andozasi (Dependency Injection)
+description: Obyektlar o'z bog'liqliklarini o'zlari yaratish o'rniga, bog'liqliklarni ularga tashqaridan uzatadigan arxitektura andozasi.
 icon: Wrench
 ---
 
-# Dependency Injection Pattern
+# Bog'liqliklarni kiritish andozasi (Dependency Injection)
 
 <CoverImage src="/covers/architectural/dependency-injection.webp" alt="Cover">
-  <h1>Dependency Injection</h1>
+  <h1>Bog'liqliklarni kiritish</h1>
   <p>Ko'kragida ochiq uyasi bo'lgan yoqimtoy kichkina robot, ulkan mexanik qo'l esa to'liq zaryadlangan, porlab turgan quvvat blokini tashqaridan to'g'ridan-to'g'ri o'sha uyaga ehtiyotkorlik bilan joylashtirmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Dependency Injection (DI)** (Bog'liqliklarni kiritish) — bu fundamental arxitektura patterni bo'lib, unda obyekt yoki funksiya o'zi bog'liq bo'lgan obyektlarni (uning bog'liqliklarini) ichkarida yaratish o'rniga, ularni tashqaridan oladi.
+**Bog'liqliklarni kiritish** (Dependency Injection, DI) — bu fundamental arxitektura andozasi bo'lib, unda obyekt yoki funksiya o'zi bog'liq bo'lgan obyektlarni (uning bog'liqliklarini) ichkarida yaratish o'rniga, ularni tashqaridan oladi.
 
 **Asosiy afzallik**: U obyektni yaratishni obyektning xatti-harakatidan butunlay ajratadi. Bu modulli, yuqori darajada testlanadigan va qo'llab-quvvatlash oson bo'lgan kod yozishning asosiy toshidir.
 
-**Zamonaviy nuqtai nazar**: Dependency Injection endi shunchaki "pattern" emas; u zamonaviy dasturiy injiniringda majburiy arxitektura tamoyilidir. U "Boshqaruvning inversiyasi" (Inversion of Control, IoC) ortidagi asosiy tushuncha bo'lib, deyarli barcha zamonaviy korporativ freymvorklar (Java'da Spring Boot, TypeScript'da NestJS/Angular, C#'da ASP.NET Core) tomonidan qat'iy qo'llaniladi.
+**Zamonaviy nuqtai nazar**: Bog'liqliklarni kiritish endi shunchaki "andoza" emas; u zamonaviy dasturiy injiniringda majburiy arxitektura tamoyilidir. U "Boshqaruvning inversiyasi" (Inversion of Control, IoC) ortidagi asosiy tushuncha bo'lib, deyarli barcha zamonaviy korporativ freymvorklar (Java'da Spring Boot, TypeScript'da NestJS/Angular, C#'da ASP.NET Core) tomonidan qat'iy qo'llaniladi.
 
 ## Muammo (The Problem)
 
@@ -74,7 +74,7 @@ const service = new UserService(new PostgresDatabase(), new FileLogger());
 const service = new UserService(new MockDatabase(), new ConsoleLogger());
 ```
 
-## Dependency Injection turlari (Types of Dependency Injection)
+## Bog'liqliklarni kiritish turlari (Types of Dependency Injection)
 
 1. **Konstruktor orqali kiritish (Constructor Injection)** (Tavsiya etiladi): Bog'liqliklar klass konstruktori orqali uzatiladi. Obyekt yaratilganda har doim to'g'ri holatda bo'lishini ta'minlaydi.
 2. **Setter orqali kiritish (Setter Injection)**: Bog'liqliklar ochiq setter metodlari orqali uzatiladi (`service.setLogger(logger)`). Ixtiyoriy bog'liqliklar uchun foydali.
@@ -120,7 +120,7 @@ classDiagram
 **Operatsiya xonasidagi jarrohni** tasavvur qiling.
 Jarroh o'z skalpellarini o'zi yasamaydi va operatsiya paytida ularni olish uchun shkafga bormaydi. Bunday qilish uning diqqatini va sterillikni buzgan bo'lardi.
 
-Buning o'rniga, operatsiya hamshirasi (Injector) kerakli asbobni to'g'ridan-to'g'ri jarrohning qo'liga beradi (Dependency Injection). Jarroh faqat skalpeldan _qanday foydalanishni_ (Interfeys) bilishi kerak, uning qanday yasalgani yoki qayerda saqlanganini emas.
+Buning o'rniga, operatsiya hamshirasi (Injector) kerakli asbobni to'g'ridan-to'g'ri jarrohning qo'liga beradi (Bog'liqliklarni kiritish). Jarroh faqat skalpeldan _qanday foydalanishni_ (Interfeys) bilishi kerak, uning qanday yasalgani yoki qayerda saqlanganini emas.
 
 ## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
 
@@ -481,12 +481,12 @@ fn main() {
 
 ## Qachon foydalanish kerak (When to Use)
 
-- **Har doim**: Zamonaviy ilovalarni ishlab chiqishda konstruktorga asoslangan Dependency Injection servislar, repository'lar va kontrollerlarni qurishning standart usuli bo'lishi kerak.
+- **Har doim**: Zamonaviy ilovalarni ishlab chiqishda konstruktor orqali bog'liqliklarni kiritish servislar, repozitoriylar va kontrollerlarni qurishning standart usuli bo'lishi kerak.
 - **Unit-testlash**: Tashqi I/O'ga (Ma'lumotlar bazasi, Tarmoq, Fayl tizimi, Tizim soati) tayanadigan klassingiz bo'lsa va uni izolyatsiyada testlamoqchi bo'lsangiz.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Oddiy skriptlar**: Agar 50 qatorli Python skript yozayotgan bo'lsangiz, interfeyslar va dependency injection yaratish vaqtni katta isrof qilishdir.
+- **Oddiy skriptlar**: Agar 50 qatorli Python skript yozayotgan bo'lsangiz, interfeyslar yaratish va bog'liqliklarni kiritishni sozlash vaqtni katta isrof qilishdir.
 - **Data Transfer Object'lar (DTO)**: Oddiy ma'lumot obyektlariga (masalan, `User` struct) bog'liqliklarni kiritish kerak emas. Ular shunchaki ma'lumot saqlaydi.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
@@ -499,8 +499,8 @@ Ba'zi bog'liqliklarni ichkarida yaratish, boshqalarini esa kiritish. _Yechim: Ag
 
 Agar konstruktoringiz 15 xil bog'liqlikni talab qilsa, muammo DI'da emas — klassingiz Yagona javobgarlik tamoyilini buzmoqda va juda ko'p ish qilmoqda. Klassni kichikroq komponentlarga ajrating.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Service Locator](/uz/architectural/service-locator)**: DI'ga anti-pattern muqobil, unda klasslar o'z bog'liqliklarini global ro'yxatdan (registry) "so'raydi".
-- **IoC konteyneri (IoC Container)**: Dependency Injection'ni avtomatlashtiradigan freymvork patterni. Siz klasslaringizni ro'yxatdan o'tkazasiz, konteyner esa refleksiya yoki kod generatsiyasi yordamida bog'liqliklar grafini siz uchun avtomatik yaratadi.
-- **[Factory](/uz/creational/factory-method)**: Ko'pincha DI bilan birga bog'liqliklarni talab qiladigan, lekin hayot davri DI konteyneri tomonidan boshqarilmaydigan obyektlarni yaratish uchun ishlatiladi.
+- **[Servis lokatori](/uz/architectural/service-locator)**: DI'ning anti-andoza hisoblangan muqobili, unda klasslar o'z bog'liqliklarini global ro'yxatdan (registry) "so'raydi".
+- **IoC konteyneri (IoC Container)**: Bog'liqliklarni kiritishni avtomatlashtiradigan freymvork andozasi. Siz klasslaringizni ro'yxatdan o'tkazasiz, konteyner esa refleksiya yoki kod generatsiyasi yordamida bog'liqliklar grafini siz uchun avtomatik yaratadi.
+- **[Fabrika metodi](/uz/creational/factory-method)**: Ko'pincha DI bilan birga bog'liqliklarni talab qiladigan, lekin hayot davri DI konteyneri tomonidan boshqarilmaydigan obyektlarni yaratish uchun ishlatiladi.

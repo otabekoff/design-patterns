@@ -1,23 +1,23 @@
 ---
-title: Unit of Work Pattern (Ish birligi)
-description: Biznes tranzaksiyasi ta'sir qilgan obyektlar ro'yxatini yuritadigan va ularni yagona atomar paketda yozishni muvofiqlashtiradigan arxitektura patterni.
+title: Ish birligi andozasi (Unit of Work)
+description: Biznes tranzaksiyasi ta'sir qilgan obyektlar ro'yxatini yuritadigan va ularni yagona atomar paketda yozishni muvofiqlashtiradigan arxitektura andozasi.
 icon: Boxes
 ---
 
-# Unit of Work Pattern (Ish birligi)
+# Ish birligi andozasi (Unit of Work)
 
 <CoverImage src="/covers/architectural/unit-of-work.webp" alt="Cover">
-  <h1>Unit of Work</h1>
+  <h1>Ish birligi</h1>
   <p>Tranzaksiyalarga to'la aravacha bilan yurgan kulgili bankir robot; u aravacha to'lguncha barcha tranzaksiyalarni ushlab turadi, so'ng hammasini birdaniga commit qilish uchun bitta ulkan dastakni tortadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Unit of Work (Ish birligi)** patterni - biznes tranzaksiyasi davomida obyektlar to'plamiga kiritilgan barcha o'zgarishlarni kuzatib boradigan arxitektura patternidir. Tranzaksiya oxirida u barcha o'zgarishlarni (insert, update va delete) ma'lumotlar bazasiga yagona, atomar paketda yozishni muvofiqlashtiradi.
+**Ish birligi (Unit of Work)** andozasi - biznes tranzaksiyasi davomida obyektlar to'plamiga kiritilgan barcha o'zgarishlarni kuzatib boradigan arxitektura andozasidir. Tranzaksiya oxirida u barcha o'zgarishlarni (insert, update va delete) ma'lumotlar bazasiga yagona, atomar paketda yozishni muvofiqlashtiradi.
 
-**Asosiy afzalligi**: U ma'lumotlar yaxlitligini kafolatlaydi. Agar murakkab biznes jarayoni ma'lumotlar bazasidagi beshta turli jadvalni o'zgartirsa, Unit of Work beshala o'zgarish ham muvaffaqiyatli bo'lishini yoki beshalasi ham muvaffaqiyatsiz bo'lib, orqaga qaytarilishini (rollback) ta'minlaydi.
+**Asosiy afzalligi**: U ma'lumotlar yaxlitligini kafolatlaydi. Agar murakkab biznes jarayoni ma'lumotlar bazasidagi beshta turli jadvalni o'zgartirsa, Ish birligi beshala o'zgarish ham muvaffaqiyatli bo'lishini yoki beshalasi ham muvaffaqiyatsiz bo'lib, orqaga qaytarilishini (rollback) ta'minlaydi.
 
-**Zamonaviy nuqtai nazar**: Agar siz Entity Framework (.NET), Hibernate/JPA (Java), SQLAlchemy (Python) yoki TypeORM/MikroORM (TypeScript) kabi zamonaviy korporativ ORM'lardan (Object-Relational Mapper) foydalangan bo'lsangiz, demak siz allaqachon "parda ortida" Unit of Work patternidan foydalanayapsiz. Bu taqsimlangan yoki kuchli normallashtirilgan domen modellarida murakkab yozish operatsiyalarini boshqarish uchun ajralmas patterndir.
+**Zamonaviy nuqtai nazar**: Agar siz Entity Framework (.NET), Hibernate/JPA (Java), SQLAlchemy (Python) yoki TypeORM/MikroORM (TypeScript) kabi zamonaviy korporativ ORM'lardan (Object-Relational Mapper) foydalangan bo'lsangiz, demak siz allaqachon "parda ortida" Ish birligi andozasidan foydalanayapsiz. Bu taqsimlangan yoki kuchli normallashtirilgan domen modellarida murakkab yozish operatsiyalarini boshqarish uchun ajralmas andozadir.
 
 ## Muammo (The Problem)
 
@@ -28,7 +28,7 @@ Elektron tijorat to'lov jarayonini ko'rib chiqaylik. Sizga quyidagilar kerak:
 3. `Customer` ning sodiqlik ballarini yangilash.
 4. `Shipping` jadvaliga yozuv qo'shish.
 
-Unit of Work bo'lmasa, quyidagicha kod yozishingiz mumkin:
+Ish birligi bo'lmasa, quyidagicha kod yozishingiz mumkin:
 
 ```typescript
 // ❌ Yomon: Tranzaksiyasiz, darhol ma'lumotlar bazasiga yozish
@@ -56,7 +56,7 @@ Bu jiddiy muammolarni keltirib chiqaradi:
 
 ## Yechim (The Solution)
 
-Unit of Work patterni vositachini joriy etadi. To'g'ridan-to'g'ri ma'lumotlar bazasiga saqlash o'rniga, siz saqlash, yangilash yoki o'chirish niyatingizni Unit of Work'da ro'yxatdan o'tkazasiz. `.commit()` ni chaqirmaguningizcha ma'lumotlar bazasiga tegilmaydi.
+Ish birligi andozasi vositachini joriy etadi. To'g'ridan-to'g'ri ma'lumotlar bazasiga saqlash o'rniga, siz saqlash, yangilash yoki o'chirish niyatingizni Ish birligida ro'yxatdan o'tkazasiz. `.commit()` ni chaqirmaguningizcha ma'lumotlar bazasiga tegilmaydi.
 
 ```typescript
 // ✅ Yaxshi: O'zgarishlarni xotirada ro'yxatga olish, atomar commit qilish
@@ -114,10 +114,10 @@ classDiagram
 
 ## Jarayon (Flow)
 
-1. **Ishga tushirish (Initialization)**: Biznes tranzaksiyasi boshida (masalan, HTTP so'rov boshida) yangi Unit of Work yaratiladi.
-2. **Ro'yxatdan o'tkazish (Registration)**: Biznes mantig'i ishlayotganda u obyektlarni yaratadi, o'zgartiradi yoki o'chiradi. Bu obyektlar Unit of Work'da ro'yxatdan o'tkaziladi (ko'pincha proxy'lar yoki Identity Map orqali avtomatik tarzda).
-3. **Commit**: Biznes mantig'i yakunlanadi. Ilova Unit of Work'da `commit()` ni chaqiradi.
-4. **Bajarish (Execution)**: Unit of Work ma'lumotlar bazasi tranzaksiyasini ochadi, kerakli SQL (INSERT, UPDATE, DELETE) larni generatsiya qiladi, ularni bajaradi va ma'lumotlar bazasi tranzaksiyasini commit qiladi.
+1. **Ishga tushirish (Initialization)**: Biznes tranzaksiyasi boshida (masalan, HTTP so'rov boshida) yangi Ish birligi yaratiladi.
+2. **Ro'yxatdan o'tkazish (Registration)**: Biznes mantig'i ishlayotganda u obyektlarni yaratadi, o'zgartiradi yoki o'chiradi. Bu obyektlar Ish birligida ro'yxatdan o'tkaziladi (ko'pincha proxy'lar yoki Identifikatorlar xaritasi orqali avtomatik tarzda).
+3. **Commit**: Biznes mantig'i yakunlanadi. Ilova Ish birligida `commit()` ni chaqiradi.
+4. **Bajarish (Execution)**: Ish birligi ma'lumotlar bazasi tranzaksiyasini ochadi, kerakli SQL (INSERT, UPDATE, DELETE) larni generatsiya qiladi, ularni bajaradi va ma'lumotlar bazasi tranzaksiyasini commit qiladi.
 5. **Rollback (xatolik yuz berganda)**: Agar biror SQL buyrug'i muvaffaqiyatsiz bo'lsa, ma'lumotlar bazasi tranzaksiyasi orqaga qaytariladi va xotiradagi holatlar ham tiklanishi mumkin.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
@@ -125,7 +125,7 @@ classDiagram
 **Supermarket kassasi**ni tasavvur qiling.
 Rastalar orasida yurganingizda, sut uchun kassirga $3 berib, keyingi rastaga borib, tuxum olib, yana kassirga $4 bermaysiz. Bu tartibsiz va sekin bo'lardi.
 
-Buning o'rniga xarid aravachangiz **Unit of Work** vazifasini bajaradi. Siz yangi mahsulotlarni yig'asiz (registerNew). Balki biror mahsulotni javonga qaytarib qo'yarsiz (registerDeleted). Nihoyat kassaga yetganingizda, barcha operatsiyalar (skanerlash, qadoqlash, to'lash) bitta uzluksiz, atomar paketda amalga oshadi (`commit()`). Agar kredit kartangiz rad etilsa (`rollback()`), uyga hech qanday mahsulot olib ketmaysiz.
+Buning o'rniga xarid aravachangiz **Ish birligi** vazifasini bajaradi. Siz yangi mahsulotlarni yig'asiz (registerNew). Balki biror mahsulotni javonga qaytarib qo'yarsiz (registerDeleted). Nihoyat kassaga yetganingizda, barcha operatsiyalar (skanerlash, qadoqlash, to'lash) bitta uzluksiz, atomar paketda amalga oshadi (`commit()`). Agar kredit kartangiz rad etilsa (`rollback()`), uyga hech qanday mahsulot olib ketmaysiz.
 
 ## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
 
@@ -640,32 +640,32 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **Og'ir abstraksiya**: Bu patternni noldan to'g'ri amalga oshirish qiyinligi bilan mashhur (ayniqsa ichma-ich joylashgan obyekt munosabatlarini kuzatishda).
-- **Yuqori xotira sarfi**: Unit of Work tranzaksiya davomida har bir yuklangan, o'zgartirilgan va yaratilgan obyektni kuzatib borgani uchun, millionlab yozuvlardan iborat paketni qayta ishlayotgan bo'lsangiz, u juda katta hajmdagi xotirani egallashi mumkin.
-- **Eskirgan ma'lumotlar xavfi**: Agar tranzaksiya yakunlanishi uchun 5 daqiqa ketsa, Unit of Work xotirasidagi ma'lumotlar haqiqiy ma'lumotlar bazasi bilan umidsiz darajada nomuvofiq bo'lib qolishi mumkin.
+- **Og'ir abstraksiya**: Bu andozani noldan to'g'ri amalga oshirish qiyinligi bilan mashhur (ayniqsa ichma-ich joylashgan obyekt munosabatlarini kuzatishda).
+- **Yuqori xotira sarfi**: Ish birligi tranzaksiya davomida har bir yuklangan, o'zgartirilgan va yaratilgan obyektni kuzatib borgani uchun, millionlab yozuvlardan iborat paketni qayta ishlayotgan bo'lsangiz, u juda katta hajmdagi xotirani egallashi mumkin.
+- **Eskirgan ma'lumotlar xavfi**: Agar tranzaksiya yakunlanishi uchun 5 daqiqa ketsa, Ish birligi xotirasidagi ma'lumotlar haqiqiy ma'lumotlar bazasi bilan umidsiz darajada nomuvofiq bo'lib qolishi mumkin.
 
 ## Qachon foydalanish kerak (When to Use)
 
 - **Murakkab domen o'zgarishlari**: Foydalanuvchining bitta harakati bir nechta domen aggregate'lari/jadvallariga ta'sir qiladigan har qanday korporativ ilova.
-- **Repository'lardan foydalanganda**: Odatda Repository'lar ma'lumotlar bazasiga darhol `save()` qilmaydi. Ular obyektni Unit of Work'ga qo'shadi, Unit of Work esa Repository'larga yoki Service qatlamiga inyeksiya qilinadi.
+- **Repozitoriylardan foydalanganda**: Odatda Repozitoriylar ma'lumotlar bazasiga darhol `save()` qilmaydi. Ular obyektni Ish birligiga qo'shadi, Ish birligi esa Repozitoriylarga yoki Service qatlamiga inyeksiya qilinadi.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Oddiy CRUD ilovalar**: Agar har bir veb so'rov faqat bitta jadvalni yangilasa, Unit of Work haddan tashqari ortiqcha. Oddiy Active Record `.save()` yetarli.
-- **Ulkan paketli qayta ishlash (Massive Batch Processing)**: Agar 10GB lik CSV faylni tahlil qilib, ma'lumotlar bazasiga kiritayotgan bo'lsangiz, 10GB obyektlarni Unit of Work'ga yuklash serveringizni qulatadi (OOM Error). Buning o'rniga xom SQL Bulk Insert'lardan foydalanishingiz kerak.
+- **Oddiy CRUD ilovalar**: Agar har bir veb so'rov faqat bitta jadvalni yangilasa, Ish birligi haddan tashqari ortiqcha. Oddiy Active Record `.save()` yetarli.
+- **Ulkan paketli qayta ishlash (Massive Batch Processing)**: Agar 10GB lik CSV faylni tahlil qilib, ma'lumotlar bazasiga kiritayotgan bo'lsangiz, 10GB obyektlarni Ish birligiga yuklash serveringizni qulatadi (OOM Error). Buning o'rniga xom SQL Bulk Insert'lardan foydalanishingiz kerak.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
 ### 1. Proxy'lar o'rniga qo'lda kuzatish
 
-Yuqoridagi kod misollarida mijoz `uow.registerDirty()` ni aniq chaqirdi. Haqiqiy zamonaviy implementatsiyada (masalan, Entity Framework da) ORM xususiyat qachon o'zgarganini avtomatik aniqlash uchun Proxy klasslar yoki Identity Map dan foydalanadi. Dasturchilarni `registerDirty()` ni qo'lda chaqirishga majburlash ko'pincha o'zgarishlar unutilib qoladigan xatolarga olib keladi.
+Yuqoridagi kod misollarida mijoz `uow.registerDirty()` ni aniq chaqirdi. Haqiqiy zamonaviy implementatsiyada (masalan, Entity Framework da) ORM xususiyat qachon o'zgarganini avtomatik aniqlash uchun Proxy klasslar yoki Identifikatorlar xaritasidan foydalanadi. Dasturchilarni `registerDirty()` ni qo'lda chaqirishga majburlash ko'pincha o'zgarishlar unutilib qoladigan xatolarga olib keladi.
 
 ### 2. Yashash muddati juda uzun
 
-Unit of Work qisqa muddatli bo'lishi kerak. Veb ilovada u faqat bitta HTTP so'rov davomida yashashi kerak. Unit of Work'ni bir nechta so'rovlar davomida (masalan, foydalanuvchi sessiyalarida) tirik saqlash dahshatli xotira sizishlari va eskirgan ma'lumotlar bilan bog'liq parallellik xatolariga olib keladi.
+Ish birligi qisqa muddatli bo'lishi kerak. Veb ilovada u faqat bitta HTTP so'rov davomida yashashi kerak. Ish birligini bir nechta so'rovlar davomida (masalan, foydalanuvchi sessiyalarida) tirik saqlash dahshatli xotira sizishlari va eskirgan ma'lumotlar bilan bog'liq parallellik xatolariga olib keladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Identity Map](/uz/architectural/identity-map)**: Unit of Work hozirda _qaysi_ obyekt nusxalari yuklangan va kuzatilayotganini bilish uchun deyarli har doim Identity Map ga tayanadi.
-- **[Repository](/uz/architectural/repository)**: Obyektlarni Unit of Work'ga olib keladigan to'plam interfeysi vazifasini bajaradi va ko'pincha ularni oxir-oqibat saqlash uchun Unit of Work'ga tayanadi.
-- **[Data Mapper](/uz/architectural/data-mapper)**: Unit of Work'ning `commit()` metodi chaqirilganda ma'lumotlar bazasiga yakuniy SQL buyruqlarini amalda bajaradi.
+- **[Identifikatorlar xaritasi](/uz/architectural/identity-map)**: Ish birligi hozirda _qaysi_ obyekt nusxalari yuklangan va kuzatilayotganini bilish uchun deyarli har doim Identifikatorlar xaritasiga tayanadi.
+- **[Repozitoriy](/uz/architectural/repository)**: Obyektlarni Ish birligiga olib keladigan to'plam interfeysi vazifasini bajaradi va ko'pincha ularni oxir-oqibat saqlash uchun Ish birligiga tayanadi.
+- **[Data Mapper](/uz/architectural/data-mapper)**: Ish birligining `commit()` metodi chaqirilganda ma'lumotlar bazasiga yakuniy SQL buyruqlarini amalda bajaradi.

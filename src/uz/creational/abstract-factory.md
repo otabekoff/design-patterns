@@ -1,25 +1,25 @@
 ---
-title: Abstract Factory patterni
+title: Abstrakt fabrika andozasi (Abstract Factory)
 description: Bog'liq obyektlar oilalarini ularning konkret klasslarini ko'rsatmasdan yaratadi.
 icon: Boxes
 ---
 
-# Abstract Factory patterni
+# Abstrakt fabrika andozasi (Abstract Factory)
 
 <CoverImage src="/covers/creational/abstract-factory.webp" alt="Cover">
-  <h1>Abstract Factory</h1>
+  <h1>Abstrakt fabrika</h1>
   <p>Ikki xil yig'uv liniyasiga ega yuqori texnologiyali mega-zavod: biri "yoqimli pastel pushti kiber-tishli g'ildiraklar va tugmalar"ni, ikkinchisi esa "silliq qorong'i kiberpank tishli g'ildiraklar va tugmalar"ni ishlab chiqaradi — bu bog'liq mahsulotlar oilalarini tasvirlaydi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Abstract Factory** patterni — bu yaratuvchi (creational) dizayn patterni bo'lib, u o'zaro bog'liq yoki bir-biriga tobe obyektlar oilalarini ularning konkret klasslarini ko'rsatmasdan yaratish imkonini beradi. U bog'liq obyektlar to'plami uchun abstrakt interfeyslarni belgilaydi, so'ngra har bir oila uchun konkret fabrikalar yaratadi.
+**Abstrakt fabrika (Abstract Factory)** andozasi — bu yaratuvchi (creational) loyihalash andozasi bo'lib, u o'zaro bog'liq yoki bir-biriga tobe obyektlar oilalarini ularning konkret klasslarini ko'rsatmasdan yaratish imkonini beradi. U bog'liq obyektlar to'plami uchun abstrakt interfeyslarni belgilaydi, so'ngra har bir oila uchun konkret fabrikalar yaratadi.
 
-**Factory Method**dan farqli o'laroq (u bitta turdagi obyektni yaratadi), Abstract Factory bir nechta bog'liq turlarni birgalikda yaratadi. Uni "fabrikalar fabrikasi" deb tasavvur qiling.
+**Fabrika metodidan** (Factory Method) farqli o'laroq (u bitta turdagi obyektni yaratadi), Abstrakt fabrika bir nechta bog'liq turlarni birgalikda yaratadi. Uni "fabrikalar fabrikasi" deb tasavvur qiling.
 
-**Asosiy farq**: O'zgaruvchan bitta mahsulot turini yaratish kerak bo'lsa, Factory Method dan foydalaning. Birgalikda ishlashi shart bo'lgan mahsulotlar oilalarini yaratish kerak bo'lsa, Abstract Factory dan foydalaning.
+**Asosiy farq**: O'zgaruvchan bitta mahsulot turini yaratish kerak bo'lsa, Fabrika metodidan foydalaning. Birgalikda ishlashi shart bo'lgan mahsulotlar oilalarini yaratish kerak bo'lsa, Abstrakt fabrikadan foydalaning.
 
-**Zamonaviy nuqtai nazar**: Abstract Factory kross-platforma UI freymvorklari, ma'lumotlar bazasi abstraksiya qatlamlari va mavzu (theme) tizimlari uchun hamon dolzarb. Biroq zamonaviy kodda uni ko'pincha dependency injection va kompozitsiya almashtiradi.
+**Zamonaviy nuqtai nazar**: Abstrakt fabrika kross-platforma UI freymvorklari, ma'lumotlar bazasi abstraksiya qatlamlari va mavzu (theme) tizimlari uchun hamon dolzarb. Biroq zamonaviy kodda uni ko'pincha bog'liqliklarni kiritish (dependency injection) va kompozitsiya almashtiradi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -73,7 +73,7 @@ classDiagram
     Client --> Checkbox : uses
 ```
 
-- **`UIFactory`** (Abstract Factory) har bir mahsulot turi uchun bitta yaratish metodini e'lon qiladi; `Scrollbar` ham xuddi shu shaklga ega va qisqalik uchun tushirib qoldirilgan.
+- **`UIFactory`** (Abstrakt fabrika) har bir mahsulot turi uchun bitta yaratish metodini e'lon qiladi; `Scrollbar` ham xuddi shu shaklga ega va qisqalik uchun tushirib qoldirilgan.
 - **`WindowsUIFactory` / `MacUIFactory`** (Concrete Factories — konkret fabrikalar) har biri bir-biriga mos mahsulotlarning to'liq oilasini ishlab chiqaradi.
 - **`Button` / `Checkbox`** (Abstract Products — abstrakt mahsulotlar) mijoz ishlaydigan interfeyslardir; `WindowsButton`, `MacCheckbox` va boshqalar esa konkret mahsulotlardir.
 - **`Client`** faqat abstrakt fabrika va mahsulot interfeyslariga bog'liq bo'ladi, hech qachon konkret oilaga bog'lanmaydi.
@@ -117,7 +117,7 @@ connection.execute(queryBuilder.build());
 
 ## Yechim (Solution)
 
-Abstract Factory bu muammoni quyidagicha hal qiladi:
+Abstrakt fabrika bu muammoni quyidagicha hal qiladi:
 
 1. Har bir mahsulot oilasi uchun **abstrakt interfeyslarni belgilash** (Button, Checkbox, Scrollbar).
 2. Har bir oila uchun **konkret fabrikalar yaratish** (WindowsUIFactory, MacUIFactory).
@@ -220,7 +220,7 @@ class MacScrollbar implements Scrollbar {
 }
 
 /**
- * Abstract factory: Mahsulot oilalarini yaratish interfeysini belgilaydi.
+ * Abstrakt fabrika: Mahsulot oilalarini yaratish interfeysini belgilaydi.
  */
 interface UIFactory {
   createButton(): Button;
@@ -856,7 +856,7 @@ fn main() {
 
 :::
 
-### TypeScript: Klassik Abstract Factory
+### TypeScript: Klassik Abstrakt fabrika
 
 TypeScript mahsulot shartnomalarini (`Button`, `Checkbox`, `Scrollbar`) ham, fabrika shartnomasini (`UIFactory`) ham belgilash uchun `interface` e'lonlaridan foydalanadi. `WindowsUIFactory` va `MacUIFactory` kabi konkret fabrikalar fabrika interfeysini amalga oshiradi va kompilyator har bir fabrika metodi to'g'ri mahsulot turini qaytarishini statik ravishda tekshiradi. Mijoz `UIFactory` havolasini oladi va hech qachon konkret klasslarga tegmaydi — oilalarni almashtirish inyeksiya nuqtasidagi bir qatorlik o'zgarishdir.
 
@@ -998,7 +998,7 @@ class PostgreSQLTransaction implements Transaction {
 }
 
 /**
- * Abstract factory
+ * Abstrakt fabrika
  */
 interface DatabaseFactory {
   createConnection(): Connection;
@@ -1084,7 +1084,7 @@ repo.findAll("users").then((users) => console.log(users));
 ### ❌ Kamchiliklari
 
 - **Murakkablik ortadi**: Oddiyroq yondashuvlarga qaraganda ko'proq klass va interfeyslar.
-- **Kichik oilalar uchun ortiqcha**: 2-3 ta bog'liq obyekt uchun Abstract Factory qo'shimcha yuk keltiradi.
+- **Kichik oilalar uchun ortiqcha**: 2-3 ta bog'liq obyekt uchun Abstrakt fabrika qo'shimcha yuk keltiradi.
 - **Yangi mahsulotlarni qo'shish qiyin**: Agar yangi mahsulot turi (masalan, menyu paneli) qo'shish kerak bo'lsa, barcha fabrikalarni yangilashingiz shart.
 - **Ish vaqtida fabrika tanlash**: Qaysi fabrikadan foydalanishni aniqlash uchun baribir mantiq kerak.
 - **Bog'liqliklarni yashirishi mumkin**: Fabrika siz aslida qaysi mahsulotlardan foydalanayotganingizni abstraksiya ortiga yashiradi.
@@ -1107,21 +1107,21 @@ repo.findAll("users").then((users) => console.log(users));
 - **Yangi mahsulot turlari tez-tez qo'shiladi**, lekin yangi oilalar qo'shilmaydi.
 - **Mahsulot oilalari bir-biri bilan zaif bog'langan** yoki muvofiqlashgan xatti-harakatga muhtoj emas.
 - **Oddiy shartli operatorlar yoki qidiruv jadvallari** yetarli bo'ladi (ortiqcha muhandislik — over-engineering xavfi).
-- **Dependency Injection dan foydalanib**, alohida mahsulotlarni to'g'ridan-to'g'ri uzatishingiz mumkin.
+- **Bog'liqliklarni kiritishdan (Dependency Injection) foydalanib**, alohida mahsulotlarni to'g'ridan-to'g'ri uzatishingiz mumkin.
 
 :::
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### ❌ Xato 1: Abstract Factory ni Factory Method bilan adashtirish
+### ❌ Xato 1: Abstrakt fabrikani Fabrika metodi bilan adashtirish
 
 ```typescript
-// ❌ Xato: Bu Factory Method, Abstract Factory emas
+// ❌ Xato: Bu Fabrika metodi, Abstrakt fabrika emas
 abstract class DocumentFactory {
   abstract createDocument(): Document; // BITTA turni yaratadi
 }
 
-// ✅ Abstract Factory BIR NECHTA bog'liq turlarni yaratadi
+// ✅ Abstrakt fabrika BIR NECHTA bog'liq turlarni yaratadi
 interface UIFactory {
   createButton(): Button;
   createCheckbox(): Checkbox;
@@ -1177,12 +1177,12 @@ const factoryRegistry = {
 const factory = new factoryRegistry[os]();
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Factory Method**: Ko'pincha har bir konkret fabrika ichida alohida mahsulotlarni yaratish uchun ishlatiladi.
+- **Fabrika metodi (Factory Method)**: Ko'pincha har bir konkret fabrika ichida alohida mahsulotlarni yaratish uchun ishlatiladi.
 - **Singleton**: Fabrikalar ko'pincha singleton sifatida amalga oshiriladi.
-- **Strategy**: Tuzilishi o'xshash, lekin Strategy algoritmlar uchun, Abstract Factory esa obyektlar oilalari uchun.
-- **Composite**: Obyektlarning ierarxik oilalarini yaratish uchun ko'pincha birgalikda ishlatiladi.
+- **Strategiya (Strategy)**: Tuzilishi o'xshash, lekin Strategiya algoritmlar uchun, Abstrakt fabrika esa obyektlar oilalari uchun.
+- **Kompozit (Composite)**: Obyektlarning ierarxik oilalarini yaratish uchun ko'pincha birgalikda ishlatiladi.
 
 ## Zamonaviy muqobillar
 
@@ -1197,7 +1197,7 @@ const factories: Record<string, UIFactory> = {
 const factory = factories[currentOS];
 ```
 
-### Dependency Injection konteyneri
+### Bog'liqliklarni kiritish konteyneri (DI container)
 
 ```typescript
 container.register("UIFactory", () => {
@@ -1209,24 +1209,24 @@ const factory = container.resolve("UIFactory");
 
 ## Intervyu savollari (Interview Insights)
 
-**S: Abstract Factory va Factory Method o'rtasidagi farq nima?**
+**S: Abstrakt fabrika va Fabrika metodi o'rtasidagi farq nima?**
 
-J: Factory Method meros orqali bitta mahsulot turini yaratadi. Abstract Factory esa bog'liq mahsulotlar oilalarini yaratadi. Oddiy holatlar uchun Factory Method dan foydalaning; muvofiqlashgan oilalar kerak bo'lganda Abstract Factory dan foydalaning.
+J: Fabrika metodi meros orqali bitta mahsulot turini yaratadi. Abstrakt fabrika esa bog'liq mahsulotlar oilalarini yaratadi. Oddiy holatlar uchun Fabrika metodidan foydalaning; muvofiqlashgan oilalar kerak bo'lganda Abstrakt fabrikadan foydalaning.
 
-**S: Abstract Factory ga yangi mahsulot turini qanday qo'shasiz?**
+**S: Abstrakt fabrikaga yangi mahsulot turini qanday qo'shasiz?**
 
-J: Fabrika interfeysini va barcha konkret fabrikalarni yangilashingiz kerak. Bu uning kamchiligi. Agar yangi mahsulot turlari tez-tez qo'shilsa, Abstract Factory bilan ishlash og'irlashadi.
+J: Fabrika interfeysini va barcha konkret fabrikalarni yangilashingiz kerak. Bu uning kamchiligi. Agar yangi mahsulot turlari tez-tez qo'shilsa, Abstrakt fabrika bilan ishlash og'irlashadi.
 
-**S: Abstract Factory va Factory Method birgalikda ishlay oladimi?**
+**S: Abstrakt fabrika va Fabrika metodi birgalikda ishlay oladimi?**
 
-J: Ha. Konkret fabrikalar alohida mahsulotlarni yaratish uchun ko'pincha ichki tomondan Factory Method dan foydalanadi.
+J: Ha. Konkret fabrikalar alohida mahsulotlarni yaratish uchun ko'pincha ichki tomondan Fabrika metodidan foydalanadi.
 
-**S: Abstract Factory Dependency Injection bilan qanday bog'liq?**
+**S: Abstrakt fabrika bog'liqliklarni kiritish (Dependency Injection) bilan qanday bog'liq?**
 
 J: Ikkalasi ham kodni konkret klasslardan ajratish muammosini hal qiladi. DI ko'pincha oddiyroq va moslashuvchanroq.
 
 ## Manbalar (References)
 
 - Gang of Four: "Design Patterns: Elements of Reusable Object-Oriented Software"
-- Refactoring.Guru: Abstract Factory patterni bo'yicha qo'llanma
-- Dependency Injection freymvorklari: Spring (Java), .NET Core DI, Angular (TypeScript)
+- Refactoring.Guru: Abstrakt fabrika (Abstract Factory) andozasi bo'yicha qo'llanma
+- Bog'liqliklarni kiritish (Dependency Injection) freymvorklari: Spring (Java), .NET Core DI, Angular (TypeScript)

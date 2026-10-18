@@ -445,3 +445,29 @@ div[class*="language-"] pre,
 :lang(ar) {
   --vp-code-copy-copied-text-content: "تم النسخ";
 }
+
+/* ─── Polish ────────────────────────────────────────────────── */
+
+/* Support card: VitePress gives every markdown h2 a top border, which reads as a stray line here */
+.vp-doc .home-support h2 {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* Search shortcut: two separate keycaps instead of VitePress's half-merged "Ctrl|K" pill */
+.DocSearch-Button .DocSearch-Button-Keys {
+  gap: 4px;
+}
+.DocSearch-Button .DocSearch-Button-Key,
+.DocSearch-Button .DocSearch-Button-Key + .DocSearch-Button-Key {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+  padding: 0 6px;
+}
+
+/* Code blocks: keep the language label clear of the vertical scrollbar on long blocks */
+.vp-doc div[class*='language-'] > span.lang {
+  top: 4px;
+  right: 16px;
+}

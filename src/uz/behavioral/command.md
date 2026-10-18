@@ -1,23 +1,23 @@
 ---
-title: Command Patterni
+title: Buyruq andozasi (Command)
 description: So'rovni obyekt sifatida inkapsulyatsiya qiladi — bu clientlarni turli so'rovlar bilan parametrlash, so'rovlarni navbatga qo'yish yoki loglash hamda bekor qilinadigan (undo) operatsiyalarni qo'llab-quvvatlash imkonini beradi.
 icon: Command
 ---
 
-# Command Patterni
+# Buyruq andozasi (Command)
 
 <CoverImage src="/covers/behavioral/command.webp" alt="Cover">
-  <h1>Command</h1>
+  <h1>Buyruq</h1>
   <p>Kulgili "Missiyani boshqarish markazi" paneli: kichkina general robot tugmani bosadi va "JUMP" yozuvli porlab turgan kartrij paydo bo'ladi, u oddiy ishchi robotga yuklanadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Command** (Buyruq) patterni — bu so'rov yoki amalni mustaqil obyektga aylantiruvchi xulq-atvor (behavioral) dizayn patternidir. Bunday o'zgartirish metodlarni turli so'rovlar bilan parametrlash, so'rov bajarilishini kechiktirish yoki navbatga qo'yish hamda bekor qilinadigan (undo) operatsiyalarni qo'llab-quvvatlash imkonini beradi.
+**Buyruq** (Command) andozasi — bu so'rov yoki amalni mustaqil obyektga aylantiruvchi xulq-atvor (behavioral) loyihalash andozasidir. Bunday o'zgartirish metodlarni turli so'rovlar bilan parametrlash, so'rov bajarilishini kechiktirish yoki navbatga qo'yish hamda bekor qilinadigan (undo) operatsiyalarni qo'llab-quvvatlash imkonini beradi.
 
 **Asosiy afzalligi**: U operatsiyani _chaqiruvchi_ obyektni operatsiyani _bajaruvchi_ obyektdan ajratadi.
 
-**Zamonaviy nuqtai nazar**: Command patterni zamonaviy GUI ilovalarida (undo/redo steklari), vazifalar navbatlarida (Redis/Celery workerlari), tranzaksion tizimlarda (taqsimlangan arxitekturalardagi kompensatsion tranzaksiyalar) va CQRS'da (Command Query Responsibility Segregation) keng qo'llaniladi.
+**Zamonaviy nuqtai nazar**: Buyruq andozasi zamonaviy GUI ilovalarida (undo/redo steklari), vazifalar navbatlarida (Redis/Celery workerlari), tranzaksion tizimlarda (taqsimlangan arxitekturalardagi kompensatsion tranzaksiyalar) va CQRS'da (Command Query Responsibility Segregation) keng qo'llaniladi.
 
 ## Muammo (The Problem)
 
@@ -46,7 +46,7 @@ UI'ni biznes mantiqqa to'g'ridan-to'g'ri bog'lash amallarni ma'lumot sifatida ko
 
 ## Yechim (The Solution)
 
-Command patterni UI komponentlari biznes mantiqni to'g'ridan-to'g'ri chaqirish o'rniga, so'rov tafsilotlarini alohida **Command** obyektiga ajratishni taklif qiladi.
+Buyruq andozasi UI komponentlari biznes mantiqni to'g'ridan-to'g'ri chaqirish o'rniga, so'rov tafsilotlarini alohida **Command** obyektiga ajratishni taklif qiladi.
 
 1. UI komponenti (**Invoker** — chaqiruvchi) Command interfeysida shunchaki `execute()` ni chaqiradi.
 2. **Command** obyekti **Receiver** (qabul qiluvchi — biznes mantiq obyekti)da aynan qaysi metodni chaqirishni biladi.
@@ -692,7 +692,7 @@ fn main() {
 - **Ochiq/yopiqlik tamoyili (Open/Closed Principle)**: Mavjud client kodini buzmasdan yangi buyruqlarni kiritish mumkin.
 - **Undo/Redo**: Buyruqlarni saqlash orqali tarix bo'ylab oldinga va orqaga harakatlanishni tabiiy ravishda qo'llab-quvvatlaysiz.
 - **Kechiktirilgan bajarish**: Buyruqlarni keyinroq bajarish uchun navbatga qo'yish, rejalashtirish yoki serializatsiya qilish mumkin (vazifalar navbatlari uchun ideal).
-- **Makro buyruqlar**: Oddiy buyruqlardan murakkab makro buyruqlarni yig'ish mumkin (masalan, Composite patterni Command bilan birgalikda).
+- **Makro buyruqlar**: Oddiy buyruqlardan murakkab makro buyruqlarni yig'ish mumkin (masalan, Kompozit andozasi Buyruq bilan birgalikda).
 
 ### Kamchiliklari (Disadvantages)
 
@@ -739,20 +739,20 @@ class ProcessOrderCommand implements Command {
 
 `undo()` metodi `execute()` dan oldingi holatni aynan tiklashi kerak. Agar `execute()` vaqtida ustiga yozilgan holatni Command obyekti ichida saqlamasangiz, bekor qilish imkonsiz bo'lib qoladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Memento](/uz/behavioral/memento)**: Ko'pincha Command _bilan birga_ ishlatiladi. Agar buyruq juda katta obyektni o'zgartirsa, teskari operatsiyani o'ylab topish o'rniga Command bajarilishdan oldin obyektning Memento'sini (snapshot — surat) saqlaydi va undo vaqtida shu Memento'ni tiklaydi.
-- **[Composite](/uz/structural/composite)**: Bir nechta buyruqni o'zi ham Command interfeysini amalga oshiradigan `MacroCommand` ga birlashtirish mumkin.
-- **[Strategy](/uz/behavioral/strategy)**: Ikkalasi ham obyektni xatti-harakat bilan parametrlashi jihatidan o'xshash. Lekin Strategy biror ishni _qanday_ bajarishni (algoritm) belgilaydi, Command esa _nima_ qilishni (amal) belgilaydi.
+- **[Memento](/uz/behavioral/memento)**: Ko'pincha Buyruq _bilan birga_ ishlatiladi. Agar buyruq juda katta obyektni o'zgartirsa, teskari operatsiyani o'ylab topish o'rniga buyruq bajarilishdan oldin obyektning Memento'sini (snapshot — surat) saqlaydi va undo vaqtida shu Memento'ni tiklaydi.
+- **[Kompozit](/uz/structural/composite)**: Bir nechta buyruqni o'zi ham Command interfeysini amalga oshiradigan `MacroCommand` ga birlashtirish mumkin.
+- **[Strategiya](/uz/behavioral/strategy)**: Ikkalasi ham obyektni xatti-harakat bilan parametrlashi jihatidan o'xshash. Lekin Strategiya biror ishni _qanday_ bajarishni (algoritm) belgilaydi, Buyruq esa _nima_ qilishni (amal) belgilaydi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Command patterni yordamida Undo funksiyasini qanday amalga oshirasiz?"
+- **Savol**: "Buyruq andozasi yordamida Undo funksiyasini qanday amalga oshirasiz?"
   - **Javob**: "Bajarilgan Command obyektlarining stekini saqlaysiz. Har bir buyruq `undo()` metodini amalga oshiradi. Foydalanuvchi Undo'ni bosganda, stekning yuqorisidagi buyruqni olib (pop), uning `undo()` metodini chaqirasiz va ixtiyoriy ravishda uni Redo stekiga qo'shasiz."
-- **Savol**: "CQRS nima va u Command patterni bilan qanday bog'liq?"
-  - **Javob**: "CQRS (Command Query Responsibility Segregation) o'qish operatsiyalarini (Query) yozish operatsiyalaridan (Command) ajratadi. Ular nomlanishi va falsafasi jihatidan bog'liq bo'lsa-da — ikkalasi ham yozishni alohida niyat obyektlari sifatida ko'radi — CQRS ma'lumotlar bazalari va mikroservislarni masshtablash uchun arxitekturaviy pattern, Command dizayn patterni esa obyektga yo'naltirilgan xotira tuzilmalari uchun xulq-atvor patternidir."
+- **Savol**: "CQRS nima va u Buyruq andozasi bilan qanday bog'liq?"
+  - **Javob**: "CQRS (Command Query Responsibility Segregation) o'qish operatsiyalarini (Query) yozish operatsiyalaridan (Command) ajratadi. Ular nomlanishi va falsafasi jihatidan bog'liq bo'lsa-da — ikkalasi ham yozishni alohida niyat obyektlari sifatida ko'radi — CQRS ma'lumotlar bazalari va mikroservislarni masshtablash uchun arxitektura andozasi, Buyruq loyihalash andozasi esa obyektga yo'naltirilgan xotira tuzilmalari uchun xulq-atvor andozasidir."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
 - **Funksional closure'lar**: Birinchi darajali funksiyalarga ega tillarda (JS/TS, Python, Go, Rust) butun bir `Command` interfeysi shart emas. Oddiy callback yoki closure `() => { ... }` amalni inkapsulyatsiya qilishi mumkin, uning closure doirasi esa saqlangan parametrlar vazifasini bajaradi. (Garchi closure'lar bilan undo/redo'ni obyektlarga qaraganda standartlashtirish qiyinroq bo'lsa ham).
-- **Redux / Flux arxitekturasi**: Frontend freymvorklarda "Action"lar va "Reducer"lar Command patterni bilan aynan bir xil maqsadga xizmat qiladi. Action — bu buyruq ma'lumoti (payload), Dispatcher — Invoker, Reducer esa Receiver.
+- **Redux / Flux arxitekturasi**: Frontend freymvorklarda "Action"lar va "Reducer"lar Buyruq andozasi bilan aynan bir xil maqsadga xizmat qiladi. Action — bu buyruq ma'lumoti (payload), Dispatcher — Invoker, Reducer esa Receiver.

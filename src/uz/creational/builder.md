@@ -1,30 +1,30 @@
 ---
-title: Builder patterni
+title: Quruvchi andozasi (Builder)
 description: Murakkab obyektlarni bosqichma-bosqich quradi va qurish mantig'ini obyektning ko'rinishidan ajratadi.
 icon: Hammer
 ---
 
-# Builder patterni
+# Quruvchi andozasi (Builder)
 
 <CoverImage src="/covers/creational/builder.webp" alt="Cover">
-  <h1>Builder</h1>
+  <h1>Quruvchi</h1>
   <p>Kichkina mexanik oshpaz robot batafsil arxitektura chizmasiga qarab ulkan, premium ko'p qavatli gamburger ingredientlarini bosqichma-bosqich ehtiyotkorlik bilan taxlamoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Builder** patterni murakkab obyektlarni bosqichma-bosqich qurish imkonini beruvchi yaratuvchi (creational) dizayn patternidir. U qurish jarayonini obyektning ko'rinishidan (representation) ajratadi, shu tufayli bitta qurish mantig'i turli ko'rinishlarni hosil qilishi mumkin.
+**Quruvchi (Builder)** andozasi murakkab obyektlarni bosqichma-bosqich qurish imkonini beruvchi yaratuvchi (creational) loyihalash andozasidir. U qurish jarayonini obyektning ko'rinishidan (representation) ajratadi, shu tufayli bitta qurish mantig'i turli ko'rinishlarni hosil qilishi mumkin.
 
 **Asosiy afzalligi**: Konstruktorning uzun parametrlar ro'yxatini yo'q qiladi va metodlar zanjiri (method chaining) orqali kodning o'qilishini yaxshilaydi.
 
-**Zamonaviy nuqtai nazar**: Ko'plab zamonaviy tillarda Builder o'rnini quyidagilar egallamoqda:
+**Zamonaviy nuqtai nazar**: Ko'plab zamonaviy tillarda Quruvchi o'rnini quyidagilar egallamoqda:
 
 - Nomlangan parametrlar (Python, C#)
 - O'zgarmas record turlari (Rust, Java records)
 - Dataclass standart qiymatlari (Python)
 - Konfiguratsiya obyektlari/map'lar
 
-Shunga qaramay, Builder validatsiyasi ko'p bo'lgan qurish, ko'p bosqichli qurish va bitta obyektning turli ko'rinishlarini yaratish uchun qimmatli bo'lib qolmoqda.
+Shunga qaramay, Quruvchi validatsiyasi ko'p bo'lgan qurish, ko'p bosqichli qurish va bitta obyektning turli ko'rinishlarini yaratish uchun qimmatli bo'lib qolmoqda.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -121,7 +121,7 @@ const csvReport = new Report("csv", "raw");
 
 ## Yechim (Solution)
 
-Builder patterni buni quyidagicha hal qiladi:
+Quruvchi andozasi buni quyidagicha hal qiladi:
 
 1. Qurish holatini saqlaydigan **builder klassini yaratish**
 2. Har bir xususiyat uchun **zanjirli metodlarni taqdim etish**
@@ -700,14 +700,14 @@ console.log(query);
 
 - **Ko'p so'zlilik**: Oddiy konstruktorlarga qaraganda ko'proq kod talab qiladi
 - **Murakkablik**: Parametrlari kam bo'lgan oddiy obyektlar uchun ortiqcha
-- **Xotira sarfi**: Builder instansiyasi xotirada saqlanib turadi
+- **Xotira sarfi**: Quruvchi instansiyasi xotirada saqlanib turadi
 - **O'rganish qiyinligi**: To'g'ridan-to'g'ri instansiya yaratishdan murakkabroq
-- **O'zgaruvchanlik (mutability)**: Builder'ning o'zi o'zgaruvchan (garchi yakuniy product o'zgarmas bo'lishi mumkin bo'lsa ham)
-- **Thread safety**: Builder sukut bo'yicha thread-safe emas
+- **O'zgaruvchanlik (mutability)**: Quruvchining o'zi o'zgaruvchan (garchi yakuniy product o'zgarmas bo'lishi mumkin bo'lsa ham)
+- **Thread safety**: Quruvchi sukut bo'yicha thread-safe emas
 
 ## Variatsiyalar (Variations)
 
-### 1. Director patterni
+### 1. Director andozasi
 
 Qurish algoritmlarini alohida Director klassiga joylashtiradi:
 
@@ -746,7 +746,7 @@ Director bitta builder obyekti o'rniga builder *yaratuvchi funksiya*ni qabul qil
 
 Zanjir hosil qilish uchun builder'ning o'zini qaytaradi (misollarda ko'rsatilganidek).
 
-### 3. Step Builder
+### 3. Bosqichli quruvchi (Step Builder)
 
 Turli builder klasslari orqali qurish qadamlari tartibini majburiy qiladi:
 
@@ -890,7 +890,7 @@ const point = new PointBuilder().x(10).y(20).build(); // 4 ta parametr kerak!
 // ✅ Yaxshi: oddiy konstruktordan foydalaning
 const point = new Point(10, 20);
 
-// ✅ Murakkab holatlar uchun Builder
+// ✅ Murakkab holatlar uchun Quruvchi
 const chart = new ChartBuilder()
   .title("Sales")
   .type("bar")
@@ -935,19 +935,19 @@ class ConfigBuilder {
 }
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Abstract Factory**: Obyektlar oilalarini yaratish uchun Builder bilan birga ishlashi mumkin
-- **Composite**: Builder kompozit daraxt tuzilmalarini qurish uchun foydali
-- **Template Method**: Subklasslar amalga oshiradigan qurish qadamlarini belgilashi mumkin
-- **Singleton**: O'zgarmas konfiguratsiya Singleton'lari uchun Builder patternidan foydalanish mumkin
-- **Prototype**: Builder va Prototype - Builder bosqichma-bosqich qurish uchun, Prototype nusxalash (cloning) uchun
+- **Abstrakt fabrika (Abstract Factory)**: Obyektlar oilalarini yaratish uchun Quruvchi bilan birga ishlashi mumkin
+- **Kompozit (Composite)**: Quruvchi kompozit daraxt tuzilmalarini qurish uchun foydali
+- **Shablon metod (Template Method)**: Subklasslar amalga oshiradigan qurish qadamlarini belgilashi mumkin
+- **Singleton**: O'zgarmas konfiguratsiya Singleton'lari uchun Quruvchi andozasidan foydalanish mumkin
+- **Prototip (Prototype)**: Quruvchi va Prototip - Quruvchi bosqichma-bosqich qurish uchun, Prototip nusxalash (cloning) uchun
 
 ## Zamonaviy muqobillar
 
 ### Til imkoniyatlari
 
-- **Python**: Standart qiymatli nomlangan parametrlar Builder o'rnini bosadi:
+- **Python**: Standart qiymatli nomlangan parametrlar Quruvchi o'rnini bosadi:
   ```python
   config = AppConfig(environment="prod", timeout=10000)
   ```
@@ -967,35 +967,35 @@ class ConfigBuilder {
 ### Funksional yondashuvlar
 
 - O'zgarmas map/dictionary ko'rinishidagi konfiguratsiya
-- Dependency injection konteynerlari
+- Bog'liqliklarni kiritish (dependency injection) konteynerlari
 - Konfiguratsiyani boshqarish freymvorklari
 
 ## Intervyu savollari (Interview Insights)
 
-**S1: Qachon oddiy konstruktor parametrlari o'rniga Builder ishlatgan bo'lardingiz?**
+**S1: Qachon oddiy konstruktor parametrlari o'rniga Quruvchi ishlatgan bo'lardingiz?**
 
-J: Obyektda 3-4 tadan ortiq parametr bo'lsa yoki ko'plab parametrlar ixtiyoriy bo'lsa. Builder kodni o'qiladigan qiladi (`config.timeout(1000)`), chalkash variantga (`new Config(..., 1000, ...)`) qaraganda. Shuningdek, u qurish jarayonida validatsiya qilish imkonini beradi.
+J: Obyektda 3-4 tadan ortiq parametr bo'lsa yoki ko'plab parametrlar ixtiyoriy bo'lsa. Quruvchi kodni o'qiladigan qiladi (`config.timeout(1000)`), chalkash variantga (`new Config(..., 1000, ...)`) qaraganda. Shuningdek, u qurish jarayonida validatsiya qilish imkonini beradi.
 
-**S2: Builder Facade'dan nimasi bilan farq qiladi?**
+**S2: Quruvchi Fasaddan (Facade) nimasi bilan farq qiladi?**
 
-J: Facade murakkab quyi tizim (subsystem) interfeysini soddalashtiradi. Builder esa bitta murakkab obyektni bosqichma-bosqich quradi. Facade soddalashtirish haqida; Builder qurish haqida.
+J: Fasad murakkab quyi tizim (subsystem) interfeysini soddalashtiradi. Quruvchi esa bitta murakkab obyektni bosqichma-bosqich quradi. Fasad soddalashtirish haqida; Quruvchi qurish haqida.
 
 **S3: Yakuniy obyekt o'zgaruvchan bo'lishi kerakmi yoki o'zgarmas?**
 
-J: Odatda o'zgarmas. Builder o'zgaruvchan (holatni saqlaydi), lekin `build()` o'zgarmas obyekt qaytaradi. Bu ikkala afzallikni beradi: oson qurish + xavfsiz yakuniy obyekt.
+J: Odatda o'zgarmas. Quruvchi o'zgaruvchan (holatni saqlaydi), lekin `build()` o'zgarmas obyekt qaytaradi. Bu ikkala afzallikni beradi: oson qurish + xavfsiz yakuniy obyekt.
 
-**S4: Builder'da aylanma bog'liqliklarni (circular dependencies) qanday hal qilasiz?**
+**S4: Quruvchida aylanma bog'liqliklarni (circular dependencies) qanday hal qilasiz?**
 
 J: Havolalarni `build()` tugaganidan keyin o'rnating yoki alohida `finalize()` metodidan foydalaning. Yoki tuzilmani aylanma bog'liqliklar yuzaga kelmaydigan qilib quring (kompozitsiyani afzal ko'ring).
 
 **S5: Nega shunchaki standart qiymatli konstruktorlardan foydalanmaslik kerak?**
 
-J: Standart qiymatlar yaxshi kengaymaydi. 6 ta parametrdan 4 tasi ixtiyoriy bo'lsa, sizga 4 ta konstruktor overload kerak bo'ladi. Builder bitta aniq interfeys taqdim etadi va majburiy maydonlar yetishmasa, bu yaqqol ko'rinib turadi.
+J: Standart qiymatlar yaxshi kengaymaydi. 6 ta parametrdan 4 tasi ixtiyoriy bo'lsa, sizga 4 ta konstruktor overload kerak bo'ladi. Quruvchi bitta aniq interfeys taqdim etadi va majburiy maydonlar yetishmasa, bu yaqqol ko'rinib turadi.
 
-**S6: Builder patternini o'zgarmas obyektlar bilan ishlatish mumkinmi?**
+**S6: Quruvchi andozasini o'zgarmas obyektlar bilan ishlatish mumkinmi?**
 
-J: Ha, va bu ideal kombinatsiya. Builder qurish vaqtida o'zgaruvchan bo'ladi, keyin o'zgarmas yakuniy obyektni qaytaradi. Bu qurishni moslashuvchan saqlagan holda tasodifiy o'zgartirishlarning oldini oladi.
+J: Ha, va bu ideal kombinatsiya. Quruvchi qurish vaqtida o'zgaruvchan bo'ladi, keyin o'zgarmas yakuniy obyektni qaytaradi. Bu qurishni moslashuvchan saqlagan holda tasodifiy o'zgartirishlarning oldini oladi.
 
-**S7: Builder fluent interfeyslar tamoyili bilan qanday bog'liq?**
+**S7: Quruvchi fluent interfeyslar tamoyili bilan qanday bog'liq?**
 
-J: Fluent interfeyslar (metodlar zanjiri) Builder'ni o'qiladigan qiluvchi mexanizmdir. Har bir metod `this` qaytaradi, bu esa `.method1().method2().build()` zanjirlarini hosil qilish imkonini beradi.
+J: Fluent interfeyslar (metodlar zanjiri) Quruvchini o'qiladigan qiluvchi mexanizmdir. Har bir metod `this` qaytaradi, bu esa `.method1().method2().build()` zanjirlarini hosil qilish imkonini beradi.

@@ -1,23 +1,23 @@
 ---
-title: Mediator Patterni
+title: Vositachi andozasi (Mediator)
 description: Obyektlar o'rtasidagi murakkab muloqotni markazlashtiradi, shunda ular bir-biriga to'g'ridan-to'g'ri havolalarga muhtoj bo'lmaydi.
 icon: Users
 ---
 
-# Mediator Patterni
+# Vositachi andozasi (Mediator)
 
 <CoverImage src="/covers/behavioral/mediator.webp" alt="Cover">
-  <h1>Mediator</h1>
+  <h1>Vositachi</h1>
   <p>Dumaloq stol markazida hakam ko'ylagini kiygan xotirjam vositachi robot o'tiribdi — u qizil va yashil rangda porlab turgan yo'laklar yordamida stol atrofidagi beshta tartibsiz, baqirayotgan robot o'rtasidagi muloqotni muvofiqlashtiradi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Mediator** (Vositachi) patterni — bu obyektlar o'rtasidagi tartibsiz bog'liqliklarni kamaytiruvchi xulq-atvor (behavioral) dizayn patternidir. U obyektlar o'rtasidagi to'g'ridan-to'g'ri muloqotni cheklaydi va ularni faqat markaziy vositachi obyekt orqali hamkorlik qilishga majbur qiladi.
+**Vositachi** (Mediator) andozasi — bu obyektlar o'rtasidagi tartibsiz bog'liqliklarni kamaytiruvchi xulq-atvor (behavioral) loyihalash andozasidir. U obyektlar o'rtasidagi to'g'ridan-to'g'ri muloqotni cheklaydi va ularni faqat markaziy vositachi obyekt orqali hamkorlik qilishga majbur qiladi.
 
 **Asosiy afzalligi**: U "ko'pdan-ko'pga" (many-to-many) muloqot to'rini "birdan-ko'pga" (one-to-many) yulduzsimon topologiya bilan almashtiradi va tizim komponentlari o'rtasidagi bog'liqlikni keskin kamaytiradi.
 
-**Zamonaviy nuqtai nazar**: Mediator patterni zamonaviy UI freymvorklariga (bu yerda Controller yoki ViewModel view'lar va modellar o'rtasida vositachilik qiladi), Event Bus'larga, API Gateway'larga va CQRS amalga oshirishlariga (masalan, C#'dagi mashhur MediatR kutubxonasi) chuqur singdirilgan.
+**Zamonaviy nuqtai nazar**: Vositachi andozasi zamonaviy UI freymvorklariga (bu yerda Controller yoki ViewModel view'lar va modellar o'rtasida vositachilik qiladi), Event Bus'larga, API Gateway'larga va CQRS amalga oshirishlariga (masalan, C#'dagi mashhur MediatR kutubxonasi) chuqur singdirilgan.
 
 ## Muammo (The Problem)
 
@@ -53,7 +53,7 @@ Agar holat o'zgarishlarini ishga tushirish uchun har bir komponent boshqa har bi
 
 ## Yechim (The Solution)
 
-Mediator patterni komponentlar (**Colleague** — hamkasblar deb ataladi) bir-biri bilan to'g'ridan-to'g'ri muloqot qilmasligini taklif qiladi. Buning o'rniga ular hodisalar yoki xabarlarni **Mediator** obyektiga yuborishi kerak.
+Vositachi andozasi komponentlar (**Colleague** — hamkasblar deb ataladi) bir-biri bilan to'g'ridan-to'g'ri muloqot qilmasligini taklif qiladi. Buning o'rniga ular hodisalar yoki xabarlarni **Mediator** obyektiga yuborishi kerak.
 
 1. **Mediator** barcha komponentlar haqida biladi.
 2. **Colleague'lar** faqat Mediator haqida biladi.
@@ -620,12 +620,12 @@ fn main() {
 
 - **Murakkab UI'lar**: UI komponentlari bir-birining holat o'zgarishlariga reaksiya qilishi kerak bo'lsa-yu, lekin qattiq bog'lanmasligi kerak bo'lganda.
 - **Orkestratsiya qatlamlari**: Yagona "Saga" yoki "Workflow" koordinatori kerak bo'lgan bir nechta mikroservis yoki ichki tizimlarni integratsiya qilishda.
-- **CQRS**: [CQRS](/uz/architectural/cqrs) (Command Query Responsibility Segregation) patternida Mediator (masalan, MediatR) buyruqlarni o'z ishlovchilariga yo'naltiruvchi markaziy tugun vazifasini bajaradi.
+- **CQRS**: [CQRS](/uz/architectural/cqrs) (Command Query Responsibility Segregation) andozasida Vositachi (masalan, MediatR) buyruqlarni o'z ishlovchilariga yo'naltiruvchi markaziy tugun vazifasini bajaradi.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use) ❌
 
 - **Oddiy o'zaro ta'sirlar**: Agar faqat ikki obyekt bir-biri bilan gaplashishi kerak bo'lsa, to'g'ridan-to'g'ri havola yoki oddiy callback ancha aniqroq.
-- **Quvurli qayta ishlash (Pipeline Processing)**: Agar ma'lumotlar shunchaki A -> B -> C qadamlar bo'ylab ketma-ket oqsa, **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)** yoki **Pipes and Filters** patterni ko'proq mos keladi.
+- **Quvurli qayta ishlash (Pipeline Processing)**: Agar ma'lumotlar shunchaki A -> B -> C qadamlar bo'ylab ketma-ket oqsa, **[Mas'uliyatlar zanjiri](/uz/behavioral/chain-of-responsibility)** yoki **Pipes and Filters** andozasi ko'proq mos keladi.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
@@ -648,21 +648,21 @@ class BadMediator {
 
 Agar Mediator'ingiz 3000 qatorlik bo'lsa va loyihangizdagi har bir faylni import qilsa, siz haddan oshib ketgansiz. Mediator'ni kichikroq, sohaga xos koordinatorlarga bo'ling.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Observer](/uz/behavioral/observer)**: Mediator va Observer ko'pincha bir-birining o'rnida ishlatiladi. Observer'da obyekt hodisalarni tarqatadi va kim tinglayotgani bilan qiziqmaydi. Mediator'da esa markaziy obyekt aynan kim javob berishi kerakligini biladi. (Mediator'lar ko'pincha ichida Observer patternidan foydalanadi).
-- **[Facade](/uz/structural/facade)**: Facade klasslar quyi tizimiga soddalashtirilgan interfeys taqdim etadi. Facade qat'iy bir tomonlama ishlaydi (Client -> Facade -> Subsystem). Mediator esa komponentlar o'rtasidagi ko'p yo'nalishli muloqotni boshqaradi.
-- **[Command](/uz/behavioral/command)**: Ko'pincha Mediator haqiqiy ishni Command'larga topshiradi.
+- **[Kuzatuvchi](/uz/behavioral/observer)**: Vositachi va Kuzatuvchi ko'pincha bir-birining o'rnida ishlatiladi. Kuzatuvchida obyekt hodisalarni tarqatadi va kim tinglayotgani bilan qiziqmaydi. Vositachida esa markaziy obyekt aynan kim javob berishi kerakligini biladi. (Vositachilar ko'pincha ichida Kuzatuvchi andozasidan foydalanadi).
+- **[Fasad](/uz/structural/facade)**: Fasad klasslar quyi tizimiga soddalashtirilgan interfeys taqdim etadi. Fasad qat'iy bir tomonlama ishlaydi (Client -> Facade -> Subsystem). Vositachi esa komponentlar o'rtasidagi ko'p yo'nalishli muloqotni boshqaradi.
+- **[Buyruq](/uz/behavioral/command)**: Ko'pincha Vositachi haqiqiy ishni buyruqlarga topshiradi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Mediator va Observer o'rtasida qanday farq bor?"
-  - **Javob**: "Observer — bu tarqatish mexanizmi (Pub/Sub). Nashr qiluvchi (publisher) obunachilar kimligini bilmaydi. Mediator esa markazlashgan koordinator. Mediator o'zi muvofiqlashtirayotgan komponentlar haqida aniq biladi va ularning muayyan ish oqimlarini boshqaradi (orkestratsiya qiladi)."
-- **Savol**: "Mediator xotira sizib chiqishiga (memory leak) sabab bo'lishi mumkinmi?"
-  - **Javob**: "Ha. Mediator barcha Colleague'larga havolalarni saqlagani, Colleague'lar esa Mediator'ga havola saqlagani uchun osonlikcha aylana havolalar (circular references) yaratish mumkin. Xotirasi avtomatik boshqariladigan tillarda garbage collection ishlashi uchun ko'pincha komponentlar yo'q qilinganda ularni ro'yxatdan chiqarish kerak bo'ladi."
+- **Savol**: "Vositachi va Kuzatuvchi o'rtasida qanday farq bor?"
+  - **Javob**: "Kuzatuvchi — bu tarqatish mexanizmi (Pub/Sub). Nashr qiluvchi (publisher) obunachilar kimligini bilmaydi. Vositachi esa markazlashgan koordinator. Vositachi o'zi muvofiqlashtirayotgan komponentlar haqida aniq biladi va ularning muayyan ish oqimlarini boshqaradi (orkestratsiya qiladi)."
+- **Savol**: "Vositachi xotira sizib chiqishiga (memory leak) sabab bo'lishi mumkinmi?"
+  - **Javob**: "Ha. Vositachi barcha Colleague'larga havolalarni saqlagani, Colleague'lar esa Vositachiga havola saqlagani uchun osonlikcha aylana havolalar (circular references) yaratish mumkin. Xotirasi avtomatik boshqariladigan tillarda garbage collection ishlashi uchun ko'pincha komponentlar yo'q qilinganda ularni ro'yxatdan chiqarish kerak bo'ladi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Pub/Sub (Event Bus)**: Kafka, RabbitMQ yoki oddiy Node.js `EventEmitter` kabi vositalar qat'iy Mediator'larga nisbatan ajratilgan (decoupled), sof reaktiv muqobillardir.
-- **Redux / Holatni boshqarish (State Management)**: Frontend muhandisligida global holat omborlari (Redux, Vuex yoki Zustand kabi) Mediator vazifasini bajaradi. Komponentlar action'larni yuboradi (dispatch), Store esa yangilanadi va qayta renderlashni ishga tushiradi.
-- **MediatR (C#)**: HTTP Controller'larni biznes mantiq Handler'laridan ajratish uchun Mediator patternini amalga oshiradigan juda mashhur kutubxona.
+- **Pub/Sub (Event Bus)**: Kafka, RabbitMQ yoki oddiy Node.js `EventEmitter` kabi vositalar qat'iy vositachilarga nisbatan ajratilgan (decoupled), sof reaktiv muqobillardir.
+- **Redux / Holatni boshqarish (State Management)**: Frontend muhandisligida global holat omborlari (Redux, Vuex yoki Zustand kabi) Vositachi vazifasini bajaradi. Komponentlar action'larni yuboradi (dispatch), Store esa yangilanadi va qayta renderlashni ishga tushiradi.
+- **MediatR (C#)**: HTTP Controller'larni biznes mantiq Handler'laridan ajratish uchun Vositachi andozasini amalga oshiradigan juda mashhur kutubxona.

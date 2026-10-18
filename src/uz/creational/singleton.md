@@ -1,10 +1,10 @@
 ---
-title: Singleton patterni
+title: Singleton andozasi
 description: Klassning faqat bitta instansiyasi bo'lishini ta'minlaydi va unga global kirish nuqtasini taqdim etadi.
 icon: CircleDot
 ---
 
-# Singleton patterni
+# Singleton andozasi
 
 <CoverImage src="/covers/creational/singleton.webp" alt="Cover">
   <h1>Singleton</h1>
@@ -13,14 +13,14 @@ icon: CircleDot
 
 ## Umumiy ko'rinish (Overview)
 
-**Singleton** patterni klassning aynan bitta instansiyasi bo'lishini ta'minlaydi va unga global kirish nuqtasini taqdim etadi. Bu tushunish eng oson patternlardan biri va shu bilan birga noto'g'ri ishlatish eng oson bo'lgan patternlardan biridir.
+**Singleton** andozasi klassning aynan bitta instansiyasi bo'lishini ta'minlaydi va unga global kirish nuqtasini taqdim etadi. Bu tushunish eng oson andozalardan biri va shu bilan birga noto'g'ri ishlatish eng oson bo'lgan andozalardan biridir.
 
 Singleton bir vaqtning o'zida ikkita muammoni hal qiladi — bu o'z-o'zidan ogohlantiruvchi belgi:
 
 1. **Nazorat qilinadigan instansiya yaratish (controlled instantiation)**: Har doim faqat bitta instansiya mavjud bo'ladi, bu resurslarning takrorlanishi yoki nomuvofiq holatning (state) oldini oladi.
 2. **Global kirish (global access)**: Tizimning istalgan qismi instansiyani konstruktorlar yoki funksiya argumentlari orqali uzatmasdan unga murojaat qila oladi.
 
-Muammolarning aksariyati aynan ikkinchi banddan kelib chiqadi. Global kirish qulay, lekin u bog'liqliklarni yashiradi va testlashni sezilarli darajada qiyinlashtiradi. Ko'pgina zamonaviy kod bazalarida Dependency Injection (DI) yaxshiroq mos keladi. Singleton'dan faqat yagonalik haqiqiy arxitektura talabi bo'lganda foydalaning — shunchaki qulay yorliq (shortcut) sifatida emas.
+Muammolarning aksariyati aynan ikkinchi banddan kelib chiqadi. Global kirish qulay, lekin u bog'liqliklarni yashiradi va testlashni sezilarli darajada qiyinlashtiradi. Ko'pgina zamonaviy kod bazalarida bog'liqliklarni kiritish (Dependency Injection, DI) yaxshiroq mos keladi. Singleton'dan faqat yagonalik haqiqiy arxitektura talabi bo'lganda foydalaning — shunchaki qulay yorliq (shortcut) sifatida emas.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -28,7 +28,7 @@ Mamlakatning bitta rasmiy poytaxti bor. Davlat ishlariga murojaat qilishi kerak 
 
 Lekin e'tibor bering: muassasalar har bir ichki hujjatga "Vashington" deb qattiq yozib qo'ymaydi. Ular uni parametr, konfiguratsiya qiymati yoki bog'liqlik (dependency) sifatida qabul qiladi. _Tushuncha_ yagona. _Havola_ esa kerakli joyga baribir aniq (explicit) uzatiladi.
 
-Mana shu farq — narsaning yagona bo'lishi va unga global murojaat qilinishi o'rtasidagi farq — Singleton patternining asosiy ziddiyatidir.
+Mana shu farq — narsaning yagona bo'lishi va unga global murojaat qilinishi o'rtasidagi farq — Singleton andozasining asosiy ziddiyatidir.
 
 ## Tuzilma (Structure)
 
@@ -439,9 +439,9 @@ Sof yordamchi vositalar (matematik yordamchilar, formatlovchilar) uchun statik k
 - **Testlash qiyinligi** — private konstruktor test dublyorlariga (test doubles) to'sqinlik qiladi; `getInstance()` bog'liqlikni qattiq kodlab qo'yadi.
 - **Yashirin bog'liqlik (hidden coupling)** — chaqiruvchilar hech qachon bog'liqlik sifatida e'lon qilmagan global havolaga bog'liq bo'ladi.
 - **Yagona mas'uliyat tamoyilini buzadi (Single Responsibility)** — klass ham o'z instansiyasining hayot siklini, ham o'z biznes mantig'ini boshqaradi.
-- **Qaytarib bo'lmaydigan dizayn** — Singleton'ni bir nechta instansiyani qo'llab-quvvatlaydigan qilib qayta ishlash har bir chaqiruv joyini o'zgartirishni anglatadi.
+- **Qaytarib bo'lmaydigan loyiha qarori** — Singleton'ni bir nechta instansiyani qo'llab-quvvatlaydigan qilib qayta ishlash har bir chaqiruv joyini o'zgartirishni anglatadi.
 - **Oqimlar bilan bog'liq murakkablik** — ko'p oqimli muhitlarda lazy initialization ehtiyotkor sinxronizatsiyani talab qiladi.
-- **Dizayn muammolarini niqoblaydi** — Singleton ko'pincha bog'liqlikni arxitektura bo'ylab to'g'ri uzatishdan qochish uchun ishlatiladi.
+- **Loyihalashdagi muammolarni niqoblaydi** — Singleton ko'pincha bog'liqlikni arxitektura bo'ylab to'g'ri uzatishdan qochish uchun ishlatiladi.
 
 ## Qachon ishlatish kerak
 
@@ -455,7 +455,7 @@ Sof yordamchi vositalar (matematik yordamchilar, formatlovchilar) uchun statik k
 
 ::: warning Singleton'dan quyidagi hollarda qoching...
 
-- **Testlanuvchanlik muhim bo'lsa** — Dependency Injection'ni afzal ko'ring. Bog'liqlikni aniq uzatish arzon turadi va testlarda darhol o'zini oqlaydi.
+- **Testlanuvchanlik muhim bo'lsa** — bog'liqliklarni kiritishni (DI) afzal ko'ring. Bog'liqlikni aniq uzatish arzon turadi va testlarda darhol o'zini oqlaydi.
 - **Keyinchalik bir nechta instansiya kerak bo'lishi mumkin bo'lsa** — multi-tenancy, parallel test ishga tushirishlar va plaginlar izolyatsiyasi Singleton farazlarini buzadi.
 - **Bog'liqlik biznes mantig'i bo'lsa** — domenga xos har qanday narsa global emas, balki inject qilinishi kerak.
 
@@ -663,7 +663,7 @@ try {
 }
 ```
 
-### ❌ Antipattern: Global ilova holati
+### ❌ Anti-andoza: Global ilova holati
 
 ```typescript
 // ❌ Singleton holat xaltasi sifatida noto'g'ri ishlatilgan — bu qo'shimcha qadamli global o'zgaruvchi
@@ -690,7 +690,7 @@ const store = createStore({
 
 ## Zamonaviy muqobillar
 
-### Dependency Injection konteyneri
+### Bog'liqliklarni kiritish konteyneri (DI container)
 
 Ko'pgina zamonaviy freymvorklar (NestJS, Spring, ASP.NET Core, Angular) singleton doirasidagi (singleton-scoped) ro'yxatdan o'tkazishlarni qo'llab-quvvatlaydigan DI konteynerlarini taqdim etadi. Bu sizga global kirishsiz yagonalikni beradi — hayot siklini konteyner boshqaradi va har bir klass o'z bog'liqliklarini aniq e'lon qiladi.
 
@@ -740,17 +740,17 @@ export function resetDatabase(): void {
 }
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Dependency Injection** — zamonaviy, testlanadigan muqobil. Yagonalik shunchaki qulaylik emas, balki qat'iy cheklov bo'lmasa, shuni afzal ko'ring.
-- **Factory Method** — obyekt yaratishni markazlashtirish uchun Singleton sifatida amalga oshirilishi mumkin.
-- **Abstract Factory** — ko'pincha aniq (concrete) fabrika sifatida Singleton instansiyalaridan foydalanadi.
-- **Facade** — Facade obyektlari ko'pincha Singleton bo'ladi, chunki odatda quyi tizimga faqat bitta interfeys kerak bo'ladi.
-- **Service Locator** — Singleton bilan bir xil global kirish muammosiga ega. Yangi kodda ikkalasi ham DI bilan almashtirilishi kerak.
+- **Bog'liqliklarni kiritish (Dependency Injection)** — zamonaviy, testlanadigan muqobil. Yagonalik shunchaki qulaylik emas, balki qat'iy cheklov bo'lmasa, shuni afzal ko'ring.
+- **Fabrika metodi (Factory Method)** — obyekt yaratishni markazlashtirish uchun Singleton sifatida amalga oshirilishi mumkin.
+- **Abstrakt fabrika (Abstract Factory)** — ko'pincha aniq (concrete) fabrika sifatida Singleton instansiyalaridan foydalanadi.
+- **Fasad (Facade)** — Fasad obyektlari ko'pincha Singleton bo'ladi, chunki odatda quyi tizimga faqat bitta interfeys kerak bo'ladi.
+- **Servis lokatori (Service Locator)** — Singleton bilan bir xil global kirish muammosiga ega. Yangi kodda ikkalasi ham DI bilan almashtirilishi kerak.
 
 ## Intervyu savollari (Interview Insights)
 
-::: details Qachon Dependency Injection o'rniga Singleton'ni tanlaysiz?
+::: details Qachon bog'liqliklarni kiritish (DI) o'rniga Singleton'ni tanlaysiz?
 
 Kamdan-kam. Testlanadigan, qo'llab-quvvatlanadigan kod uchun DI deyarli har doim afzalroq. Singleton'ni quyidagi hollarda tanlang:
 

@@ -1,10 +1,10 @@
 ---
-title: Memento Patterni
+title: Memento andozasi
 description: Obyektning ichki holatini inkapsulyatsiyani buzmasdan saqlab olish va tashqariga chiqarish. Undo/redo funksiyasini qo'llab-quvvatlaydi.
 icon: History
 ---
 
-# Memento Patterni
+# Memento andozasi
 
 <CoverImage src="/covers/behavioral/memento.webp" alt="Cover">
   <h1>Memento</h1>
@@ -13,7 +13,7 @@ icon: History
 
 ## Umumiy ko'rinish (Overview)
 
-**Memento** (Esdalik) patterni — bu obyektning ichki holatini keyinchalik tiklash uchun saqlab olish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir. Eng muhimi, u buni obyektning _inkapsulyatsiyasini buzmasdan_ amalga oshiradi.
+**Memento** (Esdalik) andozasi — bu obyektning ichki holatini keyinchalik tiklash uchun saqlab olish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir. Eng muhimi, u buni obyektning _inkapsulyatsiyasini buzmasdan_ amalga oshiradi.
 
 **Asosiy afzalligi**: Murakkab obyektning xususiy (private) maydonlari yoki ichki tuzilishini ilovaning qolgan qismiga oshkor qilmasdan, uning holatining suratlarini (snapshot) yaratishingiz mumkin.
 
@@ -44,7 +44,7 @@ Holat _qanday_ tuzilganini oshkor qilmasdan, uni xavfsiz saqlash usuli kerak.
 
 ## Yechim (The Solution)
 
-Memento patterni holat suratlarini yaratishni obyektning o'ziga (**Originator** — yaratuvchi) topshiradi, chunki obyekt o'zining xususiy maydonlariga to'liq kirish huquqiga ega.
+Memento andozasi holat suratlarini yaratishni obyektning o'ziga (**Originator** — yaratuvchi) topshiradi, chunki obyekt o'zining xususiy maydonlariga to'liq kirish huquqiga ega.
 
 1. **Originator**: Holatini saqlash kerak bo'lgan obyekt (masalan, `Editor`).
 2. **Memento**: Originator holatining surati vazifasini bajaradigan qiymat obyekti (value object). U qat'iy faqat o'qish uchun va o'zgarmas (immutable).
@@ -688,7 +688,7 @@ fn main() {
 ## Qachon foydalanmaslik kerak (When NOT to Use) ❌
 
 - **Juda katta xotira hajmi**: Agar obyekt holati gigabaytlab ma'lumotlarni o'z ichiga olsa, klassik Memento'lardan foydalana olmaysiz. "Diff"lar yoki "delta"lardan (faqat o'zgargan narsani saqlash) foydalanishingiz kerak.
-- **O'zgarmas (immutable) arxitekturalar**: Agar arxitekturangiz tabiiy ravishda o'zgarmas ma'lumotlar tuzilmalariga (Redux yoki Clojure kabi) tayansa, har bir holat o'tishi tabiiy ravishda yangi mustaqil holat obyektini hosil qiladi. Memento patterni o'z-o'zidan bajarilgan bo'ladi.
+- **O'zgarmas (immutable) arxitekturalar**: Agar arxitekturangiz tabiiy ravishda o'zgarmas ma'lumotlar tuzilmalariga (Redux yoki Clojure kabi) tayansa, har bir holat o'tishi tabiiy ravishda yangi mustaqil holat obyektini hosil qiladi. Memento andozasi o'z-o'zidan bajarilgan bo'ladi.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
@@ -708,16 +708,16 @@ save() { return new Memento(structuredClone(this.itemsArray)); }
 
 Caretaker HECH QACHON Memento ichidagi holatni o'qimasligi yoki o'zgartirmasligi kerak. U Memento'ni shaffof bo'lmagan "qora quti" sifatida ko'rishi kerak.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Command](/uz/behavioral/command)**: Deyarli har doim birga ishlatiladi. Command amalni ifodalaydi va amal bajarilishidan _oldingi_ holatni ifodalovchi Memento'ni saqlaydi. `command.undo()` ni chaqirish Memento'ni tiklaydi.
+- **[Buyruq](/uz/behavioral/command)**: Deyarli har doim birga ishlatiladi. Buyruq amalni ifodalaydi va amal bajarilishidan _oldingi_ holatni ifodalovchi Memento'ni saqlaydi. `command.undo()` ni chaqirish Memento'ni tiklaydi.
 - **[Iterator](/uz/behavioral/iterator)**: Caretaker'da saqlangan Memento'lar tarixini aylanib chiqish uchun Iterator'lardan foydalanishingiz mumkin.
-- **[Prototype](/uz/creational/prototype)**: Ko'pincha Memento uchun zarur bo'lgan chuqur nusxa suratini yaratishda ichkarida ishlatiladi.
+- **[Prototip](/uz/creational/prototype)**: Ko'pincha Memento uchun zarur bo'lgan chuqur nusxa suratini yaratishda ichkarida ishlatiladi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
 - **Savol**: "Agar Memento'lar juda ko'p RAM egallasa, Undo tizimini qanday optimallashtirish mumkin?"
-  - **Javob**: "To'liq holat suratlarini (Memento'larni) saqlash o'rniga _teskari Command'ni_ (delta) saqlaysiz. Agar foydalanuvchi 'A' ni yozsa, '1 ta belgini o'chirish' buyrug'ini saqlaysiz. Bu ancha kam xotira ishlatadi, lekin kodni ancha murakkablashtiradi."
+  - **Javob**: "To'liq holat suratlarini (Memento'larni) saqlash o'rniga _teskari buyruqni_ (delta) saqlaysiz. Agar foydalanuvchi 'A' ni yozsa, '1 ta belgini o'chirish' buyrug'ini saqlaysiz. Bu ancha kam xotira ishlatadi, lekin kodni ancha murakkablashtiradi."
 - **Savol**: "Java Memento'ning 'cheklangan interfeysi'ni qanday ta'minlaydi?"
   - **Javob**: "Java ichki (nested) klasslarga ruxsat beradi. `ConcreteMemento` ni `Originator` ichidagi xususiy ichki klass qilib, uning maydonlariga faqat Originator kira oladigan qilinadi. Caretaker'ga esa hech narsani oshkor qilmaydigan ochiq `Memento` interfeysi beriladi."
 

@@ -1,18 +1,18 @@
 ---
-title: Adapter, Facade va Bridge
-description: Boshqa narsa oldiga interfeys qo'yadigan uchta tuzilmaviy pattern — moslashtirish, soddalashtirish yoki ikki o'zgarish o'qi uchun loyihalash.
+title: Adapter, Fasad va Ko'prik
+description: Boshqa narsa oldiga interfeys qo'yadigan uchta tuzilmaviy andoza — moslashtirish, soddalashtirish yoki ikki o'zgarish o'qi uchun loyihalash.
 icon: GitCompare
 ---
 
-# Adapter, Facade va Bridge
+# Adapter, Fasad va Ko'prik
 
-[Adapter](/uz/structural/adapter), [Facade](/uz/structural/facade) va [Bridge](/uz/structural/bridge) — uchalasi ham mijoz kodi va qandaydir implementatsiya o'rtasiga interfeys qo'yadi va uchalasi ham oddiy kompozitsiya bilan quriladi. Ularning klass diagrammalari shu qadar o'xshashki, jamoalar ko'pincha har qanday o'ramni "adapter" deb ataydi.
+[Adapter](/uz/structural/adapter), [Fasad](/uz/structural/facade) (Facade) va [Ko'prik](/uz/structural/bridge) (Bridge) — uchalasi ham mijoz kodi va qandaydir implementatsiya o'rtasiga interfeys qo'yadi va uchalasi ham oddiy kompozitsiya bilan quriladi. Ularning klass diagrammalari shu qadar o'xshashki, jamoalar ko'pincha har qanday o'ramni "adapter" deb ataydi.
 
-Ular **qaysi muammoga javob berishi va dizaynning qaysi bosqichida paydo bo'lishi** bilan farqlanadi:
+Ular **qaysi muammoga javob berishi va loyihalashning qaysi bosqichida paydo bo'lishi** bilan farqlanadi:
 
 - **Adapter** — _mavjud_ interfeysni _boshqa_ interfeys kutilayotgan joyda ishlatiladigan qiladi. Bu keyinchalik moslashtirish: ikkala tomon allaqachon mavjud va ularni o'zgartira olmaysiz (yoki o'zgartirmasligingiz kerak).
-- **Facade** — _butun quyi tizim_ ustidan _yangi, soddaroq_ interfeys belgilaydi. U bir interfeysni boshqasiga tarjima qilmaydi; ko'plab obyektlarni bir nechta vazifaga yo'naltirilgan metodlar ortiga yashiradi.
-- **Bridge** — abstraksiyani implementatsiyadan _oldindan_ ajratadi, shunda ikkalasini mustaqil kengaytirish mumkin. Bu keyingi moslashtirish emas, dizayn bosqichidagi qaror.
+- **Fasad** — _butun quyi tizim_ ustidan _yangi, soddaroq_ interfeys belgilaydi. U bir interfeysni boshqasiga tarjima qilmaydi; ko'plab obyektlarni bir nechta vazifaga yo'naltirilgan metodlar ortiga yashiradi.
+- **Ko'prik** — abstraksiyani implementatsiyadan _oldindan_ ajratadi, shunda ikkalasini mustaqil kengaytirish mumkin. Bu keyingi moslashtirish emas, loyihalash bosqichidagi qaror.
 
 ## Bir qarashda tuzilma
 
@@ -39,13 +39,13 @@ flowchart LR
 
 ## Yonma-yon taqqoslash
 
-| Jihat                           | Adapter                                                  | Facade                                                      | Bridge                                                            |
+| Jihat                           | Adapter                                                  | Fasad                                                       | Ko'prik                                                           |
 | ------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------- |
 | **Maqsad (GoF)**                | Interfeysni mijozlar kutgan interfeysga o'girish         | Quyi tizimga yagona, yuqoriroq darajadagi interfeys berish  | Abstraksiyani implementatsiyadan ajratish, shunda ikkalasi mustaqil o'zgara oladi |
 | **Nimani o'raydi**              | Bitta obyekt (yoki klass)                                | Quyi tizimdagi ko'plab obyektlar                            | Ataylab — implementor ierarxiyasini                               |
 | **Taqdim etadigan interfeysi**  | Allaqachon mavjud interfeys (target)                     | O'zi belgilaydigan yangi, soddaroq interfeys                | Implementorlarga delegatsiya qiladigan abstraksiya ierarxiyasi    |
 | **Qachon paydo bo'ladi**        | Keyinchalik — siz boshqarmaydigan kodni integratsiya qilishda | Quyi tizim chaqiruvchilar uchun juda murakkab bo'lganda | Oldindan — ikki mustaqil o'zgarish o'qini ko'zlaganda             |
-| **Kim nimani boshqaradi**       | Target'ga mijoz egalik qiladi; adaptee o'zgarishsiz qoladi | Workflow'ga Facade egalik qiladi; quyi tizimdan to'g'ridan-to'g'ri ham foydalanish mumkin | Yuqori darajadagi mantiq abstraksiyada; platforma tafsilotlari implementorda |
+| **Kim nimani boshqaradi**       | Target'ga mijoz egalik qiladi; adaptee o'zgarishsiz qoladi | Workflow'ga Fasad egalik qiladi; quyi tizimdan to'g'ridan-to'g'ri ham foydalanish mumkin | Yuqori darajadagi mantiq abstraksiyada; platforma tafsilotlari implementorda |
 | **Odatiy qo'llanilishi**        | Uchinchi tomon SDK'lari, legacy API'lar, vendor kodi uchun test double'lar | SDK o'ramlari, inventar + to'lov + yetkazib berish ustidan "buyurtma berish" | Shakllar × rendererlar, bildirishnomalar × kanallar, drayverlar |
 | **Xatarlar**                    | Xatolar va semantikaning tarjimasi "oqib" chiqadi        | Hamma narsa bog'liq bo'lgan god object'ga aylanish          | Faqat bitta o'q o'zgarganda bevaqt abstraksiya                    |
 
@@ -78,7 +78,7 @@ class AcmePayAdapter implements PaymentGateway {
 }
 ```
 
-```typescript [Facade]
+```typescript [Fasad]
 declare const inventory: { reserve(sku: string, qty: number): Promise<void> };
 declare const payments: { charge(cents: number, token: string): Promise<{ id: string }> };
 declare const shipping: { schedule(orderId: string, address: string): Promise<void> };
@@ -96,7 +96,7 @@ class CheckoutFacade {
 }
 ```
 
-```typescript [Bridge]
+```typescript [Ko'prik]
 // Implementor ierarxiyasi: xabar QANDAY yetkaziladi.
 interface Channel {
   deliver(to: string, text: string): void;
@@ -125,49 +125,49 @@ new WeeklyDigest(emailChannel).send("a@b.uz");
 
 :::
 
-Adapter hech qanday yangi imkoniyat qo'shmaydi; u faqat `AcmePay` ni `PaymentGateway` shakliga keltiradi. Facade esa `placeOrder` ni — hech bir alohida servis taklif qilmaydigan metodni — o'ylab topadi. Bridge esa umuman begona narsani o'ramaydi — bildirishnoma kodi turlar va kanallar mustaqil o'sishi uchun aynan shunday _loyihalangan_.
+Adapter hech qanday yangi imkoniyat qo'shmaydi; u faqat `AcmePay` ni `PaymentGateway` shakliga keltiradi. Fasad esa `placeOrder` ni — hech bir alohida servis taklif qilmaydigan metodni — o'ylab topadi. Ko'prik esa umuman begona narsani o'ramaydi — bildirishnoma kodi turlar va kanallar mustaqil o'sishi uchun aynan shunday _loyihalangan_.
 
 ::: tip Foydali test
 
 - Mijozga kerakli interfeys **allaqachon mavjudmi** va siz nomuvofiqlikni bartaraf etyapsizmi? → **Adapter**.
-- Chaqiruvchilar ko'plab obyektlarni boshqarishni to'xtatishi uchun kichikroq interfeys **o'ylab topyapsizmi**? → **Facade**.
-- N × M kombinatsiya N × M klassga aylanmasligi uchun ikki ierarxiyani **loyihalayapsizmi**? → **Bridge**.
+- Chaqiruvchilar ko'plab obyektlarni boshqarishni to'xtatishi uchun kichikroq interfeys **o'ylab topyapsizmi**? → **Fasad**.
+- N × M kombinatsiya N × M klassga aylanmasligi uchun ikki ierarxiyani **loyihalayapsizmi**? → **Ko'prik**.
 
 :::
 
-## Qo'shni patternlar
+## Qo'shni andozalar
 
-- [Decorator](/uz/structural/decorator) va [Proxy](/uz/structural/proxy) ham o'raydi, lekin ular _bir xil_ interfeysni saqlaydi. Adapter uni o'zgartiradi. Qarang: [Decorator va Proxy](/uz/comparisons/decorator-vs-proxy).
-- [Mediator](/uz/behavioral/mediator) Facade'ga o'xshaydi, ammo quyi tizim obyektlari mediator haqida _biladi_ va u orqali muloqot qiladi; Facade'da esa quyi tizim undan bexabar va muloqot bir yo'nalishli.
-- [Abstract Factory](/uz/creational/abstract-factory) ko'pincha Bridge uchun konkret implementorni tanlashda ishlatiladi.
+- [Dekorator](/uz/structural/decorator) (Decorator) va [O'rinbosar](/uz/structural/proxy) (Proxy) ham o'raydi, lekin ular _bir xil_ interfeysni saqlaydi. Adapter uni o'zgartiradi. Qarang: [Dekorator va O'rinbosar](/uz/comparisons/decorator-vs-proxy).
+- [Vositachi](/uz/behavioral/mediator) (Mediator) Fasadga o'xshaydi, ammo quyi tizim obyektlari vositachi haqida _biladi_ va u orqali muloqot qiladi; Fasadda esa quyi tizim undan bexabar va muloqot bir yo'nalishli.
+- [Abstrakt fabrika](/uz/creational/abstract-factory) (Abstract Factory) ko'pincha Ko'prik uchun konkret implementorni tanlashda ishlatiladi.
 
 ## Qaysi birini qachon tanlash kerak
 
-**Adapter'ni tanlang, agar:**
+**Adapterni tanlang, agar:**
 
 - Interfeysi siznikiga mos kelmaydigan kutubxona, legacy modul yoki tashqi API'ni integratsiya qilayotgan bo'lsangiz.
 - Vendor turlari domeningizga "oqib" kirishini to'xtatmoqchi bo'lsangiz (anti-corruption layer — adapterlar to'plami).
 - Testlarda uchinchi tomon bog'liqligini almashtirish uchun "seam" kerak bo'lsa.
 
-**Facade'ni tanlang, agar:**
+**Fasadni tanlang, agar:**
 
 - Chaqiruvchilar bir nechta servis bo'ylab bir xil ko'p bosqichli orkestratsiyani takrorlayotgan bo'lsa.
 - Qatlam yoki modulga kichik ommaviy sirt berib, ichki qismlarni murakkab holatlar uchun ochiq qoldirmoqchi bo'lsangiz.
 - Quyi tizimni o'rganish juda ko'p klasslarni bilishni talab qilsa.
 
-**Bridge'ni tanlang, agar:**
+**Ko'prikni tanlang, agar:**
 
 - Ikki o'lchov mustaqil o'zgarsa va meros klasslarni ko'paytirib yuborsa.
 - Yuqori darajadagi mantiqqa tegmasdan implementatsiyalarni (renderer, drayver, kanal) runtime'da almashtirmoqchi bo'lsangiz.
 - Abstraksiya ham, implementatsiya ham yangi subklasslarga ega bo'lishi kutilsa.
 
-::: warning Bridge'ni haddan tashqari qo'llamang
-Agar haqiqatan faqat bitta o'lchov o'zgarsa, bitta interfeys va [Strategy](/uz/behavioral/strategy) yoki DI yetarli. Bridge ikkala tomonda o'sish bo'lganda yoki u ishonchli kutilganda o'zini oqlaydi.
+::: warning Ko'prikni haddan tashqari qo'llamang
+Agar haqiqatan faqat bitta o'lchov o'zgarsa, bitta interfeys va [Strategiya](/uz/behavioral/strategy) (Strategy) yoki DI yetarli. Ko'prik ikkala tomonda o'sish bo'lganda yoki u ishonchli kutilganda o'zini oqlaydi.
 :::
 
 ## Tegishli sahifalar
 
 - [Adapter](/uz/structural/adapter)
-- [Facade](/uz/structural/facade)
-- [Bridge](/uz/structural/bridge)
-- [Patternni tanlash](/uz/choosing-a-pattern)
+- [Fasad](/uz/structural/facade)
+- [Ko'prik](/uz/structural/bridge)
+- [Andozani tanlash](/uz/choosing-a-pattern)

@@ -1,21 +1,21 @@
 ---
-title: Service Locator Pattern (Xizmat lokatori)
-description: Servislar nusxalarini ularni so'ragan obyektlarga taqdim etish uchun markazlashgan reyestrdan foydalanadigan arxitektura patterni.
+title: Servis lokatori andozasi (Service Locator)
+description: Servislar nusxalarini ularni so'ragan obyektlarga taqdim etish uchun markazlashgan reyestrdan foydalanadigan arxitektura andozasi.
 icon: Settings
 ---
 
-# Service Locator Pattern (Xizmat lokatori)
+# Servis lokatori andozasi (Service Locator)
 
 <CoverImage src="/covers/architectural/service-locator.webp" alt="Cover">
-  <h1>Service Locator</h1>
+  <h1>Servis lokatori</h1>
   <p>Futuristik shahardagi yorqin sariq "Ma'lumot stoli" kioski; robotlar u yerga kelib: "Ma'lumotlar bazasi qayerda?" deb so'rashadi, lokator robot esa ularga nur sochib turgan kartochkani uzatadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Service Locator** patterni ilovaga kerak bo'lgan barcha servislarni qanday yaratish yoki olishni biladigan markazlashgan reyestr - "Lokator" ni joriy etadi. Klasslarga bog'liqliklar tashqaridan uzatilishi o'rniga (Dependency Injection dagi kabi), klasslarning o'zlari kerakli bog'liqliklarni Service Locator'dan faol ravishda so'rashadi.
+**Servis lokatori (Service Locator)** andozasi ilovaga kerak bo'lgan barcha servislarni qanday yaratish yoki olishni biladigan markazlashgan reyestr - "Lokator" ni joriy etadi. Klasslarga bog'liqliklar tashqaridan uzatilishi o'rniga (bog'liqliklarni kiritishdagi kabi), klasslarning o'zlari kerakli bog'liqliklarni Servis lokatoridan faol ravishda so'rashadi.
 
-**Zamonaviy nuqtai nazar**: Garchi u dastlabki korporativ dasturlarda (masalan, ilk J2EE da) mashhur bo'lgan bo'lsa-da, bugungi kunda Service Locator zamonaviy ilova ishlab chiqishda keng ko'lamda **anti-pattern** deb hisoblanadi. U klassning bog'liqliklarini yashiradi, natijada kodni test qilish va qo'llab-quvvatlash qiyinlashadi hamda runtime xatolariga moyil bo'ladi. Shunga qaramay, uni tushunish juda muhim, chunki u hali ham legacy tizimlarda, o'yin ishlab chiqish arxitekturalarida va ba'zan zamonaviy DI konteynerlarida zaxira yechim sifatida uchraydi.
+**Zamonaviy nuqtai nazar**: Garchi u dastlabki korporativ dasturlarda (masalan, ilk J2EE da) mashhur bo'lgan bo'lsa-da, bugungi kunda Servis lokatori zamonaviy ilova ishlab chiqishda keng ko'lamda **anti-andoza** deb hisoblanadi. U klassning bog'liqliklarini yashiradi, natijada kodni test qilish va qo'llab-quvvatlash qiyinlashadi hamda runtime xatolariga moyil bo'ladi. Shunga qaramay, uni tushunish juda muhim, chunki u hali ham legacy tizimlarda, o'yin ishlab chiqish arxitekturalarida va ba'zan zamonaviy DI konteynerlarida zaxira yechim sifatida uchraydi.
 
 ## Muammo (The Problem)
 
@@ -31,14 +31,14 @@ class OrderService {
 }
 ```
 
-Siz `OrderService` ni `StripeGateway` dan ajratmoqchisiz, lekin ehtimol to'liq Constructor Dependency Injection ni joriy qilish yuzlab fayllarni qayta yozishni talab qiladigan legacy kod bazasida ishlayotgandirsiz.
+Siz `OrderService` ni `StripeGateway` dan ajratmoqchisiz, lekin ehtimol konstruktor orqali bog'liqliklarni kiritishni (Constructor Dependency Injection) to'liq joriy qilish yuzlab fayllarni qayta yozishni talab qiladigan legacy kod bazasida ishlayotgandirsiz.
 
 ## Yechim (The Solution)
 
 Siz global `ServiceLocator` yaratasiz. Servislaringizni bitta joyda ro'yxatdan o'tkazasiz va `OrderService` ularni Lokator'dan so'raydi.
 
 ```typescript
-// ⚠️ Service Locator (Ko'pincha anti-pattern, lekin qattiq kodlash muammosini hal qiladi)
+// ⚠️ Service Locator (Ko'pincha anti-andoza, lekin qattiq kodlash muammosini hal qiladi)
 class OrderService {
   private paymentGateway: IPaymentGateway;
   private logger: ILogger;
@@ -84,19 +84,19 @@ classDiagram
 
 ## Jarayon (Flow)
 
-1. **Ro'yxatdan o'tkazish bosqichi**: Ilova ishga tushganda konkret nusxalar yoki factory funksiyalarni Service Locator'da ro'yxatdan o'tkazasiz.
+1. **Ro'yxatdan o'tkazish bosqichi**: Ilova ishga tushganda konkret nusxalar yoki factory funksiyalarni Servis lokatorida ro'yxatdan o'tkazasiz.
 2. **Aniqlash (Resolution) bosqichi**: Bajarilish vaqtida mijoz klassga biror servis kerak bo'ladi. U `ServiceLocator.get('ServiceName')` ni chaqiradi.
 3. **Bajarish bosqichi**: Lokator servisni topadi, kerak bo'lsa uning nusxasini yaratadi va mijozga qaytaradi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Mehmonxona konsyerji**ni tasavvur qiling.
-Mehmonxonada turganingizda sizga taksi, restoranda joy band qilish yoki qo'shimcha sochiqlar kerak bo'lsa, taksi kompaniyasi yoki kir yuvish bo'limi bilan bevosita bog'lanmaysiz. Telefonni olib, Konsyerjga (Service Locator'ga) qo'ng'iroq qilasiz va kerakli narsani taqdim etishini so'raysiz. Konsyerj taksini qayerdan olishni va kir yuvish bilan kim shug'ullanishini biladi.
+Mehmonxonada turganingizda sizga taksi, restoranda joy band qilish yoki qo'shimcha sochiqlar kerak bo'lsa, taksi kompaniyasi yoki kir yuvish bo'limi bilan bevosita bog'lanmaysiz. Telefonni olib, Konsyerjga (Servis lokatoriga) qo'ng'iroq qilasiz va kerakli narsani taqdim etishini so'raysiz. Konsyerj taksini qayerdan olishni va kir yuvish bilan kim shug'ullanishini biladi.
 
-## Nega u anti-pattern hisoblanadi? (Why is it considered an Anti-Pattern?)
+## Nega u anti-andoza hisoblanadi? (Why is it considered an Anti-Pattern?)
 
-1. **Yashirin bog'liqliklar (Hidden Dependencies)**: `OrderService` ning API'siga qarasam, konstruktor _nol_ ta argument qabul qiladi. Go'yo shunchaki `new OrderService()` nusxasini yaratib, undan foydalanishim mumkindek _ko'rinadi_. Lekin ishga tushirsam, u qulaydi, chunki avval `Logger` ni global ro'yxatdan o'tkazishni unutganman. Dependency Injection da esa `constructor(logger: ILogger)` konstruktori meni bog'liqlikni taqdim etishga aniq majbur qiladi.
-2. **Global holat (Global State)**: Service Locator deyarli har doim Singleton sifatida amalga oshiriladi. Bu testlarni parallel ishga tushirishni nihoyatda qiyinlashtiradi, chunki A testi B testiga kerak bo'lgan mock Logger'ni qayta yozib yuborishi mumkin.
+1. **Yashirin bog'liqliklar (Hidden Dependencies)**: `OrderService` ning API'siga qarasam, konstruktor _nol_ ta argument qabul qiladi. Go'yo shunchaki `new OrderService()` nusxasini yaratib, undan foydalanishim mumkindek _ko'rinadi_. Lekin ishga tushirsam, u qulaydi, chunki avval `Logger` ni global ro'yxatdan o'tkazishni unutganman. Bog'liqliklarni kiritishda esa `constructor(logger: ILogger)` konstruktori meni bog'liqlikni taqdim etishga aniq majbur qiladi.
+2. **Global holat (Global State)**: Servis lokatori deyarli har doim Singleton sifatida amalga oshiriladi. Bu testlarni parallel ishga tushirishni nihoyatda qiyinlashtiradi, chunki A testi B testiga kerak bo'lgan mock Logger'ni qayta yozib yuborishi mumkin.
 
 ## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
 
@@ -465,8 +465,8 @@ fn main() {
 
 ### Afzalliklari (Advantages)
 
-- **Bog'liqlikni kamaytirish (Decoupling)**: Dependency Injection kabi u ham mijozni konkret implementatsiyalardan ajratadi. Ro'yxatdan o'tgan Logger'ni MockLogger'ga almashtirishingiz mumkin.
-- **Legacy tizimlarda qulaylik**: Agar sizda chuqur komponentlar daraxti bo'lsa (masalan, A komponenti B ni, B esa C ni, C esa D ni yaratadi), faqat D foydalanishi uchun Logger'ni A, B va C konstruktorlari orqali uzatish zerikarli. Service Locator D ga Logger'ni bevosita olish imkonini beradi.
+- **Bog'liqlikni kamaytirish (Decoupling)**: Bog'liqliklarni kiritish kabi u ham mijozni konkret implementatsiyalardan ajratadi. Ro'yxatdan o'tgan Logger'ni MockLogger'ga almashtirishingiz mumkin.
+- **Legacy tizimlarda qulaylik**: Agar sizda chuqur komponentlar daraxti bo'lsa (masalan, A komponenti B ni, B esa C ni, C esa D ni yaratadi), faqat D foydalanishi uchun Logger'ni A, B va C konstruktorlari orqali uzatish zerikarli. Servis lokatori D ga Logger'ni bevosita olish imkonini beradi.
 
 ### Kamchiliklari (Disadvantages)
 
@@ -476,16 +476,16 @@ fn main() {
 
 ## Qachon foydalanish kerak (When to Use)
 
-- **O'yin ishlab chiqish (Game Development)**: O'yin dvigatellari (masalan, Unity yoki Godot) ko'pincha Service Locator'lardan (masalan, `Locator.getAudioService()`) foydalanadi, chunki o'ta yuqori ishlash talablari va chuqur ichma-ich joylashgan sahna graflari standart Constructor Injection ni amaliy bo'lmagan holga keltiradi.
-- **Legacy kodni refaktoring qilish**: Ulkan monolit ilovani bo'laklarga ajratishda, Dependency Injection ni to'liq joriy qilishdan oldin vaqtincha Service Locator kiritish to'g'ri oraliq qadam hisoblanadi.
+- **O'yin ishlab chiqish (Game Development)**: O'yin dvigatellari (masalan, Unity yoki Godot) ko'pincha Servis lokatorlaridan (masalan, `Locator.getAudioService()`) foydalanadi, chunki o'ta yuqori ishlash talablari va chuqur ichma-ich joylashgan sahna graflari standart Constructor Injection ni amaliy bo'lmagan holga keltiradi.
+- **Legacy kodni refaktoring qilish**: Ulkan monolit ilovani bo'laklarga ajratishda, bog'liqliklarni kiritishni to'liq joriy qilishdan oldin vaqtincha Servis lokatorini kiritish to'g'ri oraliq qadam hisoblanadi.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Zamonaviy veb / korporativ ilovalar**: Buning o'rniga Dependency Injection dan foydalaning. Zamonaviy Java, C#, Python yoki TypeScript veb backend'larida Service Locator ishlatish uchun deyarli hech qanday sabab yo'q.
-- **Kutubxonalar/Paketlar**: Agar ochiq kodli kutubxona yozayotgan bo'lsangiz, foydalanuvchilarni Service Locator ishlatishga majburlamang. Bog'liqliklarni konstruktorlar orqali talab qiling.
+- **Zamonaviy veb / korporativ ilovalar**: Buning o'rniga bog'liqliklarni kiritishdan foydalaning. Zamonaviy Java, C#, Python yoki TypeScript veb backend'larida Servis lokatori ishlatish uchun deyarli hech qanday sabab yo'q.
+- **Kutubxonalar/Paketlar**: Agar ochiq kodli kutubxona yozayotgan bo'lsangiz, foydalanuvchilarni Servis lokatori ishlatishga majburlamang. Bog'liqliklarni konstruktorlar orqali talab qiling.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Dependency Injection (DI)](/uz/architectural/dependency-injection)**: Service Locator'ning "to'g'ri" zamonaviy muqobili. Klasslar bog'liqliklarni _so'rash_ o'rniga, freymvork ularni konstruktorlar orqali _beradi_.
-- **[Singleton](/uz/creational/singleton)**: Service Locator'ning o'zi deyarli har doim Singleton sifatida amalga oshiriladi.
-- **[Factory](/uz/creational/factory-method)**: Service Locator butun ilova uchun umumlashtirilgan Factory vazifasini bajaradi.
+- **[Bog'liqliklarni kiritish (DI)](/uz/architectural/dependency-injection)**: Servis lokatorining "to'g'ri" zamonaviy muqobili. Klasslar bog'liqliklarni _so'rash_ o'rniga, freymvork ularni konstruktorlar orqali _beradi_.
+- **[Singleton](/uz/creational/singleton)**: Servis lokatorining o'zi deyarli har doim Singleton sifatida amalga oshiriladi.
+- **[Fabrika metodi](/uz/creational/factory-method)**: Servis lokatori butun ilova uchun umumlashtirilgan fabrika vazifasini bajaradi.

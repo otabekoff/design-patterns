@@ -1,23 +1,23 @@
 ---
-title: Factory Method patterni
+title: Fabrika metodi andozasi (Factory Method)
 description: Obyektlarni yaratish uchun interfeys belgilaydi va qaysi klassning instansiyasini yaratishni subklasslarga hal qilishga imkon beradi.
 icon: Package
 ---
 
-# Factory Method patterni
+# Fabrika metodi andozasi (Factory Method)
 
 <CoverImage src="/covers/creational/factory-method.webp" alt="Cover">
-  <h1>Factory Method</h1>
+  <h1>Fabrika metodi</h1>
   <p>Qiziq yig'uv liniyasi: unga qaysi chizma kartasi berilishiga qarab, yagona mexanik qo'l turli shakldagi kichik o'yinchoq mashinalarni (sedan, yuk mashinasi) tamg'alab chiqaradi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Factory Method** patterni yaratuvchi (creational) dizayn patterni bo'lib, obyektlarni yaratish uchun interfeys belgilaydi, ammo qaysi konkret klassning instansiyasini yaratishni subklasslarga hal qilishga imkon beradi. Bu pattern kod yaratayotgan obyektlarning aniq klasslarini ko'rsatish zaruratini yo'qotib, bo'sh bog'liqlikni (loose coupling) rag'batlantiradi.
+**Fabrika metodi (Factory Method)** andozasi yaratuvchi (creational) loyihalash andozasi bo'lib, obyektlarni yaratish uchun interfeys belgilaydi, ammo qaysi konkret klassning instansiyasini yaratishni subklasslarga hal qilishga imkon beradi. Bu andoza kod yaratayotgan obyektlarning aniq klasslarini ko'rsatish zaruratini yo'qotib, bo'sh bog'liqlikni (loose coupling) rag'batlantiradi.
 
 `new ConcreteProduct()` ni to'g'ridan-to'g'ri chaqirish (qattiq bog'liqlik) o'rniga, siz umumiy interfeysni amalga oshiruvchi obyektni qaytaradigan factory metodini chaqirasiz. Haqiqiy tur factory metodini amalga oshiruvchi subklass tomonidan aniqlanadi.
 
-**Zamonaviy nuqtai nazar**: Funksiyalar birinchi darajali (first-class) obyekt bo'lgan funksional va dinamik tillarda Factory Method unchalik ko'zga tashlanmaydi. Biroq u tiplashtirilgan tillarda (Java, TypeScript) hamon muhim bo'lib qolmoqda va ko'pincha dependency injection freymvorklari bilan birgalikda qo'llaniladi.
+**Zamonaviy nuqtai nazar**: Funksiyalar birinchi darajali (first-class) obyekt bo'lgan funksional va dinamik tillarda Fabrika metodi unchalik ko'zga tashlanmaydi. Biroq u tiplashtirilgan tillarda (Java, TypeScript) hamon muhim bo'lib qolmoqda va ko'pincha bog'liqliklarni kiritish (dependency injection) freymvorklari bilan birgalikda qo'llaniladi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
@@ -115,7 +115,7 @@ class OrderProcessor {
 
 ## Yechim (Solution)
 
-Factory Method patterni buni quyidagicha hal qiladi:
+Fabrika metodi andozasi buni quyidagicha hal qiladi:
 
 1. Barcha mahsulotlar uchun **umumiy interfeys belgilash** (abstrakt klass yoki interfeys).
 2. Abstrakt yaratuvchi klassda interfeys turini qaytaradigan **factory metodini yaratish**.
@@ -519,7 +519,7 @@ func (d *WordDocument) Close() {
     fmt.Println("Closing Word document")
 }
 
-// Application: Factory method patternidan foydalanadi.
+// Application: Fabrika metodi andozasidan foydalanadi.
 type Application struct {
     documents []Document
     factory   DocumentFactory
@@ -670,7 +670,7 @@ fn main() {
 
 :::
 
-### TypeScript: Klassik Factory Method
+### TypeScript: Klassik Fabrika metodi
 
 **TypeScript yondashuvining afzalliklari:**
 
@@ -686,7 +686,7 @@ fn main() {
 - Tip izohlari (type hints) bilan Python uslubidagi (Pythonic) sintaksis.
 - Subklassda qayta aniqlash usuli Python uchun tabiiy (idiomatic).
 
-### Java: Generiklar bilan Factory Method
+### Java: Generiklar bilan Fabrika metodi
 
 **Java yondashuvining afzalliklari:**
 
@@ -712,7 +712,7 @@ fn main() {
 
 ## Real hayotdagi qo'llanilishi: To'lov protsessori (Payment Processor)
 
-To'lov tizimi bir nechta to'lov usullarini qo'llab-quvvatlashi kerak. Factory Method yordamida yangi usul qo'shish mavjud kodni o'zgartirishni talab qilmaydi:
+To'lov tizimi bir nechta to'lov usullarini qo'llab-quvvatlashi kerak. Fabrika metodi yordamida yangi usul qo'shish mavjud kodni o'zgartirishni talab qilmaydi:
 
 ```typescript
 // Mahsulot interfeysi
@@ -853,7 +853,7 @@ async function handleCheckout(method: string, amount: number, data: any) {
 
 ## Variatsiyalar (Variations)
 
-### Simple Factory (antipattern)
+### Simple Factory (anti-andoza)
 
 Ba'zi kod bazalari subklasslash o'rniga statik `SimpleFactory` klassidan foydalanadi:
 
@@ -874,7 +874,7 @@ class DocumentFactory {
 const doc = DocumentFactory.create("pdf");
 ```
 
-**Eslatma**: Bu Open/Closed tamoyilini buzadi — yangi tur qo'shish factory metodini o'zgartirishni talab qiladi. Buning o'rniga haqiqiy Factory Method'dan (subklasslash bilan) foydalaning.
+**Eslatma**: Bu Open/Closed tamoyilini buzadi — yangi tur qo'shish factory metodini o'zgartirishni talab qiladi. Buning o'rniga haqiqiy Fabrika metodidan (subklasslash bilan) foydalaning.
 
 ## Qachon ishlatish kerak
 
@@ -893,16 +893,16 @@ const doc = DocumentFactory.create("pdf");
 - **Faqat bir yoki ikkita mahsulot turi bor** va boshqa qo'shilmaydi; oddiy konstruktsiya yetarli.
 - **Mahsulot mantig'i juda oddiy** yoki bilvositalik keraksiz murakkablik qo'shadi.
 - **Funksional yondashuv** (factory funksiyalarini uzatish) sizning tilingizda soddaroq.
-- **Dependency injection'dan foydalanib**, mahsulotni factorysiz to'g'ridan-to'g'ri uzatishingiz mumkin.
+- **Bog'liqliklarni kiritishdan (dependency injection) foydalanib**, mahsulotni factorysiz to'g'ridan-to'g'ri uzatishingiz mumkin.
 
 :::
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### ❌ Xato 1: Factory Method o'rniga Simple Factory'dan foydalanish
+### ❌ Xato 1: Fabrika metodi o'rniga Simple Factory'dan foydalanish
 
 ```typescript
-// ❌ Antipattern: Yangi tur qo'shish factoryni o'zgartirishni talab qiladi
+// ❌ Anti-andoza: Yangi tur qo'shish factoryni o'zgartirishni talab qiladi
 class DocumentFactory {
   static create(type: string): Document {
     if (type === "pdf") return new PDFDocument();
@@ -912,7 +912,7 @@ class DocumentFactory {
   }
 }
 
-// ✅ Yaxshiroq: Subklasslar bilan factory method patternidan foydalaning
+// ✅ Yaxshiroq: Subklasslar bilan Fabrika metodi andozasidan foydalaning
 abstract class Application {
   abstract createDocument(): Document; // Subklasslar qayta aniqlaydi
 }
@@ -966,13 +966,13 @@ abstract class PaymentGateway {
 }
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Abstract Factory**: Mahsulot oilalarini yaratish uchun ko'pincha Factory Method'dan foydalanadi.
-- **Template Method**: Obyektlarni yaratish uchun Factory Method ko'pincha Template Method tomonidan chaqiriladi.
-- **Singleton**: Mahsulotlar singleton bo'lishini ta'minlash uchun Factory Method bilan birlashtirilishi mumkin.
-- **Strategy**: Niyati o'xshash, ammo maqsadi boshqa; Strategy algoritmlarni tanlaydi, Factory Method esa obyektlarni yaratadi.
-- **Dependency Injection**: Zamonaviy muqobil; bog'liqliklarni ichkarida yaratish o'rniga ularni tashqaridan uzatish.
+- **Abstrakt fabrika (Abstract Factory)**: Mahsulot oilalarini yaratish uchun ko'pincha Fabrika metodidan foydalanadi.
+- **Shablon metod (Template Method)**: Obyektlarni yaratish uchun Fabrika metodi ko'pincha Shablon metod tomonidan chaqiriladi.
+- **Singleton**: Mahsulotlar singleton bo'lishini ta'minlash uchun Fabrika metodi bilan birlashtirilishi mumkin.
+- **Strategiya (Strategy)**: Niyati o'xshash, ammo maqsadi boshqa; Strategiya algoritmlarni tanlaydi, Fabrika metodi esa obyektlarni yaratadi.
+- **Bog'liqliklarni kiritish (Dependency Injection)**: Zamonaviy muqobil; bog'liqliklarni ichkarida yaratish o'rniga ularni tashqaridan uzatish.
 
 ## Zamonaviy muqobillar
 
@@ -991,7 +991,7 @@ function createDocument(type: keyof typeof factoryConfig): Document {
 }
 ```
 
-### Dependency Injection konteyneri
+### Bog'liqliklarni kiritish konteyneri (DI container)
 
 ```typescript
 const container = new Container();
@@ -1001,32 +1001,32 @@ container.register("word", WordDocument);
 const doc = container.resolve("pdf");
 ```
 
-Bu yondashuv an'anaviy Factory Method'ga qaraganda moslashuvchanroq va testlash osonroq.
+Bu yondashuv an'anaviy Fabrika metodiga qaraganda moslashuvchanroq va testlash osonroq.
 
 ## Intervyu savollari (Interview Insights)
 
-**S: Factory Method va Abstract Factory o'rtasidagi farq nima?**
+**S: Fabrika metodi va Abstrakt fabrika o'rtasidagi farq nima?**
 
-J: Factory Method vorislik orqali bitta mahsulot turini yaratadi. Abstract Factory kompozitsiya orqali o'zaro bog'liq mahsulotlar oilalarini yaratadi. Bitta tur ierarxiyasi bo'lsa Factory Method'dan, bir nechta o'zaro bog'liq ierarxiyalar bo'lsa (masalan, turli operatsion tizimlar uchun UI elementlari) Abstract Factory'dan foydalaning.
+J: Fabrika metodi vorislik orqali bitta mahsulot turini yaratadi. Abstrakt fabrika kompozitsiya orqali o'zaro bog'liq mahsulotlar oilalarini yaratadi. Bitta tur ierarxiyasi bo'lsa Fabrika metodidan, bir nechta o'zaro bog'liq ierarxiyalar bo'lsa (masalan, turli operatsion tizimlar uchun UI elementlari) Abstrakt fabrikadan foydalaning.
 
-**S: Nega Simple Factory o'rniga Factory Method'dan foydalanish kerak?**
+**S: Nega Simple Factory o'rniga Fabrika metodidan foydalanish kerak?**
 
-J: Simple Factory Open/Closed tamoyilini buzadi — yangi tur qo'shish mavjud kodni o'zgartirishni talab qiladi. Factory Method subklasslashdan foydalanadi, shuning uchun yangi turlarni mavjud kodni o'zgartirmasdan qo'shish mumkin.
+J: Simple Factory Open/Closed tamoyilini buzadi — yangi tur qo'shish mavjud kodni o'zgartirishni talab qiladi. Fabrika metodi subklasslashdan foydalanadi, shuning uchun yangi turlarni mavjud kodni o'zgartirmasdan qo'shish mumkin.
 
-**S: Factory Method Dependency Injection bilan qanday bog'liq?**
+**S: Fabrika metodi bog'liqliklarni kiritish (Dependency Injection) bilan qanday bog'liq?**
 
-J: Ikkalasi ham kodni konkret implementatsiyalardan ajratish muammosini hal qiladi. Factory Method vorislikdan foydalanadi; Dependency Injection esa bog'liqliklarni uzatadi. Zamonaviy kodda DI odatda afzalroq, chunki u moslashuvchanroq va testlash osonroq.
+J: Ikkalasi ham kodni konkret implementatsiyalardan ajratish muammosini hal qiladi. Fabrika metodi vorislikdan foydalanadi; bog'liqliklarni kiritish esa bog'liqliklarni uzatadi. Zamonaviy kodda DI odatda afzalroq, chunki u moslashuvchanroq va testlash osonroq.
 
-**S: Python kabi dinamik tilda Factory Method'dan qachon foydalanasiz?**
+**S: Python kabi dinamik tilda Fabrika metodidan qachon foydalanasiz?**
 
-J: Hatto dinamik tillarda ham, shartnomani (interfeysni) majburlash va obyekt yaratishni nazorat qilish kerak bo'lganda Factory Method foydali. Biroq birinchi darajali obyekt sifatidagi funksiyalar ba'zan aniq factorylar zaruratini almashtiradi.
+J: Hatto dinamik tillarda ham, shartnomani (interfeysni) majburlash va obyekt yaratishni nazorat qilish kerak bo'lganda Fabrika metodi foydali. Biroq birinchi darajali obyekt sifatidagi funksiyalar ba'zan aniq factorylar zaruratini almashtiradi.
 
-**S: Factory Method'ni Singleton bilan birlashtirish mumkinmi?**
+**S: Fabrika metodini Singleton bilan birlashtirish mumkinmi?**
 
 J: Ha. Har bir factory metodi singleton instansiya yaratishi mumkin, bu esa har bir turdan faqat bitta mahsulot mavjud bo'lishini ta'minlaydi.
 
 ## Manbalar (References)
 
 - Gang of Four: "Design Patterns: Elements of Reusable Object-Oriented Software"
-- Refactoring.Guru: Factory Method patterni bo'yicha qo'llanma
-- Dependency Injection freymvorklari: Spring (Java), Angular (TypeScript), Django (Python)
+- Refactoring.Guru: Fabrika metodi (Factory Method) andozasi bo'yicha qo'llanma
+- Bog'liqliklarni kiritish (Dependency Injection) freymvorklari: Spring (Java), Angular (TypeScript), Django (Python)

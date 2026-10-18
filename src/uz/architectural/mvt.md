@@ -1,10 +1,10 @@
 ---
-title: Model-View-Template (MVT)
-description: Django kabi veb-freymvorklar tomonidan mantiq, ma'lumotlar va taqdimotni ajratish uchun ishlatiladigan dasturiy arxitektura patterni.
+title: MVT andozasi
+description: Django kabi veb-freymvorklar tomonidan mantiq, ma'lumotlar va taqdimotni ajratish uchun ishlatiladigan dasturiy arxitektura andozasi.
 icon: Layout
 ---
 
-# Model-View-Template (MVT)
+# MVT andozasi
 
 <CoverImage src="/covers/architectural/mvt.webp" alt="Cover">
   <h1>MVT</h1>
@@ -13,7 +13,7 @@ icon: Layout
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-Template (MVT)** patterni — Python'ning **Django** veb-freymvorki tomonidan ommalashtirilgan MVC patternining o'ziga xos varianti. U Django yaratuvchilari "View" nima bo'lishi kerakligini biroz boshqacha falsafiy talqin qilganliklari uchun paydo bo'lgan.
+**Model-View-Template (MVT)** andozasi — Python'ning **Django** veb-freymvorki tomonidan ommalashtirilgan MVC andozasining o'ziga xos varianti. U Django yaratuvchilari "View" nima bo'lishi kerakligini biroz boshqacha falsafiy talqin qilganliklari uchun paydo bo'lgan.
 
 An'anaviy MVC'da:
 - **Controller** HTTP so'rovini qabul qiladi, mantiqni bajaradi va View'ni tanlaydi.
@@ -154,14 +154,14 @@ urlpatterns = [
 
 ## Afzalliklari va kamchiliklari (Pros and Cons)
 
-MVT **MVC** bilan aynan bir xil afzallik va kamchiliklarga ega, chunki funksional jihatdan ular bir xil arxitektura patternidir.
+MVT **MVC** bilan aynan bir xil afzallik va kamchiliklarga ega, chunki funksional jihatdan ular bir xil arxitektura andozasidir.
 
 ### Afzalliklari (Advantages)
 - **Juda tez ishlab chiqish**: MVT freymvorklari (Django kabi) Model ORM va Template dvigatelini tayyor holda taqdim etgani uchun CRUD ilovalarni qurish chaqmoqdek tez.
 - **Aniq ajratish**: Ma'lumotlar bazasi muhandislari `models.py` ustida, backend mantiq dasturchilari `views.py` ustida va frontend dizaynerlari `.html` shablonlar ustida bir-birining ishiga xalal bermasdan ishlashi mumkin.
 
 ### Kamchiliklari (Disadvantages)
-- **Semiz View'lar (Fat Views)**: MVC'dagi "Fat Controller" anti-patterni kabi, dasturchilar ko'pincha dangasalik qilib, 500 qatorli murakkab biznes mantiqni `models.py` ga yoki alohida Service qatlamiga tushirish o'rniga `views.py` ichiga joylashtirib yuborishadi.
+- **Semiz View'lar (Fat Views)**: MVC'dagi "Fat Controller" anti-andozasi kabi, dasturchilar ko'pincha dangasalik qilib, 500 qatorli murakkab biznes mantiqni `models.py` ga yoki alohida Service qatlamiga tushirish o'rniga `views.py` ichiga joylashtirib yuborishadi.
 - **Monolitga moyillik**: MVT arxitekturalari serverda render qilinadigan monolitlarni qurishga kuchli undaydi. Keyinchalik React SPA yoki mobil ilova qurishingiz kerak bo'lsa, MVT shablonlaringiz befoyda bo'lib qoladi va View'laringizni JSON qaytaradigan qilib qayta yozishingiz (REST API yaratishingiz) kerak bo'ladi.
 
 ## Qachon foydalanish kerak (When to Use)
@@ -173,7 +173,7 @@ MVT **MVC** bilan aynan bir xil afzallik va kamchiliklarga ega, chunki funksiona
 
 - **Bir sahifali ilovalar (SPA)**: Agar frontend'ingiz React/Vue bo'lsa, sizga Template'lar kerak emas. Backend'ingiz shunchaki JSON qaytaradigan API bo'lishi kerak, bu esa MVT'ni ahamiyatsiz qiladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[MVC (Model-View-Controller)](/uz/architectural/mvc)**: Aynan bir xil arxitektura tushunchasi, faqat boshqa terminologiyadan foydalanadi.
 - **[MVVM (Model-View-ViewModel)](/uz/architectural/mvvm)**: Frontend'dagi ekvivalenti. Agar MVT/Django shablonlaridan voz kechib, frontend'da Vue.js'dan foydalansangiz, MVVM'ga o'tayotgan bo'lasiz.

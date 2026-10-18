@@ -1,23 +1,23 @@
 ---
-title: Interpreter Patterni
+title: Interpretator andozasi (Interpreter)
 description: Til uchun grammatikani va shu tildagi gaplarni baholaydigan interpretatorni belgilaydi. DSL'lar va ifodalarni baholash uchun foydali.
 icon: Brackets
 ---
 
-# Interpreter Patterni
+# Interpretator andozasi (Interpreter)
 
 <CoverImage src="/covers/behavioral/interpreter.webp" alt="Cover">
-  <h1>Interpreter</h1>
+  <h1>Interpretator</h1>
   <p>Yulduz shaklidagi nutq pufakchalarida gapirayotgan o'zga sayyoralik bilan inson o'rtasida o'tirgan yoqimtoy tarjimon robot — u yulduzli pufakchalarni doskadagi oddiy geometrik matematik tenglamalarga tarjima qiladi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Interpreter** (Interpretator) patterni — bu til uchun grammatik ifodalanishni belgilaydigan va ushbu grammatika bilan ishlash uchun interpretator taqdim etadigan xulq-atvor (behavioral) dizayn patternidir. U asosan tildagi gaplar yoki ifodalarni Abstrakt sintaksis daraxti (AST — Abstract Syntax Tree) ko'rinishida ifodalab, ularni baholash uchun ishlatiladi.
+**Interpretator** (Interpreter) andozasi — bu til uchun grammatik ifodalanishni belgilaydigan va ushbu grammatika bilan ishlash uchun interpretator taqdim etadigan xulq-atvor (behavioral) loyihalash andozasidir. U asosan tildagi gaplar yoki ifodalarni Abstrakt sintaksis daraxti (AST — Abstract Syntax Tree) ko'rinishida ifodalab, ularni baholash uchun ishlatiladi.
 
 **Asosiy afzalligi**: U sohaga xos tillarni (DSL — domain-specific language) yoki murakkab qoidalar, konfiguratsiyalar va matematik ifodalarni baholashning tuzilmali usulini taqdim etadi.
 
-**Zamonaviy nuqtai nazar**: Klassik Interpreter to'laqonli umumiy maqsadli dasturlash tillarini yaratishda kamdan-kam qo'llansa-da (bu yerda ANTLR yoki LLVM kabi kompilyator generatorlari afzal ko'riladi), u yengil DSL'lar, konfiguratsiyani baholash, qoidalar dvigatellari (rule engine), SQL builder'lar va dinamik qidiruv so'rovlari parserlari uchun hamon juda dolzarb.
+**Zamonaviy nuqtai nazar**: Klassik Interpretator andozasi to'laqonli umumiy maqsadli dasturlash tillarini yaratishda kamdan-kam qo'llansa-da (bu yerda ANTLR yoki LLVM kabi kompilyator generatorlari afzal ko'riladi), u yengil DSL'lar, konfiguratsiyani baholash, qoidalar dvigatellari (rule engine), SQL builder'lar va dinamik qidiruv so'rovlari parserlari uchun hamon juda dolzarb.
 
 ## Muammo (The Problem)
 
@@ -42,7 +42,7 @@ Satr ko'rinishi tekis (flat), lekin baholash mantiqi tabiatan ierarxik. Tekis sa
 
 ## Yechim (The Solution)
 
-Interpreter patterni grammatik qoidalarni obyektlarga moslashtirish orqali bu muammoni hal qiladi.
+Interpretator andozasi grammatik qoidalarni obyektlarga moslashtirish orqali bu muammoni hal qiladi.
 
 1. **Context (Kontekst)**: Interpretatorlarga uzatiladigan umumiy holat (masalan, `Product` obyekti).
 2. **AbstractExpression**: `interpret(context)` metodiga ega interfeys.
@@ -546,14 +546,14 @@ fn main() {
 
 - **Kengaytiriluvchanlik**: Grammatikani o'zgartirish yoki kengaytirish juda oson. Shunchaki yangi `Expression` klassini yaratasiz.
 - **Mas'uliyatlarni ajratish (Separation of Concerns)**: Turli grammatik qoidalar uchun baholash mantiqi alohida klasslarga tartibli ajratilgan.
-- **Grammatikani obyektlar sifatida amalga oshirish**: AST bo'ylab o'tish, uni formatlash yoki optimallashtirishni nisbatan sodda qiladi (ko'pincha Visitor patterni bilan birga ishlatiladi).
+- **Grammatikani obyektlar sifatida amalga oshirish**: AST bo'ylab o'tish, uni formatlash yoki optimallashtirishni nisbatan sodda qiladi (ko'pincha Tashrifchi (Visitor) andozasi bilan birga ishlatiladi).
 
 ### Kamchiliklari (Disadvantages)
 
 - **Klasslar portlashi**: Murakkab grammatikalar yuzlab mayda klasslarni talab qiladi.
 - **Qo'llab-quvvatlash**: Katta yoki o'zgaruvchan tillar uchun qo'llab-quvvatlash nihoyatda qiyin.
 - **Unumdorlik**: Rekursiv interpretatsiya tabiatan sekin. AST'ni bytecode yoki mashina kodiga kompilyatsiya qilish ish vaqtida obyekt daraxtlari bo'ylab o'tishdan ancha tezroq.
-- **Parser yo'qligi**: Pattern AST qanday qurilishini hal _qilmaydi_. Xom matnni obyektlarga aylantirish uchun baribir satr parserini (Lexer/Parser) yozishingiz kerak.
+- **Parser yo'qligi**: Andoza AST qanday qurilishini hal _qilmaydi_. Xom matnni obyektlarga aylantirish uchun baribir satr parserini (Lexer/Parser) yozishingiz kerak.
 
 ## Qachon foydalanish kerak (When to Use) ✅
 
@@ -568,27 +568,27 @@ fn main() {
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1. Parserni Interpreter ichiga qattiq kodlash
+### 1. Parserni Interpretator ichiga qattiq kodlash
 
-Interpreter patterni daraxtni _baholash_ uchun, uni _qurish_ uchun emas. Satrlarni tahlil qilish (Lexing/Parsing) `Expression` AST'ini chiqaradigan butunlay alohida modul bo'lishi kerak.
+Interpretator andozasi daraxtni _baholash_ uchun, uni _qurish_ uchun emas. Satrlarni tahlil qilish (Lexing/Parsing) `Expression` AST'ini chiqaradigan butunlay alohida modul bo'lishi kerak.
 
 ### 2. Kontekstni noto'g'ri o'zgartirish
 
 Agar non-terminal tugun `interpret()` vaqtida kontekstni kutilmaganda o'zgartirsa, bu keyingi qoidalarni baholashni oldindan aytib bo'lmaydigan qiladigan yon ta'sirlarni (side-effect) yaratadi. Imkon qadar interpretatsiya davomida kontekstni faqat o'qish uchun (read-only) deb hisoblang.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Composite](/uz/structural/composite)**: AST asosan Composite patternidir — unda Non-Terminal'lar kompozitlar, Terminal'lar esa barglar.
-- **[Visitor](/uz/behavioral/visitor)**: Ko'pincha `Expression` klasslarini o'zgartirmasdan yangi xatti-harakatlar (formatlash, optimallashtirish yoki turlarni tekshirish kabi) qo'shish uchun Interpreter bilan birga ishlatiladi.
+- **[Kompozit](/uz/structural/composite)**: AST asosan Kompozit andozasidir — unda Non-Terminal'lar kompozitlar, Terminal'lar esa barglar.
+- **[Tashrifchi](/uz/behavioral/visitor)**: Ko'pincha `Expression` klasslarini o'zgartirmasdan yangi xatti-harakatlar (formatlash, optimallashtirish yoki turlarni tekshirish kabi) qo'shish uchun Interpretator bilan birga ishlatiladi.
 - **[Iterator](/uz/behavioral/iterator)**: AST bo'ylab o'tish uchun ishlatilishi mumkin.
-- **[Command](/uz/behavioral/command)**: Tuzilishi jihatidan o'xshash, lekin Command amallarni bajaradi, Interpreter esa qiymatlarni grammatikaga ko'ra baholaydi.
+- **[Buyruq](/uz/behavioral/command)**: Tuzilishi jihatidan o'xshash, lekin Buyruq amallarni bajaradi, Interpretator esa qiymatlarni grammatikaga ko'ra baholaydi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Interpreter patterni va Composite patterni o'rtasida qanday farq bor?"
-  - **Javob**: "Tuzilmaviy amalga oshirilishi deyarli bir xil — ikkalasi ham barglar va kompozitlardan iborat obyektlar daraxtidan foydalanadi. Farq niyatda. Composite qism-butun ierarxiyalarini ifodalash uchun mo'ljallangan. Interpreter esa bu ierarxiyani aynan lingvistik grammatika yoki matematik ifodani baholash uchun qo'llaydi."
+- **Savol**: "Interpretator andozasi va Kompozit andozasi o'rtasida qanday farq bor?"
+  - **Javob**: "Tuzilmaviy amalga oshirilishi deyarli bir xil — ikkalasi ham barglar va kompozitlardan iborat obyektlar daraxtidan foydalanadi. Farq niyatda. Kompozit qism-butun ierarxiyalarini ifodalash uchun mo'ljallangan. Interpretator esa bu ierarxiyani aynan lingvistik grammatika yoki matematik ifodani baholash uchun qo'llaydi."
 - **Savol**: "Daraxtni aslida qanday qurasiz?"
-  - **Javob**: "Patternning o'zi buni belgilamaydi. Haqiqiy hayotda AST'ni Parser (masalan, Recursive Descent) yoki parser generator vositasi yordamida qurasiz, u baholash uchun Interpreter daraxtini chiqaradi."
+  - **Javob**: "Andozaning o'zi buni belgilamaydi. Haqiqiy hayotda AST'ni Parser (masalan, Recursive Descent) yoki parser generator vositasi yordamida qurasiz, u baholash uchun Interpretator daraxtini chiqaradi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 

@@ -1,23 +1,23 @@
 ---
-title: Observer Pattern
+title: Kuzatuvchi andozasi (Observer)
 description: Obyektlar o'rtasida birga-ko'p (one-to-many) bog'liqlikni belgilaydi. Bitta obyekt holati o'zgarganda, unga bog'liq barcha obyektlar avtomatik ravishda xabardor qilinadi.
 icon: Bell
 ---
 
-# Observer Pattern
+# Kuzatuvchi andozasi (Observer)
 
 <CoverImage src="/covers/behavioral/observer.webp" alt="Cover">
-  <h1>Observer</h1>
+  <h1>Kuzatuvchi</h1>
   <p>Qizil gilam bo'ylab yurib kelayotgan superyulduz robot, uning atrofida esa ulkan kameralarga ega o'nlab kichkina paparatsi-robot kuzatuvchilar chaqnab, harakatlarini mukammal muvofiqlikda sinxronlashtirmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Observer** — bu obyektlar o'rtasida birga-ko'p (one-to-many) obuna mexanizmini o'rnatuvchi xulq-atvor (behavioral) dizayn patternidir. Kuzatilayotgan obyekt (**Subject** yoki Publisher — nashr qiluvchi) o'z holatini o'zgartirganda, u ro'yxatdan o'tgan barcha bog'liq obyektlarni (**Observer**'lar yoki Subscriber'lar — obunachilar) avtomatik ravishda xabardor qiladi.
+**Kuzatuvchi** (Observer) — bu obyektlar o'rtasida birga-ko'p (one-to-many) obuna mexanizmini o'rnatuvchi xulq-atvor (behavioral) loyihalash andozasidir. Kuzatilayotgan obyekt (**Subject** yoki Publisher — nashr qiluvchi) o'z holatini o'zgartirganda, u ro'yxatdan o'tgan barcha bog'liq obyektlarni (**Observer**'lar yoki Subscriber'lar — obunachilar) avtomatik ravishda xabardor qiladi.
 
 **Asosiy afzalligi**: U dinamik, bo'sh bog'lanishni (loose coupling) ta'minlaydi. Subject o'zini kuzatayotgan klasslar haqida hech narsa bilishi shart emas, bu esa asosiy mantiqni o'zgartirmasdan ish vaqtida (runtime) tinglovchilarni qo'shish yoki olib tashlash imkonini beradi.
 
-**Zamonaviy nuqtai nazar**: Observer patterni zamonaviy reaktiv dasturlash, UI freymvorklari (React, Vue, SwiftUI), Event Bus'lar, WebSocket'lar va Pub/Sub xabar almashish tizimlarining (Kafka, RabbitMQ) shubhasiz asosidir.
+**Zamonaviy nuqtai nazar**: Kuzatuvchi andozasi zamonaviy reaktiv dasturlash, UI freymvorklari (React, Vue, SwiftUI), Event Bus'lar, WebSocket'lar va Pub/Sub xabar almashish tizimlarining (Kafka, RabbitMQ) shubhasiz asosidir.
 
 ## Muammo (The Problem)
 
@@ -58,7 +58,7 @@ Agar so'rov (polling) usulidan foydalansak, CPU sikllarini behuda sarflaymiz. Ag
 
 ## Yechim (The Solution)
 
-Observer patterni Subject Observer'lar ro'yxatini saqlashi va `subscribe` (obuna bo'lish) hamda `unsubscribe` (obunani bekor qilish) metodlarini taqdim etishi kerakligini belgilaydi.
+Kuzatuvchi andozasi Subject Observer'lar ro'yxatini saqlashi va `subscribe` (obuna bo'lish) hamda `unsubscribe` (obunani bekor qilish) metodlarini taqdim etishi kerakligini belgilaydi.
 
 1. **Subject** umumiy `Observer` interfeysini amalga oshiruvchi obyektlarga havolalar massivini saqlaydi.
 2. Subject holati o'zgargan har safar, u ushbu massiv bo'ylab aylanib chiqadi va har bir Observer'da ma'lum bir xabardor qilish metodini (masalan, `update()`) chaqiradi.
@@ -581,8 +581,8 @@ fn main() {
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Ketma-ket ma'lumotlar quvurlari (Sequential Data Pipelines)**: Agar sizga bajarilish tartibi ustidan qat'iy nazorat kerak bo'lsa (A qadam -> B qadam -> C qadam), **[Chain of Responsibility](/uz/behavioral/chain-of-responsibility)** yoki maxsus ish oqimi (workflow) dvigatelidan foydalaning.
-- **Murakkab muvofiqlashtirish**: Agar bir nechta nashr qiluvchilar va obunachilar chigallashib ketayotgan bo'lsa, mantiqni markazlashtirish uchun **[Mediator](/uz/behavioral/mediator)** patterniga o'tishingiz kerak.
+- **Ketma-ket ma'lumotlar quvurlari (Sequential Data Pipelines)**: Agar sizga bajarilish tartibi ustidan qat'iy nazorat kerak bo'lsa (A qadam -> B qadam -> C qadam), **[Mas'uliyatlar zanjiri](/uz/behavioral/chain-of-responsibility)** (Chain of Responsibility) yoki maxsus ish oqimi (workflow) dvigatelidan foydalaning.
+- **Murakkab muvofiqlashtirish**: Agar bir nechta nashr qiluvchilar va obunachilar chigallashib ketayotgan bo'lsa, mantiqni markazlashtirish uchun **[Vositachi](/uz/behavioral/mediator)** (Mediator) andozasiga o'tishingiz kerak.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
@@ -596,21 +596,21 @@ Kuzatuvchi yo'q qilinganda uning obunasini bekor qilmaslik.
 - **Push modeli**: Subject o'zining barcha ma'lumotlarini kuzatuvchiga uzatadi (`update(data)`). Bu kuzatuvchini aniq ma'lumotlar tuzilmasiga bog'lab qo'yadi.
 - **Pull modeli**: Subject o'ziga havolani uzatadi (`update(this)`) va kuzatuvchi o'ziga kerakli narsani so'raydi. Odatda bu afzalroq, lekin subject'dan ochiq (public) getter metodlarni taqdim etishni talab qiladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Mediator](/uz/behavioral/mediator)**: Aloqani markazlashtiradi. Obyektlar bir-birini to'g'ridan-to'g'ri kuzatish o'rniga Mediator'ni kuzatadi.
+- **[Vositachi](/uz/behavioral/mediator)**: Aloqani markazlashtiradi. Obyektlar bir-birini to'g'ridan-to'g'ri kuzatish o'rniga vositachini kuzatadi.
 - **[Singleton](/uz/creational/singleton)**: Ko'pincha Subject (masalan, Event Bus) global ravishda foydalanish mumkin bo'lishi uchun Singleton sifatida amalga oshiriladi.
-- **[Command](/uz/behavioral/command)**: Kuzatuvchilar ko'pincha bildirishnoma olishga javoban Command'larni bajaradi.
+- **[Buyruq](/uz/behavioral/command)**: Kuzatuvchilar ko'pincha bildirishnoma olishga javoban buyruqlarni (Command) bajaradi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Observer va Pub/Sub o'rtasidagi farq nima?"
-  - **Javob**: "Klassik Observer patternida Subject va Observer bir-biridan xabardor (Subject Observer'lar ro'yxatini saqlaydi). Publish/Subscribe'da esa uchinchi komponent bor — Event Bus yoki Message Broker. Nashr qiluvchilar Broker'ga yuboradi, obunachilar esa Broker'dan oladi. Ular bir-biridan butunlay ajratilgan."
-- **Savol**: "Observer patternida xotira sizishining oldini qanday olasiz?"
+- **Savol**: "Kuzatuvchi (Observer) va Pub/Sub o'rtasidagi farq nima?"
+  - **Javob**: "Klassik Kuzatuvchi andozasida Subject va Observer bir-biridan xabardor (Subject Observer'lar ro'yxatini saqlaydi). Publish/Subscribe'da esa uchinchi komponent bor — Event Bus yoki Message Broker. Nashr qiluvchilar Broker'ga yuboradi, obunachilar esa Broker'dan oladi. Ular bir-biridan butunlay ajratilgan."
+- **Savol**: "Kuzatuvchi andozasida xotira sizishining oldini qanday olasiz?"
   - **Javob**: "Kuzatuvchi yo'q qilinganda `unsubscribe()` metodi chaqirilishiga ishonch hosil qiling yoki Garbage Collector o'lik kuzatuvchilarni tozalay olishi uchun Subject'ning kuzatuvchilar ro'yxatida kuchsiz havolalardan (Weak References) foydalaning."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Reactive Extensions (RxJS, RxJava)**: Hodisalar oqimlarini filtrlash, map qilish va birlashtirish imkonini beruvchi Observer patternining ilg'or, kompozitsiyalanadigan amalga oshirilishlari.
+- **Reactive Extensions (RxJS, RxJava)**: Hodisalar oqimlarini filtrlash, map qilish va birlashtirish imkonini beruvchi Kuzatuvchi andozasining ilg'or, kompozitsiyalanadigan amalga oshirilishlari.
 - **Event Emitter'lar / Event Target'lar**: Node.js (`EventEmitter`) va brauzer DOM'iga (`EventTarget`) o'rnatilgan, yuqori darajada optimallashtirilgan tabiiy amalga oshirilishlar.
 - **Signals / Observables (Vue, SolidJS, Angular, MobX)**: Zamonaviy frontend freymvorklari o'qilganda obunalarni avtomatik kuzatadigan reaktiv primitivlardan (Signals) foydalanadi, bu esa qo'lda `subscribe`/`unsubscribe` chaqiruvlariga bo'lgan ehtiyojni butunlay yo'qotadi.

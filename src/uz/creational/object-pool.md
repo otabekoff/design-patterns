@@ -1,19 +1,19 @@
 ---
-title: Object Pool patterni
-description: Talab bo'yicha obyektlarni yaratib, yo'q qilish o'rniga oldindan ishga tushirilgan obyektlar pulini qayta ishlatadi va initsializatsiya xarajatlarini kamaytiradi.
+title: Obyektlar havzasi andozasi (Object Pool)
+description: Talab bo'yicha obyektlarni yaratib, yo'q qilish o'rniga oldindan ishga tushirilgan obyektlar havzasini qayta ishlatadi va initsializatsiya xarajatlarini kamaytiradi.
 icon: Database
 ---
 
-# Object Pool patterni
+# Obyektlar havzasi andozasi (Object Pool)
 
 <CoverImage src="/covers/creational/object-pool.webp" alt="Cover">
-  <h1>Object Pool</h1>
+  <h1>Obyektlar havzasi</h1>
   <p>Hashamatli suzish havzasi: charchagan, yoqimtoy kichik robot-ishchilar suzgich halqalarda dam olmoqda, chetda esa qo'lida planshet tutgan menejer-robot turibdi — u bittasini ishga jo'natib, boshqasini dam olishga qaytarib kutib olmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Object Pool** patterni yaratuvchi (creational) dizayn patterni bo'lib, talab bo'yicha yangi instansiyalar yaratib, ularni yo'q qilish o'rniga qayta ishlatiladigan obyektlar pulini (pool) boshqaradi. Oldindan initsializatsiya qilingan obyektlar pulda saqlanadi, kerak bo'lganda qayta ishlatiladi va keyin pulga qaytariladi.
+**Obyektlar havzasi (Object Pool)** andozasi yaratuvchi (creational) loyihalash andozasi bo'lib, talab bo'yicha yangi instansiyalar yaratib, ularni yo'q qilish o'rniga qayta ishlatiladigan obyektlar havzasini (pool) boshqaradi. Oldindan initsializatsiya qilingan obyektlar havzada saqlanadi, kerak bo'lganda qayta ishlatiladi va keyin havzaga qaytariladi.
 
 **Asosiy afzalligi**: Qimmat initsializatsiya va garbage collection (axlat yig'ish) xarajatlarini yo'qotish orqali resurslari cheklangan yoki yuqori o'tkazuvchanlikdagi (high-throughput) holatlarda unumdorlikni keskin oshiradi.
 
@@ -24,7 +24,7 @@ icon: Database
 - Til darajasidagi obyekt pooling (Java'dagi `ObjectPool`)
 - O'rnatilgan pooling'ga ega oqimli ishlov berish (stream processing) freymvorklari
 
-Shunga qaramay, Object Pool quyidagilar uchun hamon muhim:
+Shunga qaramay, Obyektlar havzasi quyidagilar uchun hamon muhim:
 
 - Ma'lumotlar bazasi ulanishlarini boshqarish
 - Thread pool executor'lar
@@ -37,9 +37,9 @@ Shunga qaramay, Object Pool quyidagilar uchun hamon muhim:
 
 - Avtomobillarni (obyektlarni) ishlab chiqarish qimmat
 - Har bir mijoz uchun yangi mashina yasash o'rniga, avtoparkni saqlab turiladi
-- Mijoz mavjud puldan mashinani "oladi" (acquire)
-- Ishi tugagach, mijoz uni pulga qaytaradi
-- Pul mashinani "tiklaydi" (reset) — yoqilg'i quyadi, tozalaydi, tekshiradi
+- Mijoz mavjud havzadan mashinani "oladi" (acquire)
+- Ishi tugagach, mijoz uni havzaga qaytaradi
+- Havza mashinani "tiklaydi" (reset) — yoqilg'i quyadi, tozalaydi, tekshiradi
 - Keyingi mijoz foydalanishga tayyor mashinani oladi
 
 Bu ishlab chiqarish xarajatlaridan qochish imkonini beradi va resurslardan foydalanish samaradorligini oshiradi.
@@ -79,7 +79,7 @@ classDiagram
     Client ..> PooledConnection : uses temporarily
 ```
 
-- **`Poolable`** har bir puldagi obyekt bajarishi kerak bo'lgan shartnomani (contract) belgilaydi, eng muhimi — qayta ishlatishdan oldin holatni tozalaydigan `reset()`.
+- **`Poolable`** har bir havzadagi obyekt bajarishi kerak bo'lgan shartnomani (contract) belgilaydi, eng muhimi — qayta ishlatishdan oldin holatni tozalaydigan `reset()`.
 - **`PooledConnection`** (Reusable) — bir marta yaratilib, ko'p marta beriladigan qimmat obyekt.
 - **`ConnectionPool`** (Pool) obyektlarni oldindan yaratadi, mavjud va band instansiyalarni kuzatib boradi hamda `maxSize` chegarasini ta'minlaydi.
 - **`Client`** `acquire()` orqali obyektni vaqtincha oladi va uni har doim `release()` orqali qaytarishi shart.
@@ -132,13 +132,13 @@ class WebServer {
 
 ## Yechim (Solution)
 
-Object Pool patterni bu muammoni quyidagicha hal qiladi:
+Obyektlar havzasi andozasi bu muammoni quyidagicha hal qiladi:
 
 1. **Qimmat obyektlarni oldindan initsializatsiya qilish** — ishga tushish vaqtida bir marta
-2. **Foydalanishga tayyor obyektlar pulini saqlash**
-3. **Obyektlarni yaratish o'rniga puldan olish**
-4. **Pulga qaytarishdan oldin obyektlarni tiklash (reset)**
-5. **Obyektlarni qayta ishlatish uchun pulga qaytarish**
+2. **Foydalanishga tayyor obyektlar havzasini saqlash**
+3. **Obyektlarni yaratish o'rniga havzadan olish**
+4. **Havzaga qaytarishdan oldin obyektlarni tiklash (reset)**
+5. **Obyektlarni qayta ishlatish uchun havzaga qaytarish**
 
 ```typescript
 // ✅ Yechim: Pool'dan qayta foydalanish
@@ -232,7 +232,7 @@ class PooledConnection implements Poolable {
   }
 }
 
-// Object pool implementatsiyasi
+// Obyektlar havzasi implementatsiyasi
 class ConnectionPool {
   private available: PooledConnection[] = [];
   private inUse: Set<PooledConnection> = new Set();
@@ -847,9 +847,9 @@ fn main() {
 
 :::
 
-## Real hayotdagi misol: Ma'lumotlar bazasi ulanishlari puli (Database Connection Pool)
+## Real hayotdagi misol: Ma'lumotlar bazasi ulanishlari havzasi (Database Connection Pool)
 
-Monitoring va dinamik o'lchamga ega production darajasidagi ma'lumotlar bazasi ulanishlari puli:
+Monitoring va dinamik o'lchamga ega production darajasidagi ma'lumotlar bazasi ulanishlari havzasi:
 
 ```typescript
 class MonitoredConnectionPool {
@@ -1003,9 +1003,9 @@ async function handleDatabaseRequests() {
 }
 ```
 
-## Pulning hayotiy sikli va holatlari (Pool Lifecycle and States)
+## Havzaning hayotiy sikli va holatlari (Pool Lifecycle and States)
 
-Puldagi obyektlarning holatlarini tushunish juda muhim:
+Havzadagi obyektlarning holatlarini tushunish juda muhim:
 
 ```
 [Not Created]
@@ -1020,9 +1020,9 @@ Puldagi obyektlarning holatlarini tushunish juda muhim:
 Asosiy holatlar:
 
 - **Available (Mavjud)**: Olishga tayyor, tiklangan va toza
-- **In Use (Band)**: Puldan olingan, ish bajarmoqda
+- **In Use (Band)**: Havzadan olingan, ish bajarmoqda
 - **Reset (Tiklash)**: Available holatiga qaytish jarayoni (tozalash)
-- **Discarded (Tashlab yuborilgan)**: Puldan olib tashlangan (eskirgan, ishdan chiqqan va h.k.)
+- **Discarded (Tashlab yuborilgan)**: Havzadan olib tashlangan (eskirgan, ishdan chiqqan va h.k.)
 
 ## Afzalliklari va kamchiliklari
 
@@ -1046,7 +1046,7 @@ Asosiy holatlar:
 
 ## Variantlar (Variations)
 
-### 1. Dinamik o'lchamli pul (Dynamic Sizing Pool)
+### 1. Dinamik o'lchamli havza (Dynamic Sizing Pool)
 
 Talabga qarab avtomatik kattalashadi yoki kichrayadi:
 
@@ -1076,7 +1076,7 @@ class DynamicPool {
 }
 ```
 
-### 2. Timeout'li bloklovchi pul (Blocking Pool with Timeout)
+### 2. Timeout'li bloklovchi havza (Blocking Pool with Timeout)
 
 Xato tashlash o'rniga bo'sh ulanish paydo bo'lishini kutadi:
 
@@ -1210,7 +1210,7 @@ function processRequest(pool: ConnectionPool) {
 }
 ```
 
-### ❌ 4-xato: Pul o'lchamini noto'g'ri sozlash
+### ❌ 4-xato: Havza o'lchamini noto'g'ri sozlash
 
 ```typescript
 // ❌ Yomon: Juda kichik
@@ -1223,11 +1223,11 @@ const pool = new ConnectionPool(1000); // Xotira isrofi, sekin olish
 const pool = new ConnectionPool(10, 50); // Kamida 10, ko'pi bilan 50
 ```
 
-## Bog'liq patternlar (Related Patterns)
+## Bog'liq andozalar (Related Patterns)
 
-- **Singleton**: Pul instansiyasi ko'pincha Singleton bo'ladi
-- **Factory Method**: Pulga joylanadigan obyektlarni yaratishi mumkin
-- **Prototype**: Puldagi obyektlar qayta ishlatish uchun prototip vazifasini bajaradi
+- **Singleton**: Havza instansiyasi ko'pincha Singleton bo'ladi
+- **Fabrika metodi (Factory Method)**: Havzaga joylanadigan obyektlarni yaratishi mumkin
+- **Prototip (Prototype)**: Havzadagi obyektlar qayta ishlatish uchun prototip vazifasini bajaradi
 
 ## Zamonaviy muqobillar
 
@@ -1252,11 +1252,11 @@ const pool = new ConnectionPool(10, 50); // Kamida 10, ko'pi bilan 50
 
 J: Obyekt yaratishning o'z xarajati bor (TCP handshake, autentifikatsiya, initsializatsiya). Yuqori o'tkazuvchanlikdagi tizimlarda bu xarajat so'rovlar soniga ko'payadi va tor joy (bottleneck) hosil qiladi. Pooling initsializatsiya narxini bir marta to'laydi, so'ng uni ko'plab foydalanishlarga taqsimlaydi.
 
-**2-savol: Puldagi obyektlarda eskirgan ma'lumot qolishining oldini qanday olasiz?**
+**2-savol: Havzadagi obyektlarda eskirgan ma'lumot qolishining oldini qanday olasiz?**
 
 J: Barcha o'zgaruvchan (mutable) holatni tozalaydigan puxta reset() metodlarini yozing. Reset xatti-harakatini tekshirish uchun code review va testlardan foydalaning. Iloji bo'lsa, o'zgarmas (immutable) poolable obyektlarni ko'rib chiqing.
 
-**3-savol: Pulning optimal o'lchami qanday?**
+**3-savol: Havzaning optimal o'lchami qanday?**
 
 J: Kontekstga bog'liq: `pool_size = (db_connections * (application_threads - application_core_threads))`. Juda kichik = tor joy. Juda katta = xotira isrofi. Metrikalar asosida kuzating va sozlang.
 
@@ -1268,6 +1268,6 @@ J: Timeout bilan acquireAsync() dan foydalaning. Timeout yuz berganda so'rovni r
 
 J: Ha! Async/await resurslar narxini emas, threading modelini o'zgartiradi. Ma'lumotlar bazasiga ulanish yaratish hamon qimmat. Yuqori parallellikda (concurrency) pooling yanada muhimroq.
 
-**6-savol: Pullar resurs cheklovlari bilan qanday bog'liq?**
+**6-savol: Havzalar resurs cheklovlari bilan qanday bog'liq?**
 
-J: Pullar faol obyektlar sonini cheklash orqali resurs cheklovlarini ta'minlaydi. Pooling bo'lmasa, cheksiz resurs yaratish tizimni (file descriptor'lar, socket'lar, xotira) tugatib qo'yishi mumkin. Pullar resurslardan oldindan aytib bo'ladigan foydalanishni ta'minlaydi.
+J: Havzalar faol obyektlar sonini cheklash orqali resurs cheklovlarini ta'minlaydi. Pooling bo'lmasa, cheksiz resurs yaratish tizimni (file descriptor'lar, socket'lar, xotira) tugatib qo'yishi mumkin. Havzalar resurslardan oldindan aytib bo'ladigan foydalanishni ta'minlaydi.

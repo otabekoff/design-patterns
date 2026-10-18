@@ -1,31 +1,31 @@
 ---
-title: Composite Pattern
+title: Kompozit andozasi (Composite)
 description: Obyektlarni daraxt tuzilmalariga birlashtiradi va mijozlarga alohida obyektlar hamda ularning to'plamlari bilan bir xil tarzda ishlash imkonini beradi.
 icon: GitBranch
 ---
 
-# Composite Pattern
+# Kompozit andozasi (Composite)
 
 <CoverImage src="/covers/structural/composite.webp" alt="Cover">
-  <h1>Composite</h1>
+  <h1>Kompozit</h1>
   <p>Geometrik qutilardan yasalgan yuqori texnologiyali modulli matryoshka tuzilmasi: katta qutini ochganda kichikroq qutilar chiqadi, ularning ba'zilarida haqiqiy mikrochiplar (barglar), ba'zilarida esa yanada kichikroq qutilar bor.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Composite** — bu obyektlardan daraxt tuzilmalarini qurish va alohida obyektlar hamda obyektlar guruhlari bilan bir xil interfeys orqali ishlash imkonini beruvchi strukturaviy (structural) dizayn patternidir. Mijoz kodi barg (leaf) tugun bilan ishlayaptimi yoki konteyner tugun bilanmi — buni bilishi shart emas.
+**Kompozit (Composite)** — bu obyektlardan daraxt tuzilmalarini qurish va alohida obyektlar hamda obyektlar guruhlari bilan bir xil interfeys orqali ishlash imkonini beruvchi tuzilmaviy (structural) loyihalash andozasidir. Mijoz kodi barg (leaf) tugun bilan ishlayaptimi yoki konteyner tugun bilanmi — buni bilishi shart emas.
 
 **Asosiy afzalligi**: Rekursiv ierarxiyalar bilan ishlashni osonlashtiradi va daraxt bo'ylab yurish (traversal) tafsilotlarini mijozlardan yashiradi.
 
-**Zamonaviy nuqtai nazar**: Composite hujjat muharrirlarida, UI daraxtlarida, DOM'ga o'xshash tuzilmalarda, menyu tizimlarida, ruxsatlar daraxtlarida, AST'larda va CMS kontent modellarida uchraydi. Barg va konteyner bir xil operatsiyalarni taqdim etishi kerak bo'lgan har qanday holatda Composite juda mos keladi.
+**Zamonaviy nuqtai nazar**: Kompozit hujjat muharrirlarida, UI daraxtlarida, DOM'ga o'xshash tuzilmalarda, menyu tizimlarida, ruxsatlar daraxtlarida, AST'larda va CMS kontent modellarida uchraydi. Barg va konteyner bir xil operatsiyalarni taqdim etishi kerak bo'lgan har qanday holatda Kompozit juda mos keladi.
 
-Composite qism va butunga bir xil munosabatda bo'lish haqida.
+Kompozit qism va butunga bir xil munosabatda bo'lish haqida.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Kompaniyaning tashkiliy tuzilmasini** tasavvur qiling. Oddiy xodim barg bo'lishi mumkin. Menejer ham xodim, lekin uning qo'l ostida bo'ysunuvchilar bo'lishi mumkin. Ikkalasiga ham bir xil savollar mantiqan to'g'ri keladi: rahbaringiz kim, ismingiz nima va lavozimingiz qanday?
 
-Composite aynan shu umumiy shaklni modellashtiradi.
+Kompozit aynan shu umumiy shaklni modellashtiradi.
 
 ## Tuzilma (Structure)
 
@@ -102,7 +102,7 @@ Daraxt o'sgani sari bu yondashuv kengaymaydi.
 
 ## Yechim (The Solution)
 
-Composite barg va konteyner obyektlarga bir xil interfeys berish orqali bu muammoni hal qiladi.
+Kompozit barg va konteyner obyektlarga bir xil interfeys berish orqali bu muammoni hal qiladi.
 
 1. Komponent interfeysini aniqlang
 2. Oddiy xatti-harakatga ega barg tugunlarni amalga oshiring
@@ -556,7 +556,7 @@ impl ContentNode for Page {
 
 ## Haqiqiy hayotdagi misol (Real-World Example)
 
-Kontent boshqaruv tizimi Composite uchun tabiiy moslik, chunki sahifalar bo'limlarni, bo'limlar bloklarni o'z ichiga oladi, bloklar esa o'z navbatida ichma-ich kontentga ega bo'lishi mumkin.
+Kontent boshqaruv tizimi Kompozit uchun tabiiy moslik, chunki sahifalar bo'limlarni, bo'limlar bloklarni o'z ichiga oladi, bloklar esa o'z navbatida ichma-ich kontentga ega bo'lishi mumkin.
 
 Bitta render operatsiyasi daraxtning istalgan tugunida ishlay oladi, qolganini esa rekursiv topshirish hal qiladi.
 
@@ -570,7 +570,7 @@ page.add(intro);
 console.log(page.render());
 ```
 
-Xuddi shu pattern menyular, mundarijalar, ruxsatlar daraxtlari va UI komponent daraxtlariga ham qo'llaniladi.
+Xuddi shu andoza menyular, mundarijalar, ruxsatlar daraxtlari va UI komponent daraxtlariga ham qo'llaniladi.
 
 ## Afzalliklari (Advantages)
 
@@ -636,22 +636,22 @@ interface ContentNode {
 
 ```typescript
 // ❌ Yomon: har bir chaqiruvchi daraxtni rekursiv aylanib chiqadi
-// ✅ Yaxshi: rekursiyani composite'ning o'ziga joylang
+// ✅ Yaxshi: rekursiyani kompozitning o'ziga joylang
 ```
 
-### 4-xato: Composite'ni Adapter kabi qo'llash
+### 4-xato: Kompozitni Adapter kabi qo'llash
 
 ```typescript
-// ❌ Yomon: mos kelmaydigan interfeyslarni tuzatish uchun Composite'dan foydalanish
-// ✅ Yaxshi: daraxt tuzilmalari uchun Composite, moslik uchun Adapter
+// ❌ Yomon: mos kelmaydigan interfeyslarni tuzatish uchun Kompozitdan foydalanish
+// ✅ Yaxshi: daraxt tuzilmalari uchun Kompozit, moslik uchun Adapter
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Iterator](/uz/behavioral/iterator)**: Kompozit daraxtlar bo'ylab yurishi mumkin
-- **[Visitor](/uz/behavioral/visitor)**: Ko'pincha kompozit ierarxiyalar bo'ylab operatsiyalarni bajarish uchun ishlatiladi
-- **[Decorator](/uz/structural/decorator)**: Daraxt tuzilmasini o'zgartirmasdan tugunlarga xatti-harakat qo'shadi
-- **[Command](/uz/behavioral/command)**: Daraxt operatsiyalarini buyruqlar sifatida ifodalashi mumkin
+- **[Tashrifchi](/uz/behavioral/visitor)**: Ko'pincha kompozit ierarxiyalar bo'ylab operatsiyalarni bajarish uchun ishlatiladi
+- **[Dekorator](/uz/structural/decorator)**: Daraxt tuzilmasini o'zgartirmasdan tugunlarga xatti-harakat qo'shadi
+- **[Buyruq](/uz/behavioral/command)**: Daraxt operatsiyalarini buyruqlar sifatida ifodalashi mumkin
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -659,26 +659,26 @@ interface ContentNode {
 - React/Vue komponent daraxtlari
 - AST kutubxonalari va sintaksis daraxtlari
 - Grafga asoslangan kontent muharrirlari
-- Visitor yordamchi vositalariga ega rekursiv ma'lumotlar tuzilmalari
+- Tashrifchi (Visitor) yordamchi vositalariga ega rekursiv ma'lumotlar tuzilmalari
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Composite qanday muammoni hal qiladi?**
+**1-savol: Kompozit qanday muammoni hal qiladi?**
 
 J: U mijozlarga daraxt tuzilmasidagi alohida obyektlar va obyektlar guruhlari bilan bir xil tarzda ishlash imkonini beradi.
 
-**2-savol: Composite Decorator'dan nimasi bilan farq qiladi?**
+**2-savol: Kompozit Dekoratordan nimasi bilan farq qiladi?**
 
-J: Composite butun-qism ierarxiyalarini ifodalaydi. Decorator esa bitta obyektga xatti-harakat qo'shadi.
+J: Kompozit butun-qism ierarxiyalarini ifodalaydi. Dekorator esa bitta obyektga xatti-harakat qo'shadi.
 
-**3-savol: Nega Composite UI daraxtlari uchun foydali?**
+**3-savol: Nega Kompozit UI daraxtlari uchun foydali?**
 
 J: UI daraxtlarida konteynerlar va barglar tabiiy ravishda aralash bo'ladi, lekin render yoki o'lchash (measure) kabi ko'plab operatsiyalar ikkalasida ham ishlashi kerak.
 
-**4-savol: Composite'dagi eng katta dizayn xavfi nima?**
+**4-savol: Kompozitdagi eng katta loyihalash xavfi nima?**
 
 J: Umumiy interfeysni haddan tashqari keng yoki juda noaniq qilib qo'yish.
 
-**5-savol: Qachon Composite'dan qochish kerak?**
+**5-savol: Qachon Kompozitdan qochish kerak?**
 
 J: Tuzilma aslida rekursiv bo'lmaganda yoki barglar va konteynerlar bitta kontraktni toza baham ko'rish uchun shakl jihatidan juda farq qilganda.

@@ -1,21 +1,21 @@
 ---
-title: Read-Write Lock (O'qish-Yozish Qulfi)
-description: Umumiy resursni bir vaqtning o'zida o'qishga ruxsat beradigan, ammo yozish uchun mutlaq (exclusive) kirishni talab qiladigan parallellik (concurrency) dizayn patterni.
+title: O'qish-yozish qulfi andozasi (Read-Write Lock)
+description: Umumiy resursni bir vaqtning o'zida o'qishga ruxsat beradigan, ammo yozish uchun mutlaq (exclusive) kirishni talab qiladigan parallellik (concurrency) loyihalash andozasi.
 icon: Lock
 ---
 
-# Read-Write Lock Pattern
+# O'qish-yozish qulfi andozasi (Read-Write Lock)
 
 <CoverImage src="/covers/architectural/read-write-lock.webp" alt="Cover">
-  <h1>Read Write Lock</h1>
+  <h1>O'qish-yozish qulfi</h1>
   <p>Kitob ko'targan yigirmata olim-robotga bir vaqtda kirishga ruxsat beradigan, lekin mo'yqalam ushlagan birgina quruvchi-robot kirmoqchi bo'lganda gursillab yopilib, yorqin qizil rangga kiradigan qulfli ulkan kutubxona eshigi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Read-Write Lock** (O'qish-yozish qulfi) patterni — ko'p oqimli (multi-threaded) muhitlarda umumiy resurslarga kirishni optimallashtiradigan fundamental parallellik (concurrency) dizayn patternidir. Barcha kirishlarni ketma-ketlashtiradigan (serialize) standart o'zaro istisno qulfidan (Mutex) farqli o'laroq, Read-Write Lock faqat o'qish operatsiyalarini va o'zgartiruvchi (yozish) operatsiyalarni bir-biridan farqlaydi. U bir nechta oqimga (thread) resursni bir vaqtning o'zida o'qishga ruxsat beradi, lekin yozish operatsiyasi mutlaq (exclusive) kirishni talab qilishini qat'iy ta'minlaydi.
+**O'qish-yozish qulfi** (Read-Write Lock) andozasi — ko'p oqimli (multi-threaded) muhitlarda umumiy resurslarga kirishni optimallashtiradigan fundamental parallellik (concurrency) loyihalash andozasidir. Barcha kirishlarni ketma-ketlashtiradigan (serialize) standart o'zaro istisno qulfidan (Mutex) farqli o'laroq, o'qish-yozish qulfi faqat o'qish operatsiyalarini va o'zgartiruvchi (yozish) operatsiyalarni bir-biridan farqlaydi. U bir nechta oqimga (thread) resursni bir vaqtning o'zida o'qishga ruxsat beradi, lekin yozish operatsiyasi mutlaq (exclusive) kirishni talab qilishini qat'iy ta'minlaydi.
 
-Keshlash, konfiguratsiyani boshqarish va xotiradagi ma'lumotlar tarmoqlari (in-memory data grids) keng tarqalgan zamonaviy tizimlarda o'qish operatsiyalari odatda yozish operatsiyalaridan ko'p marta ko'p bo'ladi. Bunday stsenariylarda standart qulfdan foydalanish sun'iy "tor bo'g'iz" (bottleneck) hosil qiladi. Read-Write Lock o'qishlarni parallellashtirib, yozishlarni esa xavfsiz muvofiqlashtirib, o'tkazuvchanlikni (throughput) keskin oshiradi.
+Keshlash, konfiguratsiyani boshqarish va xotiradagi ma'lumotlar tarmoqlari (in-memory data grids) keng tarqalgan zamonaviy tizimlarda o'qish operatsiyalari odatda yozish operatsiyalaridan ko'p marta ko'p bo'ladi. Bunday stsenariylarda standart qulfdan foydalanish sun'iy "tor bo'g'iz" (bottleneck) hosil qiladi. O'qish-yozish qulfi o'qishlarni parallellashtirib, yozishlarni esa xavfsiz muvofiqlashtirib, o'tkazuvchanlikni (throughput) keskin oshiradi.
 
 ## Maqsad (Purpose)
 
@@ -31,7 +31,7 @@ Foydalanuvchi profillarini xotirada keshlaydigan yuqori trafikli veb-serverni ta
 Agar keshni himoya qilish uchun oddiy Mutex'dan foydalansangiz, har bir o'qish operatsiyasi qulfni egallashi, agar uni boshqa oqim ushlab turgan bo'lsa kutishi va boshqa barcha kiruvchi o'qish so'rovlarini bloklashi kerak bo'ladi. Bu aslida ilovangizni so'rovlarni ketma-ket qayta ishlashga majbur qiladi, ko'p oqimlilikning afzalliklarini yo'qqa chiqaradi va unumdorlikni jiddiy pasaytiradi.
 
 ```typescript
-// Read-Write Lock'siz - barcha kirishlar ketma-ket bajariladi
+// O'qish-yozish qulfisiz - barcha kirishlar ketma-ket bajariladi
 class SimpleCache {
   private data: Map<string, any> = new Map();
   // Oddiy boolean yoki mutex
@@ -54,7 +54,7 @@ class SimpleCache {
 
 ## Yechim (Solution)
 
-Read-Write Lock qulflash mexanizmini ikkita alohida rolga ajratadi:
+O'qish-yozish qulfi qulflash mexanizmini ikkita alohida rolga ajratadi:
 
 1.  **O'qish qulfi (Read Lock / Shared Lock — umumiy qulf):** Hech bir oqim yozish qulfini ushlab turmagan yoki uni kutmayotgan ekan, bir vaqtning o'zida bir nechta oqim tomonidan egallanishi mumkin.
 2.  **Yozish qulfi (Write Lock / Exclusive Lock — mutlaq qulf):** Faqat boshqa hech bir oqim o'qish qulfini _ham_, yozish qulfini _ham_ ushlab turmaganda bitta oqim tomonidan egallanishi mumkin.
@@ -100,14 +100,14 @@ sequenceDiagram
 
 ## Amalga oshirish (Implementation)
 
-Zamonaviy tillar ko'pincha Read-Write qulflarning tilga o'rnatilgan, yuqori darajada optimallashtirilgan amalga oshirilishlarini taqdim etadi. Quyida ulardan korporativ (enterprise) muhitlarda idiomatik tarzda qanday foydalanishni ko'rsatuvchi misollar keltirilgan.
+Zamonaviy tillar ko'pincha o'qish-yozish qulflarining tilga o'rnatilgan, yuqori darajada optimallashtirilgan amalga oshirilishlarini taqdim etadi. Quyida ulardan korporativ (enterprise) muhitlarda idiomatik tarzda qanday foydalanishni ko'rsatuvchi misollar keltirilgan.
 
 ::: code-group
 
 ```typescript [TypeScript]
 // Node.js/TypeScript'da parallellik muammolari odatda
 // asinxron operatsiyalar (promise'lar) aralashib ketganda yuzaga keladi.
-// Biz async'ni hisobga oladigan Read-Write Lock yaratamiz.
+// Biz async'ni hisobga oladigan o'qish-yozish qulfini yaratamiz.
 
 class AsyncReadWriteLock {
   private readersActive = 0;
@@ -472,13 +472,13 @@ fn main() {
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Yozish ko'p bo'lgan ish yuklamalari:** Agar yozishlar o'qishlar kabi yoki ulardan ham tez-tez sodir bo'lsa, Read-Write qulf hech qanday foyda bermaydi va aslida standart Mutex'ga nisbatan qo'shimcha xarajat qo'shadi.
+- **Yozish ko'p bo'lgan ish yuklamalari:** Agar yozishlar o'qishlar kabi yoki ulardan ham tez-tez sodir bo'lsa, o'qish-yozish qulfi hech qanday foyda bermaydi va aslida standart Mutex'ga nisbatan qo'shimcha xarajat qo'shadi.
 - **Juda tez kritik bo'limlar:** Agar kritik bo'lim (qulf ichidagi kod) bir necha nanosekundda bajarilsa (masalan, butun sonni oshirish), o'qish-yozish navbatlarini muvofiqlashtirish xarajati qulflash vaqtining o'zidan yuqori bo'ladi. Buning o'rniga atomik operatsiyalar yoki oddiy Mutex'dan foydalaning.
 - **Bir oqimli kontekstlar:** Node.js (worker bo'lmagan kontekstlarda) bir oqimli. Haqiqiy ko'p oqimlilik muammolari mavjud emas, lekin asinxron operatsiyalarning aralashib ketishi (async interleaving) muammolari mavjud (ular asinxron qulflarni talab qiladi).
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **Mutex (Mutual Exclusion — o'zaro istisno):** Oddiyroq muqobil. Yozish ko'p bo'lgan yoki juda qisqa qulflash stsenariylari uchun yaxshi.
-- **[Producer-Consumer](/uz/architectural/producer-consumer):** Ko'pincha Read-Write qulflar bilan birgalikda ishlaydi; Consumer'lar o'qiydi, Producer'lar yozadi.
-- **Double-Checked Locking:** Kechiktirilgan ishga tushirish (lazy initialization) paytida qulflash xarajatini kamaytirish uchun yana bir optimallashtirish patterni.
-- **[CQRS](/uz/architectural/cqrs):** Arxitektura darajasida CQRS o'qish va yozish modellarini ajratadi — xuddi bu pattern o'qish va yozish qulflarini ajratganidek.
+- **[Ishlab chiqaruvchi–iste'molchi](/uz/architectural/producer-consumer):** Ko'pincha o'qish-yozish qulflari bilan birgalikda ishlaydi; Consumer'lar o'qiydi, Producer'lar yozadi.
+- **Double-Checked Locking:** Kechiktirilgan ishga tushirish (lazy initialization) paytida qulflash xarajatini kamaytirish uchun yana bir optimallashtirish andozasi.
+- **[CQRS](/uz/architectural/cqrs):** Arxitektura darajasida CQRS o'qish va yozish modellarini ajratadi — xuddi bu andoza o'qish va yozish qulflarini ajratganidek.

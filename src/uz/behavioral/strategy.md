@@ -1,23 +1,23 @@
 ---
-title: Strategy Pattern
+title: Strategiya andozasi (Strategy)
 description: Algoritmlar oilasini belgilaydi, har birini inkapsulyatsiya qiladi va ularni o'zaro almashtiriladigan qiladi. Algoritmlarning moslashuvchanligini oshiradi.
 icon: ScrollText
 ---
 
-# Strategy Pattern
+# Strategiya andozasi (Strategy)
 
 <CoverImage src="/covers/behavioral/strategy.webp" alt="Cover">
-  <h1>Strategy</h1>
+  <h1>Strategiya</h1>
   <p>Multfilmdagidek ryukzak va uning yonida uchta almashtiriladigan quvvat yadrosi: reaktiv ranets yadrosi, burg'u yadrosi va parrak yadrosi — foydalanuvchi ularni joy relyefiga qarab almashtirishi mumkin.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Strategy** — bu algoritmlar oilasini belgilash, ularning har birini alohida klassga joylashtirish va ularning obyektlarini o'zaro almashtiriladigan qilish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir.
+**Strategiya** (Strategy) — bu algoritmlar oilasini belgilash, ularning har birini alohida klassga joylashtirish va ularning obyektlarini o'zaro almashtiriladigan qilish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir.
 
 **Asosiy afzalligi**: U klassning biznes mantig'ini o'sha mantiq kontekstida unchalik muhim bo'lmagan algoritmlarning amalga oshirish tafsilotlaridan ajratib qo'yadi.
 
-**Zamonaviy nuqtai nazar**: Strategy patterni nihoyatda keng tarqalgan. Zamonaviy funksional tillarda Strategy ko'pincha to'liq klasslar o'rniga shunchaki "birinchi darajali funksiyalarni" (First-Class Functions — callback/closure'lar) uzatish orqali soddalashtiriladi. Biroq murakkab korporativ (enterprise) arxitekturalarda strategiyalarni klasslarga inkapsulyatsiya qilish zarur tuzilma, dependency injection imkoniyatlari va test qilish qulayligini ta'minlaydi.
+**Zamonaviy nuqtai nazar**: Strategiya andozasi nihoyatda keng tarqalgan. Zamonaviy funksional tillarda strategiya ko'pincha to'liq klasslar o'rniga shunchaki "birinchi darajali funksiyalarni" (First-Class Functions — callback/closure'lar) uzatish orqali soddalashtiriladi. Biroq murakkab korporativ (enterprise) arxitekturalarda strategiyalarni klasslarga inkapsulyatsiya qilish zarur tuzilma, bog'liqliklarni kiritish (dependency injection) imkoniyatlari va test qilish qulayligini ta'minlaydi.
 
 ## Muammo (The Problem)
 
@@ -48,7 +48,7 @@ Har safar yangi marshrutlash algoritmini qo'shganingizda `Navigator` klassi hajm
 
 ## Yechim (The Solution)
 
-Strategy patterni biror aniq ishni ko'plab turli usullarda bajaradigan klassni olib, ushbu algoritmlarning barchasini **Strategiyalar (Strategies)** deb ataladigan alohida klasslarga ajratib chiqarishni taklif qiladi.
+Strategiya andozasi biror aniq ishni ko'plab turli usullarda bajaradigan klassni olib, ushbu algoritmlarning barchasini **Strategiyalar (Strategies)** deb ataladigan alohida klasslarga ajratib chiqarishni taklif qiladi.
 
 1. **Context (Kontekst)**: Asl klass (`Navigator`). Unda strategiyalardan biriga havolani saqlash uchun maydon bo'lishi kerak.
 2. **Strategy interfeysi**: Barcha marshrutlash algoritmlari amalga oshirishi kerak bo'lgan umumiy interfeys.
@@ -569,14 +569,14 @@ fn main() {
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
 - **Faqat bir nechta, statik algoritmlar**: Agar sizda faqat ikkita algoritm bo'lsa va ular kamdan-kam o'zgarsa, ularni bitta klassga alohida metodlar sifatida yoki oddiy boolean ortiga joylashtirish ko'pincha o'qilishi osonroq bo'ladi.
-- **Funksional kontekstlar**: Birinchi darajali funksiyalarga ega tillarda to'liq Strategy klasslaridan foydalanish ko'pincha anti-pattern hisoblanadi. Shunchaki anonim funksiya/closure uzatishingiz mumkin.
+- **Funksional kontekstlar**: Birinchi darajali funksiyalarga ega tillarda to'liq Strategy klasslaridan foydalanish ko'pincha anti-andoza hisoblanadi. Shunchaki anonim funksiya/closure uzatishingiz mumkin.
 
-## Funksional Strategy yondashuvi (Functional Strategy Approach)
+## Funksional Strategiya yondashuvi (Functional Strategy Approach)
 
-Zamonaviy TypeScript/JavaScript, Python yoki Go'da, agar sizga Dependency Injection kerak bo'lmasa, funksiya uzatish odatda to'liq Strategy klasslari tuzilmasini yaratishdan ustunroq.
+Zamonaviy TypeScript/JavaScript, Python yoki Go'da, agar sizga bog'liqliklarni kiritish (Dependency Injection) kerak bo'lmasa, funksiya uzatish odatda to'liq Strategy klasslari tuzilmasini yaratishdan ustunroq.
 
 ```typescript
-// Zamonaviy TypeScript (Funksional Strategy)
+// Zamonaviy TypeScript (Funksional Strategiya)
 type DiscountStrategy = (amount: number) => number;
 
 const noDiscount: DiscountStrategy = () => 0;
@@ -601,15 +601,15 @@ const cart = new ShoppingCart();
 cart.setDiscount(percentDiscount(20)); // Juda toza
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[State](/uz/behavioral/state)**: Strategy'ning egizagi. Tuzilmasi bir xil. Maqsadi boshqacha. Strategy _bir xil_ ishni bajarishning butunlay turli usullarini boshqaradi. State esa obyektning hayot sikliga qarab butunlay _turli_ xulq-atvorlarni boshqaradi.
-- **[Template Method](/uz/behavioral/template-method)**: Strategy kompozitsiyaga asoslangan (butun algoritm obyektini almashtirish). Template Method esa merosxo'rlikka asoslangan (asosiy algoritmning muayyan qadamlarini qayta belgilash — override qilish).
-- **[Command](/uz/behavioral/command)**: Strategy amal _qanday_ bajarilishini ta'minlaydi. Command esa _amalning o'zini_ (nima, kim, qachon) inkapsulyatsiya qiladi.
+- **[Holat](/uz/behavioral/state)** (State): Strategiyaning egizagi. Tuzilmasi bir xil. Maqsadi boshqacha. Strategiya _bir xil_ ishni bajarishning butunlay turli usullarini boshqaradi. Holat esa obyektning hayot sikliga qarab butunlay _turli_ xulq-atvorlarni boshqaradi.
+- **[Shablon metod](/uz/behavioral/template-method)** (Template Method): Strategiya kompozitsiyaga asoslangan (butun algoritm obyektini almashtirish). Shablon metod esa merosxo'rlikka asoslangan (asosiy algoritmning muayyan qadamlarini qayta belgilash — override qilish).
+- **[Buyruq](/uz/behavioral/command)** (Command): Strategiya amal _qanday_ bajarilishini ta'minlaydi. Buyruq esa _amalning o'zini_ (nima, kim, qachon) inkapsulyatsiya qiladi.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-- **Savol**: "Strategy va Template Method o'rtasidagi farq nima?"
-  - **Javob**: "Strategy kompozitsiyaga tayanadi. Siz algoritmni alohida obyektga ajratib, uni Context'ga uzatasiz. Template Method merosxo'rlikka tayanadi. Siz asosiy klassda algoritm skeletini belgilaysiz, voris klasslar esa muayyan qadamlarni qayta belgilaydi. Strategy butun algoritmni o'zgartiradi; Template Method esa uning qismlarini o'zgartiradi."
-- **Savol**: "Strategy Pattern Interfeyslarni ajratish tamoyilini (Interface Segregation Principle) buzishi mumkinmi?"
+- **Savol**: "Strategiya va Shablon metod andozalari o'rtasidagi farq nima?"
+  - **Javob**: "Strategiya kompozitsiyaga tayanadi. Siz algoritmni alohida obyektga ajratib, uni Context'ga uzatasiz. Shablon metod merosxo'rlikka tayanadi. Siz asosiy klassda algoritm skeletini belgilaysiz, voris klasslar esa muayyan qadamlarni qayta belgilaydi. Strategiya butun algoritmni o'zgartiradi; Shablon metod esa uning qismlarini o'zgartiradi."
+- **Savol**: "Strategiya andozasi Interfeyslarni ajratish tamoyilini (Interface Segregation Principle) buzishi mumkinmi?"
   - **Javob**: "Ha, agar Strategy interfeysi ba'zi aniq strategiyalarga kerak bo'lmagan ma'lumotlarni talab qilsa. Agar Context o'zining butun holatini ko'r-ko'rona Strategy'ga uzatsa, siz ularni qattiq bog'lab qo'yasiz. Faqat kerakli aniq ma'lumotlarni metod argumentlari sifatida uzatish yaxshiroq."

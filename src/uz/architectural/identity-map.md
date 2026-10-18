@@ -1,27 +1,27 @@
 ---
-title: Identity Map Pattern
-description: Yuklangan har bir obyektning keshini yuritish orqali ma'lumotlar bazasidagi har bir yozuv xotiraga faqat bir marta yuklanishini ta'minlaydigan arxitektura patterni.
+title: Identifikatorlar xaritasi andozasi (Identity Map)
+description: Yuklangan har bir obyektning keshini yuritish orqali ma'lumotlar bazasidagi har bir yozuv xotiraga faqat bir marta yuklanishini ta'minlaydigan arxitektura andozasi.
 icon: Fingerprint
 ---
 
-# Identity Map Pattern
+# Identifikatorlar xaritasi andozasi (Identity Map)
 
 <CoverImage src="/covers/architectural/identity-map.webp" alt="Cover">
-  <h1>Identity Map</h1>
+  <h1>Identifikatorlar xaritasi</h1>
   <p>Stol ortida o'tirgan aqlli kutubxonachi robot; kitobxon kitob so'raganda, kutubxonachi chuqur javonlarga yugurishdan oldin kitob allaqachon shu yerda emasmikin, deb avval stol ustidagi kichik tartiblagichni (kesh) tekshiradi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Identity Map** (Identifikatorlar xaritasi) patterni — bu ma'lumotlar bazasidan yuklangan har bir qator xotirada aynan **bitta** obyekt sifatida yaratilishini ta'minlaydigan muhim arxitektura patterni. U ichki kesh — xarita (map) vazifasini bajaradi: kalitlar ma'lumotlar bazasi ID'lari, qiymatlar esa xotiradagi obyekt instansiyalari.
+**Identifikatorlar xaritasi** (Identity Map) andozasi — bu ma'lumotlar bazasidan yuklangan har bir qator xotirada aynan **bitta** obyekt sifatida yaratilishini ta'minlaydigan muhim arxitektura andozasi. U ichki kesh — xarita (map) vazifasini bajaradi: kalitlar ma'lumotlar bazasi ID'lari, qiymatlar esa xotiradagi obyekt instansiyalari.
 
 **Asosiy afzallik**: U ilovaning ma'lumotlar bazasidagi aynan bir qatorni ifodalovchi ikkita alohida obyekt yaratishining oldini oladi va nomuvofiq ma'lumot o'zgarishlarini ("yo'qolgan yangilanishlar", lost updates) samarali bartaraf etadi.
 
-**Zamonaviy nuqtai nazar**: Identity Map zamonaviy backend injiniringida ko'zga ko'rinmas zaruratdir. Agar og'ir ORM'dan (Hibernate, Entity Framework yoki TypeORM kabi) foydalansangiz, u obyektlarni kuzatish uchun o'zining Unit of Work/Session'i ichida Identity Map'dan foydalanadi. Bu patternni tushunish ORM nega ba'zan eskirgan ma'lumotlarni qaytarishini yoki nega bir xil foydalanuvchini ikki marta so'raganda ikkinchi marta ma'lumotlar bazasiga murojaat qilinmasligini debug qilish uchun zarur.
+**Zamonaviy nuqtai nazar**: Identifikatorlar xaritasi zamonaviy backend injiniringida ko'zga ko'rinmas zaruratdir. Agar og'ir ORM'dan (Hibernate, Entity Framework yoki TypeORM kabi) foydalansangiz, u obyektlarni kuzatish uchun o'zining Ish birligi (Unit of Work/Session) ichida Identifikatorlar xaritasidan foydalanadi. Bu andozani tushunish ORM nega ba'zan eskirgan ma'lumotlarni qaytarishini yoki nega bir xil foydalanuvchini ikki marta so'raganda ikkinchi marta ma'lumotlar bazasiga murojaat qilinmasligini debug qilish uchun zarur.
 
 ## Muammo (The Problem)
 
-Ma'lumotlar bazasidan Identity Map'siz ma'lumot olganingizda, har bir so'rov xotirada butunlay yangi obyekt yaratadi.
+Identifikatorlar xaritasi bo'lmasa, ma'lumotlar bazasidan ma'lumot olganingizda, har bir so'rov xotirada butunlay yangi obyekt yaratadi.
 
 ```typescript
 // ❌ Yomon: Bitta ma'lumotlar bazasi yozuvi uchun bir nechta obyekt
@@ -46,10 +46,10 @@ Bu jiddiy muammolarni keltirib chiqaradi:
 
 ## Yechim (The Solution)
 
-Identity Map Repository va Ma'lumotlar bazasi o'rtasiga joylashtiriladi. Yozuvni so'raganingizda avval xarita tekshiriladi. Agar obyekt mavjud bo'lsa, xotiradagi aynan o'sha havola (reference) qaytariladi. Agar mavjud bo'lmasa, ma'lumotlar bazasiga so'rov yuboriladi, obyekt yaratiladi va qaytarilishidan oldin xaritada saqlanadi.
+Identifikatorlar xaritasi Repozitoriy va Ma'lumotlar bazasi o'rtasiga joylashtiriladi. Yozuvni so'raganingizda avval xarita tekshiriladi. Agar obyekt mavjud bo'lsa, xotiradagi aynan o'sha havola (reference) qaytariladi. Agar mavjud bo'lmasa, ma'lumotlar bazasiga so'rov yuboriladi, obyekt yaratiladi va qaytarilishidan oldin xaritada saqlanadi.
 
 ```typescript
-// ✅ Yaxshi: Identity Map faqat bitta obyekt mavjud bo'lishini ta'minlaydi
+// ✅ Yaxshi: Identifikatorlar xaritasi faqat bitta obyekt mavjud bo'lishini ta'minlaydi
 const map = new IdentityMap();
 
 const userA = map.get(1) || (await db.query(1)); // DB'ga murojaat qiladi, Map'ga saqlaydi
@@ -88,23 +88,23 @@ classDiagram
 ## Jarayon (Flow)
 
 1. **So'rov**: Ilova obyektni uning birlamchi kaliti (masalan, ID: 123) bo'yicha so'raydi.
-2. **Xaritani tekshirish**: Identity Map'da `123` kaliti tekshiriladi.
+2. **Xaritani tekshirish**: Identifikatorlar xaritasida `123` kaliti tekshiriladi.
 3. **Keshda topildi (Cache Hit)**: Agar topilsa, mavjud obyekt havolasi darhol qaytariladi. Hech qanday SQL bajarilmaydi.
-4. **Keshda topilmadi (Cache Miss)**: Agar topilmasa, ma'lumotlar bazasiga so'rov yuboriladi. Natijaviy obyekt yaratiladi, Identity Map'ga `123` kaliti ostida qo'shiladi va keyin qaytariladi.
+4. **Keshda topilmadi (Cache Miss)**: Agar topilmasa, ma'lumotlar bazasiga so'rov yuboriladi. Natijaviy obyekt yaratiladi, Identifikatorlar xaritasiga `123` kaliti ostida qo'shiladi va keyin qaytariladi.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Kasalxonadagi bemorlar reyestrini** tasavvur qiling.
 Bemor John Doe kelganda, qabulxona xodimi markaziy reyestrni tekshiradi. Agar John allaqachon ro'yxatdan o'tgan va 4B xonasida bo'lsa, xodim shifokorni 4B xonasiga yo'naltiradi.
 
-Bu reyestrsiz (Identity Map) kasalxona adashib John Doe'ni ikkinchi marta ro'yxatdan o'tkazishi, uni 7A xonasiga joylashtirishi mumkin va birdaniga ikki xil shifokor "John Doe"ning ikki xil nusxasini bir-biriga zid dorilar bilan davolay boshlaydi.
+Bu reyestrsiz (Identifikatorlar xaritasi) kasalxona adashib John Doe'ni ikkinchi marta ro'yxatdan o'tkazishi, uni 7A xonasiga joylashtirishi mumkin va birdaniga ikki xil shifokor "John Doe"ning ikki xil nusxasini bir-biriga zid dorilar bilan davolay boshlaydi.
 
 ## Bosqichma-bosqich amalga oshirish (Step-by-Step Implementation)
 
 1. **Xaritani yarating**: Ichki lug'at/hash map yarating.
 2. **Get/Set metodlarini yarating**: Obyektlarni ularning noyob identifikatorlari bo'yicha olish va saqlash metodlarini amalga oshiring.
-3. **Repository bilan integratsiya qiling**: Repository/Data Mapper'ingizni ma'lumotlar bazasiga so'rov yuborishdan oldin har doim Identity Map'ni tekshiradigan va so'rovdan keyin yangi obyektlarni har doim xaritaga qo'shadigan qilib o'zgartiring.
-4. **Qamrov (Scoping)**: Identity Map to'g'ri qamrovga ega ekanligiga ishonch hosil qiling (odatda bitta HTTP so'roviga yoki Unit of Work'ga bog'langan), butun ilova bo'ylab global _emas_.
+3. **Repozitoriy bilan integratsiya qiling**: Repozitoriy/Data Mapper'ingizni ma'lumotlar bazasiga so'rov yuborishdan oldin har doim Identifikatorlar xaritasini tekshiradigan va so'rovdan keyin yangi obyektlarni har doim xaritaga qo'shadigan qilib o'zgartiring.
+4. **Qamrov (Scoping)**: Identifikatorlar xaritasi to'g'ri qamrovga ega ekanligiga ishonch hosil qiling (odatda bitta HTTP so'roviga yoki Ish birligiga bog'langan), butun ilova bo'ylab global _emas_.
 
 ## Kod misollari (Code Examples)
 
@@ -139,12 +139,12 @@ class IdentityMap {
   }
 }
 
-// 3. Identity Map'ni o'z ichiga olgan repository
+// 3. Identifikatorlar xaritasini o'z ichiga olgan repozitoriy
 class UserRepository {
   constructor(private identityMap: IdentityMap) {}
 
   public async findById(id: number): Promise<User> {
-    // Avval Identity Map'ni tekshirish
+    // Avval identifikatorlar xaritasini tekshirish
     const cachedUser = this.identityMap.get<User>("User", id);
     if (cachedUser) {
       console.log(
@@ -157,7 +157,7 @@ class UserRepository {
     console.log(`[DB Query] SELECT * FROM users WHERE id = ${id}`);
     const userFromDb = new User(id, `User ${id}`);
 
-    // Keyingi so'rovlar uchun Identity Map'ga saqlash
+    // Keyingi so'rovlar uchun identifikatorlar xaritasiga saqlash
     this.identityMap.add("User", id, userFromDb);
     return userFromDb;
   }
@@ -216,7 +216,7 @@ class UserRepository:
         self.identity_map = identity_map
 
     def find_by_id(self, id_val: int) -> User:
-        # Avval Identity Map'ni tekshirish
+        # Avval identifikatorlar xaritasini tekshirish
         cached_user = self.identity_map.get("User", id_val)
         if cached_user:
             print(f"[Cache Hit] Returning existing memory reference for User {id_val}")
@@ -441,7 +441,7 @@ impl IdentityMap {
 
 // 3. Repository
 pub struct UserRepository<'a> {
-    // Repository map'ga o'zgaruvchan havolani saqlaydi
+    // Repozitoriy map'ga o'zgaruvchan havolani saqlaydi
     identity_map: &'a mut IdentityMap,
 }
 
@@ -500,36 +500,36 @@ fn main() {
 
 - **Kafolatlangan izchillik**: "Yo'qolgan yangilanish" xatolarini bartaraf etadi. Agar kodingizning A qismi obyektni o'zgartirsa, B qismi o'zgarishlarni darhol ko'radi.
 - **Ishlash tezligini keskin yaxshilaydi**: Obyektlarni keshlash ma'lumotlar bazasiga qimmat va ortiqcha tarmoq chaqiruvlarining oldini oladi.
-- **Aylanma havolalarni hal qiladi**: `Author`ga ega `Post`ni yuklaganda va `Author`da `Post`lar ro'yxati bo'lsa, Identity Map to'ldirish (hydration) paytida cheksiz rekursiya sikllarining oldini oladi.
+- **Aylanma havolalarni hal qiladi**: `Author`ga ega `Post`ni yuklaganda va `Author`da `Post`lar ro'yxati bo'lsa, Identifikatorlar xaritasi to'ldirish (hydration) paytida cheksiz rekursiya sikllarining oldini oladi.
 
 ### Kamchiliklari (Disadvantages)
 
-- **Eskirgan ma'lumotlar muammosi (Stale Data)**: Agar boshqa server ma'lumotlar bazasidagi yozuvni o'zgartirsa, Identity Map buni bilmaydi. Ilova ma'lumotlar bazasiga so'rov yuborish o'rniga xotiradagi eskirgan obyektni berishda davom etadi.
-- **Xotira sizishi (Memory Leaks)**: Agar Identity Map tasodifan mahalliy (masalan, har bir HTTP so'rovi uchun) emas, balki global (masalan, ilova ishga tushganda) yaratilsa, server Out Of Memory (OOM) xatosi bilan qulaguncha u yuklangan har bir obyektni keshlaydi.
+- **Eskirgan ma'lumotlar muammosi (Stale Data)**: Agar boshqa server ma'lumotlar bazasidagi yozuvni o'zgartirsa, Identifikatorlar xaritasi buni bilmaydi. Ilova ma'lumotlar bazasiga so'rov yuborish o'rniga xotiradagi eskirgan obyektni berishda davom etadi.
+- **Xotira sizishi (Memory Leaks)**: Agar Identifikatorlar xaritasi tasodifan mahalliy (masalan, har bir HTTP so'rovi uchun) emas, balki global (masalan, ilova ishga tushganda) yaratilsa, server Out Of Memory (OOM) xatosi bilan qulaguncha u yuklangan har bir obyektni keshlaydi.
 
 ## Qachon foydalanish kerak (When to Use)
 
-- **Veb-so'rovlar**: Identity Map'ning hayot siklini bitta HTTP so'roviga bog'lang. Bu so'rov davomida xavfsizlik va keshlashni ta'minlaydi, lekin xotira shishishining oldini olish uchun oxirida uni tashlab yuboradi.
-- **Murakkab domen modellari**: Ma'lumotlar bazasi jadvallaringiz o'rtasida kuchli munosabatlar (One-to-Many, Many-to-Many) bo'lgan har qanday holatda Identity Map grafni dublikatlar yaratmasdan hal qilish uchun juda muhim.
-- **Unit of Work'dan foydalanganda**: Identity Map ishlaydigan Unit of Work uchun mutlaq shartdir.
+- **Veb-so'rovlar**: Identifikatorlar xaritasining hayot siklini bitta HTTP so'roviga bog'lang. Bu so'rov davomida xavfsizlik va keshlashni ta'minlaydi, lekin xotira shishishining oldini olish uchun oxirida uni tashlab yuboradi.
+- **Murakkab domen modellari**: Ma'lumotlar bazasi jadvallaringiz o'rtasida kuchli munosabatlar (One-to-Many, Many-to-Many) bo'lgan har qanday holatda Identifikatorlar xaritasi grafni dublikatlar yaratmasdan hal qilish uchun juda muhim.
+- **Ish birligidan foydalanganda**: Identifikatorlar xaritasi ishlaydigan Ish birligi uchun mutlaq shartdir.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Global ilova holati**: Veb-backend'da hech qachon Identity Map'ni barcha foydalanuvchilar/so'rovlar bo'ylab global ishlatmang. Eskirgan ma'lumotlarni berasiz va serveringizni qulatasiz.
-- **Hisobotlar va tahlillar**: O'rtacha qiymatni hisoblash yoki CSV yaratish uchun 100 000 ta yozuvni olayotganingizda, ularni Identity Map'da keshlash RAM'ni halokatli darajada isrof qilishdir. Uni chetlab o'ting.
+- **Global ilova holati**: Veb-backend'da hech qachon Identifikatorlar xaritasini barcha foydalanuvchilar/so'rovlar bo'ylab global ishlatmang. Eskirgan ma'lumotlarni berasiz va serveringizni qulatasiz.
+- **Hisobotlar va tahlillar**: O'rtacha qiymatni hisoblash yoki CSV yaratish uchun 100 000 ta yozuvni olayotganingizda, ularni Identifikatorlar xaritasida keshlash RAM'ni halokatli darajada isrof qilishdir. Uni chetlab o'ting.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1. Global Identity Map (Xotira sizishi)
+### 1. Global identifikatorlar xaritasi (Xotira sizishi)
 
-Node.js'da Identity Map'ni global o'zgaruvchida saqlash barcha HTTP so'rovlari bir xil xaritadan foydalanishini anglatadi. Bir necha daqiqa ichida xarita gigabaytlab hajmgacha o'sadi. _Yechim: Identity Map/Unit of Work'ni har doim kelayotgan aniq so'rov kontekstiga bog'lang (masalan, Node.js'da AsyncLocalStorage yoki scoped Dependency Injection)._
+Node.js'da Identifikatorlar xaritasini global o'zgaruvchida saqlash barcha HTTP so'rovlari bir xil xaritadan foydalanishini anglatadi. Bir necha daqiqa ichida xarita gigabaytlab hajmgacha o'sadi. _Yechim: Identifikatorlar xaritasi/Ish birligini har doim kelayotgan aniq so'rov kontekstiga bog'lang (masalan, Node.js'da AsyncLocalStorage yoki so'rov doirasidagi (scoped) bog'liqliklarni kiritish)._
 
 ### 2. Chiqarib tashlashni unutish (Forgetting to Evict)
 
-Agar ORM'ni chetlab o'tadigan xom SQL `UPDATE` buyrug'ini bajarsangiz, Identity Map hali ham eski qiymatlarni saqlab turadi. Keyingi so'rovlar yangi ma'lumotlarni olishi uchun Identity Map'ni qo'lda tozalashingiz/chiqarib tashlashingiz kerak.
+Agar ORM'ni chetlab o'tadigan xom SQL `UPDATE` buyrug'ini bajarsangiz, Identifikatorlar xaritasi hali ham eski qiymatlarni saqlab turadi. Keyingi so'rovlar yangi ma'lumotlarni olishi uchun Identifikatorlar xaritasini qo'lda tozalashingiz/chiqarib tashlashingiz kerak.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Unit of Work](/uz/architectural/unit-of-work)**: Chambarchas bog'langan. Unit of Work hozirda qaysi obyektlarni boshqarayotganini kuzatish uchun Identity Map'dan foydalanadi.
-- **[Data Mapper](/uz/architectural/data-mapper)**: SELECT buyrug'ini bajarish kerakmi yoki shunchaki keshlangan havolani qaytarish mumkinmi, buni tekshirish uchun Identity Map'dan foydalanadi.
-- **[Repository](/uz/architectural/repository)**: Ko'pincha Identity Map implementatsiyasini biznes mantiq qatlamidan yashiradi.
+- **[Ish birligi](/uz/architectural/unit-of-work)**: Chambarchas bog'langan. Ish birligi hozirda qaysi obyektlarni boshqarayotganini kuzatish uchun Identifikatorlar xaritasidan foydalanadi.
+- **[Data Mapper](/uz/architectural/data-mapper)**: SELECT buyrug'ini bajarish kerakmi yoki shunchaki keshlangan havolani qaytarish mumkinmi, buni tekshirish uchun Identifikatorlar xaritasidan foydalanadi.
+- **[Repozitoriy](/uz/architectural/repository)**: Ko'pincha Identifikatorlar xaritasi implementatsiyasini biznes mantiq qatlamidan yashiradi.

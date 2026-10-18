@@ -1,15 +1,15 @@
-# Dizayn patternlari
+# Loyihalash andozalari
 
 Languages: [English](README.md) | [Oʻzbek](README.uz.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [العربية](README.ar.md) | [Deutsch](README.de.md) | [Español](README.es.md)
 
-Dasturiy dizayn patternlari — yaratuvchi, tuzilmaviy, xulq-atvor va arxitekturaviy — boʻyicha toʻliq va qidiruvli qoʻllanma: diagrammalar hamda TypeScript, Python, Java, Go va Rust tillaridagi yonma-yon misollar bilan.
+Loyihalash andozalari (Design Patterns) — yaratuvchi, tuzilmaviy, xulq-atvor va arxitektura andozalari — boʻyicha toʻliq va qidiruvli qoʻllanma: diagrammalar hamda TypeScript, Python, Java, Go va Rust tillaridagi yonma-yon misollar bilan.
 
 **Jonli sayt:** https://otabekoff.github.io/design-patterns/
 
 ## Imkoniyatlar
 
-- 41 ta pattern: har birida hayotiy oʻxshatish, Mermaid tuzilma diagrammasi, besh tildagi implementatsiyalar, keng tarqalgan xatolar va intervyu savollari
-- "Patternni tanlash" boʻyicha yoʻriqnoma va yonma-yon taqqoslash sahifalari (Strategy vs State, Decorator vs Proxy, …)
+- 41 ta andoza: har birida hayotiy oʻxshatish, Mermaid tuzilma diagrammasi, besh tildagi implementatsiyalar, keng tarqalgan xatolar va intervyu savollari
+- "Andozani tanlash" boʻyicha yoʻriqnoma va yonma-yon taqqoslash sahifalari (Strategiya va Holat, Dekorator va Oʻrinbosar, …)
 - Ingliz va oʻzbek tilidagi nashrlar
 - Toʻliq matnli lokal qidiruv, yorugʻ/qorongʻi mavzular va sahifalar boʻylab eslab qolinadigan kod tili tanlovi
 - Har bir sahifada "Copy Markdown" va "Open in ChatGPT / Claude" amallari
@@ -43,7 +43,7 @@ bun run dev        # http://localhost:5173/design-patterns/
 ```
 src/                     # Kontent (inglizchasi ildizda)
   creational/ structural/ behavioral/ architectural/
-  comparisons/           # Patternlarni taqqoslash sahifalari
+  comparisons/           # Andozalarni taqqoslash sahifalari
   uz/                    # Oʻzbekcha tarjima, xuddi shu yoʻllar tuzilmasida
 public/                  # Statik resurslar: covers/, cards/, og/ (ijtimoiy tarmoq rasmlari), ikonkalar
 .vitepress/
@@ -58,7 +58,7 @@ scripts/                 # Kontent tekshiruvlari va rasmlarni qayta ishlash skri
 - Implementatsiyalarni `::: code-group` bilan guruhlang va tablarni til nomi bilan belgilang, masalan: ` ```python [Python] `.
 - Diagrammalar ` ```mermaid ` bloklariga yoziladi.
 - Yangi sahifalarni `.vitepress/config/langs/en.ts` va `uz.ts` fayllaridagi sidebarga qoʻshing.
-- Tarjimalar `src/uz/` ostida xuddi shu yoʻlda joylashadi; kod bloklarini inglizchadagi bilan bir xil saqlang (izohlarni tarjima qilish mumkin) va `bun run check:i18n` ni ishga tushiring.
+- Tarjimalar `src/uz/` ostida xuddi shu yoʻlda joylashadi; kod bloklarini inglizchadagi bilan bir xil saqlang (izohlarni tarjima qilish mumkin) va `bun run check:i18n` ni ishga tushiring. Atamalar [GLOSSARY.uz.md](GLOSSARY.uz.md) lugʻatiga mos boʻlishi kerak.
 
 ## Qoʻllab-quvvatlash
 

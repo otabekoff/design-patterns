@@ -1,23 +1,23 @@
 ---
-title: Visitor Pattern
+title: Tashrifchi andozasi (Visitor)
 description: Obyekt tuzilmasi elementlari ustida bajariladigan amalni ifodalaydi. Klasslarni o'zgartirmasdan yangi amallarni belgilash imkonini beradi.
 icon: GitBranch
 ---
 
-# Visitor Pattern
+# Tashrifchi andozasi (Visitor)
 
 <CoverImage src="/covers/behavioral/visitor.webp" alt="Cover">
-  <h1>Visitor</h1>
-  <p>Kulgili muzey galereyasi: yoqimtoy turist robot ("Visitor" — tashrif buyuruvchi) aylanib yurib, turli geometrik haykallar (Doira, Kvadrat) bilan muloqot qiladi va ularning tuzilmasini o'zgartirmasdan ularga yangi xulq-atvorlar qo'shadi.</p>
+  <h1>Tashrifchi</h1>
+  <p>Kulgili muzey galereyasi: yoqimtoy turist robot ("Visitor" — tashrifchi) aylanib yurib, turli geometrik haykallar (Doira, Kvadrat) bilan muloqot qiladi va ularning tuzilmasini o'zgartirmasdan ularga yangi xulq-atvorlar qo'shadi.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Visitor** (Tashrif buyuruvchi) — bu mavjud klasslarni o'zgartirmasdan ularga yangi amallar qo'shish imkonini beruvchi xulq-atvor (behavioral) dizayn patternidir. U bunga algoritmni u ishlaydigan obyekt tuzilmasidan ajratish orqali erishadi.
+**Tashrifchi** (Visitor) — bu mavjud klasslarni o'zgartirmasdan ularga yangi amallar qo'shish imkonini beruvchi xulq-atvor (behavioral) loyihalash andozasidir. U bunga algoritmni u ishlaydigan obyekt tuzilmasidan ajratish orqali erishadi.
 
 **Asosiy afzalligi**: U "ikki tomonlama dispetcherlik"ni (Double Dispatch) amalga oshiradi, ya'ni dasturga qabul qiluvchining (receiver) turiga _va_ argumentning turiga qarab turli mantiqni bajarish imkonini beradi.
 
-**Zamonaviy nuqtai nazar**: Visitor patterni eski obyektga yo'naltirilgan tillarga (Java, C++, C#) xos muammoni hal qilish uchun yaratilgan: ular faqat _yagona dispetcherlikni_ (Single Dispatch — faqat metod chaqirilayotgan obyektga asoslangan polimorfizm) qo'llab-quvvatlaydi. **Pattern Matching**'ni (Rust, Scala, Swift, zamonaviy C#, zamonaviy Java) yoki Union turlarini (TypeScript) qo'llab-quvvatlaydigan zamonaviy tillarda klassik Visitor patterni asosan eskirgan va haddan tashqari ko'p so'zli hisoblanadi. Biroq uni tushunish eski (legacy) tizimlar, kompilyator dizayni (AST bo'ylab yurish) va rivojlangan pattern matching'ga ega bo'lmagan tillar uchun juda muhim.
+**Zamonaviy nuqtai nazar**: Tashrifchi andozasi eski obyektga yo'naltirilgan tillarga (Java, C++, C#) xos muammoni hal qilish uchun yaratilgan: ular faqat _yagona dispetcherlikni_ (Single Dispatch — faqat metod chaqirilayotgan obyektga asoslangan polimorfizm) qo'llab-quvvatlaydi. **Pattern Matching**'ni (Rust, Scala, Swift, zamonaviy C#, zamonaviy Java) yoki Union turlarini (TypeScript) qo'llab-quvvatlaydigan zamonaviy tillarda klassik Tashrifchi andozasi asosan eskirgan va haddan tashqari ko'p so'zli hisoblanadi. Biroq uni tushunish eski (legacy) tizimlar, kompilyatorlarni loyihalash (AST bo'ylab yurish) va rivojlangan pattern matching'ga ega bo'lmagan tillar uchun juda muhim.
 
 ## Muammo (The Problem)
 
@@ -66,7 +66,7 @@ class Exporter {
 
 ## Yechim (The Solution)
 
-Visitor patterni yangi xulq-atvorni mavjud klasslarga qo'shish o'rniga `Visitor` deb ataladigan alohida klassga joylashtirishni taklif qiladi.
+Tashrifchi andozasi yangi xulq-atvorni mavjud klasslarga qo'shish o'rniga `Visitor` deb ataladigan alohida klassga joylashtirishni taklif qiladi.
 
 Buni `instanceof` tekshiruvlarisiz ishlatishning siri — **ikki tomonlama dispetcherlik (Double Dispatch)**.
 
@@ -513,10 +513,10 @@ func main() {
 ```
 
 ```rust [Rust]
-// Rust'da Pattern Matching klassik OOP Visitor patternini to'liq almashtiradi.
+// Rust'da Pattern Matching klassik OOP Tashrifchi andozasini to'liq almashtiradi.
 // Interfeyslar va Double Dispatch yaratish o'rniga, tugun turlarini
 // ifodalovchi Enum belgilaymiz va `match` bloklaridan foydalanamiz.
-// Visitor Pattern OOP'da aynan shuni taqlid qilishga urinadi (va qiynaladi).
+// Tashrifchi andozasi OOP'da aynan shuni taqlid qilishga urinadi (va qiynaladi).
 
 // 1. "Elementlar" (Algebraik ma'lumot turi / Enum)
 enum ASTNode {
@@ -576,7 +576,7 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **Mo'rt asosiy klass ierarxiyasi**: Visitor patternining eng katta kamchiligi shundaki, agar Element ierarxiyasiga yangi klass qo'shilsa (masalan, `SubtractionNode`), siz `Visitor` interfeysini va HAR BIR aniq visitor klassini ALBATTA yangilashingiz kerak.
+- **Mo'rt asosiy klass ierarxiyasi**: Tashrifchi andozasining eng katta kamchiligi shundaki, agar Element ierarxiyasiga yangi klass qo'shilsa (masalan, `SubtractionNode`), siz `Visitor` interfeysini va HAR BIR aniq visitor klassini ALBATTA yangilashingiz kerak.
 - **Inkapsulyatsiyaning buzilishi**: Visitor'lar odatda o'zlari tashrif buyuradigan elementlarning private yoki protected maydonlariga kirishga muhtoj. Bu sizni ichki holatni ochiq (public) getter'lar orqali oshkor qilishga majbur qiladi.
 - **Murakkablik**: Ikki tomonlama dispetcherlik mexanizmi (`accept` ma'lumotlar ustida ishlaydigan `visit` ni chaqiradi) yangi boshlovchi (junior) dasturchilar uchun tushunish mashhur darajada qiyin bo'lgan aqliy siklni yaratadi.
 
@@ -587,8 +587,8 @@ fn main() {
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **O'zgaruvchan ierarxiyalar**: Agar obyekt tuzilmasini tashkil etuvchi klasslar tez-tez o'zgarsa (yangi tugun turlari qo'shilsa), Visitor patterni cheksiz texnik xizmat ko'rsatish muammolariga sabab bo'ladi.
-- **Pattern Matching'ga ega tillar**: Agar siz Rust, Scala, F# yoki hatto Discriminated Union'larga ega zamonaviy C#/TypeScript'dan foydalanayotgan bo'lsangiz, Visitor patternidan foydalanmang. Tabiiy pattern matching'dan foydalaning.
+- **O'zgaruvchan ierarxiyalar**: Agar obyekt tuzilmasini tashkil etuvchi klasslar tez-tez o'zgarsa (yangi tugun turlari qo'shilsa), Tashrifchi andozasi cheksiz texnik xizmat ko'rsatish muammolariga sabab bo'ladi.
+- **Pattern Matching'ga ega tillar**: Agar siz Rust, Scala, F# yoki hatto Discriminated Union'larga ega zamonaviy C#/TypeScript'dan foydalanayotgan bo'lsangiz, Tashrifchi andozasidan foydalanmang. Tabiiy pattern matching'dan foydalaning.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
@@ -596,24 +596,24 @@ fn main() {
 
 Qat'iy turlangan tillarda barcha visitor'lar uchun `visit()` ning qaytarish turini standartlashtirish qiyin (ba'zi visitor'lar `int`, boshqalari `string` qaytarishni xohlashi mumkin). Odatda Visitor interfeysi `void` qaytaradi va aniq visitor natijani keyinroq so'raladigan lokal maydonda to'playdi (TS/Java misollarimizda ko'rsatilganidek).
 
-### 2. Visitor'ni Iterator bilan adashtirish
+### 2. Tashrifchini Iterator bilan adashtirish
 
-Iterator shunchaki kolleksiya bo'ylab yuradi. Visitor esa elementlar ustida amallarni bajaradi. Biroq Visitor murakkab graflar (masalan, daraxtlar) bo'ylab o'zi qanday yurishni _bilmaydi_. Aylanib chiqish mantig'i yo Visitor ichida bo'lishi (AST misolimizda `visitAddition` bolalarida `accept` ni chaqirganidek), yoki tashqi Iterator/Object Structure klassi tomonidan boshqarilishi kerak.
+Iterator shunchaki kolleksiya bo'ylab yuradi. Tashrifchi esa elementlar ustida amallarni bajaradi. Biroq tashrifchi murakkab graflar (masalan, daraxtlar) bo'ylab o'zi qanday yurishni _bilmaydi_. Aylanib chiqish mantig'i yo tashrifchi ichida bo'lishi (AST misolimizda `visitAddition` bolalarida `accept` ni chaqirganidek), yoki tashqi Iterator/Object Structure klassi tomonidan boshqarilishi kerak.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Composite](/uz/structural/composite)**: Visitor deyarli har doim Composite bilan birgalikda ishlatiladi. Composite patterni daraxtni quradi, Visitor esa amallarni bajarish uchun u bo'ylab yuradi.
-- **[Iterator](/uz/behavioral/iterator)**: Visitor mantiqni qo'llayotganda ma'lumotlar tuzilmasi bo'ylab yurish uchun Visitor bilan birga ishlatilishi mumkin.
-- **[Command](/uz/behavioral/command)**: Visitor'ni turli turdagi qabul qiluvchilarda o'zini qanday bajarishni biladigan kuchli Command patterni sifatida ko'rish mumkin.
+- **[Kompozit](/uz/structural/composite)** (Composite): Tashrifchi deyarli har doim Kompozit bilan birgalikda ishlatiladi. Kompozit andozasi daraxtni quradi, Tashrifchi esa amallarni bajarish uchun u bo'ylab yuradi.
+- **[Iterator](/uz/behavioral/iterator)**: Tashrifchi mantiqni qo'llayotganda ma'lumotlar tuzilmasi bo'ylab yurish uchun Tashrifchi bilan birga ishlatilishi mumkin.
+- **[Buyruq](/uz/behavioral/command)** (Command): Tashrifchini turli turdagi qabul qiluvchilarda o'zini qanday bajarishni biladigan kuchli Buyruq andozasi sifatida ko'rish mumkin.
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
 - **Savol**: "Double Dispatch (ikki tomonlama dispetcherlik) nima?"
-  - **Javob**: "Ikki tomonlama dispetcherlik — bu funksiya chaqiruvini chaqiruvda ishtirok etuvchi IKKI obyektning (qabul qiluvchi va argument) ish vaqtidagi turlariga qarab turli aniq funksiyalarga yo'naltiruvchi mexanizm. Visitor buni faqat yagona dispetcherlikni qo'llab-quvvatlaydigan tillarda `element.accept(visitor)` (1-dispetcherlik) orqali simulyatsiya qiladi, u esa darhol `visitor.visit(this)` (2-dispetcherlik) ni chaqiradi."
-- **Savol**: "Visitor patternining eng katta kamchiligi nima?"
-  - **Javob**: "Yangi element turini qo'shish. Agar daraxtimga yangi tugun qo'shsam, Visitor interfeysini va kod bazamdagi har bir Visitor amalga oshirilishini yangi tugunni qayta ishlash uchun yangilashim kerak. Visitor faqat element ierarxiyasi muzlatilgan (o'zgarmas) bo'lsagina yaxshi."
+  - **Javob**: "Ikki tomonlama dispetcherlik — bu funksiya chaqiruvini chaqiruvda ishtirok etuvchi IKKI obyektning (qabul qiluvchi va argument) ish vaqtidagi turlariga qarab turli aniq funksiyalarga yo'naltiruvchi mexanizm. Tashrifchi andozasi buni faqat yagona dispetcherlikni qo'llab-quvvatlaydigan tillarda `element.accept(visitor)` (1-dispetcherlik) orqali simulyatsiya qiladi, u esa darhol `visitor.visit(this)` (2-dispetcherlik) ni chaqiradi."
+- **Savol**: "Tashrifchi andozasining eng katta kamchiligi nima?"
+  - **Javob**: "Yangi element turini qo'shish. Agar daraxtimga yangi tugun qo'shsam, Visitor interfeysini va kod bazamdagi har bir Visitor amalga oshirilishini yangi tugunni qayta ishlash uchun yangilashim kerak. Tashrifchi andozasi faqat element ierarxiyasi muzlatilgan (o'zgarmas) bo'lsagina yaxshi."
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
-- **Pattern Matching**: Visitor'ning yakuniy o'rinbosari. Rust, Scala, Swift, F# tillarida mavjud va C# hamda Java'da (switch ifodalari va record patternlari orqali) tobora ko'proq uchraydi. U asl klasslarga tegmasdan, yagona, o'qilishi oson kod blokida aniq tur bo'yicha moslashtirish va qiymatlarni ajratib olish imkonini beradi.
+- **Pattern Matching**: Tashrifchi andozasining yakuniy o'rinbosari. Rust, Scala, Swift, F# tillarida mavjud va C# hamda Java'da (switch ifodalari va record patternlari orqali) tobora ko'proq uchraydi. U asl klasslarga tegmasdan, yagona, o'qilishi oson kod blokida aniq tur bo'yicha moslashtirish va qiymatlarni ajratib olish imkonini beradi.
 - **Discriminated Unions**: TypeScript'da interfeyslarning union turini (har biri noyob `type` literal satriga ega) belgilab, `switch` operatoridan foydalanishingiz mumkin. TS to'liqlik tekshiruvini (exhaustiveness checking) majburiy qiladi va ikki tomonlama dispetcherlikning ortiqcha shablon kodisiz (boilerplate) kompilyatsiya vaqtidagi xavfsizlikni beradi.

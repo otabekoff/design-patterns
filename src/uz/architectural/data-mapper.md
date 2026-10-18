@@ -1,10 +1,10 @@
 ---
-title: Data Mapper Pattern
-description: Xotiradagi domen obyektlarini ma'lumotlar bazasidan ajratadigan arxitektura patterni. Ikkalasi o'rtasidagi barcha tarjimani mapper qatlami bajaradi.
+title: Data Mapper andozasi
+description: Xotiradagi domen obyektlarini ma'lumotlar bazasidan ajratadigan arxitektura andozasi. Ikkalasi o'rtasidagi barcha tarjimani mapper qatlami bajaradi.
 icon: GitGraph
 ---
 
-# Data Mapper Pattern
+# Data Mapper andozasi
 
 <CoverImage src="/covers/architectural/data-mapper.webp" alt="Cover">
   <h1>Data Mapper</h1>
@@ -13,7 +13,7 @@ icon: GitGraph
 
 ## Umumiy ko'rinish (Overview)
 
-**Data Mapper** patterni — bu ma'lumotlar bazasi bilan barcha o'zaro aloqani domen obyektlaridan chiqarib, alohida, maxsus qatlamga ko'chiradigan arxitekturaviy ma'lumotlarga kirish patterni. Domen obyektlari ma'lumotlar bazasi mavjudligidan ham butunlay bexabar bo'lib qoladi.
+**Data Mapper** andozasi — bu ma'lumotlar bazasi bilan barcha o'zaro aloqani domen obyektlaridan chiqarib, alohida, maxsus qatlamga ko'chiradigan arxitekturaviy ma'lumotlarga kirish andozasi. Domen obyektlari ma'lumotlar bazasi mavjudligidan ham butunlay bexabar bo'lib qoladi.
 
 **Asosiy afzallik**: U vazifalarning qat'iy ajratilishini (separation of concerns) ta'minlaydi va asosiy biznes mantiqingiz SQL buyruqlari, ORM sintaksisi yoki ma'lumotlar bazasi sxemasining cheklovlari bilan ifloslanmasligini kafolatlaydi.
 
@@ -21,7 +21,7 @@ icon: GitGraph
 
 ## Muammo (The Problem)
 
-Active Record patternidan foydalanganingizda, ma'lumotlar bazasi sxemangiz obyekt dizayningizni belgilaydi.
+Active Record andozasidan foydalanganingizda, ma'lumotlar bazasi sxemangiz obyektlar loyihasini belgilaydi.
 
 ```typescript
 // ❌ Yomon: Domen obyekti ma'lumotlar bazasi sxemasiga bog'langan
@@ -46,7 +46,7 @@ Bu jiddiy cheklovlarni keltirib chiqaradi:
 
 ## Yechim (The Solution)
 
-Data Mapper patterni sof Domen obyekti va Ma'lumotlar bazasi o'rtasida turadigan vositachi klassni — Mapper'ni kiritadi.
+Data Mapper andozasi sof Domen obyekti va Ma'lumotlar bazasi o'rtasida turadigan vositachi klassni — Mapper'ni kiritadi.
 
 1. **Domen obyekti (Domain Object)**: Oddiy eski obyekt (POJO, POCO va h.k.). U biznes mantiqni o'z ichiga oladi, lekin ma'lumotlar bazasi mantiqini _o'z ichiga olmaydi_. U hech qanday freymvork bazaviy klasslarini kengaytirmaydi.
 2. **Data Mapper**: Domen obyektini olib, uning ma'lumotlarini ajratib chiqarish va kerakli SQL `INSERT/UPDATE` buyruqlarini generatsiya qilish uchun javobgar bo'lgan alohida klass. U shuningdek ma'lumotlar bazasiga so'rov yuborish va xom qatorlardan yangi Domen obyektlarini to'ldirish (hydrate) bilan ham shug'ullanadi.
@@ -627,7 +627,7 @@ fn main() {
 
 ### Kamchiliklari (Disadvantages)
 
-- **O'rganish qiyinligi (Steep Learning Curve)**: Arxitektura qatlamlarini, Dependency Injection'ni va holatni ehtiyotkorlik bilan kuzatishni tushunishni talab qiladi.
+- **O'rganish qiyinligi (Steep Learning Curve)**: Arxitektura qatlamlarini, bog'liqliklarni kiritishni (Dependency Injection) va holatni ehtiyotkorlik bilan kuzatishni tushunishni talab qiladi.
 - **Shablon kod (Boilerplate)**: Har bir entity uchun maxsus Mapper yaratish Active Record'ga qaraganda ancha ko'p kod yozishni talab qiladi.
 - **Ishlash tezligiga qo'shimcha yuk**: To'ldirish (ma'lumotlar bazasi qatorlarini obyektlarga xaritalash) oraliq ma'lumot tuzilmalari va refleksiyalarni (to'liq ORM'larda) yaratadi, bu esa xom SQL struct'larini qaytarishga nisbatan ko'p CPU va xotira sarflashi mumkin.
 
@@ -652,19 +652,19 @@ Mapper _faqat_ ma'lumotlarni u yoqdan-bu yoqqa tarjima qilishi kerak. Agar Mappe
 
 Boshqa obyektlar kolleksiyalarini o'z ichiga olgan obyektlarni xaritalashda (masalan, ko'plab OrderItem'larga ega Order), yomon yozilgan Mapper'lar to'ldirish paytida Order uchun bitta SQL so'rovini, keyin esa _har bir_ OrderItem uchun alohida SQL so'rovini bajaradi. To'liq ORM'lar buni "Eager Loading" (oldindan yuklash) bilan hal qiladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[Active Record](/uz/architectural/active-record)**: Falsafiy qarama-qarshisi. Domen obyekti va ma'lumotlar bazasi mantiqini bitta klassga birlashtiradi.
-- **[Repository](/uz/architectural/repository)**: Ko'pincha Data Mapper'larni o'rash uchun ishlatiladi. Mapper bitta entity'ni xaritalash bilan shug'ullansa, Repository kolleksiyaga o'xshash interfeysni (masalan, `repository.findAll()`) taqdim etish uchun Mapper'dan foydalanadi.
-- **[Unit of Work](/uz/architectural/unit-of-work)**: Og'ir Data Mapper ORM'larida (Hibernate/Entity Framework kabi) Unit of Work patterni siz xotiraga yuklagan barcha Domen obyektlarini kuzatadi, qaysilarini o'zgartirganingizni aniqlaydi va ularni bir vaqtda saqlash uchun Data Mapper'ga yuboradi.
+- **[Repozitoriy](/uz/architectural/repository)**: Ko'pincha Data Mapper'larni o'rash uchun ishlatiladi. Mapper bitta entity'ni xaritalash bilan shug'ullansa, Repozitoriy kolleksiyaga o'xshash interfeysni (masalan, `repository.findAll()`) taqdim etish uchun Mapper'dan foydalanadi.
+- **[Ish birligi](/uz/architectural/unit-of-work)**: Og'ir Data Mapper ORM'larida (Hibernate/Entity Framework kabi) Ish birligi andozasi siz xotiraga yuklagan barcha Domen obyektlarini kuzatadi, qaysilarini o'zgartirganingizni aniqlaydi va ularni bir vaqtda saqlash uchun Data Mapper'ga yuboradi.
 
 ## Intervyu savollari (Interview Insights)
 
 - **Savol**: "Agar men Data Mapper'dan foydalansam va Domen obyekti Mapper mavjudligini bilmasa, Mapper Domen obyekti yangilanganini qanday biladi?"
-  - **Javob**: "Ikki yo'li bor. 1) Mijoz kodi obyektni o'zgartirishni tugatgach, `mapper.update(domainObject)` ni qo'lda chaqiradi. 2) Ilg'or ORM'lar **Unit of Work** patternidan foydalanadi: u domen xususiyatlarini proksilarga o'raydi yoki ularning asl holatini kuzatadi va tranzaksiya oxirida o'zgargan obyektlarni avtomatik ravishda mapper'ga yuboradi."
+  - **Javob**: "Ikki yo'li bor. 1) Mijoz kodi obyektni o'zgartirishni tugatgach, `mapper.update(domainObject)` ni qo'lda chaqiradi. 2) Ilg'or ORM'lar **Ish birligi** (Unit of Work) andozasidan foydalanadi: u domen xususiyatlarini proksilarga o'raydi yoki ularning asl holatini kuzatadi va tranzaksiya oxirida o'zgargan obyektlarni avtomatik ravishda mapper'ga yuboradi."
 - **Savol**: "Data Mapper ma'lumotlar bazasi ishlash tezligini oshira oladimi?"
   - **Javob**: "O'z-o'zidan yo'q. Aslida, qatorlarni obyektlarga xaritalash CPU'ga qo'shimcha yuk qo'shadi. Biroq u ishlash tezligini yaxshilashga _imkon beradi_, chunki biznes mantiqning birorta qatorini ham o'zgartirmasdan asosiy saqlash strategiyasini butunlay almashtirishingiz mumkin (masalan, MySQL'dan Redis'ga o'tish)."
 
 ## Zamonaviy alternativalar (Modern Alternatives)
 
-- **Query Builder'lar bilan birlashtirilgan Repository patterni**: Og'ir qo'lda yozilgan Data Mapper'lar qurish yoki ulkan ORM'lardan (ular ko'pincha _haddan tashqari_ ko'p narsani abstraksiya qiladi) foydalanish o'rniga, zamonaviy backend dasturlashda ko'pincha yengil Repository'ga o'ralgan sof Query Builder'lar (Knex.js yoki Go'dagi sqlc kabi) ishlatiladi. Bu Repository xom qatorlarni to'g'ridan-to'g'ri Data Transfer Object'larga (DTO) xaritalaydi va "Holatga ega Domen obyekti"ni butunlay chetlab o'tadi.
+- **Query Builder'lar bilan birlashtirilgan Repozitoriy andozasi**: Og'ir qo'lda yozilgan Data Mapper'lar qurish yoki ulkan ORM'lardan (ular ko'pincha _haddan tashqari_ ko'p narsani abstraksiya qiladi) foydalanish o'rniga, zamonaviy backend dasturlashda ko'pincha yengil Repozitoriyga o'ralgan sof Query Builder'lar (Knex.js yoki Go'dagi sqlc kabi) ishlatiladi. Bu Repozitoriy xom qatorlarni to'g'ridan-to'g'ri Data Transfer Object'larga (DTO) xaritalaydi va "Holatga ega Domen obyekti"ni butunlay chetlab o'tadi.

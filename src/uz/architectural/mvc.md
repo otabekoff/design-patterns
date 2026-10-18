@@ -1,10 +1,10 @@
 ---
-title: Model-View-Controller (MVC)
-description: Ilova mantig'ini o'zaro bog'langan uchta komponentga ajratadigan, barcha arxitektura patternlarining "bobosi".
+title: MVC andozasi
+description: Ilova mantig'ini o'zaro bog'langan uchta komponentga ajratadigan, barcha arxitektura andozalarining "bobosi".
 icon: Layers
 ---
 
-# Model-View-Controller (MVC)
+# MVC andozasi
 
 <CoverImage src="/covers/architectural/mvc.webp" alt="Cover">
   <h1>MVC</h1>
@@ -13,7 +13,7 @@ icon: Layers
 
 ## Umumiy ko'rinish (Overview)
 
-**Model-View-Controller (MVC)** patterni dasturiy injiniringdagi eng mashhur arxitektura patterni desak mubolag'a bo'lmaydi. U 1970-yillarda ilk grafik foydalanuvchi interfeyslari (Smalltalk) uchun yaratilgan va o'shandan beri backend veb freymvorklari (Ruby on Rails, Spring Boot, ASP.NET MVC, Laravel) uchun hukmron arxitekturaga aylangan.
+**Model-View-Controller (MVC)** andozasini dasturiy injiniringdagi eng mashhur arxitektura andozasi desak mubolag'a bo'lmaydi. U 1970-yillarda ilk grafik foydalanuvchi interfeyslari (Smalltalk) uchun yaratilgan va o'shandan beri backend veb freymvorklari (Ruby on Rails, Spring Boot, ASP.NET MVC, Laravel) uchun hukmron arxitekturaga aylangan.
 
 U ilovani uchta alohida mas'uliyatga ajratadi:
 - **Model**: Ma'lumotlar, biznes qoidalari va ma'lumotlar bazasi bilan o'zaro ishlashni boshqaradi.
@@ -215,7 +215,7 @@ class UserController {
     
     private final UserService userService;
 
-    // Model/Servis'ning Dependency Injection'i
+    // Model/Servisni bog'liqlik sifatida kiritish (Dependency Injection)
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -378,7 +378,7 @@ func main() {
 - **Test qilinuvchanlik**: Model uchun unit testlarni Veb serverdan (Controller'dan) mustaqil ravishda yozishingiz mumkin.
 
 ### Kamchiliklari (Disadvantages)
-- **Semiz Controller'lar (Fat Controllers)**: Vaqt o'tishi bilan dasturchilar erinib, biznes mantig'ini Model o'rniga Controller ichiga yoza boshlashadi. Bu patternni buzadi.
+- **Semiz Controller'lar (Fat Controllers)**: Vaqt o'tishi bilan dasturchilar erinib, biznes mantig'ini Model o'rniga Controller ichiga yoza boshlashadi. Bu andozani buzadi.
 - **Kichik ilovalar uchun ortiqcha**: Agar siz shunchaki statik HTML sahifani taqdim etayotgan bo'lsangiz, uni MVC router va model qatlami orqali o'tkazishga majburlash ortiqcha.
 - **Zamonaviy frontend uchun emas**: MVC yuqori interaktiv, reaktiv veb ilovalar (masalan, chat ilovasi) uchun juda yomon. Frontend olami MVC dan voz kechib, MVVM/Komponent arxitekturalarini (React, Vue) tanladi.
 
@@ -400,7 +400,7 @@ Controller ichida xom SQL so'rovlar va murakkab validatsiya sikllarini yozish. *
 ### 2. View mantig'i (View Logic)
 HTML shablonlar ichiga `if/else` operatorlari va ma'lumotlarni qayta ishlashni joylashtirish. *Yechim: Controller ma'lumotlarni View'ga uzatishdan oldin ularni yakuniy, ko'rsatishga tayyor holatga keltirishi kerak.*
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[MVVM (Model-View-ViewModel)](/uz/architectural/mvvm)**: Zamonaviy Frontend freymvorklari ishlatadigan MVC ning rivojlangan shakli bo'lib, unda Controller o'rnini ikki tomonlama ma'lumotlarni bog'lash (two-way data binding) egallaydi.
 - **[MVP (Model-View-Presenter)](/uz/architectural/mvp)**: Asosan Android/Desktop ilovalarda ishlatiladi va to'liq passiv View'ga e'tibor qaratadi.

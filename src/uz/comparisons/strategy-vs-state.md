@@ -1,17 +1,17 @@
 ---
-title: Strategy va State
-description: Klass diagrammasi bir xil, maqsadi esa butunlay boshqa ikki pattern — xulqni kim tanlaydi va u o'z-o'zidan o'zgaradimi.
+title: Strategiya va Holat
+description: Klass diagrammasi bir xil, maqsadi esa butunlay boshqa ikki andoza — xulqni kim tanlaydi va u o'z-o'zidan o'zgaradimi.
 icon: GitCompare
 ---
 
-# Strategy va State
+# Strategiya va Holat
 
-[Strategy](/uz/behavioral/strategy) va [State](/uz/behavioral/state) — tuzilmasi bir xil, ammo maqsadi har xil bo'lgan patternlarning darslikdagi namunasi. Ikkalasida ham kontekst obyekti interfeysga havola saqlaydi va ishni hozir ulangan konkret implementatsiyaga topshiradi (delegatsiya qiladi). UML chizsangiz, ularni farqlay olmaysiz.
+[Strategiya](/uz/behavioral/strategy) (Strategy) va [Holat](/uz/behavioral/state) (State) — tuzilmasi bir xil, ammo maqsadi har xil bo'lgan andozalarning darslikdagi namunasi. Ikkalasida ham kontekst obyekti interfeysga havola saqlaydi va ishni hozir ulangan konkret implementatsiyaga topshiradi (delegatsiya qiladi). UML chizsangiz, ularni farqlay olmaysiz.
 
 Farq **delegatni kim va nima uchun almashtirishida**:
 
-- **Strategy** — algoritmni _mijoz_ tanlaydi. Strategiyalar bir xil ishni bajarishning mustaqil, almashtiriladigan usullari bo'lib, odatda bir-biri haqida bilmaydi.
-- **State** — ichki holati o'zgargani sari _obyektning o'zi_ xulqini o'zgartiradi. Holatlar o'tishlar haqida biladi va ko'pincha ularni o'zlari ishga tushiradi.
+- **Strategiya** — algoritmni _mijoz_ tanlaydi. Strategiyalar bir xil ishni bajarishning mustaqil, almashtiriladigan usullari bo'lib, odatda bir-biri haqida bilmaydi.
+- **Holat** — ichki holati o'zgargani sari _obyektning o'zi_ xulqini o'zgartiradi. Holatlar o'tishlar haqida biladi va ko'pincha ularni o'zlari ishga tushiradi.
 
 ## Umumiy tuzilma
 
@@ -32,11 +32,11 @@ classDiagram
     Behaviour <|.. ConcreteB
 ```
 
-Strelkalarni "Strategy" deb o'qisangiz, `delegate` ni mijoz o'rnatadi. "State" deb o'qisangiz, `ConcreteA` o'zini `ConcreteB` bilan almashtiradi.
+Strelkalarni "Strategiya" deb o'qisangiz, `delegate` ni mijoz o'rnatadi. "Holat" deb o'qisangiz, `ConcreteA` o'zini `ConcreteB` bilan almashtiradi.
 
 ## Yonma-yon taqqoslash
 
-| Jihat                           | Strategy                                                          | State                                                                       |
+| Jihat                           | Strategiya                                                        | Holat                                                                       |
 | ------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | **Maqsad (GoF)**                | Algoritmlar oilasini aniqlash va ularni almashtiriladigan qilish  | Ichki holati o'zgarganda obyektga xulqini o'zgartirishga imkon berish       |
 | **Obyektni kim tanlaydi**       | Tashqaridan — mijoz yoki konfiguratsiya                           | Ichkaridan — kontekst yoki joriy holat                                      |
@@ -51,7 +51,7 @@ Strelkalarni "Strategy" deb o'qisangiz, `delegate` ni mijoz o'rnatadi. "State" d
 
 ::: code-group
 
-```typescript [Strategy]
+```typescript [Strategiya]
 interface ShippingCost {
   calculate(weightKg: number): number;
 }
@@ -76,7 +76,7 @@ const checkout = new Checkout(standard);
 checkout.setShipping(express); // foydalanuvchi UI'da express'ni tanladi
 ```
 
-```typescript [State]
+```typescript [Holat]
 interface OrderState {
   pay(order: Order): void;
   ship(order: Order): void;
@@ -111,11 +111,11 @@ order.ship(); // Paid -> Shipped
 
 :::
 
-Ikki belgiga e'tibor bering. Strategy'da har bir implementatsiya bitta savolga turlicha javob beradi. State'da esa _bir xil_ chaqiruv (`ship()`) bir holatda ruxsat etilgan, boshqasida xato, va implementatsiyalarning o'zi kontekstni oldinga siljitadi.
+Ikki belgiga e'tibor bering. Strategiya andozasida har bir implementatsiya bitta savolga turlicha javob beradi. Holat andozasida esa _bir xil_ chaqiruv (`ship()`) bir holatda ruxsat etilgan, boshqasida xato, va implementatsiyalarning o'zi kontekstni oldinga siljitadi.
 
 ## O'tishlar qayerda yashaydi
 
-State'da o'tish mantig'iga kim egalik qilishini hal qilishingiz kerak:
+Holat andozasida o'tish mantig'iga kim egalik qilishini hal qilishingiz kerak:
 
 | Variant                                  | Murosa                                                                              |
 | ---------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -124,36 +124,36 @@ State'da o'tish mantig'iga kim egalik qilishini hal qilishingiz kerak:
 | O'tishlar jadvali / state machine kutubxonasi | Holat va hodisalar ko'p bo'lganda eng yaxshisi; graf ma'lumotga aylanadi.      |
 
 ::: tip Foydali test
-Agar implementatsiyalar orasida strelkalar bilan holat diagrammasini chiza olsangiz — bu State. Agar implementatsiyalar shunchaki ochiluvchi ro'yxatdagi variantlar bo'lib, ular orasida strelka bo'lmasa — bu Strategy.
+Agar implementatsiyalar orasida strelkalar bilan holat diagrammasini chiza olsangiz — bu Holat. Agar implementatsiyalar shunchaki ochiluvchi ro'yxatdagi variantlar bo'lib, ular orasida strelka bo'lmasa — bu Strategiya.
 :::
 
 ## Qaysi birini qachon tanlash kerak
 
-**Strategy'ni tanlang, agar:**
+**Strategiyani tanlang, agar:**
 
 - Variatsiya — chaqiruvchi, foydalanuvchi yoki konfiguratsiya tanlaydigan siyosat yoki algoritm bo'lsa.
 - Implementatsiyalar almashtiriladigan va holatsiz bo'lsa (yoki faqat o'z konfiguratsiyasini saqlasa).
 - Har bir algoritmni alohida unit test qilib, kontekstga inject qilmoqchi bo'lsangiz.
 - Ko'pincha oddiy funksiya turi (`(w: number) => number`) yetarli bo'ladi.
 
-**State'ni tanlang, agar:**
+**Holat andozasini tanlang, agar:**
 
 - Bir xil metod hayot sikli bosqichiga qarab turlicha ishlashi kerak bo'lsa.
 - Bir xil `switch (status)` bir nechta metodda takrorlanayotgan bo'lsa.
 - Har bir bosqichdagi ruxsat etilmagan amallar aniq ko'rsatilishi va majburiy bo'lishi kerak bo'lsa.
 - O'tishlar domenning bir qismi bo'lib, flaglar ichiga ko'milmasdan modellashtirilishga arzisa.
 
-::: warning Ikki holatli flaglarga State'ni majburlamang
-Ikki xil xulqqa ega `isOpen` boolean'i uchun uchta klass shart emas. State bir nechta holat, bir nechta hodisa va qaysi o'tishlar ruxsat etilganligi haqida real qoidalar bo'lganda o'zini oqlaydi.
+::: warning Ikki holatli flaglarga Holat andozasini majburlamang
+Ikki xil xulqqa ega `isOpen` boolean'i uchun uchta klass shart emas. Holat andozasi bir nechta holat, bir nechta hodisa va qaysi o'tishlar ruxsat etilganligi haqida real qoidalar bo'lganda o'zini oqlaydi.
 :::
 
 ## Ular yaxshi birlashadi
 
-Holat strategiyadan _foydalanishi_ mumkin: `Paid` buyurtma holati qaytarish (refund) summasini hisoblashni mijoz darajasiga qarab tanlangan `RefundPolicy` strategiyasiga topshirishi mumkin. Kontekstning hayot sikli (State) va bitta qadam uchun siyosat (Strategy) mustaqil o'qlar bo'yicha o'zgaradi.
+Holat strategiyadan _foydalanishi_ mumkin: `Paid` buyurtma holati qaytarish (refund) summasini hisoblashni mijoz darajasiga qarab tanlangan `RefundPolicy` strategiyasiga topshirishi mumkin. Kontekstning hayot sikli (Holat) va bitta qadam uchun siyosat (Strategiya) mustaqil o'qlar bo'yicha o'zgaradi.
 
 ## Tegishli sahifalar
 
-- [Strategy](/uz/behavioral/strategy)
-- [State](/uz/behavioral/state)
-- [Template Method](/uz/behavioral/template-method) — Strategy'ning merosga asoslangan muqobili
-- [Patternni tanlash](/uz/choosing-a-pattern)
+- [Strategiya](/uz/behavioral/strategy)
+- [Holat](/uz/behavioral/state)
+- [Shablon metod](/uz/behavioral/template-method) (Template Method) — Strategiyaning merosga asoslangan muqobili
+- [Andozani tanlash](/uz/choosing-a-pattern)

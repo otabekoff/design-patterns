@@ -1,21 +1,21 @@
 ---
-title: Scheduler Pattern (Rejalashtiruvchi)
-description: Vazifalarning bajarilish vaqtini va umumiy resurslarga kirishni muvofiqlashtiradigan hamda nazorat qiladigan arxitektura patterni.
+title: Rejalashtiruvchi andozasi (Scheduler)
+description: Vazifalarning bajarilish vaqtini va umumiy resurslarga kirishni muvofiqlashtiradigan hamda nazorat qiladigan arxitektura andozasi.
 icon: Clock
 ---
 
-# Scheduler Pattern (Rejalashtiruvchi)
+# Rejalashtiruvchi andozasi (Scheduler)
 
 <CoverImage src="/covers/architectural/scheduler.webp" alt="Cover">
-  <h1>Scheduler</h1>
+  <h1>Rejalashtiruvchi</h1>
   <p>Ulkan soat mexanizmi ustida o'tirgan, qo'lida nazorat ro'yxatini tutgan kichkina dirijyor robot; u tayoqchasi bilan turli ishchi robotlarni ko'rsatib, ularga aynan qachon ishga tushishni aytmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Scheduler (Rejalashtiruvchi)** patterni - tizim darajasidagi fundamental arxitektura patternidir. U kutilayotgan vazifalar to'plamini boshqaradi va ular ishchi oqimlar (threads) yoki jarayonlar tomonidan aynan **qachon** va **qanday tartibda** bajarilishi kerakligini aniqlaydi.
+**Rejalashtiruvchi (Scheduler)** andozasi - tizim darajasidagi fundamental arxitektura andozasidir. U kutilayotgan vazifalar to'plamini boshqaradi va ular ishchi oqimlar (threads) yoki jarayonlar tomonidan aynan **qachon** va **qanday tartibda** bajarilishi kerakligini aniqlaydi.
 
-*Producer-Consumer* patterni ma'lumotlar oqimini ajratishga e'tibor qaratsa, *Scheduler* patterni **Vaqt**, **Ustuvorlik (Priority)** va **Resurs cheklovlari**ga e'tibor qaratadi.
+*Ishlab chiqaruvchi–iste'molchi* andozasi ma'lumotlar oqimini ajratishga e'tibor qaratsa, *Rejalashtiruvchi* andozasi **Vaqt**, **Ustuvorlik (Priority)** va **Resurs cheklovlari**ga e'tibor qaratadi.
 
 Asosiy tushunchalar:
 - **Task (Vazifa)**: Bajarilishi kerak bo'lgan inkapsulyatsiya qilingan ish birligi.
@@ -43,7 +43,7 @@ Bu quyidagilarga olib keladi:
 
 ## Yechim (The Solution)
 
-Barcha vazifalarni **Scheduler** orqali yo'naltiring. Scheduler bajarilish oqimini nazorat qilish uchun siyosatlarni (FIFO, Round-Robin, ustuvorlikka asoslangan yoki Rate-Limiting kabi) qo'llaydi.
+Barcha vazifalarni **Rejalashtiruvchi** orqali yo'naltiring. Rejalashtiruvchi bajarilish oqimini nazorat qilish uchun siyosatlarni (FIFO, Round-Robin, ustuvorlikka asoslangan yoki Rate-Limiting kabi) qo'llaydi.
 
 ```mermaid
 flowchart TD
@@ -67,7 +67,7 @@ flowchart TD
 **Aeroport boshqaruv minorasi**ni tasavvur qiling.
 - **Vazifalar**: Qo'nishni xohlayotgan samolyotlar.
 - **Resurslar**: Uchish-qo'nish yo'laklari.
-- **Scheduler**: Havo harakati dispetcheri.
+- **Rejalashtiruvchi**: Havo harakati dispetcheri.
 
 Agar bir vaqtning o'zida 10 ta samolyot yetib kelsa, ularning barchasi darhol qo'na olmaydi. Dispetcher ularni kutish aylanasiga (Navbat) qo'yadi. Tartibni dispetcher belgilaydi: yoqilg'isi tugayotgan samolyot (Yuqori ustuvorlik) birinchi bo'lib qo'nadi, yuk samolyotlari (Past ustuvorlik) esa kutib turadi. Dispetcher yo'lakning hech qachon ortiqcha yuklanmasligini ta'minlaydi.
 
@@ -76,9 +76,9 @@ Agar bir vaqtning o'zida 10 ta samolyot yetib kelsa, ularning barchasi darhol qo
 Biz bir vaqtda ishlayotgan vazifalarning maksimal sonini cheklaydigan **Priority Scheduler** (ustuvorlikka asoslangan rejalashtiruvchi) ni amalga oshiramiz.
 
 1. **Task interfeysini aniqlang**: Unga noyob ID, ustuvorlik darajasi va bajarish funksiyasi kerak.
-2. **Scheduler holatini yarating**: Kutilayotgan vazifalar ro'yxati (ustuvorlik bo'yicha saralangan) va hozir ishlayotgan vazifalar hisoblagichi kerak.
+2. **Rejalashtiruvchi holatini yarating**: Kutilayotgan vazifalar ro'yxati (ustuvorlik bo'yicha saralangan) va hozir ishlayotgan vazifalar hisoblagichi kerak.
 3. **Dispatcher'ni amalga oshiring**: Parallellik chegarasidan oshmaganimizni tekshiradigan funksiya. Agar oshmagan bo'lsa, u eng yuqori ustuvorlikdagi vazifani olib, bajaradi.
-4. **Yakunlanishni qayta ishlang**: Vazifa tugagach, u Scheduler'ga xabar berishi kerak, shunda dispatcher keyingi vazifani ishga tushira oladi.
+4. **Yakunlanishni qayta ishlang**: Vazifa tugagach, u Rejalashtiruvchiga xabar berishi kerak, shunda dispatcher keyingi vazifani ishga tushira oladi.
 
 ## Kod misollari (Code Examples)
 
@@ -356,32 +356,32 @@ async fn main() {
 ### Afzalliklari (Advantages)
 - **Tizim barqarorligi**: Maksimal parallellikni cheklash orqali server trafik keskin oshishlari va OOM qulashlaridan himoyalanadi.
 - **Adolatlilik va ustuvorlik**: Muhim tizimlar (masalan, to'lovlarni qayta ishlash) muhim bo'lmagan tizimlardan (masalan, analitika loglarini yuborish) oldinga o'ta oladi.
-- **Resurslardan samarali foydalanish**: Scheduler'lar bilan birlashtirilgan thread pool'lar oqimlarni doimiy yaratish va yo'q qilishdagi katta OT (OS) xarajatlaridan qochadi.
+- **Resurslardan samarali foydalanish**: Rejalashtiruvchilar bilan birlashtirilgan thread pool'lar oqimlarni doimiy yaratish va yo'q qilishdagi katta OT (OS) xarajatlaridan qochadi.
 
 ### Kamchiliklari (Disadvantages)
-- **Murakkablik**: Maxsus, thread-safe, ustuvorlikka asoslangan scheduler yozish juda qiyinligi bilan mashhur va race condition'larga moyil.
-- **Yagona tor joy (Single Point of Bottleneck)**: Scheduler'ning o'zi har bir vazifani baholaydi. Agar scheduler algoritmi sekin bo'lsa, butun ilova to'xtab qoladi.
+- **Murakkablik**: Maxsus, thread-safe, ustuvorlikka asoslangan rejalashtiruvchi yozish juda qiyinligi bilan mashhur va race condition'larga moyil.
+- **Yagona tor joy (Single Point of Bottleneck)**: Rejalashtiruvchining o'zi har bir vazifani baholaydi. Agar rejalashtiruvchi algoritmi sekin bo'lsa, butun ilova to'xtab qoladi.
 - **Ochlik (Starvation)**: Agar tizim doimiy ravishda Yuqori ustuvorlikdagi vazifalarni qabul qilsa, Past ustuvorlikdagi vazifalar navbatda abadiy qolib, hech qachon bajarilmaydi.
 
 ## Qachon foydalanish kerak (When to Use)
 
 - **Operatsion tizimlar va kompilyatorlar**: OT oqimlarini boshqarish va CPU ajratishning markazida.
-- **Fon vazifalarini qayta ishlash (Background Job Processing)**: Celery, Sidekiq yoki BullMQ kabi tizimlar taqsimlangan scheduler'lardir.
-- **Rate Limiting**: Soniyasiga atigi 5 ta so'rovga ruxsat beradigan uchinchi tomon API'larini chaqirganda, chiquvchi so'rovlaringizni cheklash uchun scheduler ishlatishingiz shart.
-- **Ma'lumotlar bazasi ulanishlar pul'i (Connection Pooling)**: Connection pool - bu bir vaqtning o'zida ma'lumotlar bazasiga nechta so'rov yuborilishini cheklaydigan scheduler'dir.
+- **Fon vazifalarini qayta ishlash (Background Job Processing)**: Celery, Sidekiq yoki BullMQ kabi tizimlar taqsimlangan rejalashtiruvchilardir.
+- **Rate Limiting**: Soniyasiga atigi 5 ta so'rovga ruxsat beradigan uchinchi tomon API'larini chaqirganda, chiquvchi so'rovlaringizni cheklash uchun rejalashtiruvchi ishlatishingiz shart.
+- **Ma'lumotlar bazasi ulanishlar havzasi (Connection Pooling)**: Connection pool - bu bir vaqtning o'zida ma'lumotlar bazasiga nechta so'rov yuborilishini cheklaydigan rejalashtiruvchidir.
 
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
-- **Oddiy ilovalar**: Agar ilovangiz tabiiy ravishda past yuklamani ko'tarsa, scheduler qo'shish erta optimallashtirish (premature optimization) hisoblanadi.
-- **Freymvorklar buni taqdim etganda**: Java/Go/Rust da hech qachon o'z thread pool scheduler'ingizni yozmang. `ExecutorService`, `goroutines` yoki `Tokio` dan foydalaning. Maxsus scheduler mantig'ini faqat juda o'ziga xos biznes ustuvorlik qoidalari kerak bo'lganda yozing.
+- **Oddiy ilovalar**: Agar ilovangiz tabiiy ravishda past yuklamani ko'tarsa, rejalashtiruvchi qo'shish erta optimallashtirish (premature optimization) hisoblanadi.
+- **Freymvorklar buni taqdim etganda**: Java/Go/Rust da hech qachon o'z thread pool rejalashtiruvchingizni yozmang. `ExecutorService`, `goroutines` yoki `Tokio` dan foydalaning. Maxsus rejalashtiruvchi mantig'ini faqat juda o'ziga xos biznes ustuvorlik qoidalari kerak bo'lganda yozing.
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
 - **Ochlikni (Starvation) hisobga olmaslik**: "Aging" (navbatda juda uzoq kutib qolgan vazifalarning ustuvorligini asta-sekin oshirish) ni amalga oshirmaslik, natijada past ustuvorlikdagi vazifalar tashlab qo'yiladi.
-- **Scheduler oqimini bloklash**: Agar vazifa ishchi oqimda emas, balki dispatcher oqimi*ning o'zida* sinxron bajarilsa, butun tizim qotib qoladi.
+- **Rejalashtiruvchi oqimini bloklash**: Agar vazifa ishchi oqimda emas, balki dispatcher oqimi*ning o'zida* sinxron bajarilsa, butun tizim qotib qoladi.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Producer-Consumer](/uz/architectural/producer-consumer)**: Scheduler - bu Producer-Consumer ning ilg'or varianti bo'lib, unda navbat ustuvorlik bo'yicha saralanadi va bajarilish qat'iy nazorat qilinadi.
-- **Thread Pool**: Scheduler vazifalarni bajarish uchun foydalanadigan asosiy mexanizm.
-- **[Command Pattern](/uz/behavioral/command)**: Scheduler navbatiga qo'yiladigan vazifalar odatda Command obyektlari bo'ladi.
+- **[Ishlab chiqaruvchi–iste'molchi](/uz/architectural/producer-consumer)**: Rejalashtiruvchi - bu Ishlab chiqaruvchi–iste'molchi andozasining ilg'or varianti bo'lib, unda navbat ustuvorlik bo'yicha saralanadi va bajarilish qat'iy nazorat qilinadi.
+- **Thread Pool**: Rejalashtiruvchi vazifalarni bajarish uchun foydalanadigan asosiy mexanizm.
+- **[Buyruq andozasi](/uz/behavioral/command)**: Rejalashtiruvchi navbatiga qo'yiladigan vazifalar odatda Command obyektlari bo'ladi.

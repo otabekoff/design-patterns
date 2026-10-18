@@ -1,34 +1,34 @@
 ---
-title: Flyweight Pattern
+title: Yengilvazn andozasi (Flyweight)
 description: Ko'p sonli o'xshash obyektlarni minimal xotira sarfi bilan samarali qo'llab-quvvatlash uchun umumiy ulashishdan (sharing) foydalanadi.
 icon: Minimize2
 ---
 
-# Flyweight Pattern
+# Yengilvazn andozasi (Flyweight)
 
 <CoverImage src="/covers/structural/flyweight.webp" alt="Cover">
-  <h1>Flyweight</h1>
+  <h1>Yengilvazn</h1>
   <p>Mingta mitti nurli svetlyachok-robotlar to'dasi — ularning har biri alohida og'ir batareyaga ega bo'lish o'rniga, ingichka nurli chiziqlar orqali markazdagi yagona ulkan batareya blokini baham ko'rmoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Flyweight** — bu obyektlarning umumiy holatini ko'plab nusxalar o'rtasida baham ko'rish orqali xotira sarfini kamaytiruvchi strukturaviy (structural) dizayn patternidir. Hamma narsani har bir obyektda saqlash o'rniga, Flyweight holatni quyidagilarga ajratadi:
+**Yengilvazn (Flyweight)** — bu obyektlarning umumiy holatini ko'plab nusxalar o'rtasida baham ko'rish orqali xotira sarfini kamaytiruvchi tuzilmaviy (structural) loyihalash andozasidir. Hamma narsani har bir obyektda saqlash o'rniga, Yengilvazn holatni quyidagilarga ajratadi:
 
 - **Ichki holat (Intrinsic state)**: umumiy, barqaror, qayta ishlatiladigan ma'lumotlar
 - **Tashqi holat (Extrinsic state)**: kerak bo'lganda uzatiladigan, kontekstga xos ma'lumotlar
 
 **Asosiy afzalligi**: Qimmat, takrorlanuvchi qismni baham ko'rish orqali o'xshash obyektlarning ulkan to'plamlarini amalda qo'llash mumkin qiladi.
 
-**Zamonaviy nuqtai nazar**: Flyweight grafik dvigatellarda, matn renderingida, o'yinlarda va katta hajmli UI tizimlarida hali ham muhim. Ko'plab o'xshash obyektlar yaratadigan har qanday ish yuklamasi umumiy o'zgarmas (immutable) holatdan foyda ko'radi.
+**Zamonaviy nuqtai nazar**: Yengilvazn grafik dvigatellarda, matn renderingida, o'yinlarda va katta hajmli UI tizimlarida hali ham muhim. Ko'plab o'xshash obyektlar yaratadigan har qanday ish yuklamasi umumiy o'zgarmas (immutable) holatdan foyda ko'radi.
 
-Flyweight kirishni nazorat qilish haqida emas. U ma'lumotlarni samarali baham ko'rish haqida.
+Yengilvazn kirishni nazorat qilish haqida emas. U ma'lumotlarni samarali baham ko'rish haqida.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Shrift gliflari kutubxonasini** tasavvur qiling. Muayyan shrift va o'lchamdagi `A` harfining shakli umumiy. Bu glifdan foydalanadigan har bir joyga shaklning yangi nusxasi kerak emas. Faqat uning joylashuvi, rangi va qator konteksti o'zgaradi.
 
-Amaldagi Flyweight shunday: bitta umumiy shakl, ko'plab joylashuvlar.
+Amaldagi Yengilvazn shunday: bitta umumiy shakl, ko'plab joylashuvlar.
 
 ## Tuzilma (Structure)
 
@@ -94,12 +94,12 @@ Agar minglab zarrachalar bir xil tekstura va o'lchamlarga ega bo'lsa, bu takrorl
 
 ## Yechim (The Solution)
 
-Flyweight bu muammoni quyidagicha hal qiladi:
+Yengilvazn bu muammoni quyidagicha hal qiladi:
 
 1. Obyekt holatining umumiy qismini aniqlaydi
-2. Bu umumiy holatni o'zgarmas flyweight obyektlarida saqlaydi
-3. O'zgaruvchan kontekstni flyweight'dan tashqarida saqlaydi
-4. Flyweight'larni factory yoki kesh orqali qayta ishlatadi
+2. Bu umumiy holatni o'zgarmas yengilvazn obyektlarda saqlaydi
+3. O'zgaruvchan kontekstni yengilvazn obyektdan tashqarida saqlaydi
+4. Yengilvazn obyektlarni fabrika yoki kesh orqali qayta ishlatadi
 5. Chizish yoki qayta ishlash paytida tashqi holatni uzatadi
 
 ## Amalga oshirish (Implementation)
@@ -536,7 +536,7 @@ fn main() {
 
 ## Haqiqiy hayotdagi misol (Real-World Example)
 
-Sprite tizimi Flyweight uchun juda mos, chunki ko'plab nusxalar bir xil tekstura metama'lumotlarini baham ko'radi, lekin joylashuvi, rang tusi (tint) yoki tezligi bilan farq qiladi. Umumiy sprite ma'lumotlari factory'da qoladi, zarracha yoki obyekt (entity) esa faqat kontekstni saqlaydi.
+Sprite tizimi Yengilvazn uchun juda mos, chunki ko'plab nusxalar bir xil tekstura metama'lumotlarini baham ko'radi, lekin joylashuvi, rang tusi (tint) yoki tezligi bilan farq qiladi. Umumiy sprite ma'lumotlari fabrikada qoladi, zarracha yoki obyekt (entity) esa faqat kontekstni saqlaydi.
 
 Bu katta sahnalarni xotira jihatidan ancha samarali qiladi.
 
@@ -573,7 +573,7 @@ system.emit("spark.png", 32, 32, {
 
 - Holatni ikki qismga ajratish orqali murakkablik qo'shadi
 - Ortiqcha ishlatilsa, API'larni noqulayroq qiladi
-- Factory yoki kesh qatlamini talab qiladi
+- Fabrika yoki kesh qatlamini talab qiladi
 - Tashqi holat katta bo'lganda noqulay bo'lishi mumkin
 - Umumiy holatni debug qilish qo'shimcha ehtiyotkorlik talab qiladi
 
@@ -595,7 +595,7 @@ system.emit("spark.png", 32, 32, {
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1-xato: Tashqi holatni flyweight ichiga joylash
+### 1-xato: Tashqi holatni yengilvazn obyekt ichiga joylash
 
 ```typescript
 // ❌ Yomon: har bir sprite x va y ni saqlaydi
@@ -609,7 +609,7 @@ class BadSprite {
 // ✅ Yaxshi: pozitsiya umumiy obyektda emas, kontekstda bo'ladi
 ```
 
-### 2-xato: Flyweight'larni qayta ishlatmaslik
+### 2-xato: Yengilvazn obyektlarni qayta ishlatmaslik
 
 ```typescript
 // ❌ Yomon: har doim yangi sprite yaratish
@@ -618,7 +618,7 @@ const sprite = new Sprite("spark.png", 32, 32);
 // ✅ Yaxshi: umumiy nusxalarni factory'dan so'rang
 ```
 
-### 3-xato: Flyweight'larni o'zgaruvchan (mutable) qilish
+### 3-xato: Yengilvazn obyektlarni o'zgaruvchan (mutable) qilish
 
 ```typescript
 // ❌ Yomon: umumiy holat buzilishi mumkin
@@ -626,22 +626,22 @@ class BadFlyweight {
   setTexture(texture: string) {}
 }
 
-// ✅ Yaxshi: flyweight'larni o'zgarmas saqlang
+// ✅ Yaxshi: yengilvazn obyektlarni o'zgarmas saqlang
 ```
 
-### 4-xato: Obyektlar takrorlanmaydigan holatda Flyweight'dan foydalanish
+### 4-xato: Obyektlar takrorlanmaydigan holatda Yengilvazndan foydalanish
 
 ```typescript
 // ❌ Yomon: har bir obyekt noyob bo'lganda ulashishni qo'llash
 // ✅ Yaxshi: uni ko'p takrorlanadigan shakllar uchun saqlang
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Factory Method](/uz/creational/factory-method)**: Ko'pincha flyweight'larni yaratish yoki olish uchun ishlatiladi
-- **[Singleton](/uz/creational/singleton)**: Flyweight factory'lari ba'zan singleton bo'ladi
-- **[Composite](/uz/structural/composite)**: Flyweight'larni daraxtsimon tuzilmalarda saqlashi mumkin
-- **[Proxy](/uz/structural/proxy)**: O'ramga o'xshash shaklga ega, lekin maqsadi boshqa
+- **[Fabrika metodi](/uz/creational/factory-method)**: Ko'pincha yengilvazn obyektlarni yaratish yoki olish uchun ishlatiladi
+- **[Singleton](/uz/creational/singleton)**: Yengilvazn fabrikalari ba'zan singleton bo'ladi
+- **[Kompozit](/uz/structural/composite)**: Yengilvazn obyektlarni daraxtsimon tuzilmalarda saqlashi mumkin
+- **[O'rinbosar](/uz/structural/proxy)**: O'ramga o'xshash shaklga ega, lekin maqsadi boshqa
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -649,11 +649,11 @@ class BadFlyweight {
 - Dvigatel darajasidagi resurs keshlari
 - Grafik tizimlardagi GPU instancing
 - Takrorlanishlardan tozalangan matn/glif buferlari
-- Unumdorlikka sezgir tizimlardagi arena allocator'lar yoki obyektlar pullari (object pool)
+- Unumdorlikka sezgir tizimlardagi arena allocator'lar yoki obyektlar havzalari (object pool)
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Flyweight'ning asosiy g'oyasi nima?**
+**1-savol: Yengilvaznning asosiy g'oyasi nima?**
 
 J: Ichki holatni ko'plab o'xshash obyektlar o'rtasida baham ko'rish va tashqi holatni obyektdan tashqarida saqlash.
 
@@ -661,14 +661,14 @@ J: Ichki holatni ko'plab o'xshash obyektlar o'rtasida baham ko'rish va tashqi ho
 
 J: Ichki holat umumiy va barqaror. Tashqi holat har bir foydalanishda o'zgaradi va kontekst sifatida uzatiladi.
 
-**3-savol: Flyweight qachon o'z murakkabligiga arziydi?**
+**3-savol: Yengilvazn qachon o'z murakkabligiga arziydi?**
 
 J: Ko'plab takrorlanuvchi obyektlar bo'lganda va xotira bosimi sezilarli bo'lganda.
 
-**4-savol: Nega flyweight'lar o'zgarmas bo'lishi kerak?**
+**4-savol: Nega yengilvazn obyektlar o'zgarmas bo'lishi kerak?**
 
 J: Chunki ular baham ko'riladi. Agar bitta chaqiruvchi ularni o'zgartirsa, boshqa barcha chaqiruvchilar ham bu o'zgarishni ko'radi.
 
-**5-savol: Flyweight Object Pool'dan nimasi bilan farq qiladi?**
+**5-savol: Yengilvazn Obyektlar havzasi (Object Pool) andozasidan nimasi bilan farq qiladi?**
 
-J: Object Pool butun obyektlarni hayot sikli va unumdorlik sabablari uchun qayta ishlatadi. Flyweight esa holatning barqaror qismini ko'plab mantiqiy obyektlar o'rtasida baham ko'radi.
+J: Obyektlar havzasi butun obyektlarni hayot sikli va unumdorlik sabablari uchun qayta ishlatadi. Yengilvazn esa holatning barqaror qismini ko'plab mantiqiy obyektlar o'rtasida baham ko'radi.

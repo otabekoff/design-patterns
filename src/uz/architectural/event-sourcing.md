@@ -1,10 +1,10 @@
 ---
-title: Event Sourcing
+title: Event Sourcing andozasi
 description: Entity holatini o'zgarmas, faqat qo'shib boriladigan (append-only) holatni o'zgartiruvchi hodisalar ketma-ketligi sifatida saqlaydi.
 icon: Zap
 ---
 
-# Event Sourcing
+# Event Sourcing andozasi
 
 <CoverImage src="/covers/architectural/event-sourcing.webp" alt="Cover">
   <h1>Event Sourcing</h1>
@@ -84,7 +84,7 @@ Sizning "joriy balansingiz" shunchaki daftardagi barcha tranzaksiyalarni qo'shib
 1. **Domen hodisalarini ta'riflang**: O'tmishda sodir bo'lgan narsalarni ifodalovchi o'zgarmas klasslar yarating (ular o'tgan zamonda nomlanishi shart).
 2. **Agregat ildizini (Aggregate Root) yarating**: Buyruqlarni qabul qiladigan, ularni joriy holatiga nisbatan tekshiradigan va yangi hodisalarni chiqaradigan asosiy entity.
 3. **Apply metodlarini amalga oshiring**: Hodisa qayta o'ynatilganda Agregat o'z ichki holatini o'zgartiradigan metodlarga ega bo'lishi kerak.
-4. **Repository'ni amalga oshiring**: Event Store'dan hodisalarni oladigan, bo'sh Agregat yaratadigan va holatni qayta tiklash uchun hodisalarni unga uzatadigan klass.
+4. **Repozitoriyni amalga oshiring**: Event Store'dan hodisalarni oladigan, bo'sh Agregat yaratadigan va holatni qayta tiklash uchun hodisalarni unga uzatadigan klass.
 
 ## Kod misollari (Code Examples)
 
@@ -566,8 +566,8 @@ fn main() {
 - **`apply` metodiga yon ta'sirlarni (side effects) joylashtirish**: `apply` metodlari har safar hodisa qayta o'ynatilganda ishga tushadi. Agar `apply` metodingiz email yuborsa, agregatni ma'lumotlar bazasidan har safar qayta qurganingizda 10 000 ta email yuboradi! _Yechim: `apply` faqat xotirani o'zgartirishi kerak. Yon ta'sirlar Event Handler'larga tegishli._
 - **Hodisa ichida holatni saqlash**: Hodisa faqat deltani (nima o'zgarganini) o'z ichiga olishi kerak. Butun entity holatini hodisa ma'lumotlari (payload) ichida saqlamang.
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
 - **[CQRS (Command Query Responsibility Segregation)](/uz/architectural/cqrs)**: Tezkor o'qish imkonini berish uchun deyarli har doim Event Sourcing bilan birga ishlatiladi.
-- **Snapshot patterni**: Agregat holatini vaqti-vaqti bilan saqlash uchun ishlatiladi, shunda 50 000 ta emas, faqat oxirgi 50 ta hodisani qayta o'ynatish kifoya qiladi.
-- **[Observer patterni](/uz/behavioral/observer)**: Hodisalarni Event Store'dan o'qish proyeksiyalariga nashr qilish uchun ishlatiladigan asosiy mexanizm.
+- **Snapshot andozasi**: Agregat holatini vaqti-vaqti bilan saqlash uchun ishlatiladi, shunda 50 000 ta emas, faqat oxirgi 50 ta hodisani qayta o'ynatish kifoya qiladi.
+- **[Kuzatuvchi andozasi](/uz/behavioral/observer)**: Hodisalarni Event Store'dan o'qish proyeksiyalariga nashr qilish uchun ishlatiladigan asosiy mexanizm.

@@ -1,31 +1,31 @@
 ---
-title: Proxy Pattern
+title: O'rinbosar andozasi (Proxy)
 description: Boshqa obyektga kirishni nazorat qilish uchun uning o'rinbosari yoki vakilini taqdim etadi.
 icon: Shield
 ---
 
-# Proxy Pattern
+# O'rinbosar andozasi (Proxy)
 
 <CoverImage src="/covers/structural/proxy.webp" alt="Cover">
-  <h1>Proxy</h1>
+  <h1>O'rinbosar</h1>
   <p>Quyosh ko'zoynagi va smoking kiygan ulkan, qo'rqinchli qo'riqchi-robot darvozani to'sib turibdi va mitti, hayajonlangan robotning hujjatlarini tekshirib, shundan keyingina uni ortidagi asosiy superkompyuter bilan gaplashishga qo'yib yubormoqda.</p>
 </CoverImage>
 
 ## Umumiy ko'rinish (Overview)
 
-**Proxy** — bu boshqa obyekt uchun o'rinbosar obyekt taqdim etuvchi strukturaviy (structural) dizayn patternidir, shunda unga kirishni nazorat qilish, kechiktirish, kuzatish yoki o'zgartirish mumkin bo'ladi. Proxy haqiqiy obyekt bilan bir xil interfeysni amalga oshiradi, lekin uning atrofiga qo'shimcha qatlam qo'shadi.
+**O'rinbosar (Proxy)** — bu boshqa obyekt uchun vakil obyekt taqdim etuvchi tuzilmaviy (structural) loyihalash andozasidir, shunda unga kirishni nazorat qilish, kechiktirish, kuzatish yoki o'zgartirish mumkin bo'ladi. O'rinbosar haqiqiy obyekt bilan bir xil interfeysni amalga oshiradi, lekin uning atrofiga qo'shimcha qatlam qo'shadi.
 
 **Asosiy afzalligi**: Qimmat yoki maxfiy obyektlarni ulardan foydalanadigan mijoz kodini o'zgartirmasdan boshqarish imkonini beradi.
 
-**Zamonaviy nuqtai nazar**: Proxy masofaviy servislarda, kechiktirib yuklanadigan (lazy-loaded) resurslarda, avtorizatsiya darvozalarida, keshlash qatlamlarida va SDK o'ramlarida hali ham keng tarqalgan. Bu infratuzilma kodi uchun eng amaliy patternlardan biri.
+**Zamonaviy nuqtai nazar**: O'rinbosar masofaviy servislarda, kechiktirib yuklanadigan (lazy-loaded) resurslarda, avtorizatsiya darvozalarida, keshlash qatlamlarida va SDK o'ramlarida hali ham keng tarqalgan. Bu infratuzilma kodi uchun eng amaliy andozalardan biri.
 
-Proxy interfeys tarjimasi haqida emas, kirishni nazorat qilish haqida.
+O'rinbosar interfeys tarjimasi haqida emas, kirishni nazorat qilish haqida.
 
 ## Hayotiy o'xshatish (Real-World Analogy)
 
 **Maxfiy arxivdagi qo'riqchini** tasavvur qiling. Tashrif buyuruvchilar to'g'ridan-to'g'ri omborxonaga kirmaydi. Qo'riqchi ruxsatlarni tekshiradi, eshikni ochish-ochmaslikni hal qiladi va shundan keyingina tashrif buyuruvchiga arxivni ko'rishga ruxsat beradi.
 
-Qo'riqchi — proxy. Arxiv — haqiqiy obyekt.
+Qo'riqchi — o'rinbosar. Arxiv — haqiqiy obyekt.
 
 ## Tuzilma (Structure)
 
@@ -59,10 +59,10 @@ classDiagram
     ProtectedDocumentProxy o-- RealDocument : lazily creates
 ```
 
-- **`DocumentSource`** (Subject) — haqiqiy obyekt va proxy uchun umumiy interfeys.
+- **`DocumentSource`** (Subject) — haqiqiy obyekt va o'rinbosar uchun umumiy interfeys.
 - **`RealDocument`** (Real Subject) kontentni diskdan yuklashdek qimmat ishni bajaradi.
 - **`ProtectedDocumentProxy`** (Proxy) kirishni tekshiradi, haqiqiy hujjatni faqat birinchi foydalanishda yaratadi, so'ngra ishni unga topshiradi.
-- **`Client`** `DocumentSource` bilan ishlaydi va o'zida proxy yoki haqiqiy obyekt borligini farqlay olmaydi.
+- **`Client`** `DocumentSource` bilan ishlaydi va o'zida o'rinbosar yoki haqiqiy obyekt borligini farqlay olmaydi.
 
 ## Muammo (The Problem)
 
@@ -90,12 +90,12 @@ Bu siyosat (policy) va yuklash vazifalarini har bir chaqiruvchiga tarqatib yubor
 
 ## Yechim (The Solution)
 
-Proxy haqiqiy obyekt oldiga nazorat qilinadigan obyektni joylashtirish orqali bu muammoni hal qiladi.
+O'rinbosar haqiqiy obyekt oldiga nazorat qilinadigan obyektni joylashtirish orqali bu muammoni hal qiladi.
 
 1. Umumiy interfeysni aniqlang
 2. Haqiqiy obyektni alohida amalga oshiring
-3. Haqiqiy obyektni kechiktirib (lazy) saqlaydigan proxy'ni amalga oshiring
-4. Avtorizatsiya, keshlash, loglash yoki masofaviy kirish mantig'ini proxy'ga joylang
+3. Haqiqiy obyektni kechiktirib (lazy) saqlaydigan o'rinbosarni amalga oshiring
+4. Avtorizatsiya, keshlash, loglash yoki masofaviy kirish mantig'ini o'rinbosarga joylang
 5. Mijozni bu farqdan bexabar qoldiring
 
 ## Amalga oshirish (Implementation)
@@ -532,7 +532,7 @@ impl DocumentSource for ProtectedDocumentProxy {
 
 ## Haqiqiy hayotdagi misol (Real-World Example)
 
-Hujjatlar platformasidagi amaliy proxy maxfiy fayllarga kirishni himoya qilib, ularni faqat kerak bo'lganda yuklashi mumkin. Mijoz shunchaki hujjat manbasini so'raydi; proxy ruxsatlarni tekshiradi va haqiqiy hujjatni kechiktirib ishga tushiradi.
+Hujjatlar platformasidagi amaliy o'rinbosar maxfiy fayllarga kirishni himoya qilib, ularni faqat kerak bo'lganda yuklashi mumkin. Mijoz shunchaki hujjat manbasini so'raydi; o'rinbosar ruxsatlarni tekshiradi va haqiqiy hujjatni kechiktirib ishga tushiradi.
 
 ```typescript
 const doc = new ProtectedDocumentProxy(
@@ -559,7 +559,7 @@ Bu haqiqiy obyekt qimmat, masofaviy yoki maxfiy bo'lganda foydali.
 
 - Yana bir bilvosita (indirection) qatlam qo'shadi
 - Xatti-harakatni yashirib, debug qilishni qiyinlashtirishi mumkin
-- Umumiy (shared) proxy'lar uchun ehtiyotkorlik bilan sinxronlashni talab qiladi
+- Umumiy (shared) o'rinbosarlar uchun ehtiyotkorlik bilan sinxronlashni talab qiladi
 - Juda ko'p vazifalarni bajarsa, murakkab bo'lib qolishi mumkin
 - Arzon obyektlar uchun qo'shimcha o'ram kodi keraksiz
 
@@ -574,24 +574,24 @@ Bu haqiqiy obyekt qimmat, masofaviy yoki maxfiy bo'lganda foydali.
 ## Qachon foydalanmaslik kerak (When NOT to Use)
 
 - Obyekt yengil va doimo kerak
-- Proxy juda ko'p biznes mantig'ini takrorlab qo'yadi
+- O'rinbosar juda ko'p biznes mantig'ini takrorlab qo'yadi
 - Soddalik kirishni nazorat qilishdan muhimroq
 - Qo'shimcha bilvositalik o'qilishni yomonlashtiradi
-- Proxy va haqiqiy obyekt bir-biridan juda uzoqlashib ketadi
+- O'rinbosar va haqiqiy obyekt bir-biridan juda uzoqlashib ketadi
 
 ## Keng tarqalgan xatolar (Common Mistakes)
 
-### 1-xato: Biznes mantig'ini proxy'ga joylash
+### 1-xato: Biznes mantig'ini o'rinbosarga joylash
 
 ```typescript
-// ❌ Yomon: domen qoidalari proxy'ga tegishli
+// ❌ Yomon: domen qoidalari o'rinbosarga tegishli
 class BadProxy {
   getContent() {
     // narxlash, formatlash va siyosat shu yerda
   }
 }
 
-// ✅ Yaxshi: proxy kirishni nazorat qiladi, xatti-harakat haqiqiy obyektga tegishli
+// ✅ Yaxshi: o'rinbosar kirishni nazorat qiladi, xatti-harakat haqiqiy obyektga tegishli
 ```
 
 ### 2-xato: Qimmat obyektlarni oldindan (eager) yuklash
@@ -606,27 +606,27 @@ const doc = new RealDocument("big.pdf");
 ### 3-xato: Haqiqiy obyektga to'g'ridan-to'g'ri kirishni sizdirish
 
 ```typescript
-// ❌ Yomon: mijozlar proxy'ni chetlab o'tadi
+// ❌ Yomon: mijozlar o'rinbosarni chetlab o'tadi
 class BadProxy {
   getRealDocument() {}
 }
 
-// ✅ Yaxshi: proxy'ni chegara sifatida saqlang
+// ✅ Yaxshi: o'rinbosarni chegara sifatida saqlang
 ```
 
-### 4-xato: Proxy'ni Decorator kabi qo'llash
+### 4-xato: O'rinbosarni Dekorator kabi qo'llash
 
 ```typescript
 // ❌ Yomon: kirishni nazorat qilish maqsadisiz xatti-harakat qo'shish
-// ✅ Yaxshi: asosiy maqsad kirishni nazorat qilish bo'lsa, Proxy'dan foydalaning
+// ✅ Yaxshi: asosiy maqsad kirishni nazorat qilish bo'lsa, O'rinbosardan foydalaning
 ```
 
-## Aloqador patternlar (Related Patterns)
+## Aloqador andozalar (Related Patterns)
 
-- **[Decorator](/uz/structural/decorator)**: Mas'uliyatlar qo'shadi; Proxy esa kirishni nazorat qiladi
+- **[Dekorator](/uz/structural/decorator)**: Mas'uliyatlar qo'shadi; O'rinbosar esa kirishni nazorat qiladi
 - **[Adapter](/uz/structural/adapter)**: Bir interfeysni boshqasiga aylantiradi
-- **[Facade](/uz/structural/facade)**: Kirishni to'sish o'rniga quyi tizimni soddalashtiradi
-- **[Singleton](/uz/creational/singleton)**: Ba'zan bitta proxy nusxasini baham ko'rish uchun ishlatiladi, lekin bu shart emas
+- **[Fasad](/uz/structural/facade)**: Kirishni to'sish o'rniga quyi tizimni soddalashtiradi
+- **[Singleton](/uz/creational/singleton)**: Ba'zan bitta o'rinbosar nusxasini baham ko'rish uchun ishlatiladi, lekin bu shart emas
 
 ## Zamonaviy muqobillar (Modern Alternatives)
 
@@ -638,22 +638,22 @@ class BadProxy {
 
 ## Intervyu uchun maslahatlar (Interview Insights)
 
-**1-savol: Proxy'ning asosiy maqsadi nima?**
+**1-savol: O'rinbosarning asosiy maqsadi nima?**
 
 J: Xuddi shu interfeysni amalga oshiruvchi o'rinbosar orqali boshqa obyektga kirishni nazorat qilish.
 
-**2-savol: Proxy Decorator'dan nimasi bilan farq qiladi?**
+**2-savol: O'rinbosar Dekoratordan nimasi bilan farq qiladi?**
 
-J: Proxy kirishni nazorat qilish, kechiktirib yuklash yoki masofaviy kirish haqida. Decorator esa xatti-harakat qo'shish haqida.
+J: O'rinbosar kirishni nazorat qilish, kechiktirib yuklash yoki masofaviy kirish haqida. Dekorator esa xatti-harakat qo'shish haqida.
 
-**3-savol: Nega kechiktirib yuklash Proxy'ning keng tarqalgan qo'llanilishi hisoblanadi?**
+**3-savol: Nega kechiktirib yuklash O'rinbosarning keng tarqalgan qo'llanilishi hisoblanadi?**
 
 J: U qimmat obyektni yaratishni obyekt haqiqatan kerak bo'lgunga qadar kechiktiradi, bu esa ishga tushish xarajatini va xotira sarfini yaxshilaydi.
 
-**4-savol: Proxy'ni xavfsizlik uchun ishlatish mumkinmi?**
+**4-savol: O'rinbosarni xavfsizlik uchun ishlatish mumkinmi?**
 
-J: Ha. Himoya proxy'lari (protection proxies) avtorizatsiya tekshiruvlarini markazlashtirishning standart usuli.
+J: Ha. Himoyaviy o'rinbosarlar (protection proxies) avtorizatsiya tekshiruvlarini markazlashtirishning standart usuli.
 
-**5-savol: Proxy'dagi eng katta xavf nima?**
+**5-savol: O'rinbosardagi eng katta xavf nima?**
 
 J: Uni qo'shimcha vazifalar bilan shu qadar ortiqcha yuklash-ki, oxir-oqibat u haqida mulohaza yuritish haqiqiy obyektning o'zidan ham qiyinroq bo'lib qoladi.

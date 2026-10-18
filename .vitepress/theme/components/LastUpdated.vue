@@ -8,8 +8,10 @@ const { theme, page, lang } = useData()
 
 const UZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr']
 
-const date = computed(() => new Date(page.value.lastUpdated!))
-const isoDatetime = computed(() => date.value.toISOString())
+// The footer only renders this when the page has a timestamp, but the pre-flush watcher below can still
+// run once during navigation to a page without one; Intl throws on an invalid date, so guard it
+const date = computed(() => (page.value.lastUpdated ? new Date(page.value.lastUpdated) : null))
+const isoDatetime = computed(() => date.value?.toISOString() ?? '')
 const datetime = ref('')
 
 // "18-oktabr, 2026-yil, 08:26"
@@ -21,6 +23,7 @@ function formatUz(d: Date) {
 // Formatted after mount to avoid a hydration mismatch between server and reader time zones
 onMounted(() => {
   watchEffect(() => {
+    if (!date.value) return
     datetime.value = lang.value.startsWith('uz')
       ? formatUz(date.value)
       : new Intl.DateTimeFormat(

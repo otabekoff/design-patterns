@@ -158,6 +158,15 @@ export default defineConfig({
   },
   vite: {
     publicDir: path.resolve(__dirname, '../../public'),
+    resolve: {
+      // Uzbek-aware "Last updated" date (see the component for why)
+      alias: [
+        {
+          find: /^.*\/VPDocFooterLastUpdated\.vue$/,
+          replacement: path.resolve(__dirname, '../theme/components/LastUpdated.vue')
+        }
+      ]
+    },
     plugins: [
       groupIconVitePlugin({
         customIcon: {
